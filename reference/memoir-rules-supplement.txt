@@ -12,6 +12,28 @@ OVERRIDES OF READ-ONLY REFERENCE FILES
 These entries correct or extend the read-only files in the skill's
 references/ folder. Where a conflict exists, THIS file wins.
 
+JOURNAL_DIR PATH MAPPING — OVERRIDES SKILL.md's flat structure
+  SKILL.md assumes all files are at JOURNAL_DIR root. The actual repo uses
+  subdirectories. This mapping is authoritative:
+    Chapter files:    JOURNAL_DIR/chapters/  (ch00-intro.txt, ch01-man.txt, etc.)
+    Reference files:  JOURNAL_DIR/reference/ (memoir-rules-supplement.txt,
+                      voice-deep-analysis.md, locked-paragraphs.md,
+                      quotes-library.txt, incident-bank.md, temporal-guardrail.md)
+    Snapshots:        JOURNAL_DIR/chapters/snapshots/
+    Scratchpads:      JOURNAL_DIR/ (root level)
+  Delta script calls:
+    CHECK:  python <SKILL_DIR>/scripts/auto_delta.py <JOURNAL_DIR>/chapters
+    SAVE:   python <SKILL_DIR>/scripts/auto_delta.py <JOURNAL_DIR>/chapters --save
+  Session start protocol paths (override Section 1):
+    1. JOURNAL_DIR/reference/memoir-rules-supplement.txt
+    2. JOURNAL_DIR/reference/voice-deep-analysis.md
+    3. SKILL_DIR/references/voice-fingerprint.md
+    4. SKILL_DIR/references/craft-techniques.md
+    5. SKILL_DIR/references/thematic-arc.md
+    6. SKILL_DIR/references/biographical-context.md + supplement's Bio Context section
+    7. JOURNAL_DIR/reference/locked-paragraphs.md
+    8. JOURNAL_DIR/reference/quotes-library.txt
+
 DELTA PROTECTION — OVERRIDES SKILL.md's original "reproduce character-for-character"
   The rebuilt SKILL.md (v2) already contains the correct delta protection rules.
   If an older SKILL.md is loaded, this override applies:
