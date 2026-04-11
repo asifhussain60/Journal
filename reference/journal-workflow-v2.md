@@ -81,7 +81,7 @@ direction (1-2 sentences), the skill:
   7. Writes the FULL chapter into scratchpad/scratch-{name}.txt:
      - Holistic write following the arc: experience → ownership → wisdom
      - Three-phase balance: Experiences ~50-60%, Learnings ~20-30%,
-       Dad's Advice ~15-20%
+       Babu's Advice ~15-20%
      - ALL of Asif's existing sentences kept intact
      - Language refined: tighter phrasing, stronger words, better
        articulation
@@ -201,7 +201,7 @@ Severity:
   C11. Three-phase balance: ~50-60% / ~20-30% / ~15-20%. [MAJOR]
   C12. Phase transitions: organic, not mechanical. [ADVISORY]
   C13. Narrative Constant: no victim framing, no accusation. [CRITICAL]
-  C14. Dad's Advice: advises younger self, not lectures about parents.
+  C14. Babu's Advice: advises younger self, not lectures about parents.
        Only references events/people from same chapter's narrative. [CRITICAL]
 
 ### LOOP 3 — CRAFT & PACING
@@ -236,7 +236,7 @@ Severity:
   C32. Thematic echo style: if a theme/image recurs across chapters, the
        style, register, or angle MUST be completely different. Flag same
        phrasing, structure, or approach. [CRITICAL]
-  C33. Dad's Advice originality: flag verbatim narrative phrasing in Dad's
+  C33. Babu's Advice originality: flag verbatim narrative phrasing in Babu's
        section. Must offer different lens/elevation. [MAJOR]
   C34. Repetition balance: intentional craft (triads, callbacks, parallel
        structure) is allowed. Accidental/clumsy repetition flagged. If Asif
@@ -244,13 +244,13 @@ Severity:
 
 ### LOOP 6 — REFLECTION & QUOTE INTEGRITY
   C35. Reflections: first person ("I") only. Split between realization
-       bridges and Dad's Advice setup bridges. [CRITICAL]
+       bridges and Babu's Advice setup bridges. [CRITICAL]
   C36. Reflections modifiable into voice DNA. Quotes A/B immutable. [CRITICAL]
   C37. Sacred quotes exact. Invisible quotes paraphrased, meaning intact. [CRITICAL]
 
 ### LOOP 7 — CROSS-CHAPTER CONTINUITY
   C38. Character consistency: master-context.md tracker. No new characters
-       in Dad's Advice not in narrative. Atif count enforced. [MAJOR]
+       in Babu's Advice not in narrative. Atif count enforced. [MAJOR]
   C39. Incident bank reconciliation: every tagged incident placed or
        explicitly deferred. Flag orphans. [MAJOR]
   C40. Thread depth: recurring themes must deepen, not repeat. [MAJOR]

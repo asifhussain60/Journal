@@ -4,7 +4,7 @@
 # Only Asif can unlock by editing (creating a new delta).
 # Format: chapter | first 100 characters
 
-ch00-intro.txt | What I Wish Dad Taught Me
+ch00-intro.txt | What I Wish Babu Taught Me
 ch00-intro.txt | Kids,
 ch00-intro.txt | I want you to know how this started, because it did not start with a plan or a purpose. It started
 ch00-intro.txt | Not because my father was a bad man. He was not. And not because this is a complaint against him. It
@@ -24,7 +24,7 @@ ch00-intro.txt | My father never had this conversation with me. I wish he had. I
 ch00-intro.txt | Maybe you will not listen now. Maybe you will read this and think your old man is being dramatic. Bu
 ch00-intro.txt | Your Baba
 
-ch01-man.txt | Dad, what does it mean to be a man?
+ch01-man.txt | Babu, what does it mean to be a man?
 ch01-man.txt | I grew up in Kuwait, in a middle-class, highly conservative and religious family where boys were sur
 ch01-man.txt | What confused me most about Baba was the gap between the man he was with others and the man he was w
 ch01-man.txt | I can't remember a time when Baba sat me down and explained what manhood truly meant. Looking back, 
@@ -206,7 +206,7 @@ ch02-love.txt | And know this: you spent so much of your life looking for love t
 ch02-love.txt | So remember this, Asif: you grew up understanding what love costs. You learned that long before anyo
 ch02-love.txt | In the end, love is not what people say around you, demand from you, or claim in your name. Love is 
 
-ch03-marriage.txt | Dad, Tell Me What Marriage Really Is
+ch03-marriage.txt | Babu, Tell Me What Marriage Really Is
 ch03-marriage.txt | By the time marriage was put in front of me, sex was already a broken subject in my mind. Not becaus
 ch03-marriage.txt | I was a little older when the bus stop incident happened in Kuwait. It was quiet, almost empty. An o
 ch03-marriage.txt | I think the earlier years explain more than I want them to. By then I already knew what it meant to 

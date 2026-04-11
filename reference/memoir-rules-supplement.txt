@@ -15,7 +15,26 @@ SKILL.md Section 0 (Narrative Constant) remains in force — it is
 unchanged and foundational.
 
 At session start, read journal-workflow-v2.md FIRST, then follow
-its Session Start Protocol. Do NOT follow SKILL.md's session start.
+its Session Start Protocol. Do NOT follow SKILL.md's session start. The memoir is now "What I Wish Babu Taught Me."
+
+============================================================
+NOMENCLATURE OVERRIDE: "Dad" → "Babu"
+============================================================
+
+Asif calls his father "Babu" throughout the memoir. ALL read-only
+skill files (SKILL.md, thematic-arc.md, craft-techniques.md,
+voice-fingerprint.md, chapter-status.md, quotes-workflow.md) still
+contain "Dad" because they are read-only. Wherever those files say
+"Dad," read it as "Babu." Specifically:
+
+  - Memoir title: "What I Wish Babu Taught Me"
+  - Chapter opening titles: "Babu, Tell Me..." / "Babu, what does..."
+  - "Dad's Advice" sections → "Babu's Advice"
+  - "DAD'S ADVICE" → "BABU'S ADVICE"
+  - "the Dad memoir" → "the Babu memoir"
+
+This override applies globally. The writable reference files and
+chapter files have already been updated.
 
 ============================================================
 OVERRIDES OF READ-ONLY REFERENCE FILES
@@ -68,8 +87,8 @@ TRANSLATION RULE — OVERRIDES translations-glossary.md
 REFLECTIONS WEAVING — OVERRIDES quotes-workflow.md placement rules
   Category C reflections (REFLECT-001 onward) are Asif's OWN interior voice.
   They must be woven contextually as bridges, not dropped as standalone blocks.
-  They serve as bridges into Dad's Advice — narrator arriving at a realization
-  that naturally sets up what Dad would say.
+  They serve as bridges into Babu's Advice — narrator arriving at a realization
+  that naturally sets up what Babu would say.
   Sacred quotes within reflections CANNOT be modified.
 
 ============================================================
@@ -137,13 +156,13 @@ Ch02-love.txt is the GOLD STANDARD for all memoir chapters. Asif
 designated it as the benchmark. Every chapter must be measured
 against Ch02 before finalization on these dimensions:
   1. Scene density (15+ concrete incidents relative to length)
-  2. Three-phase balance (~55% experiences, ~25% learnings, ~20% Dad's)
+  2. Three-phase balance (~55% experiences, ~25% learnings, ~20% Babu's)
   3. Humor execution (all 6 patterns, 2-3 per 1,000 words, never at peaks)
   4. Emotional arc (damage → search → discovery → wisdom, felt not announced)
   5. Voice authenticity (pain flat, interiority through questions, tenderness via specificity)
   6. Transitions (all 6 bridge patterns used naturally)
   7. Character complexity (parents given backstory, not vilified)
-  8. Dad's Advice quality (unique opening, 7+ topics, callbacks, landing ending)
+  8. Babu's Advice quality (unique opening, 7+ topics, callbacks, landing ending)
   9. Opening/closing (scene-grounded hook, callback ending)
   10. Quote weaving (invisible, respectful, no lecture tone)
 
