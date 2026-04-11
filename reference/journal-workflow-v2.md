@@ -92,8 +92,12 @@ direction (1-2 sentences), the skill:
      - Sections divided by narrative beats:
        === SECTION N: Title ===
   8. Git-commits the scratchpad: "scratch-{name}: initial draft"
-  9. Reports in chat: section count, readiness score, any incident
-     suggestions. NEVER dumps text into chat.
+  9. OPENS BOTH FILES for Asif to review:
+     - Present scratchpad file: scratchpad/scratch-{name}.txt
+     - Present chapter file: chapters/ch{NN}-{name}.txt (if exists)
+     Use computer:// links so Asif can click to open them directly.
+  10. Reports in chat: section count, readiness score, any incident
+      suggestions. NEVER dumps text into chat.
 
 For NEW chapters (no existing file): assemble from incident bank,
 biographical context, thematic arc, and Asif's brief direction.
@@ -113,8 +117,9 @@ After EVERY edit:
   1. Apply the change directly in the scratchpad file
   2. Run the Challenger on the modified section
   3. Git-commit with descriptive message
-  4. Report in chat: what changed + any Challenger flags
-  5. Do NOT dump section text into chat — Asif reads the file
+  4. OPEN the updated scratchpad file for Asif using computer:// link
+  5. Report in chat: what changed + any Challenger flags
+  6. Do NOT dump section text into chat — Asif reads the file
 
 When Asif provides new content:
   - His words are DELTA-PROTECTED (content-locked)
@@ -147,7 +152,9 @@ Once ALL sections reviewed and approved:
 When Challenger approves:
   1. Strip section headers from scratchpad
   2. Write clean content to chapters/ch{NN}-{name}.txt
-  3. Lock new/modified paragraphs in locked-paragraphs.md
+  3. OPEN the finalized chapter file for Asif using computer:// link:
+     chapters/ch{NN}-{name}.txt
+  4. Lock new/modified paragraphs in locked-paragraphs.md
   4. Update quotes-library.txt usage markers
   5. Update incident-bank.md placement status
   6. Update temporal-guardrail.md if timeline affected
@@ -289,6 +296,11 @@ SECTION 6: OUTPUT RULES
 - Commas after introductory adverbial phrases.
 - Scratchpad: === SECTION N: Title === headers (stripped on finalization).
 - NEVER dump chapter text into chat.
+- ALWAYS present file links after ANY update to scratchpad or chapter:
+  [View scratchpad](computer:///sessions/.../mnt/journal/scratchpad/scratch-{name}.txt)
+  [View chapter](computer:///sessions/.../mnt/journal/chapters/ch{NN}-{name}.txt)
+  This is how Asif reads the work — he clicks the link and opens the
+  file directly. Without these links, he cannot see what changed.
 - Chat is for: section counts, readiness scores, Challenger findings,
   confirming changes, receiving feedback by section number.
 
