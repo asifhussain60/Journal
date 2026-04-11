@@ -27,8 +27,8 @@ Status: MOVED from ch01 to ch02, after starvation mechanics paragraph, before "B
 ---
 
 [INC-004] Chapter: Love | Theme: friendship as love, trusting yourself, Ishrat as liberator
-Raw memory: Met Stephanie at CKO kickboxing during weight loss. Shared sun breeze oil, bonded over CPAP (she's a respiratory therapist). Became workout partners. Noticed her kind face, soft-spoken nature, protective strength, powerful punches. Internal alarms: what if I mess this up, fall into old patterns? Asked Ishrat, who encouraged the friendship. Contrast: mother/ex would have possessed and stopped him; Ishrat freed him. Stephanie became a major supporter through walls and divorce. Her power punches made sense later (her own struggles — her story to tell).
-Status: to be placed in ch02, inside weight loss section (after line 154)
+Raw memory: Met Stephanie at CKO kickboxing during weight loss. Shared sun breeze oil, bonded over CPAP (she's a respiratory therapist). Became workout partners. Noticed her kind face, soft-spoken nature, protective strength, powerful punches. Internal alarms: what if I mess this up, fall into old patterns? Asked Ishrat, who encouraged the friendship. Contrast: mother/ex would have possessed and stopped him; Ishrat freed him. Stephanie became a steady presence through the painful marriage and divorce — not with solutions or judgment, just there. Ishrat remained the anchor who held the center while everything spun. Stephanie walked beside him, Ishrat carried him. Her power punches made sense later (her own struggles — her story to tell).
+Status: placed in ch02, Section 13 (scratchpad lines 218-228) — updated April 11, 2026
 
 ---
 

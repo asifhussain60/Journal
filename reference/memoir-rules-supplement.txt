@@ -19,7 +19,7 @@ JOURNAL_DIR PATH MAPPING — OVERRIDES SKILL.md's flat structure
     Reference files:  JOURNAL_DIR/reference/ (memoir-rules-supplement.txt,
                       voice-deep-analysis.md, locked-paragraphs.md,
                       quotes-library.txt, incident-bank.md, temporal-guardrail.md)
-    Snapshots:        JOURNAL_DIR/chapters/snapshots/
+    Snapshots:        JOURNAL_DIR/chapters/snapshots/ (ONLY location — root /snapshots/ deleted April 11, 2026)
     Scratchpads:      JOURNAL_DIR/ (root level)
   Delta script calls:
     CHECK:  python <SKILL_DIR>/scripts/auto_delta.py <JOURNAL_DIR>/chapters
@@ -146,12 +146,20 @@ Balance through deeper content in undersized chapters, not compression.
 The Intro is exempt.
 
 ============================================================
-CHALLENGER GATE (added April 11, 2026)
+CHALLENGER GATE (added April 11, 2026; refined April 11, 2026)
 ============================================================
-The journal-challenger skill is now a mandatory approval gate between
-Phase 3 (Multi-Loop Quality) and Phase 4 (Finalization) of the journal
-workflow. No chapter can be finalized until the challenger issues an
-APPROVED verdict.
+The Challenger is NOT just a final gate. It runs at TWO levels:
+
+BLOCK-LEVEL CHALLENGER (after each block review):
+  After Asif approves a block during interactive review (Phase 2),
+  the Challenger audits that block against all applicable checks before
+  moving to the next block. This catches issues early.
+
+FULL-CHAPTER CHALLENGER (before finalization):
+  After all blocks are approved, a full end-to-end Challenger pass runs
+  across the entire chapter (seam check, bridges, emotional arc, flow
+  continuity, voice integrity, all 46 checks). No chapter can be
+  finalized until this issues an APPROVED verdict.
 
 The challenger runs 46 checks across 7 domains:
   A — Interactive Chapter Workflow (11 checks)
@@ -171,4 +179,41 @@ The challenger loops iteratively (up to 5 iterations) until APPROVED.
 Verdict reports saved to: challenger-report-[chapter-name].txt
 
 To invoke manually: "run the challenger" or "challenge ch02"
-Automatic invocation: happens at Phase 3.5 in the journal workflow.
+Automatic invocation: after each block approval + at Phase 3.5.
+
+============================================================
+BLOCK-BY-BLOCK WORKFLOW (confirmed April 11, 2026)
+============================================================
+The definitive interactive review process:
+  1. Session start — read all reference files, run delta detection
+  2. Phase 1 — Rebuild full chapter in scratchpad with numbered sections
+  3. Break scratchpad into 3-4 blocks (grouped by narrative beats)
+  4. Present Block 1 for review
+  5. Asif reviews, gives feedback, Claude iterates in-place
+  6. Challenger audits Block 1 after Asif approves
+  7. Repeat steps 4-6 for Block 2, Block 3, etc.
+  8. Full end-to-end seam check (bridges, flow, emotional arc, voice)
+  9. Full-chapter Challenger gate (46 checks, all 7 domains)
+  10. Finalization — scratchpad → chapter file, lock paragraphs, update
+      all reference files, save snapshot, delete scratchpad
+
+CRITICAL: The scratchpad is the ONLY working surface. NOTHING moves
+to the chapter file until ALL blocks are approved and the final
+Challenger gate passes. No partial finalization between blocks.
+
+============================================================
+REFLECTIONS VOICE RULES (confirmed April 11, 2026)
+============================================================
+Category C reflections (REFLECT-001 onward) are Asif's interior voice:
+  - ALWAYS first person ("I"), never second person ("you")
+  - Split into two roles:
+    (a) REALIZATION BRIDGES — woven within narrative scenes, the moment
+        insight arrives inside the experience
+    (b) DAD'S ADVICE SETUP BRIDGES — narrator arriving at a truth that
+        naturally leads into what the father-voice would say
+  - Reflections CAN be modified, restated, and molded into Asif's voice
+    DNA. They are reference material, not sacred text.
+  - Quotes library (Categories A and B) CANNOT be modified.
+    Sacred quotes: reproduced exactly.
+    Invisible-weaving quotes: paraphrased into Asif's voice but source
+    meaning stays intact.
