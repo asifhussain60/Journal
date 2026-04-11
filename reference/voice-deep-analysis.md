@@ -10,7 +10,7 @@ Setup is serious. Punchline arrives as a calm observation, never flagged as humo
 - "She took me to a therapist, presumably to fix me, the way you take a clock to a repairman because the ticking annoys you." (ch02)
 - "Not exactly a medically approved strategy, but emotionally, it made perfect sense." (ch02)
 - "I was every woman's dream. Not the romantic kind, obviously. More like a salvage operation with a pulse." (ch03)
-- "Reverse those roles, and you would likely complain by lunchtime." (ch01 Dad's advice)
+- "Reverse those roles, and you would likely complain by lunchtime." (ch01 Babu's advice)
 
 ### Pattern B — Absurd Comparison (Elevated Language for Trivial Things)
 - "The point was not to understand the material. The point was to become a photocopier with anxiety." (ch02)
@@ -39,7 +39,7 @@ Setup is serious. Punchline arrives as a calm observation, never flagged as humo
 ### HUMOR RULES (Extracted, Not Imposed)
 - Humor NEVER appears inside emotional peaks (pillow/ceiling, caning, therapist verdict)
 - Maximum 2-3 humor beats per 1,000 words in narrative
-- Dad's advice uses humor sparingly — 1 per section maximum
+- Babu's advice uses humor sparingly — 1 per section maximum
 - The funniest lines are also the most insightful (humor = compressed wisdom)
 
 ## 2. SENTENCE OPENERS (Actual Frequency from Deltas)
@@ -86,7 +86,7 @@ Setup is serious. Punchline arrives as a calm observation, never flagged as humo
 
 ## 4. CONTRACTION USAGE (Contextual)
 
-- **Formal (no contractions)**: Deep reflection, emotional weight, Dad's advice
+- **Formal (no contractions)**: Deep reflection, emotional weight, Babu's advice
 - **Casual (contractions)**: Recall, self-deprecation, humor beats
 - **Rule**: When uncertain, default to formal. Contracts when relaxed, un-contracts when serious.
 
@@ -129,7 +129,7 @@ Setup is serious. Punchline arrives as a calm observation, never flagged as humo
 5. Antithesis: "I rebelled. He submitted."
 6. Catalog of images: "The two locked doors. The red sofa. The cane."
 
-## 9. DAD'S ADVICE REGISTER (Distinct from Narrative)
+## 9. BABU'S ADVICE REGISTER (Distinct from Narrative)
 
 - Second person ("Asif, you were created male...")
 - More formal, slightly elevated diction
@@ -180,7 +180,7 @@ Ch02 is the designated gold standard. Key voice benchmarks from Ch02:
 - Humor density: ~2.5 per 1,000 words (photocopier with anxiety, divine customer support, Fat Cat equation, clock/repairman, male hobby with female consequences, chocolate milk brand, moral heroism)
 - Emotional peak handling: pillow/ceiling scene uses NO humor, short paragraphs, flat delivery of pain. Caning scene uses interior thought ("Do your best, I think I said in my head") instead of external reaction
 - Transition density: 20+ bridge uses across the chapter, no two consecutive scenes joined the same way
-- Dad's Advice register: opens "Asif, love is not noise" (unique, not generic). Covers 7 topics. Ends with image, not lesson: "love is what the people closest to you feel in your presence"
+- Babu's Advice register: opens "Asif, love is not noise" (unique, not generic). Covers 7 topics. Ends with image, not lesson: "love is what the people closest to you feel in your presence"
 - Mother's backstory paragraph (poverty, stroke, intelligence) is the template for parental complexity: factual, empathetic, not excusing
 - Closing callback structure: "you grew up understanding what love costs" mirrors opening "I grew up understanding what it cost"
 

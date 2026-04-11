@@ -53,11 +53,11 @@ Last updated: April 11, 2026
   - Ishrat's influence (mentioned at chapter's end)
   - The cousin (not yet introduced)
   - Pillow/ceiling memory (implied but not told)
-- **Dad's Advice topics covered:** What manhood actually is vs. what authority pretends to be / God's design for masculine strength as protection, not domination / the Prophet's teaching on controlling anger as ultimate strength / women as amanah (trust) / the damage caused by using religion, status, or money as weapons / taking responsibility without excuse / discipline as freedom from appetite / character over volume / the private life nobody applauds / breaking the cycle in your own heart first / knowing the distance between the man you are with others and the man you are at home
+- **Babu's Advice topics covered:** What manhood actually is vs. what authority pretends to be / God's design for masculine strength as protection, not domination / the Prophet's teaching on controlling anger as ultimate strength / women as amanah (trust) / the damage caused by using religion, status, or money as weapons / taking responsibility without excuse / discipline as freedom from appetite / character over volume / the private life nobody applauds / breaking the cycle in your own heart first / knowing the distance between the man you are with others and the man you are at home
 - **Quotes used:** 
   - QUOTE-013 ("Failure is not the opposite of growth. It is the soil of it.")—placed in Man narrative's reflective passage about the curriculum of pain
   - QUOTE-014 ("A person's tears can be mercy, not a weapon.")—placed in Man narrative's Ishrat section
-  - QUOTE-016 ("No one can break you unless you hand them the permission.")—placed in Man Dad's advice endurance section
+  - QUOTE-016 ("No one can break you unless you hand them the permission.")—placed in Man Babu's advice endurance section
   - Attributed references: Ali (AS, peace be upon him) on freedom; Prophet (peace be upon him) on the strongest man controlling himself when angry; Quranic language on women and affection/mercy
 - **Narrative voice notes:** First-person, reflective. Asif moving between observation ("What confused me most..."), judgment ("I do not want to be the kind of man he was"), and later understanding ("I see that clearly now"). The tone shifts from bitter to pitiful to introspective. By the end of the chapter, there's recognition rather than contempt—a father can be broken without being evil.
 
@@ -106,19 +106,19 @@ Last updated: April 11, 2026
   - Bus stop incident (mentioned in Marriage chapter, not detailed here)
   - Rooftop incident (mentioned in Marriage chapter, not detailed here)
   - Engagement accusation (happens in Marriage, briefly referenced as echo of not being believed)
-- **Dad's Advice topics covered:** Love and respect your mother / what love actually is vs. what the household taught as control / honor parents without surrendering your mind / forgiveness and justice together / loyalty without competition / sincerity with friends / becoming safe for a wife before demanding anything / love as work, not feeling / the difference between love and hunger / remorse vs. shame / expectations and the misery they cause / patience in two kinds / treating the empty void as the engine, not the flaw / love as given, not chased / the pilot memory (screaming, not abandoned, carried through not spared) / what was withheld as preparation / the larger truth (it's in giving love, not receiving it) / build a house where a boy doesn't have to brace
+- **Babu's Advice topics covered:** Love and respect your mother / what love actually is vs. what the household taught as control / honor parents without surrendering your mind / forgiveness and justice together / loyalty without competition / sincerity with friends / becoming safe for a wife before demanding anything / love as work, not feeling / the difference between love and hunger / remorse vs. shame / expectations and the misery they cause / patience in two kinds / treating the empty void as the engine, not the flaw / love as given, not chased / the pilot memory (screaming, not abandoned, carried through not spared) / what was withheld as preparation / the larger truth (it's in giving love, not receiving it) / build a house where a boy doesn't have to brace
 - **Quotes used:**
   - QUOTE-004 ("A person who feels full does not go searching. A person who feels rich does not beg.")—woven into childhood starvation passage
   - QUOTE-005 ("Real devotion does not harden a person. It softens them.")—woven into faith transformation passage
   - QUOTE-006 ("God tests the people He loves most, not to destroy them, but because hardship is how He shapes what needs shaping")—woven into reflective passage after pillow/ceiling memory
   - QUOTE-007 ("The mind keeps returning to what the heart has never been able to let go of")—woven into emotional grammar passage about recurring memories
-  - QUOTE-010 ("Love gives. Hunger takes.")—woven into Dad's advice new paragraph on love vs. hunger
-  - QUOTE-016 ("If there is one sure way to make yourself miserable, it is expecting people to be what they were never built to be.")—woven into Dad's advice on expectations
+  - QUOTE-010 ("Love gives. Hunger takes.")—woven into Babu's advice new paragraph on love vs. hunger
+  - QUOTE-016 ("If there is one sure way to make yourself miserable, it is expecting people to be what they were never built to be.")—woven into Babu's advice on expectations
   - QUOTE-018 ("Nothing worth having had come to me without a fight. Every good thing in my life had required walking through something painful first.")—woven into Ishrat weight loss passage
   - QUOTE-026 ("Allah's mercy encompasses all things")—woven into faith transformation passage
-  - QUOTE-028 ("Best to their families")—expanded hadith attribution in Dad's advice
+  - QUOTE-028 ("Best to their families")—expanded hadith attribution in Babu's advice
   - Attributed references: Ali (AS) on patience in two kinds; Prophet on best of you are best to families; Quranic promises on hardship and ease (twice); Quranic parental guidance (full ayah about mercy and humility, not blind submission); Islamic concepts of ABD and mercy
-- **Narrative voice notes:** First-person, deeply introspective. Heavy use of past-to-present revelation ("I did not understand then, but now I see"). The tone moves from describing pain without understanding it to analyzing patterns. Honest about damage inflicted and received. The voice softens when speaking of Ishrat, Javeed Bhai, Afifa and Annu Khalas—these are the moments of real tenderness. Dad's Advice is written as he wishes his father had spoken: gently, without pretense, recognizing that the broken inherit broken blueprints.
+- **Narrative voice notes:** First-person, deeply introspective. Heavy use of past-to-present revelation ("I did not understand then, but now I see"). The tone moves from describing pain without understanding it to analyzing patterns. Honest about damage inflicted and received. The voice softens when speaking of Ishrat, Javeed Bhai, Afifa and Annu Khalas—these are the moments of real tenderness. Babu's Advice is written as he wishes his father had spoken: gently, without pretense, recognizing that the broken inherit broken blueprints.
 
 ---
 
@@ -156,7 +156,7 @@ Last updated: April 11, 2026
   - Cousin love interest (brief reference to the confusion of attachment vs. love)
   - Ex-wife dynamics (not detailed, referenced as context)
   - Childhood sex education damage (referenced as foundation for adult confusion)
-- **Dad's Advice topics covered:** Ready for marriage requires character, not age/desire/income / marriage is responsibility, not permission / what readiness actually looks like / the importance of friendship in marriage / marital sex belongs inside trust, not appetite management / approaching wife as whole person / the role of tenderness in desire / the lie of "legally owed" access / carrying confusion into marriage as damage / wife is not therapist/punishment-keeper/self-respect holder / mercy as the beginning / breaking oppressive patterns / faith as the floor, voluntary devotion as what's loved back / making things easy, not difficult / what was withheld (years of confusion, broken engagement, dead marriage) as setup for what is given (Ishrat) / the night given so light can follow / sex as needing honesty and care, not performance
+- **Babu's Advice topics covered:** Ready for marriage requires character, not age/desire/income / marriage is responsibility, not permission / what readiness actually looks like / the importance of friendship in marriage / marital sex belongs inside trust, not appetite management / approaching wife as whole person / the role of tenderness in desire / the lie of "legally owed" access / carrying confusion into marriage as damage / wife is not therapist/punishment-keeper/self-respect holder / mercy as the beginning / breaking oppressive patterns / faith as the floor, voluntary devotion as what's loved back / making things easy, not difficult / what was withheld (years of confusion, broken engagement, dead marriage) as setup for what is given (Ishrat) / the night given so light can follow / sex as needing honesty and care, not performance
 - **Quotes used:**
   - QUOTE-002 ("Found a strange kind of safety in the misery... the greatest ingratitude")—woven into dead marriage section
   - QUOTE-008 ("A garment may or may not fit perfectly, but either way, it covers what is exposed, protects what is vulnerable")—woven into marriage definition section
@@ -164,7 +164,7 @@ Last updated: April 11, 2026
   - QUOTE-022 ("The Quran promises, twice over as if once were not enough, that with hardship comes ease. In that room, ease was not a word I had any use for.")—woven into engagement accusation section, Ali AS quote on darkest nights
   - QUOTE-023 ("Allah will not change the condition of a people until they change what is within themselves")—woven into dead marriage section
   - Attributed references: Quranic language on marriage and tranquility, affection and mercy; marital covenant language; Prophet on mercy to those on earth; Islamic concepts of grace and hardship as teacher
-- **Narrative voice notes:** First-person, confessional. The tone is raw around sex/trauma and honest about violations that "leave no bruise." There's shame (past) and compassion (present) for the ex-wife and the cousin—he can see how his patterns replicated his mother's. The voice becomes almost reverent when discussing Ishrat. Dad's Advice is tender but unflinching—acknowledging that the reader may not listen (he didn't) but speaking the truth anyway. The final sentences are powerful: "the truest measure of your marriage will not be what you built together. It will be whether the woman who shared your life felt safe enough to be herself inside it."
+- **Narrative voice notes:** First-person, confessional. The tone is raw around sex/trauma and honest about violations that "leave no bruise." There's shame (past) and compassion (present) for the ex-wife and the cousin—he can see how his patterns replicated his mother's. The voice becomes almost reverent when discussing Ishrat. Babu's Advice is tender but unflinching—acknowledging that the reader may not listen (he didn't) but speaking the truth anyway. The final sentences are powerful: "the truest measure of your marriage will not be what you built together. It will be whether the woman who shared your life felt safe enough to be herself inside it."
 
 ---
 
@@ -244,30 +244,30 @@ Last updated: April 11, 2026
 | QUOTE-006 | B (Invisible weaving) | Any chapter on suffering | **Love narrative** | "God tests the people He loves most, not to destroy them, but because hardship is how He shapes what needs shaping" | After pillow/ceiling memory reflection |
 | QUOTE-007 | B (Invisible weaving) | Love chapter | **Love narrative** | "the mind keeps returning to what the heart has never been able to let go of" | Emotional grammar passage about recurring memories |
 | QUOTE-008 | A (Sacred, attributed) | Marriage chapter | **Marriage narrative** | "A garment may or may not fit perfectly, but either way, it covers what is exposed, protects what is vulnerable" | Marriage definition section |
-| QUOTE-010 | B (Invisible weaving) | Love Dad's advice | **Love Dad's advice** | "Love gives. Hunger takes." | New paragraph on expectations |
+| QUOTE-010 | B (Invisible weaving) | Love Babu's advice | **Love Babu's advice** | "Love gives. Hunger takes." | New paragraph on expectations |
 | QUOTE-013 | B (Invisible weaving) | Man chapter | **Man narrative** | "failure is not the opposite of growth. It is the soil of it." | Reflective passage after worst-self section |
 | QUOTE-014 | B (Invisible weaving) | Man chapter | **Man narrative** | "a person's tears can be mercy, not a weapon" | Ishrat section |
-| QUOTE-015 | A (Sacred, attributed) | Love / Man Dad's advice | **Man Dad's advice** | "If there is one sure way to make yourself miserable, it is expecting people to be what they were never built to be." | Expectations paragraph |
-| QUOTE-016 | B (Invisible weaving) | Man Dad's advice | **Man Dad's advice** | "no one can break you unless you hand them the permission" | Endurance section |
+| QUOTE-015 | A (Sacred, attributed) | Love / Man Babu's advice | **Man Babu's advice** | "If there is one sure way to make yourself miserable, it is expecting people to be what they were never built to be." | Expectations paragraph |
+| QUOTE-016 | B (Invisible weaving) | Man Babu's advice | **Man Babu's advice** | "no one can break you unless you hand them the permission" | Endurance section |
 | QUOTE-017 | B (Invisible weaving) | Marriage chapter | **Marriage narrative** | "What I called love had more of attachment in it than I understood at the time. The two feel identical for a long while, and then something distinguishes them, usually at the worst possible moment." | Cousin section |
 | QUOTE-018 | B (Invisible weaving) | Love chapter | **Love narrative** | "Nothing worth having had come to me without a fight. Every good thing in my life had required walking through something painful first." | Ishrat weight loss passage |
-| QUOTE-020 | A (Sacred, attributed) | Man Dad's advice | **Man Dad's advice** | "The Prophet, peace be upon him, told us that the strongest man is not the one who can wrestle others to the ground, but the one who controls himself when he is angry." | Anger/control section |
+| QUOTE-020 | A (Sacred, attributed) | Man Babu's advice | **Man Babu's advice** | "The Prophet, peace be upon him, told us that the strongest man is not the one who can wrestle others to the ground, but the one who controls himself when he is angry." | Anger/control section |
 | QUOTE-022 | A (Sacred, attributed) | Marriage chapter | **Marriage narrative** | "The Quran promises, twice over as if once were not enough, that with hardship comes ease. In that room, ease was not a word I had any use for." | Engagement accusation section + Ali AS "darkest nights" reference |
 | QUOTE-023 | A (Sacred, attributed) | Marriage chapter | **Marriage narrative** | "Allah will not change the condition of a people until they change what is within themselves" | Dead marriage section |
 | QUOTE-025 | A (Sacred, attributed) | Intro chapter | **Intro narrative** | "whether people truly think they will be left alone simply because they say they believe" | Hardship section |
 | QUOTE-026 | B (Invisible weaving) | Love chapter | **Love narrative** | "Allah's mercy encompasses all things" | Faith transformation passage |
-| QUOTE-028 | A (Sacred, attributed) | Love Dad's advice | **Love Dad's advice** | "best to their families" / expanded hadith attribution | Marriage section |
+| QUOTE-028 | A (Sacred, attributed) | Love Babu's advice | **Love Babu's advice** | "best to their families" / expanded hadith attribution | Marriage section |
 
 ### Quotes Still Unused (Available for Future Chapters)
 
 | Quote ID | Category | Best Fit | Current Status | Text Snippet |
 |----------|----------|----------|-----------------|--------------|
 | QUOTE-001 | B (Invisible weaving) | Intro or any Faith chapter | **UNUSED** (removed April 11) | Puzzle metaphor of life's pieces |
-| QUOTE-003 | A (Sacred, attributed) | Faith chapter or Man Dad's advice | **UNUSED** | Avoid focus on deeds / focus on God instead |
+| QUOTE-003 | A (Sacred, attributed) | Faith chapter or Man Babu's advice | **UNUSED** | Avoid focus on deeds / focus on God instead |
 | QUOTE-009 | B (Invisible weaving) | Faith chapter | **UNUSED** | "Do not think being religious means becoming harsh or hard" |
 | QUOTE-011 | B (Invisible weaving) | Love/Faith chapters | **UNUSED** | Depression/tests not weakness / every test becomes tool |
 | QUOTE-012 | B (Invisible weaving) | Any chapter on suffering | **UNUSED** | [Content not shown in excerpt—check full library] |
-| QUOTE-019 | A (Sacred, attributed) | Love/Faith Dad's advice | **UNUSED** | Ali (AS) on private character / no applause |
+| QUOTE-019 | A (Sacred, attributed) | Love/Faith Babu's advice | **UNUSED** | Ali (AS) on private character / no applause |
 | QUOTE-024 | A (Sacred, attributed) | Any chapter | **UNUSED** | [Content not shown in excerpt—check full library] |
 | QUOTE-027+ | Multiple | Faith, Work, Discipline chapters | **UNUSED** | Reserved for future chapters |
 
@@ -315,7 +315,7 @@ These phrases have real literary weight and work well as callbacks or echoes acr
 - "She understood me without me having to explain myself, and after a lifetime of speaking a thousand words and still being misread, that was more healing" — Ishrat as understanding
 - "Nothing worth having had come to me without a fight. Every good thing in my life had required walking through something painful first." — meaning through suffering
 - "not through slogans. Not through fear. Not through lectures about duty. Through contrast." — how he learned love
-- "love is not noise. It is not volume, drama, constant correction, or making people walk on eggshells" — Chad Dad's advice—what love ISN'T
+- "love is not noise. It is not volume, drama, constant correction, or making people walk on eggshells" — Chad Babu's advice—what love ISN'T
 - "love is what the people closest to you feel in your presence, and whether they thank Allah for your nearness or recover from it after you leave" — ultimate measure
 
 ### From Ch03 (Marriage)
@@ -341,70 +341,70 @@ These are the thematic lines that weave through multiple chapters, deepening and
 - **Ch01:** Religion in household = rules, lectures, blind obedience. Authority figures use religious arguments to silence. No room for questions.
 - **Ch02:** Religion presented as guilt/shame/control. "Paradise lies under the feet of your mother" weaponized. Takes decades to untangle. Javeed Bhai becomes the turning point—faith becomes conversation, not courtroom. Mercy enters picture. "ABD" shifts from slavery/force to devotion/chosen nearness.
 - **Ch03:** Faith as the floor (obligation) but voluntary devotion as what draws God's love. Marriage requires faith to hold it together. Breaking inherited oppressive patterns through reframed faith.
-- **Dad's Advice:** Consistent theme: don't inherit what was broken. Faith should soften, not harden. God's mercy encompasses all things, not just the obedient.
+- **Babu's Advice:** Consistent theme: don't inherit what was broken. Faith should soften, not harden. God's mercy encompasses all things, not just the obedient.
 
 ### Thread 2: Emotional Starvation & Hunger
 **Depth & Angle:**
 - **Ch01:** Childhood deprivation creates hunger. Atif given ease, crushed. Asif given hardship, searches. The void as engine.
 - **Ch02:** "A person who feels full does not go searching. A person who feels rich does not beg." Starvation explained mechanically. Cancer lie as desperate manufacture of what he's starving for. Meeting Ishrat as finally being fed.
 - **Ch03:** The cousin as attachment masquerading as love—confusing clinging for devotion. Dead marriage as the bottom of starvation. Ishrat finally providing steady nourishment.
-- **Dad's Advice:** Don't confuse attachment with love. Love gives from fullness, not from fear of being empty.
+- **Babu's Advice:** Don't confuse attachment with love. Love gives from fullness, not from fear of being empty.
 
 ### Thread 3: Ishrat as Corrective Figure (Contrasting All Prior Patterns)
 **Depth & Angle:**
 - **Ch01:** Mentioned late as wife, as the woman who taught him softness is not weakness.
 - **Ch02:** Properly introduced. Meets him in rubble. Shows him what unconditional presence feels like. Encourages his friendships (doesn't possess like Amma/ex). Shows tenderness as strong, not weak. Her children adore her—what Asif's didn't.
 - **Ch03:** The full story. Her steadiness during weight loss. Her patience despite his failures. Her love as the proof that fear and control aren't normal. Her understanding without explanation. She saved his life.
-- **Dad's Advice:** The implicit ideal wife—merciful, wise, steady, generous with freedom.
+- **Babu's Advice:** The implicit ideal wife—merciful, wise, steady, generous with freedom.
 
 ### Thread 4: The Cost of Silence & What Speaking Costs
 **Depth & Angle:**
 - **Ch01:** Baba's silence is his failure. He couldn't explain what he couldn't understand. The gap between him and his sons.
 - **Ch02:** Speaking truth to therapist becomes a crime. Bus stop incident—silence because fear rises before trust. Dirty joke—confusion weaponized. Engagement accusation—not believed. The paradox: speaking is dangerous, but silence costs everything. Javeed Bhai breaks this by listening without judgment.
 - **Ch03:** Sex education damage rooted in silence. Marriage requires honesty. Telling the cousin love story requires naming what happened (attachment, not love). Breaking patterns requires speaking them.
-- **Dad's Advice:** The entire book is breaking silence. Teaching what wasn't taught. Naming what wasn't named.
+- **Babu's Advice:** The entire book is breaking silence. Teaching what wasn't taught. Naming what wasn't named.
 
 ### Thread 5: Authority as Fear vs. Leadership as Steadiness
 **Depth & Angle:**
 - **Ch01:** Baba's authority = cane, quickness, no explanation. Nadeem bhai's influence = steadiness, not force, refusing drama. The moment Asif doesn't flinch, Baba breaks—authority was fear all along.
 - **Ch02:** Teachers beat without reason. School authority = violence. Home authority = conditional love. Javeed Bhai's authority = patience, knowledge, no shame-wielding. The kind of authority that opens rather than closes.
 - **Ch03:** Husband authority as "leadership" = possession. Real authority in marriage = creating safety. Asif learning to lead by protecting peace, not demanding obedience.
-- **Dad's Advice:** The strongest man controls himself when angry. True manhood is interior steadiness, not exterior volume.
+- **Babu's Advice:** The strongest man controls himself when angry. True manhood is interior steadiness, not exterior volume.
 
 ### Thread 6: Softness, Tenderness, & Their Relationship to Strength
 **Depth & Angle:**
 - **Ch01:** Initial confusion—Amma is loud/controlling. Baba is quiet/violent. Both are "wrong." Afifa Khala shows tenderness without weakness. Ishrat shows that softness holds.
 - **Ch02:** "Tears can be mercy, not a weapon." "A woman's emotional life is not something to fear or defend against." "Tenderness is not manipulation." "Strength must know how to handle softness." Watching Ishrat = learning tenderness is strength.
 - **Ch03:** Marital sex requires tenderness. Wife "as garment" = protection, not extraction. Approaching partner as whole person. The hardest strength is restraint, patience, daily return.
-- **Dad's Advice:** Water is soft but reshapes stone. Mercy is the beginning. The work begins with commitment, not ends with it.
+- **Babu's Advice:** Water is soft but reshapes stone. Mercy is the beginning. The work begins with commitment, not ends with it.
 
 ### Thread 7: Cycles & Pattern-Breaking (The Core)
 **Depth & Angle:**
 - **Ch01:** Baba passes silence to Asif. Asif nearly passes it to others. Atif receives oppression and folds. The cycle of cruelty living in the same body.
 - **Ch02:** Asif uses Amma's tactics (silent treatment, games) with cousin. Recognition: "I turned into my mother." Horror and shame. Javeed Bhai models an alternative. Ishrat shows what breaking patterns looks like.
 - **Ch03:** "I had turned into my father in marriage, growing smaller to survive conflict. Now I was becoming my mother too." The full horror of inheritance. Marriage as the place to break the cycle. "Let mercy interrupt what fear handed down. Let truth end what shame kept alive."
-- **Dad's Advice:** "The cycle lives in you as a tendency, not a destiny. Name it. Find it in the moment it rises in you. Then choose differently. And let yesterday die."
+- **Babu's Advice:** "The cycle lives in you as a tendency, not a destiny. Name it. Find it in the moment it rises in you. Then choose differently. And let yesterday die."
 
 ### Thread 8: The Void/Emptiness as Prerequisite for Growth
 **Depth & Angle:**
 - **Ch01:** Atif given ease, crushed. Asif given hardship, searched. The difference between ease-destruction and hardship-growth.
 - **Ch02:** "A person who feels full does not go searching." The void as the thing that sends him searching for meaning, faith, love, understanding. Not a flaw—the engine.
 - **Ch03:** The dead marriage as a void that finally drives him toward real love. Withholding as setup for giving. What was withheld made him ready.
-- **Dad's Advice:** "Do not resent the void. It is the engine."
+- **Babu's Advice:** "Do not resent the void. It is the engine."
 
 ### Thread 9: Women as Teachers (Not Conquests)
 **Depth & Angle:**
 - **Ch01:** Amma teaches damage. Ishrat teaches softness. Erum teaches how tender a girl's heart is. Afifa teaches conditional love and its cost.
 - **Ch02:** Afifa and Annu—unconditional mother-figures. Cousin—confusion of protection for love. Ishrat—what real partnership looks like.
 - **Ch03:** Ex-wife—violation and dead love. Cousin—attachment and obsession. Ishrat—choosing presence despite imperfection. Stephanie—steady friendship freed by Ishrat's trust.
-- **Dad's Advice:** "A wife is an amanah (trust). Do not make her carry your wounds. Do not reduce her to appetite management."
+- **Babu's Advice:** "A wife is an amanah (trust). Do not make her carry your wounds. Do not reduce her to appetite management."
 
 ### Thread 10: The Role of Mercy in Transformation
 **Depth & Angle:**
 - **Ch01:** No mercy from authority. Nadeem bhai shows mercy by refusing to drag him down. Learning that strength includes restraint.
 - **Ch02:** Javeed Bhai is "mercy in human form." Allah's mercy encompasses all things. Real devotion is mercy, not fear. Meeting people whose love is merciful (Khalas, Ishrat).
 - **Ch03:** Marriage requires mercy. Breaking patterns requires grace. Forgiving the cousin's father, Baba, Amma—releasing judgment. "Clear the obstruction so grace has room to come through."
-- **Dad's Advice:** Mercy is the beginning and the end. "Do not resent the people who used faith as a weapon against you. Resentment will chain you to their version of God longer than their words ever could."
+- **Babu's Advice:** Mercy is the beginning and the end. "Do not resent the people who used faith as a weapon against you. Resentment will chain you to their version of God longer than their words ever could."
 
 ---
 
@@ -420,7 +420,7 @@ These are the thematic lines that weave through multiple chapters, deepening and
 - Emotional honesty about confusion (attachment vs. love, shame vs. remorse, fear vs. faith)
 - References Bollywood, Islamic concepts, therapy/psychology language as natural to his thinking
 
-**Dad's Advice Voice Characteristics:**
+**Babu's Advice Voice Characteristics:**
 - Written as if Asif is sitting across from his younger self
 - Gently firm, no lectures but truth-telling
 - Uses "do not" and "learn" structure—imperative but not punishing
@@ -444,7 +444,7 @@ These are the thematic lines that weave through multiple chapters, deepening and
 
 **Thematic Consistency:**
 - Every chapter demonstrates: damage → confusion → isolation → encounter with corrective figure → beginning of understanding → legacy
-- The "Dad's Advice" sections are always the hardest-won wisdom, not easy moralizing
+- The "Babu's Advice" sections are always the hardest-won wisdom, not easy moralizing
 - Characters always show contradiction (Baba kind and brutal; Amma loving and controlling; Afifa warm then turned; the cousin misread)
 - No villain—only broken people inheriting broken patterns
 - Mercy is always the counterintuitive answer
@@ -462,7 +462,7 @@ Before drafting future chapters, verify:
 3. **Incident Placement:** Is this a new incident? If not, is it the primary chapter or a brief reference?
 4. **Quote Availability:** Check quotes library. Are any quotes specifically tagged for this chapter? Are they still marked "unused"?
 5. **Cross-Chapter Threads:** Does this chapter deepen any existing threads (religion, hunger, mercy, cycles, women as teachers, etc.)?
-6. **Voice Match:** Does the narrative voice sound like Asif? Does Dad's Advice sound like his wiser self speaking plainly?
+6. **Voice Match:** Does the narrative voice sound like Asif? Does Babu's Advice sound like his wiser self speaking plainly?
 7. **Specific Details:** Does the chapter have sensory anchors (smells, textures, temperatures, specific objects)? Vague chapters collapse.
 8. **Contradiction/Complexity:** Does any character show contradiction? Is there nuance, or just blame?
 9. **The Question:** Does this chapter answer a question that was asked in Intro (Manhood, Love, Anger, Money, Marriage, Pride, Discipline, Faith, Work, Respect)? Is the answer hard-won?
@@ -480,7 +480,7 @@ When an AI writing agent begins a session on this memoir:
 4. **Read Quotes Library** (know what's available, what's already placed, what category to use)
 5. **Reference Character Tracker** when introducing someone or deepening their arc
 6. **Review Cross-Chapter Threads** before writing to ensure thematic coherence
-7. **Check Voice & Style Notes** before drafting narrative or Dad's Advice
+7. **Check Voice & Style Notes** before drafting narrative or Babu's Advice
 8. **Use Quality Checkpoints** before calling any draft complete
 
 This file is the standing brief. It replaces the need to read all chapters at session start. Update it every time a chapter is finalized.

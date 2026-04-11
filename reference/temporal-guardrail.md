@@ -125,7 +125,7 @@ Each incident has a PRIMARY chapter where it is told in full as a scene. In late
 | Afifa Khala turns | Love | Man |
 
 ### Rule 4: DAD'S ADVICE REFERENCES
-Dad's advice can ONLY reference events and people already introduced in the SAME chapter's narrative section. Dad cannot reference a person or event the reader has not yet encountered in that chapter.
+Babu's advice can ONLY reference events and people already introduced in the SAME chapter's narrative section. Babu cannot reference a person or event the reader has not yet encountered in that chapter.
 
 ### Rule 5: VALIDATION SCAN PROCEDURE
 On every writing pass:
