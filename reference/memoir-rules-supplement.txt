@@ -1,0 +1,152 @@
+MEMOIR WRITING RULES SUPPLEMENT
+(This file supplements the journal SKILL.md. The SKILL.md is the authoritative
+framework. This file provides LIVE DATA that the read-only skill cannot contain:
+biographical updates, chapter-specific compliance status, and overrides of
+read-only reference files in the skill folder.)
+(Last updated: April 11, 2026)
+
+============================================================
+OVERRIDES OF READ-ONLY REFERENCE FILES
+============================================================
+
+These entries correct or extend the read-only files in the skill's
+references/ folder. Where a conflict exists, THIS file wins.
+
+DELTA PROTECTION — OVERRIDES SKILL.md's original "reproduce character-for-character"
+  The rebuilt SKILL.md (v2) already contains the correct delta protection rules.
+  If an older SKILL.md is loaded, this override applies:
+  Asif's deltas are CONTENT-LOCKED. Allowed: grammar fixes, emotional language
+  improvements, articulation/flow refinements, paragraph relocation.
+  NOT allowed: rewriting sentences, changing facts, adding/removing sentences,
+  merging paragraphs Asif split.
+
+ALI (AS) NOTATION — OVERRIDES quotes-workflow.md
+  quotes-workflow.md says "Maulana Ali" and "NEVER as Imam Ali."
+  REPLACED BY: ALWAYS use "Ali (AS)" everywhere in the memoir.
+  No formal titles. "(AS, peace be upon him)" on FIRST use per chapter only.
+
+TRANSLATION RULE — OVERRIDES translations-glossary.md
+  Single Urdu/Arabic words are NEVER translated in parentheses.
+  Only multi-word phrases/full sentences get parenthetical English glosses.
+  EXCEPTION: "ABD" (slave) — Asif's explicit choice. The glossary says
+  "servant/devotee." The memoir uses "slave."
+
+REFLECTIONS WEAVING — OVERRIDES quotes-workflow.md placement rules
+  Category C reflections (REFLECT-001 onward) are Asif's OWN interior voice.
+  They must be woven contextually as bridges, not dropped as standalone blocks.
+  They serve as bridges into Dad's Advice — narrator arriving at a realization
+  that naturally sets up what Dad would say.
+  Sacred quotes within reflections CANNOT be modified.
+
+============================================================
+CURLY BRACE DIRECTIVES
+============================================================
+Asif leaves inline instructions inside {} in chapter files.
+  1. Scan every chapter for {} during delta check
+  2. Read the instruction inside the braces
+  3. Write content that follows the instruction, in Asif's voice
+  4. Replace the entire {} block with the new content
+  5. VERIFY: no { or } characters remain in the saved file
+If ambiguous, ask before guessing.
+
+============================================================
+BIOGRAPHICAL CONTEXT SUPPLEMENT
+============================================================
+The read-only biographical-context.md in the skill folder is incomplete.
+Additional verified incidents (April 11, 2026):
+  - Magic/origami kit: Asif built a kit over months from a book about magic
+    tricks or origami. Got bad grades. Mother raged. Father ripped months of
+    work saying "This is why you get bad grades." Placed in Ch02.
+  - Islamic sessions: Asif started holding his own Islamic sessions to help
+    people who grew up seeing Islam as cruel. Met Ishrat through these sessions.
+    Placed in Ch02.
+  - Cancer lie: In college in Karachi, Asif developed a need for sympathy as
+    substitute for affection. Lied about having cancer. Got caught and ridiculed.
+    MOVED from Ch01 to Ch02 after starvation mechanics paragraph — April 11, 2026.
+When new incidents are verified, record them here.
+
+============================================================
+CHAPTER-SPECIFIC COMPLIANCE STATUS
+============================================================
+Ch01 Man (6,576 words):
+  - Atif mentions: ~13 (dedicated brother section, intentional)
+  - Ali (AS): first use at line 56 with full honorific — COMPLIANT
+  - Cancer lie MOVED from Ch01 to Ch02 (after starvation paragraph) — April 11, 2026
+  - Ishrat forward-reference FIXED — April 11, 2026
+
+Ch02 Love (9,050 words):
+  - Atif mentions: 2 (lines 71, 75) — COMPLIANT
+  - Ali (AS): first use at line 24 with full honorific — COMPLIANT
+  - All Love-owned incidents placed
+
+Ch03 Marriage (5,280 words):
+  - Atif mentions: 1 (line 68) — COMPLIANT
+  - All Marriage-owned incidents placed
+
+Ch00 Intro (740 words, ch00-intro.txt): Rebuilt April 11, 2026. Renamed from intro-what-i-wish-dad-taught-me.txt. Puzzle metaphor (QUOTE-001) removed by Asif. Quran reference removed by Asif. Exempt from most rules (intentionally short).
+
+============================================================
+FUTURE CHAPTER PLAN
+============================================================
+Approved (April 11, 2026):
+  Ch04: Faith ("What is faith?")
+  Ch05: Education ("What is education?")
+  Ch06: Parenthood/Fatherhood ("What is parenthood and fatherhood?")
+  Ch07: Friendship ("What is friendship?")
+Recommended (pending approval):
+  Discipline, Money, Forgiveness, Legacy
+
+============================================================
+GOLD STANDARD — CH02 LOVE (added April 11, 2026)
+============================================================
+Ch02-love.txt is the GOLD STANDARD for all memoir chapters. Asif
+designated it as the benchmark. Every chapter must be measured
+against Ch02 before finalization on these dimensions:
+  1. Scene density (15+ concrete incidents relative to length)
+  2. Three-phase balance (~55% experiences, ~25% learnings, ~20% Dad's)
+  3. Humor execution (all 6 patterns, 2-3 per 1,000 words, never at peaks)
+  4. Emotional arc (damage → search → discovery → wisdom, felt not announced)
+  5. Voice authenticity (pain flat, interiority through questions, tenderness via specificity)
+  6. Transitions (all 6 bridge patterns used naturally)
+  7. Character complexity (parents given backstory, not vilified)
+  8. Dad's Advice quality (unique opening, 7+ topics, callbacks, landing ending)
+  9. Opening/closing (scene-grounded hook, callback ending)
+  10. Quote weaving (invisible, respectful, no lecture tone)
+
+The Challenger Gate must include a "Gold Standard Comparison" check
+against these 10 dimensions before issuing APPROVED.
+
+============================================================
+CHAPTER BALANCE
+============================================================
+No fixed word count target. The compression rule (Ch02 → 5,500) is RETIRED.
+Balance through deeper content in undersized chapters, not compression.
+The Intro is exempt.
+
+============================================================
+CHALLENGER GATE (added April 11, 2026)
+============================================================
+The journal-challenger skill is now a mandatory approval gate between
+Phase 3 (Multi-Loop Quality) and Phase 4 (Finalization) of the journal
+workflow. No chapter can be finalized until the challenger issues an
+APPROVED verdict.
+
+The challenger runs 46 checks across 7 domains:
+  A — Interactive Chapter Workflow (11 checks)
+  B — Voice & Writing Rules (8 checks)
+  C — The Narrative Constant (4 checks)
+  D — Governance & Compliance (8 checks)
+  E — Multi-Pass Quality System (4 checks)
+  F — Skill Architecture (7 checks)
+  G — Deliverable (4 checks, finalization only)
+
+Severity levels:
+  CRITICAL (19 checks) — must fix, no override
+  MAJOR (19 checks) — should fix, Asif can explicitly override
+  ADVISORY (8 checks) — flagged, non-blocking
+
+The challenger loops iteratively (up to 5 iterations) until APPROVED.
+Verdict reports saved to: challenger-report-[chapter-name].txt
+
+To invoke manually: "run the challenger" or "challenge ch02"
+Automatic invocation: happens at Phase 3.5 in the journal workflow.

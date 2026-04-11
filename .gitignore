@@ -1,0 +1,11 @@
+# Temporary working files
+scratchpad-*.txt
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
