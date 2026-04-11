@@ -1,9 +1,21 @@
 MEMOIR WRITING RULES SUPPLEMENT
-(This file supplements the journal SKILL.md. The SKILL.md is the authoritative
-framework. This file provides LIVE DATA that the read-only skill cannot contain:
-biographical updates, chapter-specific compliance status, and overrides of
-read-only reference files in the skill folder.)
 (Last updated: April 11, 2026)
+
+============================================================
+CRITICAL: WORKFLOW V2 OVERRIDE
+============================================================
+
+The file-first workflow v2 is now the AUTHORITATIVE workflow:
+  JOURNAL_DIR/reference/journal-workflow-v2.md
+
+This file COMPLETELY REPLACES SKILL.md Sections 1 through 10.
+When SKILL.md conflicts with journal-workflow-v2.md, the v2 file wins.
+
+SKILL.md Section 0 (Narrative Constant) remains in force — it is
+unchanged and foundational.
+
+At session start, read journal-workflow-v2.md FIRST, then follow
+its Session Start Protocol. Do NOT follow SKILL.md's session start.
 
 ============================================================
 OVERRIDES OF READ-ONLY REFERENCE FILES
@@ -146,74 +158,11 @@ Balance through deeper content in undersized chapters, not compression.
 The Intro is exempt.
 
 ============================================================
-CHALLENGER GATE (added April 11, 2026; refined April 11, 2026)
+SUPERSEDED SECTIONS (April 11, 2026)
 ============================================================
-The Challenger is NOT just a final gate. It runs at TWO levels:
-
-BLOCK-LEVEL CHALLENGER (after each block review):
-  After Asif approves a block during interactive review (Phase 2),
-  the Challenger audits that block against all applicable checks before
-  moving to the next block. This catches issues early.
-
-FULL-CHAPTER CHALLENGER (before finalization):
-  After all blocks are approved, a full end-to-end Challenger pass runs
-  across the entire chapter (seam check, bridges, emotional arc, flow
-  continuity, voice integrity, all 46 checks). No chapter can be
-  finalized until this issues an APPROVED verdict.
-
-The challenger runs 46 checks across 7 domains:
-  A — Interactive Chapter Workflow (11 checks)
-  B — Voice & Writing Rules (8 checks)
-  C — The Narrative Constant (4 checks)
-  D — Governance & Compliance (8 checks)
-  E — Multi-Pass Quality System (4 checks)
-  F — Skill Architecture (7 checks)
-  G — Deliverable (4 checks, finalization only)
-
-Severity levels:
-  CRITICAL (19 checks) — must fix, no override
-  MAJOR (19 checks) — should fix, Asif can explicitly override
-  ADVISORY (8 checks) — flagged, non-blocking
-
-The challenger loops iteratively (up to 5 iterations) until APPROVED.
-Verdict reports saved to: challenger-report-[chapter-name].txt
-
-To invoke manually: "run the challenger" or "challenge ch02"
-Automatic invocation: after each block approval + at Phase 3.5.
-
-============================================================
-BLOCK-BY-BLOCK WORKFLOW (confirmed April 11, 2026)
-============================================================
-The definitive interactive review process:
-  1. Session start — read all reference files, run delta detection
-  2. Phase 1 — Rebuild full chapter in scratchpad with numbered sections
-  3. Break scratchpad into 3-4 blocks (grouped by narrative beats)
-  4. Present Block 1 for review
-  5. Asif reviews, gives feedback, Claude iterates in-place
-  6. Challenger audits Block 1 after Asif approves
-  7. Repeat steps 4-6 for Block 2, Block 3, etc.
-  8. Full end-to-end seam check (bridges, flow, emotional arc, voice)
-  9. Full-chapter Challenger gate (46 checks, all 7 domains)
-  10. Finalization — scratchpad → chapter file, lock paragraphs, update
-      all reference files, save snapshot, delete scratchpad
-
-CRITICAL: The scratchpad is the ONLY working surface. NOTHING moves
-to the chapter file until ALL blocks are approved and the final
-Challenger gate passes. No partial finalization between blocks.
-
-============================================================
-REFLECTIONS VOICE RULES (confirmed April 11, 2026)
-============================================================
-Category C reflections (REFLECT-001 onward) are Asif's interior voice:
-  - ALWAYS first person ("I"), never second person ("you")
-  - Split into two roles:
-    (a) REALIZATION BRIDGES — woven within narrative scenes, the moment
-        insight arrives inside the experience
-    (b) DAD'S ADVICE SETUP BRIDGES — narrator arriving at a truth that
-        naturally leads into what the father-voice would say
-  - Reflections CAN be modified, restated, and molded into Asif's voice
-    DNA. They are reference material, not sacred text.
-  - Quotes library (Categories A and B) CANNOT be modified.
-    Sacred quotes: reproduced exactly.
-    Invisible-weaving quotes: paraphrased into Asif's voice but source
-    meaning stays intact.
+The following rules have been MOVED INTO journal-workflow-v2.md and
+are no longer maintained here:
+  - Challenger Gate → v2 Section 4 (expanded to 43 checks, 8 loops)
+  - Block-by-block workflow → REPLACED by file-first model (v2 Section 3)
+  - Block presentation rule → REPLACED (never dump text in chat)
+  - Reflections voice rules → v2 Section 4, Loop 6 (C35-C37)
