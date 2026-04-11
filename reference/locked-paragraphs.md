@@ -100,45 +100,43 @@ ch01-man.txt | Learn restraint. Learn how to sit in discomfort without immediate
 ch01-man.txt | Build a private life of discipline that nobody claps for: prayer, work, reading, honesty, self-contr
 ch01-man.txt | But before any of that, one thing has to happen first. You have to break the cycle within your own h
 ch01-man.txt | In the end, becoming a man was never about closing the gap between my father and me. It was about cl
-ch02-love.txt | Dad, Tell Me What Love Really Is
 ch02-love.txt | I did not grow up understanding what love was. I grew up understanding what it cost. In our home, wh
-ch02-love.txt | And yet, not all softness was missing from my childhood. The closest thing I knew to motherly love c
-ch02-love.txt | The rest of my education on love came from home, and over time, I built a little theology of damage 
-ch02-love.txt | One of my earliest memories is one I still cannot fully explain. I was very young, maybe seven. Some
+ch02-love.txt | It was not all bad. My first memories of closeness came from my Afifa Khala, the second-youngest of 
+ch02-love.txt | Annu Khala, the youngest of my mother's sisters, lived in the US and often visited Karachi every few
+ch02-love.txt | The rest of my education on love came from home, and over time, I built a little damaging story in m
 ch02-love.txt | Years later, when I began studying faith seriously, suffering was finally reframed in a way that mad
-ch02-love.txt | I must have been in fourth or fifth grade when a boy at school told a dirty joke that everyone else 
-ch02-love.txt | Everyone laughed. I did not get it. I did not even know what a bra was. In my head, it was probably 
+ch02-love.txt | Everyone laughed. I did not get it. I think I knew what a bra was, but I did not make that connectio
 ch02-love.txt | Anyway, I brought the joke home and repeated it to my mother verbatim. Before I could even finish, s
 ch02-love.txt | Then something else happened. Around the same age, we were returning from a Moharram majlis when Amm
-ch02-love.txt | Fat Cat + Hamila + Pregnant = Bad Company ==> WTF?
 ch02-love.txt | That was the education I was getting. Innocence was suspicious. Curiosity was dangerous. Not knowing
-ch02-love.txt | My mother dominated through her voice. When yelling failed, she turned to tears and guilt. “Look wha
+ch02-love.txt | My mother dominated through her voice. When yelling failed, she turned to tears and guilt. "Look wha
 ch02-love.txt | Then came the lessons that still live in my body. I must have been ten or twelve. All I remember is 
-ch02-love.txt | Anyway, I must have done something that pushed Amma into one of her dramas. She locked herself in th
+ch02-love.txt | Anyway, I must have done something that pushed Amma into one of her rages - I was giving her a hard 
 ch02-love.txt | What stays with me is not just the punishment. It is the panic, followed by the guilt of disturbing 
 ch02-love.txt | The silent treatment became one of her favorite tools after that. Sometimes it went on for days. She
-ch02-love.txt | Around that same time, I had gotten my hands on a book about magic tricks, or maybe origami. I canno
-ch02-love.txt | Somewhere around that same period, she took me to a therapist, presumably to fix me, the way you tak
+ch02-love.txt | Then I brought home bad grades. Amma went into her usual rage, and Baba, right on cue, picked up my 
+ch02-love.txt | I burst into tears. Not the quiet kind. The loud, uncontrollable kind that comes from a place deeper
 ch02-love.txt | When my parents came back in, I was made to sit on a red sofa facing them while the therapist sat ac
-ch02-love.txt | “Dr. Sahab, is ke saath kya problem hai?” (Doctor, what is the problem with him?)
+ch02-love.txt | "Dr. Sahab, is ke saath kya problem hai?" (Doctor, what is the problem with him?)
 ch02-love.txt | Then came his reply, which landed in the room like a slap before the real ones ever came.
-ch02-love.txt | “You,” he said to my mother. “You are the problem.”
+ch02-love.txt | "You," he said to my mother. "You are the problem."
 ch02-love.txt | What I felt was not relief. Not vindication. Fear. My mother was angry, offended, and probably embar
-ch02-love.txt | “Is this why we are paying you so much money? To hear this?”
+ch02-love.txt | "Is this why we are paying you so much money? To hear this?"
 ch02-love.txt | My heart stopped. I could see clearly what was about to happen, not as a vision, but as a feeling in
 ch02-love.txt | She did not disappoint. The journey home and the days afterward became yet another sermon on all the
-ch02-love.txt | By ninth grade, the pattern had become almost elegant in its cruelty. Waiting for my school bus, I f
-ch02-love.txt | And hanging over all of it was something he had said before: “If I ever catch you smoking, I’ll brea
+ch02-love.txt | And hanging over all of it was something he said as he was disciplining me: "If I ever catch you smo
 ch02-love.txt | I think that threat snapped whatever restraint was left inside me. When I got to school that day, I 
 ch02-love.txt | By then, I was older, stronger, and no longer as easy to break in the old ways. I think I was in my 
 ch02-love.txt | At that moment, I saw something shift in his eyes. The anger left them, and grief entered. He had no
-ch02-love.txt | Afterward, I still went to college. On the way back, I stopped at Afifa Khala’s house and showed her
-ch02-love.txt | Years later, she told me what had happened. Khala herself had long been one of my mother’s victims, 
-ch02-love.txt | That was the price of softness in my mother’s orbit. It could exist, but only as long as it did not 
-ch02-love.txt | That was the emotional grammar. Some of those moments I remember in perfect detail. Others I have tr
-ch02-love.txt | I did not grow up asking, “Am I safe here?” I grew up learning to read moods, anticipate punishment,
+ch02-love.txt | Afterward, I still went to college. On the way back, I stopped at Afifa Khala's house and showed her
+ch02-love.txt | Years later, she told me what had happened. Khala herself had long been one of my mother's victims, 
+ch02-love.txt | That was the price of softness in my mother's orbit. It could exist, but only as long as it did not 
+ch02-love.txt | I did not grow up asking, "Am I safe here?" I grew up learning to read moods, anticipate punishment,
 ch02-love.txt | I felt empty, but maybe that was the design. A person who feels full does not go searching. A person
 ch02-love.txt | Years later, I understood its mechanics more clearly. A starving person clings to any sign of food. 
+ch02-love.txt | The need for softness went deeper than I could name. Somewhere during my college years in Karachi, I
+ch02-love.txt | Eventually, of course, I got caught. And the ridicule that followed was exactly the kind of curricul
+ch02-love.txt | I did not understand it then, but that humiliation was one of my better teachers. My failures taught
 ch02-love.txt | I have a female cousin, a few years older than me, who showed me a kind of love I had no framework f
 ch02-love.txt | At the time, I thought I wanted a sister. What I really wanted was tenderness, love, and care. So I 
 ch02-love.txt | Whenever my mother spoke against her, I rose to her defense with a fierceness that confused everyone
@@ -146,46 +144,47 @@ ch02-love.txt | I must have been around twenty when she fell sick during one of 
 ch02-love.txt | Then came her engagement ceremony. Her brother pulled me aside during a conversation I do not rememb
 ch02-love.txt | And that is the thing about the stories we tell ourselves. We are all the stars of our own insane fi
 ch02-love.txt | What I did not have a word for then, but found one for later, is this: mercy. Mercy in its truest se
-ch02-love.txt | But in a home already stripped of warmth, there was still one thing that could have been a refuge. T
 ch02-love.txt | As far as I can remember, religion in my home was used not as guidance but as leverage. The Quran an
 ch02-love.txt | That framing twisted my already broken understanding of love. Love became obedience. Obedience becam
 ch02-love.txt | What took me even longer to untangle was the difference between remorse and shame. They wear the sam
 ch02-love.txt | Years later, when I finally read the full ayah about parents, I found something very different from 
-ch02-love.txt | To understand my mother honestly, though, I also have to say what came before me. She came from pove
-ch02-love.txt | After my Nani’s stroke, the older children had to become adults before they had finished being child
+ch02-love.txt | After my Nani's stroke, the older children had to become adults before they had finished being child
 ch02-love.txt | I have one memory of her that I sometimes return to. Baba had bought me a paint-by-number kit, and s
 ch02-love.txt | It is not that I did not have good moments growing up. I did not get to where I am without their rai
 ch02-love.txt | So she did love, but unevenly. She took pride in my intelligence and achievements, though often in w
-ch02-love.txt | Years later, when I came to the United States, the story took a turn I would not have predicted. By 
 ch02-love.txt | Allah, clearly, has a sense of humor. I ran from religion in a fanatically religious home, crossed a
 ch02-love.txt | I started studying religion after 9/11. But that was not my only obsession. I was also diving into p
-ch02-love.txt | And then there was my beloved Javeed bhai. I had known of him since Kuwait, but it was not until aft
-ch02-love.txt | What made Javeed bhai different from every religious figure I had known was that he never once used 
+ch02-love.txt | And then there was my beloved spiritual teacher, Javeed bhai. I had known of him since Kuwait, but i
 ch02-love.txt | I did not understand it then, but he was slowly undoing the damage my parents had done to my relatio
 ch02-love.txt | He was, in a way I had never experienced from anyone, the mother I never had. That sentence sounds d
 ch02-love.txt | Part of what kept me searching in both directions was that religion and human psychology never felt 
 ch02-love.txt | My faith, or at least the words that came from that faith, had once been rigid in the way frightened
-ch02-love.txt | I remember the first time the verse truly landed in me: Allah’s mercy encompasses all things. All th
+ch02-love.txt | I remember the first time the verse truly landed in me: Allah's mercy encompasses all things. All th
 ch02-love.txt | I once read that God shows us seasons on the earth so we can understand the seasons of our own heart
 ch02-love.txt | What I was also beginning to understand was that the God I had been shown as a child was missing a d
-ch02-love.txt | What I was really chasing, though I would not have phrased it so neatly at the time, was a clean def
 ch02-love.txt | The women who corrected my understanding were not the ones who lectured most. They were the ones who
 ch02-love.txt | Much later, I met my true soulmate, Ishrat, who showed me the fuller picture. She was my closest fri
-ch02-love.txt | I want that said plainly because too many accomplishments in a man’s life get narrated as if he clim
+ch02-love.txt | I want that said plainly because too many accomplishments in a man's life get narrated as if he clim
 ch02-love.txt | There is a thought I keep returning to: He withheld what I loved to teach me about the nature of thi
-ch02-love.txt | At some point, I started holding Islamic sessions of my own. Not to preach. To reach people like me,
+ch02-love.txt | At some point, I started holding my own Islamic sessions. Not to preach. To reach youngsters like me
+ch02-love.txt | It was in one of those sessions that I connected with Ishrat. She was going through a very difficult
 ch02-love.txt | I saw it in the way she dealt with difficult, demanding in-laws. I saw it in the way she carried her
 ch02-love.txt | I think this is what love does to a person when it is no longer being driven by hunger or fear. When
-ch02-love.txt | And she did not keep that love reserved for her children. She turned that same tenderness toward me 
+ch02-love.txt | And she did not keep that love reserved for her children. She turned that same tenderness toward me,
 ch02-love.txt | Her patience with me deserves its own place, because without it, the truth becomes dishonest. When s
 ch02-love.txt | She helped me lose the weight. Not once. Not cleanly. I failed numerous times along the way, and she
 ch02-love.txt | She kept helping me until I became ashamed of myself and finally did what needed to be done. She sav
 ch02-love.txt | That changed me. Not all at once, but day by day, piece by piece. Her love proved to me that fear an
-ch02-love.txt | One pattern that struck me was that Ishrat’s children absolutely adore her, just as Afifa Khala’s da
+ch02-love.txt | One pattern that struck me was that Ishrat's children absolutely adore her, just as Afifa Khala's da
 ch02-love.txt | So what did they do right that my mother did wrong? What kind of man would I have become if I had be
+ch02-love.txt | But the answer did not come from imagining a different childhood. It came from the people who showed
+ch02-love.txt | It was also during that season that I met Stephanie at CKO, the kickboxing gym I had joined as part 
+ch02-love.txt | Over the next few sessions, we happened to take the same classes and ended up as partners, working s
+ch02-love.txt | But at the same time, the alarms went off in my mind. Her nature was too familiar. The kindness, the
+ch02-love.txt | I remember asking Ishrat about it. As expected, she encouraged me to face it because she did not wan
+ch02-love.txt | Stephanie's power punches did make sense later, as I learned about the walls she had walked through 
 ch02-love.txt | That was how I began to understand love. Not through slogans. Not through fear. Not through lectures
-ch02-love.txt | And I came to understand something else. Love is hard work done in willing submission to the beloved
-ch02-love.txt | So, when I think about it deeply, I think the father I needed would have answered the question more 
+ch02-love.txt | And I came to understand, through religion, literature, and experience, what love is. Love is hard w
 ch02-love.txt | Asif, love is not noise. It is not volume, drama, constant correction, or making people walk on eggs
 ch02-love.txt | With parents, honor them without lying to yourself. Be respectful. Be patient. Try to understand wha
 ch02-love.txt | And learn this: forgiveness and justice are both essential. You cannot have peace in a family withou
@@ -194,16 +193,19 @@ ch02-love.txt | With friends, be sincere, steady, and trustworthy. Do not be the
 ch02-love.txt | With a wife, become safe for her before you become demanding. Do not treat marriage as ownership dre
 ch02-love.txt | And learn the difference between love and hunger. Love gives. Hunger takes. If all you are doing is 
 ch02-love.txt | Do not measure love by how much pain you can endure in silence, or how much of yourself you can aban
+ch02-love.txt | And learn the difference between remorse and shame. They will wear the same face in your life, but t
 ch02-love.txt | And be careful with expectations. If there is one sure way to make yourself miserable, it is expecti
 ch02-love.txt | Ali (AS) taught that patience is of two kinds: patience over what pains you, and patience against wh
+ch02-love.txt | And about that emptiness you carry, the one that makes you think something is wrong with you, listen
 ch02-love.txt | Treat love as chosen work. Treat it as a verb, not a noun. Give attention. Offer service. Build disc
-ch02-love.txt | And about that night with the pillow and the ceiling, when you cursed God and no one came, I need yo
+ch02-love.txt | And about that night with the pillow and the ceiling, when you cursed God, and no one came, I need y
 ch02-love.txt | And do not resent the people who used faith as a weapon against you. They were wrong. But resentment
-ch02-love.txt | And about what was withheld from you, the love you wanted, the childhood you deserved, the father wh
-ch02-love.txt | Treat the ones you love better than your most important customer. If strangers are reaping the fruit
+ch02-love.txt | And about what was withheld from you, the love you wanted, the childhood you deserved, everything th
+ch02-love.txt | A wise friend once told me to treat the ones you love better than your most important customer. If s
 ch02-love.txt | And know this: you spent so much of your life looking for love that you nearly missed the larger tru
 ch02-love.txt | So remember this, Asif: you grew up understanding what love costs. You learned that long before anyo
 ch02-love.txt | In the end, love is not what people say around you, demand from you, or claim in your name. Love is 
+
 ch03-marriage.txt | Dad, Tell Me What Marriage Really Is
 ch03-marriage.txt | By the time marriage was put in front of me, sex was already a broken subject in my mind. Not becaus
 ch03-marriage.txt | I was a little older when the bus stop incident happened in Kuwait. It was quiet, almost empty. An o
@@ -264,116 +266,3 @@ ch03-marriage.txt | The Prophet, peace be upon him, said: make things easy, and 
 ch03-marriage.txt | And about what was withheld from you before Ishrat arrived, the broken engagement, the dead marriage
 ch03-marriage.txt | So remember this, Asif: sex was a broken subject long before marriage ever found you. You walked int
 
-ch02-love.txt | Dad, Tell Me What Love Really Is
-ch02-love.txt | I did not grow up understanding what love was. I grew up understanding what it cost. In our home, wh
-ch02-love.txt | And yet, not all softness was missing from my childhood. The closest thing I knew to motherly love c
-ch02-love.txt | And then there was Annu Khala, the youngest of my mother's sisters, who had moved to the United Stat
-ch02-love.txt | The rest of my education on love came from home, and over time, I built a little theology of damage 
-ch02-love.txt | One of my earliest memories is one I still cannot fully explain. I was very young, maybe seven. Some
-ch02-love.txt | Years later, when I began studying faith seriously, suffering was finally reframed in a way that mad
-ch02-love.txt | I must have been in fourth or fifth grade when a boy at school told a dirty joke that everyone else 
-ch02-love.txt | Everyone laughed. I did not get it. I did not even know what a bra was. In my head, it was probably 
-ch02-love.txt | Anyway, I brought the joke home and repeated it to my mother verbatim. Before I could even finish, s
-ch02-love.txt | Then something else happened. Around the same age, we were returning from a Moharram majlis when Amm
-ch02-love.txt | Fat Cat + Hamila + Pregnant = Bad Company ==> WTF?
-ch02-love.txt | That was the education I was getting. Innocence was suspicious. Curiosity was dangerous. Not knowing
-ch02-love.txt | But curiosity was only one of the weapons turned against me. The deeper arsenal was emotional.
-ch02-love.txt | My mother dominated through her voice. When yelling failed, she turned to tears and guilt. "Look wha
-ch02-love.txt | Then came the lessons that still live in my body. I must have been ten or twelve. All I remember is 
-ch02-love.txt | What stays with me is not just the punishment. It is the panic, followed by the guilt of disturbing 
-ch02-love.txt | The silent treatment became one of her favorite tools after that. Sometimes it went on for days. She
-ch02-love.txt | Around that same time, I had gotten my hands on a book about magic tricks, or maybe origami. I canno
-ch02-love.txt | Then I brought home bad grades. Amma went into her usual rage, and Baba, right on cue, picked up my 
-ch02-love.txt | I burst into tears. Not the quiet kind. The loud, uncontrollable kind that comes from a place deeper
-ch02-love.txt | The logic was clear: anything I loved that was not academic performance was not just a distraction. 
-ch02-love.txt | Somewhere around that same period, she took me to a therapist, presumably to fix me, the way you tak
-ch02-love.txt | When my parents came back in, I was made to sit on a red sofa facing them while the therapist sat ac
-ch02-love.txt | "Dr. Sahab, is ke saath kya problem hai?" (Doctor, what is the problem with him?) Then came his repl
-ch02-love.txt | "You," he said to my mother. "You are the problem."
-ch02-love.txt | What I felt was not relief. Not vindication. Fear. My mother was angry, offended, and probably embar
-ch02-love.txt | "Is this why we are paying you so much money? To hear this?"
-ch02-love.txt | My heart stopped. I could see clearly what was about to happen, not as a vision, but as a feeling in
-ch02-love.txt | She did not disappoint. The journey home and the days afterward became yet another sermon on all the
-ch02-love.txt | The lessons kept coming, and by ninth grade, the pattern had become almost elegant in its cruelty. W
-ch02-love.txt | And hanging over all of it was something he had said before: "If I ever catch you smoking, I'll brea
-ch02-love.txt | I think that threat snapped whatever restraint was left inside me. When I got to school that day, I 
-ch02-love.txt | By then, I was older, stronger, and no longer as easy to break in the old ways. I think I was in my 
-ch02-love.txt | At that moment, I saw something shift in his eyes. The anger left them, and grief entered. He had no
-ch02-love.txt | Afterward, I still went to college. On the way back, I stopped at Afifa Khala's house and showed her
-ch02-love.txt | Years later, she told me what had happened. Khala herself had long been one of my mother's victims, 
-ch02-love.txt | That was the emotional grammar. Some of those moments I remember in perfect detail. Others I have tr
-ch02-love.txt | I did not grow up asking, "Am I safe here?" I grew up learning to read moods, anticipate punishment,
-ch02-love.txt | I felt empty, but maybe that was the design. A person who feels full does not go searching. A person
-ch02-love.txt | Years later, I understood its mechanics more clearly. A starving person clings to any sign of food. 
-ch02-love.txt | But not everything in that world was dark. Some people broke through the grammar without even knowin
-ch02-love.txt | I have a female cousin, a few years older than me, who showed me a kind of love I had no framework f
-ch02-love.txt | At the time, I thought I wanted a sister. What I really wanted was tenderness, love, and care. So I 
-ch02-love.txt | Whenever my mother spoke against her, I rose to her defense with a fierceness that confused everyone
-ch02-love.txt | I must have been around twenty when she fell sick during one of our visits to Pakistan. It was just 
-ch02-love.txt | Then came her engagement ceremony. Her brother pulled me aside during a conversation I do not rememb
-ch02-love.txt | And that is the thing about the stories we tell ourselves. We are all the stars of our own insane fi
-ch02-love.txt | What I did not have a word for then, but found one for later, is this: mercy. Mercy in its truest se
-ch02-love.txt | But in a home already stripped of warmth, there was still one thing that could have been a refuge. T
-ch02-love.txt | That framing twisted my already broken understanding of love. Love became obedience. Obedience becam
-ch02-love.txt | What took me even longer to untangle was the difference between remorse and shame. They wear the sam
-ch02-love.txt | Years later, when I finally read the full ayah about parents, I found something very different from 
-ch02-love.txt | To understand my mother honestly, though, I also have to say what came before me. She came from pove
-ch02-love.txt | After my Nani's stroke, the older children had to become adults before they had finished being child
-ch02-love.txt | I have one memory of her that I sometimes return to. Baba had bought me a paint-by-number kit, and s
-ch02-love.txt | It is not that I did not have good moments growing up. I did not get to where I am without their rai
-ch02-love.txt | So she did love, but unevenly. She took pride in my intelligence and achievements, though often in w
-ch02-love.txt | Years later, when I came to the United States, the story took a turn I would not have predicted. By 
-ch02-love.txt | Allah, clearly, has a sense of humor. I ran from religion in a fanatically religious home, crossed a
-ch02-love.txt | I started studying religion after 9/11. But that was not my only obsession. I was also diving into p
-ch02-love.txt | And then there was my beloved Javeed bhai. I had known of him since Kuwait, but it was not until aft
-ch02-love.txt | He was, in a way I had never experienced from anyone, the mother I never had. That sentence sounds d
-ch02-love.txt | Part of what kept me searching in both directions was that religion and human psychology never felt 
-ch02-love.txt | My faith, or at least the words that came from that faith, had once been rigid in the way frightened
-ch02-love.txt | I remember the first time the verse truly landed in me: Allah's mercy encompasses all things. All th
-ch02-love.txt | I once read that God shows us seasons on the earth so we can understand the seasons of our own heart
-ch02-love.txt | What I was also beginning to understand was that the God I had been shown as a child was missing a d
-ch02-love.txt | What I was really chasing, though I would not have phrased it so neatly at the time, was a clean def
-ch02-love.txt | The women who corrected my understanding were not the ones who lectured most. They were the ones who
-ch02-love.txt | Much later, I met my true soulmate, Ishrat, who showed me the fuller picture. She was my closest fri
-ch02-love.txt | I want that said plainly because too many accomplishments in a man's life get narrated as if he clim
-ch02-love.txt | There is a thought I keep returning to: He withheld what I loved to teach me about the nature of thi
-ch02-love.txt | At some point, I started holding Islamic sessions of my own. Not to preach. To reach people like me,
-ch02-love.txt | I saw it in the way she dealt with difficult, demanding in-laws. I saw it in the way she carried her
-ch02-love.txt | I think this is what love does to a person when it is no longer being driven by hunger or fear. When
-ch02-love.txt | And she did not keep that love reserved for her children. She turned that same tenderness toward me 
-ch02-love.txt | Her patience with me deserves its own place, because without it, the truth becomes dishonest. When s
-ch02-love.txt | She helped me lose the weight. Not once. Not cleanly. I failed numerous times along the way, and she
-ch02-love.txt | It was during that season that I met Stephanie at CKO, the kickboxing gym I had joined as part of th
-ch02-love.txt | Over the next few sessions, we happened to take the same classes and ended up as partners, working o
-ch02-love.txt | But at the same time, the alarms went off. Her nature was too familiar. The kindness, the softness, 
-ch02-love.txt | I remember asking Ishrat about it. As expected, she encouraged me to face it because she did not wan
-ch02-love.txt | Stephanie's power punches did make sense later, as I learned about the walls she had walked through 
-ch02-love.txt | She kept helping me until I became ashamed of myself and finally did what needed to be done. She sav
-ch02-love.txt | That changed me. Not all at once, but day by day, piece by piece. Her love proved to me that fear an
-ch02-love.txt | One pattern that struck me was that Ishrat's children absolutely adore her, just as Afifa Khala's da
-ch02-love.txt | That was how I began to understand love. Not through slogans. Not through fear. Not through lectures
-ch02-love.txt | And I came to understand something else. Love is hard work done in willing submission to the beloved
-ch02-love.txt | If the hopefully wiser version of me could go back and sit across from the boy I was, this is what I
-ch02-love.txt | Asif, love is not noise. It is not volume, drama, constant correction, or making people walk on eggs
-ch02-love.txt | With parents, honor them without lying to yourself. Be respectful. Be patient. Try to understand wha
-ch02-love.txt | And learn this: forgiveness and justice are both essential. You cannot have peace in a family withou
-ch02-love.txt | With siblings and loved ones, be loyal without competing. Stay close without turning everything into
-ch02-love.txt | With friends, be sincere, steady, and trustworthy. Do not be the man who is charming in public and a
-ch02-love.txt | With a wife, become safe for her before you become demanding. Do not treat marriage as ownership dre
-ch02-love.txt | And learn the difference between love and hunger. Love gives. Hunger takes. If all you are doing is 
-ch02-love.txt | Do not measure love by how much pain you can endure in silence, or how much of yourself you can aban
-ch02-love.txt | And learn the difference between remorse and shame. They will wear the same face in your life, but t
-ch02-love.txt | And be careful with expectations. If there is one sure way to make yourself miserable, it is expecti
-ch02-love.txt | Ali (AS) taught that patience is of two kinds: patience over what pains you, and patience against wh
-ch02-love.txt | And about that emptiness you carry, the one that makes you think something is wrong with you, listen
-ch02-love.txt | Treat love as chosen work. Treat it as a verb, not a noun. Give attention. Offer service. Build disc
-ch02-love.txt | And about that night with the pillow and the ceiling, when you cursed God and no one came, I need yo
-ch02-love.txt | And do not resent the people who used faith as a weapon against you. They were wrong. But resentment
-ch02-love.txt | And about what was withheld from you, the love you wanted, the childhood you deserved, everything th
-ch02-love.txt | Treat the ones you love better than your most important customer. If strangers are reaping the fruit
-ch02-love.txt | And know this: you spent so much of your life looking for love that you nearly missed the larger tru
-ch02-love.txt | So remember this, Asif: you grew up understanding what love costs. You learned that long before anyo
-ch02-love.txt | In the end, love is not what people say around you, demand from you, or claim in your name. Love is 
-ch02-love.txt | The need for softness went deeper than I could name. Somewhere during my college years in Karachi, I
-ch02-love.txt | Eventually, of course, I got caught. And the ridiculing that followed was exactly the kind of curric
-ch02-love.txt | I did not understand it then, but that humiliation was one of my better teachers. My failures taught
