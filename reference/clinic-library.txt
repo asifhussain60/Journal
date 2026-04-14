@@ -1,0 +1,575 @@
+CLINIC LIBRARY
+What I Wish Babu Taught Me
+Last updated: April 14, 2026
+Purpose: Clinical sign synthesis for ADHD, Dyslexia, Depression, Anxiety, and Sleeplessness,
+mapped to memoir characters and incidents for narrative weaving into chapters.
+
+============================================================
+HOW TO USE THIS LIBRARY
+============================================================
+
+This library has THREE sections:
+
+  SECTION A — CONDITION PROFILES
+    Clinical signs for each of the five conditions, synthesized from CDC, NIMH,
+    Mayo Clinic, Cleveland Clinic, Yale Dyslexia Center, Sleep Foundation, and
+    peer-reviewed research (PMC/PNAS). Each profile lists observable signs that
+    a memoirist can describe WITHOUT clinical jargon (memoir rule: no therapy
+    language). The signs are grouped by age bracket to match the memoir's timeline.
+
+  SECTION B — CHARACTER PSYCHOLOGICAL MAPS
+    Every named character in the memoir, mapped against the five conditions.
+    Each mapping cites specific memoir incidents as evidence and assigns a
+    confidence tag: STRONG (multiple converging signs), MODERATE (clear but
+    fewer data points), or SPECULATIVE (plausible inference, needs Asif's
+    confirmation). These are NOT diagnoses. They are narrative lenses.
+
+  SECTION C — WEAVING GUIDE
+    Condition-to-chapter mapping showing where each psychological thread
+    could deepen an existing scene or Babu's Advice section.
+
+RULES:
+  - This library is a NARRATIVE TOOL, not a clinical record.
+  - Never use clinical labels in chapter prose (memoir voice rules apply).
+  - Describe the BEHAVIOR and its EFFECT, not the diagnosis.
+  - Conditions are lenses for deepening character, not accusations.
+  - Cross-reference using INC-### and chapter tags from incident-bank.md.
+  - Once-only placement: each psychological insight woven into ONE chapter.
+
+============================================================
+SECTION A: CONDITION PROFILES
+============================================================
+
+[COND-001] ADHD (Attention-Deficit/Hyperactivity Disorder)
+Source: CDC, NIMH, Mayo Clinic, Cleveland Clinic
+
+  CHILDHOOD SIGNS:
+    - Difficulty sustaining attention on tasks not intrinsically stimulating
+    - Easily distracted by extraneous stimuli or unrelated thoughts
+    - Frequently loses things needed for tasks (books, tools, assignments)
+    - Difficulty organizing tasks and activities; avoids sustained mental effort
+    - Fidgeting, squirming, inability to stay seated when expected to
+    - Talks excessively; blurts out answers before questions are finished
+    - Difficulty waiting turn; interrupts or intrudes on others
+    - Acts without thinking through consequences (impulsivity)
+    - Shifts from one uncompleted activity to another
+    - Appears not to listen when spoken to directly
+
+  ADOLESCENT/ADULT SIGNS:
+    - Restlessness rather than overt hyperactivity (internal motor)
+    - Low frustration tolerance; irritability under stress
+    - Difficulty following through on instructions or finishing tasks
+    - Chronic procrastination paired with bursts of hyperfocus
+    - Impulsive decisions in relationships, spending, career
+    - Frequent or intense mood changes; emotional dysregulation
+    - Difficulty with time management and meeting deadlines
+    - Sensation-seeking or risk-taking behavior
+    - Pattern of starting many projects, completing few
+    - Poor working memory (forgets conversations, appointments)
+
+  COMORBID PATTERNS:
+    - Often co-occurs with anxiety, depression, sleep disorders
+    - Emotional dysregulation frequently mistaken for mood disorder
+    - Academic underperformance relative to intelligence (common overlap with dyslexia)
+
+---
+
+[COND-002] DYSLEXIA
+Source: Yale Dyslexia Center, Mayo Clinic, Cleveland Clinic, Reading Rockets
+
+  CHILDHOOD SIGNS:
+    - Trouble learning nursery rhymes or playing rhyming games
+    - Difficulty learning and remembering letters of the alphabet
+    - Confuses letters that look similar (b/d, p/q)
+    - Very slow in acquiring reading skills; reading errors disconnected from letters on page
+    - Difficulty sounding out unfamiliar words (phonological processing deficit)
+    - Persistent "baby talk"; mispronounces familiar words
+    - Trouble remembering sequences (days of week, alphabet in order)
+    - Avoids reading aloud; becomes anxious when asked to read
+    - Discrepancy between verbal ability and written performance
+
+  ADOLESCENT/ADULT SIGNS:
+    - Slow, laborious reading; avoids reading for pleasure
+    - Frequent "tip of the tongue" moments; imprecise vocabulary
+    - Mispronounces names of people and places
+    - Difficulty with written expression despite strong verbal ideas
+    - Relies on memorization rather than comprehension strategies
+    - General anxiety around reading, writing, or timed academic tasks
+    - High IQ yet tests poorly in academic settings
+    - Poor self-esteem related to academic struggles
+    - Often pronounces words incorrectly or uses "um" as filler
+    - Strong in visual-spatial reasoning, creativity, or oral storytelling
+
+  COMORBID PATTERNS:
+    - Frequently co-occurs with ADHD (estimated 30-50% overlap)
+    - Shame and anxiety from academic struggles can trigger depression
+    - Compensatory behaviors (memorization, avoidance) mask the condition
+
+---
+
+[COND-003] DEPRESSION (including Trauma-Linked Chronic Depression)
+Source: NIMH, PMC studies on childhood trauma and depression, Psychology Today
+
+  CHILDHOOD/ADOLESCENT SIGNS:
+    - Persistent sadness, irritability, or emotional flatness
+    - Withdrawal from friends, family, or activities previously enjoyed
+    - Changes in appetite (over- or under-eating)
+    - Sleep disturbances (insomnia or hypersomnia)
+    - Difficulty concentrating; decline in academic performance
+    - Feelings of worthlessness or excessive guilt
+    - Frequent physical complaints (headaches, stomachaches) without clear cause
+    - Self-harm behaviors or preoccupation with death
+    - Anger outbursts disproportionate to the situation
+
+  ADULT SIGNS (especially trauma-linked):
+    - Persistent low mood or emotional numbness for weeks or longer
+    - Loss of interest or pleasure in most activities (anhedonia)
+    - Fatigue or low energy despite adequate rest
+    - Difficulty making decisions; cognitive fog
+    - Social withdrawal; isolation even from trusted people
+    - Negative self-talk; belief of being fundamentally broken or unlovable
+    - Emotional dysregulation: sudden anger, crying spells, irritability
+    - Chronic feelings of emptiness or meaninglessness
+    - Weight gain or loss unrelated to intentional changes
+    - Suicidal ideation or passive death wish ("I wish I didn't exist")
+
+  TRAUMA-SPECIFIC PATTERNS:
+    - 75.6% of chronically depressed patients report significant childhood trauma
+    - Emotional abuse especially linked to cognitive distortions (self-blame, worthlessness)
+    - Sexual abuse linked to higher severity and treatment resistance
+    - Multiple trauma types = significantly more severe depressive symptoms
+    - Childhood emotional abuse uniquely associated with cognitive depression
+    - Sleepwalking, sleep talking, nightmares, and night terrors common
+
+---
+
+[COND-004] ANXIETY (including Generalized, Social, and Trauma-Related)
+Source: NIMH, PMC studies on childhood maltreatment and anxiety, Psych Central
+
+  CHILDHOOD SIGNS:
+    - Excessive worry about school performance, family, or safety
+    - Physical symptoms: stomachaches, headaches, muscle tension before events
+    - Avoidance of social situations or new experiences
+    - Clinginess; difficulty separating from caregivers
+    - Perfectionism driven by fear of punishment or failure
+    - Hypervigilance: constantly scanning for signs of adult displeasure
+    - People-pleasing behavior to prevent conflict or punishment
+    - Difficulty sleeping due to racing or intrusive thoughts
+    - Freezing or going blank when confronted or challenged
+    - Need for constant reassurance
+
+  ADULT SIGNS:
+    - Persistent, excessive worry difficult to control
+    - Restlessness; feeling keyed up or on edge
+    - Fatigue from chronic mental tension
+    - Difficulty concentrating; mind going blank
+    - Muscle tension, jaw clenching, headaches
+    - Sleep disturbance (difficulty falling or staying asleep)
+    - Irritability, especially under perceived scrutiny
+    - Avoidance of situations that trigger fear of judgment
+    - Overanalyzing others' reactions and moods (hypervigilance)
+    - Catastrophic thinking: small events spiral into worst-case scenarios
+
+  TRAUMA-SPECIFIC PATTERNS:
+    - Childhood emotional abuse and neglect strongly linked to social anxiety
+    - Hyper-vigilance toward parent's moods in childhood becomes generalized scanning in adulthood
+    - Child trained by volatile parent becomes adult who overanalyzes every social cue
+    - Childhood maltreatment linked to greater severity, reduced quality of life
+    - Emotional abuse uniquely differentiates anxiety from other conditions
+    - Physical abuse linked to panic disorder and specific phobias
+
+---
+
+[COND-005] SLEEPLESSNESS (Insomnia and Trauma-Related Sleep Disorders)
+Source: Sleep Foundation, PMC, VA PTSD Center, Frontiers in Sleep
+
+  GENERAL SIGNS:
+    - Difficulty falling asleep (onset insomnia)
+    - Difficulty staying asleep; frequent waking (maintenance insomnia)
+    - Waking earlier than intended and unable to return to sleep
+    - Non-restorative sleep: feeling unrefreshed despite hours in bed
+    - Daytime fatigue, irritability, difficulty concentrating
+    - Increased arm and leg movements during sleep (restless sleep)
+    - Sleep talking, sleepwalking, or other parasomnias
+    - Reliance on substances (alcohol, medication) to fall asleep
+
+  TRAUMA-RELATED SIGNS:
+    - Hyperarousal: feeling the need to stay alert even during sleep
+    - Nightmares, often replaying or echoing traumatic events
+    - Night sweats; dysphoric dreams without clear narrative
+    - Startling easily at noise during sleep
+    - Fear of sleep itself (associating bed with vulnerability)
+    - Disruptive nocturnal behaviors: kicking, screaming, dream enactment
+    - 80-90% of PTSD patients experience insomnia symptoms
+    - 50-70% of PTSD patients experience nightmares
+    - Sleep disturbance often FIRST symptom to appear after trauma
+    - Chronic insomnia worsens depression, anxiety, and emotional regulation
+
+  COMORBID PATTERNS:
+    - Bidirectional with depression and anxiety (each worsens the other)
+    - ADHD-related racing thoughts intensify onset insomnia
+    - Sleepwalking specifically linked to childhood trauma and stress
+
+
+============================================================
+SECTION B: CHARACTER PSYCHOLOGICAL MAPS
+============================================================
+
+Each entry maps a character against the five conditions using memoir evidence.
+Confidence: STRONG / MODERATE / SPECULATIVE
+
+---
+
+[CHAR-001] ASIF (Narrator)
+
+  ADHD — STRONG
+    Evidence:
+    - Self-identifies: "Thanks to my ADHD, patience was never going to be my strategy" (Ch01)
+    - Impulsivity: provoked Atif the bully deliberately rather than waiting ("I could not wait for him to decide when to bully me next, so I decided to handle the scheduling myself" — Ch01)
+    - Impulsive decision chains: stealing from Baba's cupboard, starting smoking after punishment, political street fights in Karachi, lying about cancer
+    - Hyperfocus: built magic kit "over months" with meticulous detail, then obsessive religious study, psychology study, self-help book consumption
+    - Emotional dysregulation: intense jealousy with cousin, possessiveness, rapid anger-to-guilt cycles
+    - Sensation-seeking: Taekwondo to 2nd Dan black belt, CKO kickboxing, political rallies and street fights
+    - Low frustration tolerance: homework conflicts with Amma, two-month standoff, relationship patterns
+    - Difficulty with sustained tasks vs. bursts of intensity across the memoir
+    Narrative angle: ADHD is not just a label. It shaped HOW Asif survived — impulsivity was both weapon and wound. The same wiring that made him act without thinking also made him brave enough to push back. The fire that could not sit still was the same fire that eventually ran toward faith, psychology, and self-understanding.
+
+  DYSLEXIA — SPECULATIVE
+    Evidence:
+    - Academic struggles despite evident intelligence (memorization-based school system may have masked or worsened it)
+    - "The point was not to understand the material. The point was to become a photocopier with anxiety" (Ch02) — suggests mismatch between learning style and educational demands
+    - Mother wrote his speeches and essays (could indicate writing difficulty OR control — ambiguous)
+    - Strong oral/verbal intelligence, storytelling ability, and spatial creativity (magic kit, paint-by-number)
+    - No direct reading difficulty mentioned, but the rote memorization culture of Kuwait/Karachi schools would conceal dyslexia under general "bad grades"
+    Note: Needs Asif's confirmation. If present, it would reframe the "bad grades" narrative from laziness/defiance to an undiagnosed processing difference that was punished instead of supported.
+
+  DEPRESSION — STRONG
+    Evidence:
+    - Pillow-and-ceiling incident: screaming into pillow, cursing God, age ~7 (Ch02) — childhood despair
+    - Cancer lie: manufacturing sympathy as substitute for love (Ch02) — emptiness, worthlessness
+    - Emotional numbness: "her tears stopped affecting me and began to amuse me" (Ch01) — emotional flattening as defense
+    - Dead marriage: "a life that felt less like a life than a sentence I was serving" (Ch03) — anhedonia, hopelessness
+    - Weight gain to 270 pounds — somatic depression marker
+    - "threw myself into religion with the desperation people usually reserve for lifeboats" (Ch03) — spiritual bypassing of depressive despair
+    - Passive resignation in first marriage: "the easiest way to survive the drama was to submit to it. To shrink." (Ch03)
+    - Atheism as total disillusionment: "a complete atheist by the time he reached America" — loss of meaning
+    - Pattern of emotional isolation even while surrounded by people
+    Narrative angle: Asif's depression was not clinical emptiness in a vacuum. It was the logical consequence of a child whose every reaching-out was punished. The emptiness he describes ("A person who feels full does not go searching") is depression wearing the clothes of philosophy. The memoir can honor this without medicalizing it — by showing the behavior and letting the reader feel what it cost.
+
+  ANXIETY — STRONG
+    Evidence:
+    - Hypervigilance: "I grew up learning to read moods, anticipate punishment, and survive the emotional weather" (Ch02)
+    - "I learned to read moods and facial expressions long before I learned to trust words" (Ch02)
+    - "silence can still affect me strangely. A delayed response to a simple question can send my mind into dark places faster than I'd like to admit" (Ch01) — ongoing hyperarousal trigger
+    - People-pleasing under threat: running between two locked doors, begging, apologizing (Ch02)
+    - Freeze response: bus stop incident — "fear rose in me before trust did" (Ch03)
+    - Catastrophic thinking with Stephanie: "What if I mess this up again? What if I fall into my past patterns?" (Ch02)
+    - Overanalyzing: cousin calling him "dangerous" sent him into spiral of betrayal-thinking (Ch02)
+    - Physical bracing: "I did not learn tenderness. I learned to brace." (Ch02)
+    - Social scanning inherited from childhood: monitoring Amma's mood to avoid punishment became lifelong pattern
+    Narrative angle: Asif's anxiety is the invisible architecture of the entire memoir. It is not a separate condition — it is the operating system installed by his childhood. Every relationship pattern, every impulsive decision, every flight-or-fight moment described in the book is anxiety in motion. The memoir already shows this beautifully without naming it. The psychology library helps us ensure we never lose sight of that thread.
+
+  SLEEPLESSNESS — MODERATE
+    Evidence:
+    - Sleepwalking accusation during engagement (Ch03): accused of entering fiancee's room at night with no memory — whether true sleepwalking or false accusation, sleepwalking IS a known trauma-related parasomnia
+    - Hyperarousal from childhood: a nervous system trained to stay alert would logically produce sleep disruption
+    - Weight gain to 270 lbs correlates with sleep-disordered breathing (CPAP use confirmed: "we got to talking about my CPAP" — Ch02)
+    - CPAP use indicates diagnosed sleep apnea, which intersects with trauma-related sleep disruption
+    - No direct mention of insomnia in prose, but the CPAP detail and the sleepwalking accusation create a documented sleep thread
+    Note: Needs Asif's confirmation on whether insomnia, nightmares, or restless sleep were present. If so, this thread connects directly to the hypervigilance pattern.
+
+---
+
+[CHAR-002] BABA (Father)
+
+  ADHD — SPECULATIVE
+    Evidence:
+    - "Not a very educated man" — possible academic difficulty, but insufficient data
+    - Socially energetic ("jolly, warm, present" among peers) vs. withdrawn at home — could indicate social stimulation-seeking
+    - No direct evidence of inattention or impulsivity patterns
+    Note: Insufficient evidence. Do not pursue unless Asif provides more detail.
+
+  DEPRESSION — MODERATE
+    Evidence:
+    - Emotional withdrawal at home: "did not speak much at home except to discipline me or talk at the dinner table" (Ch01)
+    - Passivity: deferred entirely to Amma, never intervened, "supported her and did nothing to interrupt" (Ch02)
+    - Contrast between public warmth and private silence suggests emotional shutdown in the domestic space
+    - Post-stroke at 62: paralyzed left side, lost most speech — vulnerability to manipulation by Atif suggests possible depression/learned helplessness in later years
+    - "I had turned into my father. The man who... not leading, not loving, not protecting anything, just becoming smaller to keep the peace" (Ch03) — Asif recognizes the pattern as a collapse
+    Narrative angle: Baba's depression (if present) was the silent kind — not dramatic, not visible, just an absence where presence should have been. He provided materially but withdrew emotionally. The memoir can explore whether his "loyalty to the wrong blueprint" was really a man too depressed or defeated to fight for his sons. This adds complexity without excusing.
+
+  ANXIETY — MODERATE
+    Evidence:
+    - Deference to Amma suggests avoidance of conflict (anxiety-driven submission)
+    - "He knew he had married a woman out of his league" (Ch01) — insecurity as possible driver of overcompensation toward wife
+    - Punished sons as proxy loyalty to wife — could be fear of her displeasure
+    - Sought supernatural help (spirit medium) for stolen money — anxiety-driven escalation
+    - Tenderness only to Amma, never to sons — possible fear of emotional vulnerability with males
+    Narrative angle: Baba's anxiety, if real, was the kind that looks like obedience. He was not passive because he did not care. He was passive because fighting scared him more than failing his sons. The same fear that made him reach for the cane without asking questions made him unable to stand between his wife and his children.
+
+  SLEEPLESSNESS — SPECULATIVE
+    No direct evidence. Post-stroke physical deterioration may have involved sleep disruption but this is inference, not memoir data.
+
+---
+
+[CHAR-003] AMMA (Mother)
+
+  DEPRESSION — MODERATE
+    Evidence:
+    - Came from poverty, overcrowding, early forced responsibility (Ch02)
+    - "A sharp mind trapped in duty does not always become wise. In her case, it became bitter." (Ch02)
+    - Childhood truncated by Nani's stroke; had to become adult before finishing being a child
+    - Intelligent enough for any career, but trapped in domestic role — unfulfilled potential
+    - Bitter sarcasm, cruelty, and emotional manipulation can be masks for underlying despair
+    - "deeply afraid of disrespect, loss of control, social shame, insecurity" (Ch02) — fear-driven behavior overlaps with depression-anxiety complex
+    - Fainting episode (real or performed) after locking herself in bedroom — extreme emotional exhaustion or manipulation born from desperation
+    Narrative angle: Amma's potential depression does not excuse her cruelty, but it contextualizes it. She was a woman whose intelligence had no runway, whose childhood was stolen, whose marriage gave her status but not partnership. The control she exerted was the only power available to a brilliant woman with no outlet. This is the complexity the Narrative Constant demands: parents are complex, not villains.
+
+  ANXIETY — STRONG
+    Evidence:
+    - "deeply afraid of disrespect, loss of control, social shame, insecurity, and impatience" (Ch02)
+    - Hypercontrol over sons' behavior, grades, social exposure, religious compliance
+    - Preemptive punishment: slapping Asif for repeating a joke he did not understand (Ch02)
+    - Catastrophic interpretation: "pregnant cat = bad company" (Ch02)
+    - Silent treatment as control mechanism — anxiety about losing authority
+    - Recruited allies (Baba, Afifa Khala) when control was threatened — coalition-building from fear
+    - Weaponized religion as anxiety management: using paradise/hell/parental displeasure to maintain control
+    - Monitoring and punishing curiosity — treating normal childhood behavior as threat
+    Narrative angle: Amma's anxiety was the engine of the household. Every weapon she used — guilt, silence, tears, religious leverage, sarcasm — was a woman managing unbearable fear through the only tools she had. She was not evil. She was terrified. And terrified people with intelligence become the most effective controllers.
+
+  SLEEPLESSNESS — SPECULATIVE
+    Evidence:
+    - "her sleepless nights I will never know of" (Ch02) — Asif acknowledges she had them, though context may be general maternal care
+    - High-anxiety personality with domestic hypervigilance would logically disrupt sleep
+    Note: No direct evidence beyond Asif's single acknowledgment.
+
+---
+
+[CHAR-004] ATIF (Brother)
+
+  DEPRESSION — STRONG
+    Evidence:
+    - "Instead of rising to the challenge of becoming his own man, he folded inward until there was almost nothing left" (Ch01)
+    - "His confidence did not just weaken. It ceased to exist." (Ch01)
+    - Never held a job. Not one. Total functional collapse.
+    - Could not walk to Western Union to pick up money at age 38
+    - Called Asif to ask how to turn on a computer despite holding a Master's in Computer Science
+    - "Atif imploded" (Ch01) — Asif's own word for the inward collapse
+    - "he folded inward until there was almost nothing left" — anhedonia, learned helplessness, withdrawal
+    - Mother told him savings would last forever, removing any survival pressure — ease as destructive enabler
+    - Turned father against Asif with false narratives — could indicate resentment born from depression or personality distortion
+    Narrative angle: Atif is the memoir's most visible case of depression as total system failure. Where Asif's depression drove him to search (however painfully), Atif's depression drove him to stop. The same house made both of them. One rebelled, one submitted. The contrast is the most powerful psychological thread in the book.
+
+  ANXIETY — MODERATE
+    Evidence:
+    - Cannot perform basic tasks (walking to Western Union) — could be agoraphobia or severe social anxiety
+    - Job interview: asking about salary and walking out could be avoidance disguised as arrogance
+    - Complete dependence on family systems — avoidance of independent functioning
+    - "A starving person who gives up on food does not become free. He just becomes quieter about the hunger." (Ch02) — withdrawal as anxiety management
+    Narrative angle: Atif's anxiety may be the invisible force behind his apparent laziness. What looks like entitlement may be a man too terrified to function outside the only structure he knows.
+
+  ADHD — SPECULATIVE
+    Evidence:
+    - Performance personality: "mimicking actors and their ridiculous clownish styles" — possible hyperactivity channeled into entertainment
+    - No academic or attention data beyond the Master's degree (which Asif describes as meaningless in context)
+    Note: Insufficient evidence. Do not pursue without Asif's input.
+
+---
+
+[CHAR-005] AFIFA KHALA (Aunt)
+
+  ANXIETY — STRONG
+    Evidence:
+    - "Khala herself had long been one of my mother's victims, always under threat of losing support or being abandoned if she did not fall in line" (Ch02)
+    - Turned on Asif overnight after defending him — fear-driven compliance
+    - Years later disclosed the truth: she was coerced by threat of abandonment
+    - Pattern of giving love freely then retracting under pressure = classic anxiety under authoritarian control
+    Narrative angle: Afifa Khala's anxiety is the cost of being soft in a hard system. Her love was real. Her betrayal was fear. The memoir already captures this perfectly. The psychological lens deepens reader empathy for her impossible position.
+
+  DEPRESSION — SPECULATIVE
+    Evidence:
+    - Lived under Amma's control for years, suppressing her own instincts
+    - Loss of autonomy in emotional decisions (could not defend the child she loved)
+    - No direct behavioral evidence of depression symptoms in the memoir
+    Note: Plausible but unconfirmed. The sustained suppression of self under threat could produce depressive episodes, but the memoir does not describe them.
+
+---
+
+[CHAR-006] NANA (Maternal Grandfather)
+
+  ANXIETY — MODERATE (projected as rigidity)
+    Evidence:
+    - "deeply religious, traditional, strict, rigid in faith and temperament" (biographical context)
+    - Wanted 12 children despite wife's three miscarriages and stroke — compulsive adherence to plan despite harm
+    - Rigidity in faith can be anxiety-driven: controlling the external world to manage internal fear
+    Narrative angle: Nana is the root node of the anxiety tree. His rigidity set the template that Amma inherited and amplified. The memoir can trace the generational line without accusing.
+
+---
+
+[CHAR-007] NANI (Maternal Grandmother)
+
+  DEPRESSION — MODERATE
+    Evidence:
+    - Three miscarriages, then a stroke (biographical context)
+    - Nine children under a rigid, demanding husband
+    - Physical and reproductive toll suggests chronic stress and possible postpartum depression
+    - Stroke may have been exacerbated by sustained emotional/physical strain
+    Narrative angle: Nani is the silent casualty at the top of the family tree. Her body told the story her voice could not. The miscarriages and stroke are the physical language of a woman whose suffering had no other outlet.
+
+---
+
+[CHAR-008] EX-WIFE
+
+  DEPRESSION — STRONG
+    Evidence:
+    - "came from a broken, messed-up home" (Ch03)
+    - Alcohol use: "would get drunk and demand sex" (Ch03) — self-medication
+    - "poor hygiene... the house was filthy... constant complaints" (Ch03) — functional deterioration
+    - Social isolation of Asif: "I had no social circle left" — controlling behavior linked to insecurity/depression
+    - "not religious... Christian at heart with a Muslim name" — identity displacement
+    - No emotional connection, no support, no rest described in the marriage
+    Narrative angle: The ex-wife is not a villain any more than Amma is. She arrived broken from her own damage. Two broken people in a loveless marriage created a downward spiral. The memoir can acknowledge her suffering without excusing her behavior — the same grace the Narrative Constant demands for all characters.
+
+  ANXIETY — MODERATE
+    Evidence:
+    - Controlling behavior (not allowing Asif to do things alone, social isolation) — fear of abandonment
+    - Demands for sex while drunk — possible anxiety self-medication through alcohol and control
+    - "constant complaints" — hypervigilance expressed as dissatisfaction
+    Note: Limited data. Asif describes her behavior but not her inner world.
+
+  SLEEPLESSNESS — SPECULATIVE
+    Evidence:
+    - Alcohol use before sleep/sex suggests possible sleep difficulty
+    - Broken home background correlates with trauma-related sleep disruption
+    Note: No direct evidence in memoir.
+
+---
+
+[CHAR-009] COUSIN (Love Interest During First Marriage)
+
+  DEPRESSION — MODERATE
+    Evidence:
+    - "in an unhappy marriage... husband was harsh-hearted, disconnected" (Ch03)
+    - "simple, naive, loyal woman" trapped in a loveless marriage — emotional deprivation
+    - "She found a friend in me" (Ch03) — seeking connection outside marriage suggests emotional starvation
+    Narrative angle: Her depression mirrors Asif's — two starving people who found each other in the rubble. Her loyalty despite her unhappiness speaks to the silent endurance that depression can look like in conservative cultures.
+
+  ANXIETY — SPECULATIVE
+    Evidence:
+    - Loyal despite loveless marriage — possible fear of social consequences of leaving
+    - Endured Asif's possessiveness and emotional tactics without breaking — high tolerance for stress (could indicate anxiety-driven compliance)
+    Note: Insufficient direct evidence.
+
+---
+
+[CHAR-010] ISHRAT (Soulmate, Second Wife)
+
+  ANXIETY — MODERATE
+    Evidence:
+    - "going through a very difficult emotional time" when they met (Ch02, Ch03)
+    - "difficult demanding in-laws" and "husband who gave her very little emotional support" (Ch02)
+    - "dealing with someone's controlling patterns" (Ch02)
+    - Despite all this, maintained extraordinary composure — could indicate managed anxiety rather than absence of it
+    Narrative angle: Ishrat is the memoir's proof that anxiety does not have to win. She carried the same kinds of burdens that broke other characters, yet she chose steadiness. Her anxiety (if present) was metabolized into patience, not control. She is the counterexample to Amma — same pressures, different response. That difference IS the lesson.
+
+  DEPRESSION — SPECULATIVE
+    Evidence:
+    - "very difficult emotional time" is acknowledged but not detailed
+    - Sustained difficult circumstances (in-laws, unsupportive husband) are depression risk factors
+    - No behavioral evidence of depression — she is consistently described as warm, patient, giving
+    Note: Ishrat's inner struggles are her story. The memoir honors her without exposing more than she has shared.
+
+
+============================================================
+SECTION C: WEAVING GUIDE — CONDITION-TO-CHAPTER MAP
+============================================================
+
+CH01 MAN:
+  - Asif's ADHD: impulsivity in fights (Atif bully, schoolyard), sensation-seeking (Taekwondo, PPP rallies)
+  - Asif's anxiety: bracing pattern, emotional shutdown with Amma
+  - Atif's depression: total functional collapse as contrast to Asif's rebellion
+  - Baba's depression/anxiety: silence, passivity, deference to Amma
+  - Amma's anxiety: domination, control, sarcasm as fear management
+  - Babu's Advice opportunity: "Some boys are wired to move before they think. That is not a flaw. It is a fire that needs direction, not punishment."
+
+CH02 LOVE:
+  - Asif's depression: pillow-and-ceiling, cancer lie, emotional emptiness, starvation mechanics
+  - Asif's anxiety: hypervigilance (mood reading), locked doors panic, bracing pattern
+  - Amma's anxiety: catastrophic interpretations (cat incident, dirty joke), silent treatment
+  - Afifa Khala's anxiety: fear-driven betrayal after caning incident
+  - Nana's anxiety-as-rigidity: root of generational pattern
+  - Nani's depression: miscarriages, stroke, silent suffering
+  - Babu's Advice opportunity: "The emptiness you carry is not a disease. But the way you learned to fill it — with lies, with other people's pity, with panic — those are the symptoms. Learn to name the hunger without feeding it poison."
+
+CH03 MARRIAGE:
+  - Asif's anxiety: freeze response at bus stop, fear before trust, catastrophic thinking about engagement accusation
+  - Asif's depression: dead marriage, weight gain to 270 lbs, spiritual bypassing
+  - Asif's sleeplessness: sleepwalking accusation, CPAP use
+  - Ex-wife's depression: broken home, alcohol, functional deterioration
+  - Cousin's depression: loveless marriage, silent endurance
+  - Babu's Advice opportunity: "A man who cannot sleep is a man whose body has not yet learned it is safe. That is not weakness. That is the alarm still ringing from a fire that ended years ago."
+
+CH04 FAITH (Future):
+  - Asif's depression: atheism as total disillusionment, spiritual bypassing, weight as somatic marker
+  - Asif's anxiety: fear-based religion in childhood vs. mercy-based faith in adulthood
+  - Amma's anxiety: weaponizing religion as control mechanism
+  - Nana's anxiety: rigid religiosity as fear management
+  - Generational pattern: Nana → Amma → Asif (anxiety expressed through religious control, broken by Asif's journey to mercy)
+
+CH05 EDUCATION (Future):
+  - Asif's ADHD: academic struggles, mismatch with rote memorization system
+  - Asif's possible dyslexia: "photocopier with anxiety," bad grades despite intelligence
+  - Amma's anxiety: grades as social currency, punishing failure instead of understanding it
+  - Atif's depression: Master's degree with no functional capability
+  - Babu's Advice opportunity: "If a boy is struggling in school and you punish him harder, you have not fixed the problem. You have added a second one."
+
+CH06 PARENTHOOD (Future):
+  - Generational anxiety transmission: Nana → Amma → Asif (and how Asif broke the chain)
+  - Erum: how Asif's awareness of his own damage shaped his fathering
+  - Amma's depression: unfulfilled potential channeled into controlling children
+  - Baba's depression: providing materially while absent emotionally
+  - Babu's Advice opportunity: "The damage you carry is not a destiny. It is a tendency. Name it. Find it in the moment it rises in you. Then choose differently."
+
+CH07 FRIENDSHIP (Future):
+  - Asif's anxiety: fear of repeating patterns with Stephanie
+  - Asif's ADHD: intensity in friendships, hyperfocus on new connections
+  - Nadeem bhai as anxiety interruptor: redirected Asif's impulsive energy
+  - Stephanie as evidence that trauma does not have to produce bitterness
+
+============================================================
+CROSS-REFERENCE INDEX
+============================================================
+
+CONDITION → CHARACTERS:
+  ADHD:           Asif (STRONG), Atif (SPECULATIVE)
+  Dyslexia:       Asif (SPECULATIVE)
+  Depression:     Asif (STRONG), Atif (STRONG), Baba (MODERATE), Amma (MODERATE),
+                  Ex-wife (STRONG), Cousin (MODERATE), Nani (MODERATE), Ishrat (SPECULATIVE)
+  Anxiety:        Asif (STRONG), Amma (STRONG), Afifa Khala (STRONG), Baba (MODERATE),
+                  Atif (MODERATE), Nana (MODERATE), Ex-wife (MODERATE), Ishrat (MODERATE),
+                  Cousin (SPECULATIVE)
+  Sleeplessness:  Asif (MODERATE), Ex-wife (SPECULATIVE), Amma (SPECULATIVE)
+
+INCIDENT → CONDITION LINK:
+  INC-001 (Magic kit destroyed):     Asif depression, Amma anxiety, Baba anxiety
+  INC-002 (Islamic sessions):        Asif depression recovery, anxiety reduction
+  INC-003 (Cancer lie):              Asif depression (starvation behavior)
+  INC-004 (Stephanie friendship):    Asif anxiety (fear of repeating patterns)
+  INC-005 (Annu Khala):              Asif depression (loss of safe figure)
+  Pillow-and-ceiling (Ch02):         Asif depression, childhood despair
+  Locked doors (Ch02):               Asif anxiety, panic, attachment disruption
+  Bus stop incident (Ch03):          Asif anxiety (freeze response, concealment)
+  Rooftop incident (Ch03):           Asif anxiety (trained submission)
+  Caning incident (Ch02):            Asif anxiety, Baba anxiety/depression, Afifa Khala anxiety
+  Sleepwalking accusation (Ch03):    Asif sleeplessness
+  Dead marriage (Ch03):              Asif depression, Ex-wife depression
+  Weight gain to 270 lbs:            Asif depression (somatic), sleeplessness (CPAP)
+  Atif functional collapse (Ch01):   Atif depression (STRONG)
+  Dirty joke slap (Ch02):            Amma anxiety (catastrophic response)
+  Cat/hamila incident (Ch02):        Amma anxiety (catastrophic interpretation)
+  Marlboro incident (Ch02):          Asif anxiety, Baba anxiety, Asif ADHD (impulsive smoking)
+  Engagement accusation (Ch03):      Asif anxiety, sleeplessness, depression
+
+============================================================
+END OF CLINIC LIBRARY
+============================================================

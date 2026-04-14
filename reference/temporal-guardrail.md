@@ -18,7 +18,8 @@
 - Annu Khala's visits from US (periodic childhood)
 
 ### ADOLESCENCE (Kuwait, ages ~13-18)
-- Marlboro cigarettes / bus stop (9th grade)
+- Marlboro cigarettes incident (9th grade)
+- Bus stop incident (9th grade — separate incident, older Arab boy)
 - First smoke after beating
 - First nude image (7th grade — note: this is BEFORE Marlboro chronologically)
 - VHS porn tape (9th grade)

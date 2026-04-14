@@ -177,6 +177,105 @@ Balance through deeper content in undersized chapters, not compression.
 The Intro is exempt.
 
 ============================================================
+LIBRARY GOVERNANCE (April 13, 2026)
+============================================================
+Rules for incident-bank.md, quotes-library.txt, and cross-references.
+These apply to Claude's Challenger pipeline AND to external library
+builders (ChatGPT or other tools that produce entries for ingestion).
+
+CANONICAL INCIDENT FORMAT (replaces old flat format):
+  [INC-###]
+  Title: [short title, under 10 words]
+  Chapter: [best-fit chapter, or "Future"]
+  Alt fit: [secondary chapter, or "none"]
+  Category: incident
+  Theme: [2-4 tags, comma-separated, lowercase]
+  Age/Period: [approximate age or life period, or "unknown"]
+  Location: [or "unknown"]
+  People involved: [or "unknown"]
+  Raw memory: [2-5 sentences in Asif's words]
+  Emotional register: [e.g., confusion, quiet anger, grief, dark humor]
+  Connects to: [1-3 cross-refs: INC/QUOTE/REFLECT IDs]
+  Babu's Advice angle: [what a wise father would say]
+  Status: [unplaced | assigned | drafted | placed]
+
+CANONICAL QUOTE/REFLECTION FORMAT (extends existing format):
+  Required new fields added April 13, 2026:
+    Category: [A, B, or C]
+    Status: [unused | reserved | used | retired]
+  Existing entries retain their format. New entries from April 13 onward
+  use the extended format. Existing entries will be migrated gradually.
+
+RECLASSIFICATION POLICY:
+  If an item changes category (e.g., QUOTE-012: B → C), it keeps its
+  original ID. Do not renumber or migrate into the other series.
+  Note reclassification in entry: "Category: C (reclassified from B)"
+
+CANONICAL THEME TAG LIST (April 13, 2026):
+  Core: masculinity, love, emotional-starvation, faith, marriage,
+    sexual-confusion, discipline, money, friendship, parenthood,
+    protection, trust, silence, neglect, control, shame, self-harm,
+    identity, vulnerability, immigration, transformation
+  Behavioral: curiosity-punished, creativity-destroyed, religion-weaponized,
+    obedience, breaking-patterns, humor-as-armor, cultural-pressure,
+    attachment, ownership
+  Emotional: fear, courage, patience, pride, humility, gratitude,
+    compassion, anger, grief, hope, despair, loss, loneliness, hunger,
+    acceptance, generosity, loyalty, renewal, giving
+  Spiritual: fear-of-God, mercy, forgiveness, prayer, surrender,
+    seasons, perspective, character, strength
+  People: Ishrat, Amma, Baba, Atif, childhood-abuse, family, manhood
+  New entries use ONLY tags from this list. Propose new tags for approval.
+  Legacy inventory uses slash-separated format; new entries use commas.
+
+STATUS LIFECYCLE:
+  Incidents: unplaced → assigned → drafted → placed
+  Quotes/Reflections: unused → reserved → used (or retired)
+  Only Claude updates status. External builders always set initial status
+  (unplaced for incidents, unused for quotes/reflections).
+
+FIELD SEMANTICS — Used in vs Status:
+  "Used in" is a LOCATION POINTER — where the item was placed.
+    New entries: "Used in: none" (not "unused" — that's the status).
+    After placement: "Used in: Ch02 Love - narrative, Section 5"
+  "Status" is a LIFECYCLE STATE — where the item is in the pipeline.
+    New entries: "Status: unused"
+    After reservation: "Status: reserved"
+
+COMPLETED CHAPTER ASSIGNMENT:
+  Completed chapters (Ch00, Ch01, Ch02) can still receive new incidents.
+  "Complete" means prose is finalized, not that the incident list is frozen.
+
+MULTI-ITEM INGESTION:
+  When Claude receives a batch of entries from an external builder:
+    1. Validate each entry against duplicate rules
+    2. Verify status and Used in fields are semantically correct
+    3. Assign to incident-bank.md or quotes-library.txt
+    4. Report: accepted, revised (with reason), or rejected (with reason)
+
+DUPLICATE DETECTION — INGESTION RULE:
+  When Claude ingests entries from external sources (ChatGPT output):
+    1. Check every incoming INC against existing incident-bank.md
+    2. Check every incoming QUOTE/REFLECT against quotes-library.txt
+    3. Same event, better detail → revise original, do not create new ID
+    4. Related but distinct → keep new ID, add cross-link
+    5. True duplicate → reject with note to Asif
+
+CROSS-REFERENCE CAP:
+  Each item gets 1-3 cross-references maximum:
+    - One same-theme link
+    - One structural link (same chapter, adjacent section)
+    - One emotional echo link (same register, different chapter)
+
+MISSING FACTS:
+  Use "unknown" for any field without confirmed information.
+  Never guess. Never leave blank.
+
+FUTURE CHAPTER PLACEMENT:
+  If an incident belongs to Ch04-Ch07 or beyond, Chapter = "Future"
+  with Alt fit noting the likely chapter. Do not force into existing.
+
+============================================================
 SUPERSEDED SECTIONS (April 11, 2026)
 ============================================================
 The following rules have been MOVED INTO journal-workflow-v2.md and
