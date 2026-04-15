@@ -8,7 +8,7 @@
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=Great+Vibes&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=Great+Vibes&family=JetBrains+Mono:wght@400;500;600&family=Lato:ital,wght@0,300;0,400;0,700;1,300;1,400&display=swap" rel="stylesheet">
 
   <!-- Font Awesome 6.5.1 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
@@ -28,7 +28,7 @@
   <script src="https://unpkg.com/@babel/standalone@7.29.2/babel.min.js"></script>
 
   <script type="text/babel">
-    const { useState, useEffect } = React;
+    const { useState, useEffect, useRef, useCallback, useMemo } = React;
 
     // =================================================================
     // DATA LAYER
@@ -80,14 +80,14 @@
     }
 
     const CHAPTERS = [
-      { id: 'ch00', num: '00', title: 'Introduction', subtitle: 'What I Wish Babu Taught Me', status: 'locked', words: 1370, readiness: 100 },
-      { id: 'ch01', num: '01', title: 'Man', subtitle: 'Babu, What Does It Mean to Be a Man?', status: 'locked', words: 4200, readiness: 100 },
-      { id: 'ch02', num: '02', title: 'Love', subtitle: 'Babu, Tell Me What Love Really Is', status: 'locked', words: 9084, readiness: 100 },
-      { id: 'ch03', num: '03', title: 'Marriage', subtitle: 'Babu, Tell Me What Marriage Really Is', status: 'active', words: 3200, readiness: 62 },
-      { id: 'ch04', num: '04', title: 'Faith', subtitle: 'Babu, What Should I Believe?', status: 'planned', words: 0, readiness: 0 },
-      { id: 'ch05', num: '05', title: 'Education', subtitle: 'Babu, How Do I Learn What Matters?', status: 'planned', words: 0, readiness: 0 },
-      { id: 'ch06', num: '06', title: 'Parenthood', subtitle: 'Babu, How Do I Raise My Children?', status: 'planned', words: 0, readiness: 0 },
-      { id: 'ch07', num: '07', title: 'Friendship', subtitle: 'Babu, Who Can I Trust?', status: 'planned', words: 0, readiness: 0 },
+      { id: 'ch00', num: '00', title: 'Introduction', subtitle: 'What I Wish Babu Taught Me', status: 'locked', words: 1370, readiness: 100, file: 'chapters/ch00-intro.txt' },
+      { id: 'ch01', num: '01', title: 'Man', subtitle: 'Babu, What Does It Mean to Be a Man?', status: 'locked', words: 4200, readiness: 100, file: 'chapters/ch01-man.txt' },
+      { id: 'ch02', num: '02', title: 'Love', subtitle: 'Babu, Tell Me What Love Really Is', status: 'locked', words: 9084, readiness: 100, file: 'chapters/ch02-love.txt' },
+      { id: 'ch03', num: '03', title: 'Marriage', subtitle: 'Babu, Tell Me What Marriage Really Is', status: 'active', words: 3200, readiness: 62, file: 'chapters/ch03-marriage.txt' },
+      { id: 'ch04', num: '04', title: 'Faith', subtitle: 'Babu, What Should I Believe?', status: 'planned', words: 0, readiness: 0, file: null },
+      { id: 'ch05', num: '05', title: 'Education', subtitle: 'Babu, How Do I Learn What Matters?', status: 'planned', words: 0, readiness: 0, file: null },
+      { id: 'ch06', num: '06', title: 'Parenthood', subtitle: 'Babu, How Do I Raise My Children?', status: 'planned', words: 0, readiness: 0, file: null },
+      { id: 'ch07', num: '07', title: 'Friendship', subtitle: 'Babu, Who Can I Trust?', status: 'planned', words: 0, readiness: 0, file: null },
     ];
 
     const QUOTES_SAMPLE = [
@@ -228,7 +228,7 @@
     }
 
     // --- Memoir Module ---
-    function MemoirModule() {
+    function MemoirModule({ onOpenChapter }) {
       const [tab, setTab] = useState('chapters');
       const [searchQuery, setSearchQuery] = useState('');
 
@@ -251,7 +251,7 @@
           {tab === 'chapters' && (
             <div className="grid-cards stagger-1">
               {CHAPTERS.map(ch => (
-                <div key={ch.id} className="glass-card chapter-card">
+                <div key={ch.id} className={`glass-card chapter-card ${ch.file ? 'clickable' : ''}`} onClick={() => ch.file && onOpenChapter && onOpenChapter(ch)}>
                   <div>
                     <div className="chapter-header">
                       <span className="chapter-num">{ch.num}</span>
@@ -504,30 +504,738 @@
     }
 
     // =================================================================
+    // CHAPTER SECTIONS DATA
+    // =================================================================
+
+    const CHAPTER_SECTIONS = {
+      ch00: [
+        { para: 1, title: 'The Sentence That Would Not Leave' },
+        { para: 10, title: 'What This Book Really Is' },
+        { para: 16, title: 'A Map, Not a Monument' },
+        { para: 25, title: 'Imperfect Honesty, Offered Now' }
+      ],
+      ch01: [
+        { para: 1, title: 'The Confused Boy in Kuwait' },
+        { para: 12, title: 'Discipline and Defiance' },
+        { para: 43, title: 'Character Under Pressure' },
+        { para: 78, title: "Nadeem Bhai\u2019s Quiet Intervention" },
+        { para: 85, title: 'Failure as Curriculum' },
+        { para: 92, title: 'Learning Manhood from Women' },
+        { para: 111, title: "Babu\u2019s Advice on Manhood" }
+      ],
+      ch02: [
+        { para: 1, title: 'First Glimpses of Real Love' },
+        { para: 10, title: 'Love as Control and Punishment' },
+        { para: 74, title: 'Faith Weaponized, Religion Broken' },
+        { para: 102, title: 'The Thaw Begins with Javeed Bhai' },
+        { para: 138, title: 'Women Who Showed Me Tenderness' },
+        { para: 174, title: 'Synthesis: What Love Actually Is' },
+        { para: 188, title: "Babu\u2019s Advice on Love" }
+      ],
+      ch03: [
+        { para: 1, title: 'Sex Before Understanding' },
+        { para: 47, title: 'The Engagement That Broke Me' },
+        { para: 63, title: 'A Marriage of Two Broken People' },
+        { para: 76, title: "Ishrat\u2019s Arrival, Everything Changes" },
+        { para: 101, title: "Babu\u2019s Advice on Marriage" }
+      ]
+    };
+
+    // =================================================================
+    // CHAPTER READER
+    // =================================================================
+
+    function ChapterReader({ chapter, onBack, onNavigateChapter, onProgress }) {
+      const [content, setContent] = useState(null);
+      const [loading, setLoading] = useState(true);
+      const [scrollProgress, setScrollProgress] = useState(0);
+      const [fontScale, setFontScale] = useState(() => {
+        try { const v = parseFloat(localStorage.getItem('rp_fontScale')); return isNaN(v) ? 1 : v; } catch(e) { return 1; }
+      });
+      const [fontFamily, setFontFamily] = useState(() => {
+        try { return localStorage.getItem('rp_fontFamily') || 'lato'; } catch(e) { return 'lato'; }
+      });
+      const [readingTheme, setReadingTheme] = useState(() => {
+        try { return localStorage.getItem('rp_readingTheme') || 'dark'; } catch(e) { return 'dark'; }
+      });
+      const [lineSpacing, setLineSpacing] = useState(() => {
+        try { const v = parseFloat(localStorage.getItem('rp_lineSpacing')); return isNaN(v) ? 1.85 : v; } catch(e) { return 1.85; }
+      });
+      const [contentWidth, setContentWidth] = useState(() => {
+        try { return localStorage.getItem('rp_contentWidth') || 'medium'; } catch(e) { return 'medium'; }
+      });
+      const [controlsOpen, setControlsOpen] = useState(false);
+      const [activeSection, setActiveSection] = useState(0);
+      const [tocOpen, setTocOpen] = useState(true);
+      const [bookmarks, setBookmarks] = useState(() => {
+        try { return JSON.parse(localStorage.getItem('bm_' + chapter.id) || '[]'); } catch(e) { return []; }
+      });
+      const [showResume, setShowResume] = useState(false);
+      const [currentParaIdx, setCurrentParaIdx] = useState(0);
+      const [notesOpen, setNotesOpen] = useState(true);
+      const [notes, setNotes] = useState([]);
+      const [noteType, setNoteType] = useState('edit');
+      const [noteText, setNoteText] = useState('');
+      const [notesLoaded, setNotesLoaded] = useState(false);
+      const sectionRefs = useRef({});
+      const articleRef = useRef(null);
+
+      const NOTE_TYPES = {
+        edit:       { label: 'Edit',       icon: 'fa-pen',           color: '#c6a6ff' },
+        reflection: { label: 'Reflection', icon: 'fa-lightbulb',     color: '#f4d49c' },
+        research:   { label: 'Research',   icon: 'fa-magnifying-glass', color: '#34d399' },
+        continuity: { label: 'Continuity', icon: 'fa-link',          color: '#ffb0cc' },
+        voice:      { label: 'Voice',      icon: 'fa-microphone',    color: '#93c5fd' }
+      };
+
+      const FONT_MAP = {
+        lato: "'Lato', 'Inter', sans-serif",
+        inter: "'Inter', 'Lato', sans-serif",
+        garamond: "'Cormorant Garamond', 'Georgia', serif",
+        georgia: "'Georgia', 'Garamond', serif"
+      };
+      const FONT_LABELS = { lato: 'Lato', inter: 'Inter', garamond: 'Garamond', georgia: 'Georgia' };
+      const SPACING_OPTS = [{ val: 1.6, label: 'Tight' }, { val: 1.75, label: 'Normal' }, { val: 1.85, label: 'Relaxed' }, { val: 2.1, label: 'Airy' }];
+      const WIDTH_OPTS = [{ val: 'narrow', label: 'Narrow', icon: 'fa-compress' }, { val: 'medium', label: 'Medium', icon: 'fa-grip-lines' }, { val: 'wide', label: 'Wide', icon: 'fa-expand' }];
+
+      const chapterIndex = CHAPTERS.findIndex(c => c.id === chapter.id);
+      const prevChapter = chapterIndex > 0 ? CHAPTERS[chapterIndex - 1] : null;
+      const nextChapter = chapterIndex < CHAPTERS.length - 1 ? CHAPTERS[chapterIndex + 1] : null;
+      const sections = CHAPTER_SECTIONS[chapter.id] || [];
+
+      useEffect(() => {
+        if (!chapter.file) { setLoading(false); return; }
+        setLoading(true);
+        fetch(chapter.file)
+          .then(r => r.ok ? r.text() : Promise.reject('Not found'))
+          .then(text => { setContent(text); setLoading(false); })
+          .catch(() => { setContent(null); setLoading(false); });
+      }, [chapter.id]);
+
+      // Persist bookmarks
+      useEffect(() => {
+        try { localStorage.setItem('bm_' + chapter.id, JSON.stringify(bookmarks)); } catch(e) {}
+      }, [bookmarks, chapter.id]);
+
+      // Persist reader preferences
+      useEffect(() => { try { localStorage.setItem('rp_fontScale', fontScale); } catch(e) {} }, [fontScale]);
+      useEffect(() => { try { localStorage.setItem('rp_fontFamily', fontFamily); } catch(e) {} }, [fontFamily]);
+      useEffect(() => { try { localStorage.setItem('rp_readingTheme', readingTheme); } catch(e) {} }, [readingTheme]);
+      useEffect(() => { try { localStorage.setItem('rp_lineSpacing', lineSpacing); } catch(e) {} }, [lineSpacing]);
+      useEffect(() => { try { localStorage.setItem('rp_contentWidth', contentWidth); } catch(e) {} }, [contentWidth]);
+
+      // Load notes: try JSON file first, fallback to localStorage
+      useEffect(() => {
+        const lsKey = 'notes_' + chapter.id;
+        fetch('data/notes/' + chapter.id + '-notes.json')
+          .then(r => r.ok ? r.json() : Promise.reject())
+          .then(data => { setNotes(Array.isArray(data) ? data : []); setNotesLoaded(true); })
+          .catch(() => {
+            try { setNotes(JSON.parse(localStorage.getItem(lsKey) || '[]')); } catch(e) { setNotes([]); }
+            setNotesLoaded(true);
+          });
+      }, [chapter.id]);
+
+      // Persist notes to localStorage on every change
+      useEffect(() => {
+        if (!notesLoaded) return;
+        try { localStorage.setItem('notes_' + chapter.id, JSON.stringify(notes)); } catch(e) {}
+      }, [notes, chapter.id, notesLoaded]);
+
+      // Show resume banner if bookmarks exist on load
+      useEffect(() => {
+        if (bookmarks.length > 0) setShowResume(true);
+        const t = setTimeout(() => setShowResume(false), 8000);
+        return () => clearTimeout(t);
+      }, [chapter.id]);
+
+      useEffect(() => {
+        function handleScroll() {
+          const scrollTop = window.scrollY;
+          const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+          const pct = docHeight > 0 ? Math.min((scrollTop / docHeight) * 100, 100) : 0;
+          setScrollProgress(pct);
+          if (onProgress) onProgress(pct);
+
+          // Determine active section based on scroll position
+          let current = 0;
+          for (let i = sections.length - 1; i >= 0; i--) {
+            const el = sectionRefs.current['sec-' + i];
+            if (el) {
+              const rect = el.getBoundingClientRect();
+              if (rect.top <= 180) { current = i; break; }
+            }
+          }
+          setActiveSection(current);
+
+          // Track which paragraph is currently in the viewport center
+          const paraEls = document.querySelectorAll('[id^="para-"]');
+          let closestIdx = 0;
+          let closestDist = Infinity;
+          const viewCenter = window.innerHeight / 2;
+          paraEls.forEach(el => {
+            const rect = el.getBoundingClientRect();
+            const dist = Math.abs(rect.top - viewCenter);
+            if (dist < closestDist) {
+              closestDist = dist;
+              closestIdx = parseInt(el.id.replace('para-', ''), 10);
+            }
+          });
+          setCurrentParaIdx(closestIdx);
+        }
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
+      }, [onProgress, sections.length]);
+
+      useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, [chapter.id]);
+
+      // Parse text into paragraphs — first line is title, skip it
+      const paragraphs = content ? content.split('\n\n').filter(p => p.trim()) : [];
+      const titleLine = paragraphs.length > 0 ? paragraphs[0] : chapter.subtitle;
+      let bodyParagraphs = paragraphs.slice(1);
+
+      // Merge short salutation lines (e.g. "Kids,") into the next paragraph
+      if (bodyParagraphs.length > 1) {
+        const merged = [];
+        for (let i = 0; i < bodyParagraphs.length; i++) {
+          const trimmed = bodyParagraphs[i].trim();
+          if (trimmed.length < 20 && i < bodyParagraphs.length - 1 && !isAdviceHeading(trimmed)) {
+            merged.push(trimmed + '\n\n' + bodyParagraphs[i + 1].trim());
+            i++; // skip next
+          } else {
+            merged.push(trimmed);
+          }
+        }
+        bodyParagraphs = merged;
+      }
+
+      // Build a map: paragraph index → section index (for inserting dividers)
+      const sectionAtPara = useMemo(() => {
+        const map = {};
+        sections.forEach((sec, idx) => { map[sec.para - 1] = idx; });
+        return map;
+      }, [sections]);
+
+      // Compute reading time (~230 wpm)
+      const wordCount = content ? content.split(/\s+/).length : chapter.words;
+      const readingMinutes = Math.max(1, Math.round(wordCount / 230));
+
+      // Detect "Dad's Advice" section
+      function isAdviceHeading(text) {
+        return /^(Babu[''\u2019]s Advice|Dad[''\u2019]s Advice|What I Wish)/i.test(text.trim());
+      }
+
+      function toggleBookmark(paraIdx) {
+        setBookmarks(prev => prev.includes(paraIdx) ? prev.filter(b => b !== paraIdx) : [...prev, paraIdx].sort((a,b) => a - b));
+      }
+
+      function bookmarkCurrentParagraph() {
+        if (!bookmarks.includes(currentParaIdx)) {
+          setBookmarks(prev => [...prev, currentParaIdx].sort((a,b) => a - b));
+        }
+      }
+
+      function getParaPreview(idx) {
+        if (!bodyParagraphs[idx]) return 'Para ' + (idx + 1);
+        const text = bodyParagraphs[idx].trim().replace(/\n+/g, ' ');
+        const words = text.split(/\s+/).slice(0, 5).join(' ');
+        return words.length < text.length ? words + '…' : words;
+      }
+
+      function addNote() {
+        if (!noteText.trim()) return;
+        const note = {
+          id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+          type: noteType,
+          text: noteText.trim(),
+          paraIdx: currentParaIdx,
+          paraPreview: getParaPreview(currentParaIdx),
+          timestamp: new Date().toISOString(),
+          chapter: chapter.id
+        };
+        setNotes(prev => [...prev, note]);
+        setNoteText('');
+      }
+
+      function removeNote(noteId) {
+        setNotes(prev => prev.filter(n => n.id !== noteId));
+      }
+
+      // Map paragraph index → notes at that paragraph
+      const notesAtPara = useMemo(() => {
+        const map = {};
+        notes.forEach(n => {
+          if (!map[n.paraIdx]) map[n.paraIdx] = [];
+          map[n.paraIdx].push(n);
+        });
+        return map;
+      }, [notes]);
+
+      function scrollToSection(idx) {
+        const el = sectionRefs.current['sec-' + idx];
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      function scrollToBookmark(paraIdx) {
+        const el = document.getElementById('para-' + paraIdx);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setShowResume(false);
+      }
+
+      return (
+        <div className="chapter-reader-wrap">
+
+          {/* ═══ Floating Side TOC ═══ */}
+          {!loading && content && sections.length > 0 && (
+            <aside className={`toc-sidebar ${tocOpen ? 'open' : 'collapsed'}`}>
+              <button className="toc-toggle" onClick={() => setTocOpen(o => !o)} title={tocOpen ? 'Collapse TOC' : 'Expand TOC'}>
+                <Icon name={tocOpen ? 'fa-angles-left' : 'fa-list'} size="0.75em" />
+              </button>
+              {tocOpen && (
+                <div className="toc-content">
+                  <div className="toc-header">
+                    <Icon name="fa-bars-staggered" size="0.75em" />
+                    <span>Sections</span>
+                  </div>
+                  <nav className="toc-nav">
+                    {sections.map((sec, idx) => (
+                      <button
+                        key={idx}
+                        className={`toc-item ${activeSection === idx ? 'active' : ''}`}
+                        onClick={() => scrollToSection(idx)}
+                      >
+                        <span className="toc-marker"></span>
+                        <span className="toc-item-text">{sec.title}</span>
+                      </button>
+                    ))}
+                  </nav>
+
+                  <div className="toc-divider"></div>
+
+                  <button className="toc-bookmark-action" onClick={bookmarkCurrentParagraph} title="Bookmark the paragraph currently in view">
+                    <Icon name="fa-bookmark" size="0.7em" />
+                    <span>Bookmark Here</span>
+                  </button>
+
+                  {bookmarks.length > 0 && (
+                    <div className="toc-bookmarks">
+                      <div className="toc-header" style={{ marginTop: '0.6rem' }}>
+                        <Icon name="fa-bookmark" size="0.65em" />
+                        <span>Bookmarks ({bookmarks.length})</span>
+                      </div>
+                      {bookmarks.map(bIdx => (
+                        <div key={bIdx} className="toc-bookmark-row">
+                          <button className="toc-bookmark-item" onClick={() => scrollToBookmark(bIdx)}>
+                            <span className="toc-bm-preview">{getParaPreview(bIdx)}</span>
+                          </button>
+                          <button className="toc-bookmark-remove" onClick={() => toggleBookmark(bIdx)} title="Remove bookmark">
+                            <Icon name="fa-xmark" size="0.55em" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </aside>
+          )}
+
+          {/* ═══ Floating Right Notes Panel ═══ */}
+          {!loading && content && (
+            <aside className={`notes-sidebar ${notesOpen ? 'open' : 'collapsed'}`}>
+              <button className="notes-toggle" onClick={() => setNotesOpen(o => !o)} title={notesOpen ? 'Collapse Notes' : 'Expand Notes'}>
+                <Icon name={notesOpen ? 'fa-angles-right' : 'fa-sticky-note'} size="0.75em" />
+              </button>
+              {notesOpen && (
+                <div className="notes-content">
+                  <div className="notes-panel-header">
+                    <Icon name="fa-sticky-note" size="0.75em" />
+                    <span>Chapter Notes</span>
+                    <span className="notes-count">{notes.length}</span>
+                  </div>
+
+                  {/* Note composer */}
+                  <div className="note-composer">
+                    <div className="note-type-row">
+                      {Object.entries(NOTE_TYPES).map(([key, t]) => (
+                        <button
+                          key={key}
+                          className={`note-type-chip ${noteType === key ? 'active' : ''}`}
+                          onClick={() => setNoteType(key)}
+                          style={noteType === key ? { borderColor: t.color, background: t.color + '18' } : {}}
+                          title={t.label}
+                        >
+                          <Icon name={t.icon} size="0.65em" />
+                          <span className="note-type-label">{t.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="note-anchor-hint">
+                      <Icon name="fa-map-pin" size="0.6em" />
+                      <span>Anchored to: {getParaPreview(currentParaIdx)}</span>
+                    </div>
+                    <textarea
+                      className="note-input"
+                      placeholder="Add a note about this passage..."
+                      value={noteText}
+                      onChange={e => setNoteText(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) addNote(); }}
+                      rows={4}
+                    />
+                    <button className="note-add-btn" onClick={addNote} disabled={!noteText.trim()}>
+                      <Icon name="fa-plus" size="0.7em" /> Add Note
+                    </button>
+                  </div>
+
+                  {/* Notes list */}
+                  <div className="notes-list">
+                    {notes.length === 0 && (
+                      <div className="notes-empty">
+                        <Icon name="fa-pen-fancy" size="1.2em" />
+                        <p>No notes yet. Jot thoughts as you read — agents can use these for editing, continuity checks, and voice refinement.</p>
+                      </div>
+                    )}
+                    {[...notes].reverse().map(note => {
+                      const nt = NOTE_TYPES[note.type] || NOTE_TYPES.edit;
+                      return (
+                        <div key={note.id} className="note-card">
+                          <div className="note-card-header">
+                            <span className="note-card-type" style={{ color: nt.color }}>
+                              <Icon name={nt.icon} size="0.6em" /> {nt.label}
+                            </span>
+                            <button className="note-card-remove" onClick={() => removeNote(note.id)} title="Delete note">
+                              <Icon name="fa-xmark" size="0.6em" />
+                            </button>
+                          </div>
+                          <p className="note-card-text">{note.text}</p>
+                          <button className="note-card-anchor" onClick={() => scrollToBookmark(note.paraIdx)}>
+                            <Icon name="fa-map-pin" size="0.55em" /> {note.paraPreview}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </aside>
+          )}
+
+          {/* ═══ Resume Reading Banner ═══ */}
+          {showResume && bookmarks.length > 0 && (
+            <div className="resume-banner">
+              <Icon name="fa-bookmark" size="0.85em" />
+              <span>Continue where you left off?</span>
+              <button className="resume-btn" onClick={() => scrollToBookmark(bookmarks[bookmarks.length - 1])}>
+                Resume <Icon name="fa-arrow-right" size="0.7em" />
+              </button>
+              <button className="resume-dismiss" onClick={() => setShowResume(false)}>
+                <Icon name="fa-xmark" size="0.75em" />
+              </button>
+            </div>
+          )}
+
+          <div className="chapter-reader-container" data-content-width={contentWidth}>
+
+            {/* Chapter header */}
+            <header className="chapter-reader-header">
+              <div className="chapter-reader-num">Chapter {chapter.num}</div>
+              <h1 className="chapter-reader-title">{chapter.title}</h1>
+              <p className="chapter-reader-subtitle">{chapter.subtitle}</p>
+              <div className="chapter-header-rule"></div>
+            </header>
+
+            {/* ═══ Reading Controls ═══ */}
+            <div className="rc-wrapper">
+              {/* Collapsed toolbar */}
+              <div className="rc-toolbar">
+                <button className={`rc-toggle-btn ${controlsOpen ? 'active' : ''}`} onClick={() => setControlsOpen(o => !o)} title="Customize view">
+                  <Icon name="fa-sliders" size="0.9em" />
+                  <span className="rc-toggle-label">Customize View</span>
+                  <svg className={`rc-chevron ${controlsOpen ? 'open' : ''}`} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div className="rc-quick-row">
+                  <button className="rc-quick-btn" onClick={() => setFontScale(s => Math.max(0.8, +(s - 0.1).toFixed(1)))} title="Smaller text">A<span className="rc-small-minus">&minus;</span></button>
+                  <span className="rc-quick-value">{Math.round(fontScale * 100)}%</span>
+                  <button className="rc-quick-btn" onClick={() => setFontScale(s => Math.min(1.5, +(s + 0.1).toFixed(1)))} title="Larger text">A<span className="rc-small-plus">+</span></button>
+                </div>
+              </div>
+
+              {/* Expanded panel */}
+              <div className={`rc-panel ${controlsOpen ? 'open' : ''}`}>
+                <div className="rc-panel-inner">
+
+                  {/* Row 1: Font Size + Font Family */}
+                  <div className="rc-group">
+                    <div className="rc-label">Font Size</div>
+                    <div className="rc-size-row">
+                      <button className="rc-circle-btn" onClick={() => setFontScale(s => Math.max(0.8, +(s - 0.1).toFixed(1)))}>
+                        <span style={{ fontSize: '0.85em', fontWeight: 700 }}>&minus;</span>
+                      </button>
+                      <div className="rc-size-track">
+                        <div className="rc-size-fill" style={{ width: ((fontScale - 0.8) / 0.7 * 100) + '%' }}></div>
+                      </div>
+                      <button className="rc-circle-btn" onClick={() => setFontScale(s => Math.min(1.5, +(s + 0.1).toFixed(1)))}>
+                        <span style={{ fontSize: '0.85em', fontWeight: 700 }}>+</span>
+                      </button>
+                      <span className="rc-size-value">{Math.round(fontScale * 100)}%</span>
+                    </div>
+                  </div>
+
+                  <div className="rc-group">
+                    <div className="rc-label">Font</div>
+                    <div className="rc-btn-row">
+                      {Object.keys(FONT_MAP).map(f => (
+                        <button key={f} className={`rc-pill ${fontFamily === f ? 'active' : ''}`} onClick={() => setFontFamily(f)}
+                          style={{ fontFamily: FONT_MAP[f] }}>
+                          {FONT_LABELS[f]}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Row 2: Theme + Line Spacing */}
+                  <div className="rc-group">
+                    <div className="rc-label">Theme</div>
+                    <div className="rc-btn-row">
+                      <button className={`rc-theme-swatch dark ${readingTheme === 'dark' ? 'active' : ''}`} onClick={() => setReadingTheme('dark')}>
+                        <span className="swatch-dot dark-dot"></span> Dark
+                      </button>
+                      <button className={`rc-theme-swatch sepia ${readingTheme === 'sepia' ? 'active' : ''}`} onClick={() => setReadingTheme('sepia')}>
+                        <span className="swatch-dot sepia-dot"></span> Sepia
+                      </button>
+                      <button className={`rc-theme-swatch light ${readingTheme === 'light' ? 'active' : ''}`} onClick={() => setReadingTheme('light')}>
+                        <span className="swatch-dot light-dot"></span> Light
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="rc-group">
+                    <div className="rc-label">Line Spacing</div>
+                    <div className="rc-btn-row">
+                      {SPACING_OPTS.map(s => (
+                        <button key={s.val} className={`rc-pill ${lineSpacing === s.val ? 'active' : ''}`} onClick={() => setLineSpacing(s.val)}>
+                          {s.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Row 3: Content Width */}
+                  <div className="rc-group rc-group-full">
+                    <div className="rc-label">Content Width</div>
+                    <div className="rc-btn-row">
+                      {WIDTH_OPTS.map(w => (
+                        <button key={w.val} className={`rc-pill ${contentWidth === w.val ? 'active' : ''}`} onClick={() => setContentWidth(w.val)}>
+                          <Icon name={w.icon} size="0.8em" /> {w.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+            {/* Content body */}
+            <article ref={articleRef} className="chapter-reader-body" data-reading-theme={readingTheme} style={{ fontSize: (1.2 * fontScale) + 'rem', fontFamily: FONT_MAP[fontFamily], lineHeight: lineSpacing }}>
+              {loading && (
+                <div className="chapter-loading">
+                  <div className="chapter-loading-pulse"></div>
+                  <p>Loading chapter...</p>
+                </div>
+              )}
+
+              {!loading && !content && (
+                <div className="chapter-empty">
+                  <Icon name="fa-pen-fancy" size="2em" />
+                  <h3>Chapter Not Yet Written</h3>
+                  <p>This chapter is planned but hasn't been drafted yet. Check back soon.</p>
+                </div>
+              )}
+
+              {!loading && content && bodyParagraphs.map((para, i) => {
+                const trimmed = para.trim();
+                const secIdx = sectionAtPara[i];
+                const hasSectionBreak = secIdx !== undefined;
+                const isBookmarked = bookmarks.includes(i);
+
+                const sectionDivider = hasSectionBreak && secIdx > 0 ? (
+                  <div className="section-divider" key={'sd-' + i} id={'section-' + secIdx} ref={el => sectionRefs.current['sec-' + secIdx] = el}>
+                    <div className="section-divider-line"></div>
+                    <span className="section-divider-title">{sections[secIdx].title}</span>
+                    <div className="section-divider-line"></div>
+                  </div>
+                ) : hasSectionBreak && secIdx === 0 ? (
+                  <div key={'sd-0'} id="section-0" ref={el => sectionRefs.current['sec-0'] = el} style={{ position: 'absolute', top: 0 }}></div>
+                ) : null;
+
+                if (isAdviceHeading(trimmed)) {
+                  return (
+                    <React.Fragment key={i}>
+                      {sectionDivider}
+                      <div className="chapter-advice-break" id={'para-' + i}>
+                        <div className="advice-rule"></div>
+                        <h2 className="advice-heading">{trimmed}</h2>
+                        <div className="advice-rule"></div>
+                      </div>
+                    </React.Fragment>
+                  );
+                }
+
+                const isShort = trimmed.length < 120 && !trimmed.includes('.');
+                const paraNotes = notesAtPara[i];
+                const hasNotes = paraNotes && paraNotes.length > 0;
+                return (
+                  <React.Fragment key={i}>
+                    {sectionDivider}
+                    <div className={`para-wrap ${isBookmarked ? 'bookmarked' : ''} ${hasNotes ? 'has-notes' : ''}`} id={'para-' + i}>
+                      <button
+                        className={`bookmark-btn ${isBookmarked ? 'active' : ''}`}
+                        onClick={() => toggleBookmark(i)}
+                        title={isBookmarked ? 'Remove bookmark' : 'Bookmark this paragraph'}
+                      >
+                        <Icon name={isBookmarked ? 'fa-bookmark' : 'fa-bookmark'} size="0.7em" />
+                      </button>
+                      {hasNotes && (
+                        <span className="para-note-indicator" title={paraNotes.length + ' note' + (paraNotes.length > 1 ? 's' : '')}>
+                          <Icon name="fa-sticky-note" size="0.6em" />
+                          {paraNotes.length > 1 && <span className="note-count-badge">{paraNotes.length}</span>}
+                        </span>
+                      )}
+                      <p className={`chapter-paragraph ${isShort ? 'chapter-emphasis' : ''}`} style={{ animationDelay: `${Math.min(i * 30, 600)}ms` }}>
+                        {trimmed}
+                      </p>
+                    </div>
+                  </React.Fragment>
+                );
+              })}
+            </article>
+
+            {/* Chapter navigation footer */}
+            <footer className="chapter-nav-footer">
+              <div className="chapter-nav-row">
+                {prevChapter && prevChapter.file ? (
+                  <button className="chapter-nav-btn prev" onClick={() => onNavigateChapter(prevChapter)}>
+                    <Icon name="fa-arrow-left" size="0.85em" />
+                    <div className="chapter-nav-label">
+                      <span className="nav-direction">Previous</span>
+                      <span className="nav-chapter-title">Ch {prevChapter.num}: {prevChapter.title}</span>
+                    </div>
+                  </button>
+                ) : <div></div>}
+
+                <button className="chapter-nav-btn center" onClick={() => onBack('memoir')}>
+                  <Icon name="fa-th-large" size="0.85em" /> All Chapters
+                </button>
+
+                {nextChapter && nextChapter.file ? (
+                  <button className="chapter-nav-btn next" onClick={() => onNavigateChapter(nextChapter)}>
+                    <div className="chapter-nav-label" style={{ textAlign: 'right' }}>
+                      <span className="nav-direction">Next</span>
+                      <span className="nav-chapter-title">Ch {nextChapter.num}: {nextChapter.title}</span>
+                    </div>
+                    <Icon name="fa-arrow-right" size="0.85em" />
+                  </button>
+                ) : <div></div>}
+              </div>
+            </footer>
+          </div>
+        </div>
+      );
+    }
+
+    // =================================================================
+    // SCROLL TO TOP BUTTON
+    // =================================================================
+
+    function ScrollToTop({ progress }) {
+      const [visible, setVisible] = useState(false);
+
+      useEffect(() => {
+        function onScroll() {
+          setVisible(window.scrollY > 400);
+        }
+        window.addEventListener('scroll', onScroll);
+        return () => window.removeEventListener('scroll', onScroll);
+      }, []);
+
+      // SVG circle math: r=21, circumference=2*pi*21 ≈ 131.95
+      const r = 21;
+      const circ = 2 * Math.PI * r;
+      const offset = circ - (circ * (progress || 0) / 100);
+      const showRing = typeof progress === 'number' && progress > 0;
+
+      return (
+        <button
+          className={`scroll-top-btn ${visible ? 'show' : ''}`}
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          aria-label="Scroll to top"
+        >
+          {showRing && (
+            <svg className="scroll-top-ring" width="52" height="52" viewBox="0 0 52 52">
+              <circle className="ring-track" cx="26" cy="26" r={r} />
+              <circle className="ring-fill" cx="26" cy="26" r={r}
+                strokeDasharray={circ}
+                strokeDashoffset={offset}
+                transform="rotate(-90 26 26)"
+              />
+            </svg>
+          )}
+          <svg className="scroll-top-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="18 15 12 9 6 15" />
+          </svg>
+        </button>
+      );
+    }
+
+    // =================================================================
     // MAIN APP
     // =================================================================
 
     function App() {
       const [page, setPage] = useState('home');
       const [trips, setTrips] = useState([]);
+      const [activeChapter, setActiveChapter] = useState(null);
+      const [readProgress, setReadProgress] = useState(0);
 
       useEffect(() => { loadTrips().then(setTrips); }, []);
+
+      function openChapter(ch) {
+        if (ch.file) {
+          setActiveChapter(ch);
+          setPage('chapter');
+        }
+      }
+
+      function handleBackFromReader(target) {
+        setActiveChapter(null);
+        setPage(target || 'memoir');
+      }
 
       return (
         <div>
           <nav className="nav">
             <div className="nav-brand">Asif's Journal</div>
             <div className="nav-links">
-              <button className={`nav-link ${page === 'home' ? 'active' : ''}`} onClick={() => setPage('home')}><Icon name="fa-house" /> <span>Dashboard</span></button>
-              <button className={`nav-link ${page === 'memoir' ? 'active' : ''}`} onClick={() => setPage('memoir')}><Icon name="fa-book-open" /> <span>Memoir</span></button>
-              <button className={`nav-link ${page === 'dayone' ? 'active' : ''}`} onClick={() => setPage('dayone')}><Icon name="fa-feather-pointed" /> <span>DayOne</span></button>
+              <button className={`nav-link ${page === 'home' ? 'active' : ''}`} onClick={() => { setPage('home'); setActiveChapter(null); }}><Icon name="fa-house" /> <span>Dashboard</span></button>
+              <button className={`nav-link ${page === 'memoir' || page === 'chapter' ? 'active' : ''}`} onClick={() => { setPage('memoir'); setActiveChapter(null); }}><Icon name="fa-book-open" /> <span>Memoir</span></button>
+              <button className={`nav-link ${page === 'dayone' ? 'active' : ''}`} onClick={() => { setPage('dayone'); setActiveChapter(null); }}><Icon name="fa-feather-pointed" /> <span>DayOne</span></button>
             </div>
           </nav>
 
           <main className="page">
             {page === 'home' && <HomePage trips={trips} onNavigate={setPage} />}
-            {page === 'memoir' && <MemoirModule />}
+            {page === 'memoir' && <MemoirModule onOpenChapter={openChapter} />}
             {page === 'dayone' && <DayOneModule trips={trips} />}
+            {page === 'chapter' && activeChapter && (
+              <ChapterReader
+                chapter={activeChapter}
+                onBack={handleBackFromReader}
+                onNavigateChapter={(ch) => { setActiveChapter(ch); }}
+                onProgress={setReadProgress}
+              />
+            )}
+            <ScrollToTop progress={page === 'chapter' ? readProgress : null} />
           </main>
         </div>
       );
