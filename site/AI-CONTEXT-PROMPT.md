@@ -1,0 +1,337 @@
+# Journal Command Center — Full AI Context Prompt
+
+You are working on Asif Hussain's **Journal Command Center**, a React single-page application that serves as the unified hub for his personal memoir writing, trip journaling with his wife Ishrat, and DayOne journal entry creation. This document gives you everything you need to understand the project, make changes, and maintain design consistency.
+
+---
+
+## 1. PROJECT OVERVIEW
+
+### What This App Is
+A **creation and editing tool** for DayOne journal entries — NOT an archive viewer. DayOne (macOS app) remains the primary journaling app. This app helps Asif:
+- Craft journal entries with Claude's voice DNA refinement, then copy/paste back to DayOne
+- Track and plan trips with Ishrat (his wife)
+- Manage his memoir "What I Wish Babu Taught Me" (chapters, incidents, quotes)
+
+### Who Asif Is
+- 54-year-old British-Pakistani man living in London
+- Senior software engineer (ADLC/CORTEX frameworks)
+- Writing a multi-chapter first-person memoir for his children
+- "Babu" is what Asif calls his father — all chapter titles use "Babu" not "Dad"
+- Travels with his wife Ishrat — all trips are romantic couple's trips
+
+### Key Terminology
+- **Babu** = Asif's father (never "Dad" in any UI text)
+- **Ishrat** = Asif's wife (always named, never "my wife")
+- **DayOne** = the macOS journal app (primary journaling tool)
+- **Voice DNA** = Asif's writing style fingerprint used to refine journal entries
+- **CORTEX** = Asif's AI engineering governance framework
+
+---
+
+## 2. TECH STACK
+
+### Architecture
+- **React 18** via CDN (no build step, no Vite, no npm bundler)
+- **Babel standalone** for in-browser JSX transformation
+- **Single-file SPA**: everything lives in `site/index.html` (~1950 lines)
+- **External CSS**: design system split across 4 files
+- **No backend server** — served locally via `npx serve . -l 3000 --cors` from the `journal/` root directory
+- **Data layer**: JSON files fetched at runtime + inline JS constants
+
+### File Structure
+```
+journal/                          ← Server root (npx serve runs here)
+├── index.html                    ← Redirect to /site/index.html
+├── package.json                  ← Dev server config
+├── site/
+│   ├── index.html                ← THE APP (entire React SPA)
+│   ├── active-trip.html          ← Current active itinerary (standalone HTML)
+│   ├── css/
+│   │   ├── base.css              ← Shared design system (443 lines)
+│   │   ├── sample_lavender.css   ← Active theme (278 lines)
+│   │   ├── memoir_theme.css      ← Memoir-specific overrides
+│   │   └── trip_theme.css        ← Trip-specific overrides
+│   └── data/
+│       └── manifest.json         ← Active trip + archive metadata
+├── trips/
+│   ├── manifest.json             ← (Legacy copy, canonical is site/data/)
+│   └── 2026-04-ishrat-engagement/
+│       ├── trip.yaml             ← Detailed trip metadata
+│       ├── itinerary.html        ← Full itinerary (source for active-trip.html)
+│       ├── itinerary.md          ← Markdown version
+│       ├── journal/              ← Daily trip journal entries
+│       ├── photos/               ← Trip photos
+│       ├── memoir-extracts.md    ← Flagged memoir-worthy moments
+│       └── voice-guide.md        ← Voice DNA guide for this trip
+├── chapters/                     ← Memoir chapter files
+│   ├── ch00-intro.txt
+│   ├── ch01-man.txt
+│   ├── ch02-love.txt (PUBLISHED)
+│   ├── ch03-marriage.txt
+│   └── preface.txt
+└── reference/                    ← Voice DNA, craft techniques, biographical context
+```
+
+### CDN Dependencies (loaded in `<head>`)
+- **Google Fonts**: Cormorant Garamond, Inter, Great Vibes, JetBrains Mono
+- **Font Awesome 6.5.1**: Icon library (loaded without SRI hash)
+- **React 18 + ReactDOM**: Production builds from unpkg CDN
+- **Babel Standalone**: In-browser JSX transformation
+
+### React Patterns
+- All hooks destructured at top: `const { useState, useRef, useEffect } = React;`
+- No `React.useState()` — always `useState()` directly
+- No ES module imports — everything is in one `<script type="text/babel">` block
+- Components are plain functions (no class components)
+
+---
+
+## 3. NAVIGATION & MODULES
+
+### Nav Bar (3 tabs)
+| Tab | Icon | Route Key | Component |
+|-----|------|-----------|-----------|
+| Home | `fa-house` | `home` | `HomePage` |
+| Memoir | `fa-book-open` | `memoir` | `MemoirModule` |
+| DayOne Journal | `fa-feather-pointed` | `dayone` | `DayOneJournalModule` |
+
+### App Component Routing
+```jsx
+function App() {
+  const [currentPage, setCurrentPage] = useState('home');
+  // Nav renders 3 buttons, page rendering:
+  // home → <HomePage onNavigate={setCurrentPage} />
+  // memoir → <MemoirModule />
+  // dayone → <DayOneJournalModule />
+}
+```
+
+### Home Page
+- **Active Trip Hero Banner** — large card at top, only visible when `manifest.json` has an active trip
+  - Shows: couple name (script font), trip name, base hotel, vibe, countdown/live indicator, flights, next event
+  - Clicking opens `active-trip.html` in new browser tab
+  - Dynamic states: UPCOMING (countdown), LIVE NOW (day X of Y with green pulse), hidden when no active trip
+- **Stats row** — Total Words, Chapters Locked
+- **Module cards** — Memoir and DayOne Journal (clickable, navigate to respective modules)
+
+### Memoir Module (sub-tabs: Chapters, Incidents, Quotes)
+- **Chapters tab**: Lists all 8 chapters with status badges (locked/draft/planned), word counts, readiness percentages
+- **Incidents tab**: Story-worthy events with status (PLACED/BANKED/NEEDS-QQ)
+- **Quotes tab**: Searchable quote library with source attribution
+
+### DayOne Journal Module (sub-tabs: Trips Browser, Edit Entry, New Entry)
+- **Trips Browser**: Masonry card grid of trips, click to expand entries
+- **Edit Entry**: Select trip → select entry → edit with DayOne preview + copy-to-clipboard
+- **New Entry**: Create new entry with mood, trip, journal selection + DayOne preview
+
+---
+
+## 4. DATA STRUCTURES
+
+### manifest.json (Active Trip Pointer)
+```json
+{
+  "active": {
+    "slug": "2026-04-ishrat-engagement",
+    "name": "Ishrat's Engagement Party Trip",
+    "travelers": ["Asif", "Ishrat"],
+    "vibe": "Packed & purposeful — couple time, mid-range budget, halal dining",
+    "base": "Home2 Suites, New Brunswick, NJ",
+    "dates": { "start": "2026-04-20", "end": "2026-04-28", "days": 9 },
+    "flights": { "inbound": {...}, "outbound": {...} },
+    "highlights": [{ "date": "...", "event": "...", "venue": "..." }],
+    "itineraryPath": "itineraries/2026-04-ishrat-engagement.html"
+  },
+  "archive": [{ "slug": "...", "name": "...", "status": "completed" }]
+}
+```
+When `active` is `null`, the hero banner hides entirely.
+
+### Inline Data Constants (in index.html)
+- **CHAPTERS** — 8 chapters (ch00–ch07) with id, num, title, subtitle, status, words, readiness
+- **QUOTES_SAMPLE** — Array of {text, source, chapter} objects
+- **INCIDENTS_SAMPLE** — Array of {title, chapter, status} objects
+- **PLACEHOLDER_TRIPS** — 3 trips (Istanbul Oct 2024, New Brunswick Apr 2026, Lahore Jun 2022)
+- **MOODS** — 10 mood types: romantic, adventure, cultural, relaxed, celebration, bittersweet, anticipation, reflective, spiritual, playful
+- **MOOD_COLORS** — Maps each mood to {bg, text, icon} for consistent color-coding
+- **JOURNALS** — ['Travel', 'Ishrat's Visits', 'Asif's Journal'] (DayOne journal names; note curly apostrophe)
+
+### Entry Shape
+```javascript
+{
+  uuid: 'istanbul-001',
+  date: '2024-10-12T00:00:00.000Z',
+  location: 'Istanbul',
+  mood: 'anticipation',
+  summary: 'Hagia Sophia at dawn...',
+  text: '...',  // Full journal entry body
+  tags: ['istanbul', 'anticipation', 'ishrat'],
+  photoPlaceholders: [{ id, description, slot }],
+  status: 'draft',
+  journal: 'Ishrat\u2019s Visits'  // Curly apostrophe required
+}
+```
+
+---
+
+## 5. DESIGN SYSTEM
+
+### Theme: Lavender Mist (Active)
+The app uses a light lavender theme (`body.theme-lavender`). All colors are defined as CSS custom properties.
+
+#### Core Color Palette
+| Token | Value | Usage |
+|-------|-------|-------|
+| `--bg-primary` | `#e8e0f0` | Page background |
+| `--bg-secondary` | `#ddd4ea` | Secondary surfaces |
+| `--bg-tertiary` | `#d0c6e0` | Tertiary/recessed areas |
+| `--bg-card` | `#f6f2fc` | Card backgrounds |
+| `--bg-card-hover` | `#faf8ff` | Card hover state |
+| `--text-primary` | `#2d2840` | Headings, primary text |
+| `--text-secondary` | `#6b6380` | Body text, descriptions |
+| `--text-muted` | `#a59db8` | Labels, metadata, timestamps |
+| `--accent` | `#966eb4` | Primary accent (purple) |
+| `--accent-soft` | `rgba(150,110,180,0.1)` | Accent backgrounds |
+
+#### Romantic Accent Colors (used in hero banner, trip elements)
+| Color | Hex | Usage |
+|-------|-----|-------|
+| Purple | `#966eb4` | Primary accent, nav active, buttons |
+| Rose | `#c48a9a` | Romantic elements, secondary accent, hearts |
+| Green | `#5aac72` | Success, "Complete", "LIVE NOW" state |
+
+#### Gradient Patterns
+- **Brand gradient**: `linear-gradient(135deg, #966eb4, #c48a9a)` — used for nav brand text, script couple name, countdown numbers
+- **Card tints**: Each module card has a unique warm tint (purple, rose-lilac, cool violet)
+- **Page background**: Subtle diagonal crosshatch pattern + color orbs over `--bg-primary`
+
+### Font Stack
+| Token | Font | Usage |
+|-------|------|-------|
+| `--font-serif` | Cormorant Garamond | Headings, trip names, chapter titles, entry body text |
+| `--font-sans` | Inter | UI text, nav, buttons, descriptions |
+| `--font-mono` | JetBrains Mono | Dates, metadata, stats, flight codes, status badges |
+| `--font-script` | Great Vibes | "Asif & Ishrat" couple branding, nav brand |
+
+### Design Philosophy
+- **Light and airy** — soft lavender tints, transparent backgrounds, minimal borders
+- **Romantic but professional** — hearts and script fonts are subtle decorative accents, not dominant
+- **Consistent card language** — rounded corners (16-20px), subtle box-shadows, hover lift effects
+- **Mood color-coding** — every mood has a dedicated color/icon pair used consistently across all views
+- **Information density** — mono font for data (dates, counts, flight codes), serif for narrative content, sans for UI
+
+### Active Trip Hero Banner Design Rules
+- Uses the SAME light palette as the rest of the page (NOT dark backgrounds)
+- Soft transparent tints: `rgba(150,110,180,0.07)` style backgrounds
+- Sub-cards for metrics (countdown, flights, next event) use even lighter tints
+- Floating hearts are very subtle (opacity 0.04–0.08)
+- Footer has a thin `rgba(150,110,180,0.08)` border-top separator
+- Traveler badges are pill-shaped with 9999px border-radius
+- "View Itinerary" CTA in mono font, purple, with external link icon
+
+### Key CSS Classes
+- `.page` — Main content wrapper (padding-top: 80px for fixed nav, padding-bottom: 6rem)
+- `.container` — Max-width 1200px centered
+- `.container-narrow` — Max-width 800px (used for chapter list, entry editor)
+- `.nav`, `.nav-inner`, `.nav-link` — Fixed top nav with blur backdrop
+- `.module-card` — Dashboard module cards with hover lift
+- `.card`, `.card-flat` — General card system
+- `.stat-card` — Dashboard stat display
+- `.journal-tabs`, `.journal-tab` — Sub-tab navigation within modules
+- `.chapter-card` — Memoir chapter list items
+- `.entry-card-grid` — Masonry grid for journal entries (CSS column-count)
+- `.badge`, `.badge-accent`, `.badge-success` — Status indicators
+
+---
+
+## 6. INTEGRATIONS & WORKFLOWS
+
+### DayOne Integration
+- Entries are created/edited in this app, then **manually copied** to DayOne via clipboard
+- `copyToClipboard(text)` function + toast notification on success
+- DayOne Preview component shows formatted preview with journal name, tags, mood badge
+- DayOne CLI path: `/Applications/Day One.app/Contents/MacOS/dayone` (for future automation)
+- Journal names use **curly apostrophes** (Unicode U+2019): `Ishrat\u2019s Visits`
+
+### Trip Workflow
+1. **Planning**: Claude Code / Cowork builds itinerary in `trips/{slug}/` folder, creates `itinerary.html`
+2. **Activation**: Copy itinerary to `site/active-trip.html`, update `site/data/manifest.json` with active trip data
+3. **During trip**: Daily journal entries via trip-log skill → DayOne sync
+4. **Completion**: Set `manifest.json` active to `null`, move trip to archive array
+5. **Only ONE active itinerary at a time** — the hero banner shows it or hides
+
+### manifest.json as Shared State
+- **React app** fetches it on load via `fetch('data/manifest.json')` (relative path)
+- **Claude Code / Cowork / Copilot** update it when creating or completing trips
+- **Git-tracked**, human-readable, no database needed
+- Each trip folder also has `trip.yaml` as the detailed source of truth (flights, highlights, memoir connections, DayOne config)
+
+### Memoir Workflow
+- Chapters live in `chapters/` as plain text files
+- 8 chapters planned: Introduction, Man, Love, Marriage, Faith, Education, Parenthood, Friendship
+- Each chapter has: title, subtitle ("Babu, What Does It Mean to Be a Man?"), status, word count, readiness score
+- Incidents are story-worthy events that get placed into chapters
+- Quotes are immutable reference material from books/people
+
+---
+
+## 7. CRITICAL RULES FOR ANY AI MAKING CHANGES
+
+### Do
+- Use CSS custom properties (`var(--accent)`, `var(--text-primary)`) — never hardcode colors
+- Keep everything in the single `index.html` `<script type="text/babel">` block
+- Use destructured hooks: `useState`, `useEffect`, `useRef` (NOT `React.useState`)
+- Match existing font assignments: serif for narrative, mono for data, sans for UI, script for couple branding
+- Use Font Awesome 6 solid icons (`fa-solid fa-icon-name`) via the `<Icon>` component
+- Keep the lavender light aesthetic — transparent tints, soft borders, airy spacing
+- Use `var(--font-mono)` for any dates, flight codes, metadata, stats
+- Use `var(--font-serif)` for any narrative text, titles, trip names
+- Add `padding-bottom: 6rem` breathing space on all pages
+
+### Don't
+- Don't introduce build tools (Vite, webpack, etc.) — CDN-only approach
+- Don't use dark backgrounds on cards or banners — this is a LIGHT theme
+- Don't use `React.useState()` — always `useState()` directly
+- Don't create separate component files — everything stays in index.html
+- Don't reference "Dad" — always "Babu" in all UI text
+- Don't use straight apostrophes in DayOne journal names — must be curly (')
+- Don't add real personal data — use Lorem ipsum placeholder entries in Asif's voice style
+- Don't change the manifest.json structure without understanding the full flow
+- Don't use `file://` URLs — serve everything through localhost
+
+### Entry Body Text Voice (for Lorem Ipsum)
+Asif's journal voice is: first-person, present-tense feeling with past-tense narration, sensory details, Ishrat always named, emotional undertones without melodrama, short punchy sentences mixed with flowing ones. Example: "The water stretched out before us, impossibly blue. She leaned against the railing and said nothing. I said nothing. The silence between us was the fullest conversation we'd had all week."
+
+---
+
+## 8. COMPONENT REFERENCE
+
+| Component | Purpose | Key Props/State |
+|-----------|---------|-----------------|
+| `App` | Root, nav, routing | `currentPage` state |
+| `HomePage` | Dashboard + hero banner | `activeTrip` from manifest fetch, `onNavigate` |
+| `ActiveTripHero` | Trip countdown/live banner | `trip` object from manifest |
+| `MemoirModule` | Chapters/incidents/quotes | `subTab` state |
+| `DayOneJournalModule` | Entry browser/editor/creator | `subTab` state |
+| `JournalTripsBrowser` | Trip card grid + entry expansion | `selectedTrip`, `viewMode` |
+| `EntryEditor` | Edit existing entries | `selectedTrip`, `selectedEntry` |
+| `NewEntryCreator` | Create new entries | Form state for mood, trip, text |
+| `DayOnePreview` | Formatted DayOne entry preview | `entry`, `selectedJournal`, `tags` |
+| `Icon` | Font Awesome icon wrapper | `name`, `size` |
+
+---
+
+## 9. QUICK REFERENCE: FILE LOCATIONS
+
+| What | Where |
+|------|-------|
+| The entire React app | `site/index.html` |
+| Active theme CSS | `site/css/sample_lavender.css` |
+| Base design system CSS | `site/css/base.css` |
+| Active trip metadata | `site/data/manifest.json` |
+| Active itinerary HTML | `site/active-trip.html` |
+| Trip source files | `trips/{slug}/` |
+| Trip detailed metadata | `trips/{slug}/trip.yaml` |
+| Memoir chapters | `chapters/ch{NN}-{name}.txt` |
+| Server start | `cd journal && npx serve . -l 3000 --cors` |
+| App URL | `http://localhost:3000/site/index.html` (or `localhost:3000` with redirect) |

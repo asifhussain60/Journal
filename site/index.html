@@ -6,912 +6,482 @@
   <title>Asif's Journal</title>
 
   <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Great+Vibes&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=Great+Vibes&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
   <!-- Font Awesome 6.5.1 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
-
-  <!-- External Stylesheets -->
-  <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/memoir_theme.css">
-  <link rel="stylesheet" href="css/trip_theme.css">
-  <link rel="stylesheet" href="css/sample_lavender.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F4D6;</text></svg>">
 
   <style>
-    /* ═════════════════════════════════════════════════════════════
-       INLINE STYLES — Journal App Components
-       ═════════════════════════════════════════════════════════════ */
+    /* =================================================================
+       PREMIUM LAVENDER GLASS 2.0 — Gemini Design
+       Rich, modern, interactive with multi-column grids
+       ================================================================= */
+    :root {
+      --bg-main: #EFE9F5;
+      --bg-mesh-1: rgba(180, 140, 210, 0.45);
+      --bg-mesh-2: rgba(150, 110, 180, 0.35);
+      --bg-mesh-3: rgba(220, 160, 180, 0.3);
+      --bg-mesh-4: rgba(120, 180, 200, 0.2);
 
-    body.theme-lavender {
-      --bg-primary: #faf8f6;
-      --text-primary: #2c2c2c;
-      --accent: #8b6ba8;
-      --border-color: #e8e4e0;
-      --card-bg: #ffffff;
+      --glass-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.4) 100%);
+      --glass-bg-hover: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.6) 100%);
+      --glass-border: rgba(255, 255, 255, 0.7);
+      --glass-border-light: rgba(255, 255, 255, 0.95);
+      --glass-shadow: 0 10px 40px rgba(74, 51, 88, 0.08);
+      --glass-shadow-hover: 0 16px 50px rgba(74, 51, 88, 0.15);
+
+      --text-main: #2D1E3A;
+      --text-secondary: #4A3358;
+      --text-muted: #6B5A7A;
+      --text-soft: #9A8CA8;
+
+      --purple-deep: #4A3358;
+      --purple-mid: #8B7394;
+      --lavender: #A78BFA;
+      --wisteria: #C084FC;
+      --rose: #F472B6;
+      --accent: #8B5CF6;
+      --success: #10B981;
+      --warning: #F59E0B;
+
+      --font-serif: 'Cormorant Garamond', serif;
+      --font-sans: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --font-script: 'Great Vibes', cursive;
+
+      --transition-fast: all 0.2s ease;
+      --transition-spring: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
-    .journal-tabs {
-      display: flex;
-      gap: 0.5rem;
-      padding: 0.5rem;
-      background: var(--card-bg);
-      border-radius: 0.5rem;
-      border: 1px solid var(--border-color);
-      margin-bottom: 1.5rem;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
-    .journal-tab {
-      padding: 0.5rem 1rem;
-      border: none;
-      background: transparent;
-      color: var(--text-primary);
-      cursor: pointer;
-      border-radius: 0.4rem;
+    body {
       font-family: var(--font-sans);
-      font-size: 0.95rem;
-      font-weight: 500;
-      transition: all 0.2s ease;
-    }
-
-    .journal-tab.active {
-      background: var(--accent);
-      color: white;
-    }
-
-    .journal-tab:hover:not(.active) {
-      background: rgba(139, 107, 168, 0.1);
-      color: var(--accent);
-    }
-
-    /* Trip Cards Grid */
-    .trips-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 2rem;
-    }
-
-    .trip-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 0.75rem;
-      overflow: hidden;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .trip-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 16px rgba(139, 107, 168, 0.12);
-      border-color: var(--accent);
-    }
-
-    .trip-card-cover {
-      width: 100%;
-      height: 180px;
-      background: linear-gradient(135deg, rgba(139, 107, 168, 0.1) 0%, rgba(196, 100, 120, 0.1) 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 3rem;
-      opacity: 0.3;
-    }
-
-    .trip-card-body {
-      padding: 1rem;
-    }
-
-    .trip-card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: start;
-      margin-bottom: 0.75rem;
-    }
-
-    .trip-card-title {
-      font-family: var(--font-serif);
-      font-size: 1.3rem;
-      font-weight: 600;
-      color: var(--text-primary);
-      margin: 0;
-    }
-
-    .trip-card-date {
-      font-family: var(--font-sans);
-      font-size: 0.85rem;
-      color: #999;
-      margin-top: 0.25rem;
-    }
-
-    .trip-card-country {
-      display: inline-block;
-      font-size: 0.8rem;
-      color: var(--accent);
-      font-weight: 600;
-      margin-top: 0.5rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .trip-card-stats {
-      display: flex;
-      gap: 1rem;
-      font-size: 0.85rem;
-      color: #666;
-      margin-top: 0.75rem;
-      padding-top: 0.75rem;
-      border-top: 1px solid var(--border-color);
-    }
-
-    .trip-card-stat {
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-    }
-
-    .trip-card-tags {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-      margin-top: 0.75rem;
-    }
-
-    .trip-card-tag {
-      display: inline-block;
-      font-size: 0.75rem;
-      padding: 0.25rem 0.5rem;
-      background: rgba(139, 107, 168, 0.1);
-      color: var(--accent);
-      border-radius: 0.25rem;
-      text-transform: capitalize;
-    }
-
-    /* Entry Card Grid (masonry) */
-    .entry-card-grid {
-      column-count: 3;
-      column-gap: 1.25rem;
-    }
-    @media (max-width: 1024px) {
-      .entry-card-grid { column-count: 2; }
-    }
-    @media (max-width: 640px) {
-      .entry-card-grid { column-count: 1; }
-    }
-
-    /* Legacy fallback classes kept for compatibility */
-    .entry-timeline {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-      margin-top: 1rem;
-    }
-
-    .entry-item {
-      padding: 1rem;
-      background: var(--card-bg);
-      border-left: 3px solid var(--accent);
-      border-radius: 0.5rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .entry-item:hover {
-      box-shadow: 0 4px 8px rgba(139, 107, 168, 0.1);
-    }
-
-    .entry-item-date {
-      font-family: var(--font-sans);
-      font-size: 0.8rem;
-      color: #999;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 0.3rem;
-    }
-
-    .entry-item-text {
-      font-family: var(--font-serif);
-      font-size: 0.95rem;
-      color: var(--text-primary);
-      line-height: 1.5;
-      margin: 0;
-    }
-
-    /* Entry Detail View */
-    .entry-detail {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 0.75rem;
-      padding: 2rem;
-      max-width: 700px;
-      margin: 0 auto;
-    }
-
-    .entry-detail-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: start;
-      margin-bottom: 1.5rem;
-      padding-bottom: 1.5rem;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .entry-detail-meta {
-      display: flex;
-      gap: 1rem;
-      font-size: 0.85rem;
-      color: #666;
-    }
-
-    .entry-detail-mood {
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-    }
-
-    .entry-detail-text {
-      font-family: var(--font-serif);
-      font-size: 1.1rem;
-      line-height: 1.8;
-      color: var(--text-primary);
-      margin-bottom: 1.5rem;
-    }
-
-    .entry-detail-photos {
-      margin-top: 1.5rem;
-      padding-top: 1.5rem;
-      border-top: 1px solid var(--border-color);
-    }
-
-    .entry-detail-photos h4 {
-      font-family: var(--font-sans);
-      font-size: 0.9rem;
-      color: #666;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 1rem;
-    }
-
-    /* Photo Placeholders */
-    .photo-placeholders {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 1rem;
-      margin-top: 1rem;
-    }
-
-    .photo-placeholder {
-      aspect-ratio: 1;
-      background: linear-gradient(135deg, rgba(139, 107, 168, 0.08) 0%, rgba(196, 100, 120, 0.08) 100%);
-      border: 2px dashed var(--border-color);
-      border-radius: 0.5rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 0.75rem;
-      text-align: center;
-      font-family: var(--font-sans);
-      font-size: 0.7rem;
-      color: #999;
-      gap: 0.5rem;
-    }
-
-    .photo-placeholder-icon {
-      font-size: 1.8rem;
-      opacity: 0.4;
-    }
-
-    .photo-placeholder-label {
-      font-weight: 500;
-      line-height: 1.2;
-    }
-
-    /* Mood Chips */
-    .mood-chips {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 0.75rem;
-      margin: 1rem 0;
-    }
-
-    .mood-chip {
-      padding: 0.75rem 1rem;
-      border: 2px solid transparent;
-      border-radius: 0.5rem;
-      cursor: pointer;
-      font-family: var(--font-sans);
-      font-size: 0.9rem;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      transition: all 0.2s ease;
-    }
-
-    .mood-chip.selected {
-      border-color: var(--accent);
-      transform: scale(1.05);
-    }
-
-    /* Q&A Flow */
-    .qa-flow {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 0.75rem;
-      padding: 2rem;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-
-    .qa-progress {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 2rem;
-      justify-content: center;
-    }
-
-    .qa-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--border-color);
-      transition: all 0.2s ease;
-    }
-
-    .qa-dot.active {
-      background: var(--accent);
-      width: 24px;
-      border-radius: 4px;
-    }
-
-    .qa-dot.completed {
-      background: var(--accent);
-    }
-
-    .qa-step {
-      display: none;
-    }
-
-    .qa-step.active {
-      display: block;
-      animation: fadeIn 0.3s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    .qa-label {
-      font-family: var(--font-serif);
-      font-size: 1.2rem;
-      font-weight: 600;
-      color: var(--text-primary);
-      margin-bottom: 1.5rem;
-    }
-
-    .qa-input, .qa-textarea, .qa-select {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid var(--border-color);
-      border-radius: 0.5rem;
-      font-family: var(--font-sans);
-      font-size: 0.95rem;
-      color: var(--text-primary);
-      background: var(--bg-primary);
-      margin-bottom: 1.5rem;
-    }
-
-    .qa-textarea {
-      resize: vertical;
-      min-height: 120px;
-      font-family: var(--font-serif);
-    }
-
-    .qa-buttons {
-      display: flex;
-      gap: 1rem;
-      justify-content: space-between;
-    }
-
-    /* Narrative Editor */
-    .narrative-editor {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 0.75rem;
-      padding: 2rem;
-      max-width: 700px;
-      margin: 0 auto;
-    }
-
-    .narrative-editor-header {
-      margin-bottom: 1.5rem;
-      padding-bottom: 1.5rem;
-      border-bottom: 1px solid var(--border-color);
-    }
-
-    .narrative-editor-title {
-      font-family: var(--font-serif);
-      font-size: 1.3rem;
-      font-weight: 600;
-      color: var(--text-primary);
-      margin-bottom: 0.5rem;
-    }
-
-    .narrative-editor-status {
-      display: inline-block;
-      font-size: 0.8rem;
-      padding: 0.35rem 0.75rem;
-      border-radius: 0.3rem;
-      text-transform: capitalize;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-    }
-
-    .narrative-editor-status.draft {
-      background: rgba(150, 150, 150, 0.15);
-      color: #666;
-    }
-
-    .narrative-editor-status.refined {
-      background: rgba(139, 107, 168, 0.15);
-      color: var(--accent);
-    }
-
-    .narrative-editor-status.exported {
-      background: rgba(80, 160, 120, 0.15);
-      color: #50a078;
-    }
-
-    .narrative-editor-section {
-      margin-bottom: 1.5rem;
-    }
-
-    .narrative-editor-label {
-      font-family: var(--font-sans);
-      font-size: 0.85rem;
-      color: #666;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 0.5rem;
-      display: block;
-    }
-
-    .narrative-editor-text {
-      font-family: var(--font-serif);
-      font-size: 1rem;
-      line-height: 1.7;
-      color: var(--text-primary);
-      padding: 1rem;
-      background: var(--bg-primary);
-      border-radius: 0.5rem;
-      border: 1px solid var(--border-color);
-    }
-
-    /* DayOne Preview */
-    .dayone-preview {
-      background: #2c2c2c;
-      border-radius: 0.75rem;
-      padding: 2rem;
-      margin-top: 2rem;
-      color: #e8e8e8;
-      max-width: 500px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .dayone-header {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
-    }
-
-    .dayone-dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: #666;
-    }
-
-    .dayone-dot.red { background: #ff5f56; }
-    .dayone-dot.yellow { background: #ffbd2e; }
-    .dayone-dot.green { background: #27c93f; }
-
-    .dayone-title {
-      font-family: var(--font-serif);
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-    }
-
-    .dayone-meta {
-      font-size: 0.85rem;
-      color: #999;
-      margin-bottom: 1rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid #444;
-    }
-
-    .dayone-text {
-      font-family: var(--font-serif);
-      font-size: 0.95rem;
+      background-color: var(--bg-main);
+      color: var(--text-main);
       line-height: 1.6;
-      margin-bottom: 1rem;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      overflow-x: hidden;
     }
 
-    .dayone-tags {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-      margin-bottom: 1rem;
-      padding-top: 1rem;
-      border-top: 1px solid #444;
+    /* --- Animated Mesh Background --- */
+    .bg-mesh {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1;
+      background:
+        radial-gradient(circle at 10% 20%, var(--bg-mesh-1), transparent 50%),
+        radial-gradient(circle at 90% 80%, var(--bg-mesh-2), transparent 50%),
+        radial-gradient(circle at 50% 50%, var(--bg-mesh-3), transparent 60%),
+        radial-gradient(circle at 80% 10%, var(--bg-mesh-4), transparent 50%);
+      filter: blur(60px);
+      animation: mesh-shift 25s ease-in-out infinite alternate;
+    }
+    @keyframes mesh-shift {
+      0%   { transform: scale(1) translate(0, 0); }
+      33%  { transform: scale(1.05) translate(3%, 2%); }
+      66%  { transform: scale(1.02) translate(-2%, 4%); }
+      100% { transform: scale(1) translate(-2%, -2%); }
     }
 
-    .dayone-tag {
-      font-size: 0.8rem;
-      padding: 0.35rem 0.75rem;
-      background: rgba(139, 107, 168, 0.2);
-      border-radius: 0.3rem;
-      color: #aaa;
-    }
+    /* --- Layout --- */
+    .page { padding-top: 110px; padding-bottom: 6rem; min-height: 100vh; }
+    .container { max-width: 1280px; margin: 0 auto; padding: 0 1.5rem; }
 
-    /* Buttons in DayOne Preview */
-    .dayone-actions {
-      display: flex;
-      gap: 0.75rem;
-      margin-top: 1.5rem;
-      padding-top: 1rem;
-      border-top: 1px solid #444;
-    }
-
-    .dayone-btn {
-      flex: 1;
-      padding: 0.75rem;
-      background: rgba(139, 107, 168, 0.2);
-      border: 1px solid rgba(139, 107, 168, 0.4);
-      border-radius: 0.4rem;
-      color: #ccc;
-      cursor: pointer;
-      font-family: var(--font-sans);
-      font-size: 0.85rem;
-      transition: all 0.2s ease;
-    }
-
-    .dayone-btn:hover {
-      background: rgba(139, 107, 168, 0.3);
-      border-color: var(--accent);
-      color: #fff;
-    }
-
-    /* Toast Notification */
-    .toast {
-      position: fixed;
-      bottom: 2rem;
-      right: 2rem;
-      background: var(--accent);
-      color: white;
-      padding: 1rem 1.5rem;
-      border-radius: 0.5rem;
-      font-family: var(--font-sans);
-      font-size: 0.9rem;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      animation: slideIn 0.3s ease;
-      z-index: 1000;
-    }
-
-    @keyframes slideIn {
-      from {
-        transform: translateY(100%);
-        opacity: 0;
-      }
-      to {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
-
-    /* Home Dashboard */
-    .dashboard-stats {
+    .grid-cards {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
       gap: 1.5rem;
-      margin-bottom: 2rem;
+      align-items: start;
     }
 
-    .stat-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 0.75rem;
-      padding: 1.5rem;
+    /* --- Transitions --- */
+    .fade-enter { animation: fadeSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .stagger-1 { animation-delay: 0.1s; opacity: 0; animation: fadeSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .stagger-2 { animation-delay: 0.2s; opacity: 0; animation: fadeSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .stagger-3 { animation-delay: 0.3s; opacity: 0; animation: fadeSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+    /* --- Typography --- */
+    .page-title {
+      font-family: var(--font-serif); font-size: 3.5rem; font-weight: 500;
+      color: var(--text-main); margin-bottom: 0.25rem; letter-spacing: -0.01em; line-height: 1.1;
+    }
+    .page-subtitle { font-size: 1.1rem; color: var(--text-muted); margin-bottom: 3rem; font-weight: 400; max-width: 600px; }
+
+    /* --- Glass Cards --- */
+    .glass-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(24px) saturate(150%);
+      -webkit-backdrop-filter: blur(24px) saturate(150%);
+      border: 1px solid var(--glass-border);
+      border-top: 1px solid var(--glass-border-light);
+      border-left: 1px solid var(--glass-border-light);
+      border-radius: 24px;
+      box-shadow: var(--glass-shadow);
+      transition: var(--transition-spring);
+      position: relative; overflow: hidden;
+      display: flex; flex-direction: column;
+    }
+    .glass-card:hover {
+      background: var(--glass-bg-hover);
+      transform: translateY(-6px);
+      box-shadow: var(--glass-shadow-hover);
+      border-color: rgba(255, 255, 255, 1);
+    }
+
+    /* --- Navigation (Pill) --- */
+    .nav {
+      position: fixed; top: 1.5rem; left: 50%; transform: translateX(-50%); z-index: 100;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      box-shadow: 0 8px 32px rgba(74, 51, 88, 0.1);
+      border-radius: 999px; padding: 0.5rem 1rem;
+      display: flex; align-items: center; gap: 1.5rem;
+      width: 90%; max-width: 1000px;
+    }
+    .nav-brand {
+      font-family: var(--font-script); font-size: 2rem;
+      background: linear-gradient(135deg, var(--accent), var(--rose));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      padding: 0 1rem; font-weight: 600;
+    }
+    .nav-links { display: flex; gap: 0.25rem; flex: 1; justify-content: flex-end; }
+    .nav-link {
+      padding: 0.6rem 1.25rem; border-radius: 999px; color: var(--text-muted);
+      font-size: 0.95rem; font-weight: 500; transition: var(--transition-fast);
+      cursor: pointer; border: none; background: transparent;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .nav-link:hover { color: var(--text-main); background: rgba(255, 255, 255, 0.6); }
+    .nav-link.active { color: var(--accent); background: white; box-shadow: 0 2px 12px rgba(74, 51, 88, 0.08); }
+
+    /* --- Buttons --- */
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.5rem; justify-content: center;
+      padding: 0.75rem 1.5rem; border-radius: 14px;
+      font-family: var(--font-sans); font-size: 0.95rem; font-weight: 500;
+      cursor: pointer; transition: var(--transition-fast); border: 1px solid transparent;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--wisteria)); color: white;
+      box-shadow: 0 4px 15px rgba(139, 92, 246, 0.25);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(139, 92, 246, 0.35); filter: brightness(1.1); }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(255, 255, 255, 0.9); color: var(--text-main);
+    }
+    .btn-secondary:hover { background: rgba(255, 255, 255, 0.9); transform: translateY(-2px); }
+
+    /* --- Sub-Nav Tabs --- */
+    .journal-tabs {
+      display: inline-flex; background: rgba(255, 255, 255, 0.4); padding: 0.5rem;
+      border-radius: 18px; border: 1px solid rgba(255, 255, 255, 0.6);
+      margin-bottom: 2.5rem; box-shadow: inset 0 2px 5px rgba(0,0,0,0.02);
+    }
+    .journal-tab {
+      padding: 0.75rem 1.5rem; border: none; background: transparent; color: var(--text-muted);
+      cursor: pointer; border-radius: 14px; font-size: 0.95rem; font-weight: 600;
+      transition: var(--transition-fast); display: flex; align-items: center; gap: 0.5rem;
+    }
+    .journal-tab.active { background: white; color: var(--accent); box-shadow: 0 4px 15px rgba(74, 51, 88, 0.08); }
+
+    /* --- Module Cards --- */
+    .module-card { padding: 3rem 2.5rem; cursor: pointer; }
+    .module-icon {
+      width: 70px; height: 70px; border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.4));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem; color: var(--accent); margin-bottom: 1.5rem;
+      border: 1px solid white; box-shadow: 0 8px 25px rgba(139, 92, 246, 0.15);
+    }
+    .module-title { font-family: var(--font-serif); font-size: 2.2rem; color: var(--text-main); margin-bottom: 0.75rem; line-height: 1.1; }
+    .module-description { font-size: 1.05rem; color: var(--text-muted); line-height: 1.6; }
+
+    /* --- Active Trip Hero (Redesigned) --- */
+    .trip-hero {
+      position: relative;
+      padding: 4rem 3rem;
+      border-radius: 24px;
+      overflow: hidden;
+      margin-bottom: 3rem;
+      background: var(--glass-bg);
+      backdrop-filter: blur(24px) saturate(150%);
+      -webkit-backdrop-filter: blur(24px) saturate(150%);
+      border: 1px solid var(--glass-border);
+      border-top: 1px solid var(--glass-border-light);
+      border-left: 1px solid var(--glass-border-light);
+      box-shadow: var(--glass-shadow);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       text-align: center;
+      cursor: pointer;
+      transition: var(--transition-spring);
+    }
+    .trip-hero:hover {
+      background: var(--glass-bg-hover);
+      transform: translateY(-6px);
+      box-shadow: var(--glass-shadow-hover);
+      border-color: rgba(255, 255, 255, 1);
+    }
+    
+    .trip-hero::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(200,170,220,0.15) 0%, transparent 70%);
+      z-index: -1;
     }
 
-    .stat-number {
-      font-family: var(--font-serif);
-      font-size: 2.2rem;
-      font-weight: 600;
-      color: var(--accent);
+    .hero-overline {
+      font-family: var(--font-sans);
+      text-transform: uppercase;
+      letter-spacing: 0.25em;
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: var(--wisteria);
+      margin-bottom: 1rem;
+    }
+
+    .hero-names {
+      font-family: var(--font-script);
+      color: var(--purple-mid);
+      font-size: 5rem;
+      line-height: 1.1;
       margin-bottom: 0.25rem;
     }
 
-    .stat-label {
-      font-family: var(--font-sans);
-      font-size: 0.85rem;
-      color: #666;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+    .hero-pet-name {
+      font-family: 'Great Vibes', cursive;
+      color: var(--lavender);
+      font-size: 2.2rem;
+      display: block;
+      margin-bottom: 2rem;
+      font-weight: 400;
     }
 
-    /* Module Cards */
-    .modules-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .module-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 0.75rem;
-      padding: 2rem;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .module-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 16px rgba(139, 107, 168, 0.12);
-      border-color: var(--accent);
-    }
-
-    .module-icon {
-      font-size: 2.5rem;
-      color: var(--accent);
-      margin-bottom: 1rem;
-    }
-
-    .module-title {
+    .hero-for {
+      display: block;
       font-family: var(--font-serif);
-      font-size: 1.3rem;
-      font-weight: 600;
-      color: var(--text-primary);
-      margin-bottom: 0.5rem;
-    }
-
-    .module-description {
-      font-family: var(--font-sans);
-      font-size: 0.9rem;
-      color: #666;
-      line-height: 1.5;
-    }
-
-    /* Back Button */
-    .back-button {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 1.5rem;
-      padding: 0.5rem 1rem;
-      background: transparent;
-      border: none;
-      color: var(--accent);
-      cursor: pointer;
-      font-family: var(--font-sans);
-      font-size: 0.9rem;
-      font-weight: 500;
-      transition: all 0.2s ease;
-    }
-
-    .back-button:hover {
-      gap: 0.75rem;
-    }
-
-    /* Memoir Components — Keep Existing Styling */
-    .chapter-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 0.75rem;
-      padding: 1.5rem;
-      margin-bottom: 1rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .chapter-card:hover {
-      box-shadow: 0 4px 8px rgba(139, 107, 168, 0.1);
-    }
-
-    .chapter-status {
-      display: inline-block;
-      font-size: 0.75rem;
-      padding: 0.35rem 0.75rem;
-      border-radius: 0.3rem;
+      font-size: 2.2rem;
+      letter-spacing: 0.2em;
       text-transform: uppercase;
-      font-weight: 600;
-      letter-spacing: 0.05em;
+      color: var(--text-muted);
       margin-bottom: 0.5rem;
+      font-weight: 400;
     }
 
-    .chapter-status.locked {
-      background: rgba(150, 150, 150, 0.15);
-      color: #666;
-    }
-
-    .chapter-status.active {
-      background: rgba(139, 107, 168, 0.15);
-      color: var(--accent);
-    }
-
-    .chapter-status.planned {
-      background: rgba(196, 100, 120, 0.15);
-      color: #c46478;
-    }
-
-    .chapter-title {
-      font-family: var(--font-serif);
-      font-size: 1.2rem;
-      font-weight: 600;
-      color: var(--text-primary);
-      margin: 0.5rem 0;
-    }
-
-    .chapter-description {
-      font-family: var(--font-sans);
-      font-size: 0.9rem;
-      color: #666;
-      line-height: 1.5;
-    }
-
-    .quote-card {
-      background: var(--card-bg);
-      border-left: 3px solid var(--accent);
-      border-radius: 0.5rem;
-      padding: 1rem;
-      margin-bottom: 0.75rem;
+    .hero-dates {
       font-family: var(--font-serif);
       font-style: italic;
-      color: var(--text-primary);
+      font-size: 1.2rem;
+      color: var(--text-soft);
+      margin-bottom: 2.5rem;
     }
 
-    .quote-card-source {
-      font-family: var(--font-sans);
-      font-size: 0.8rem;
-      color: #999;
-      margin-top: 0.5rem;
-      font-style: normal;
+    .hero-line {
+      width: 80px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #C4A87A, transparent);
+      margin: 0 auto 2.5rem auto;
     }
 
-    .incident-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 0.5rem;
-      padding: 1rem;
-      margin-bottom: 0.75rem;
-      cursor: pointer;
+    .trip-hero-status {
+      font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.15em; text-transform: uppercase;
+      padding: 0.5rem 1.2rem; border-radius: 999px; margin-bottom: 0;
+      display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 600;
+    }
+    .trip-hero-status.live { background: rgba(16, 185, 129, 0.15); color: #047857; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .trip-hero-status.upcoming { background: rgba(139, 92, 246, 0.15); color: var(--accent); border: 1px solid rgba(139, 92, 246, 0.3); }
+
+    .pulse-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: pulse 2s infinite; }
+    @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.5); } 100% { opacity: 1; transform: scale(1); } }
+
+    /* --- Chapter Cards --- */
+    .chapter-card { padding: 2rem; display: flex; flex-direction: column; justify-content: space-between; min-height: 240px; }
+    .chapter-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+    .chapter-num { font-family: var(--font-serif); font-size: 3rem; color: rgba(139, 92, 246, 0.2); font-weight: 700; line-height: 0.8; }
+    .chapter-title { font-family: var(--font-serif); font-size: 1.8rem; color: var(--text-main); line-height: 1.2; margin-bottom: 0.5rem; }
+    .chapter-subtitle { font-style: italic; color: var(--text-muted); font-size: 1rem; line-height: 1.4; }
+    .progress-track { height: 6px; background: rgba(255,255,255,0.5); border-radius: 999px; overflow: hidden; margin-top: 1.5rem; }
+    .progress-bar { height: 100%; border-radius: 999px; transition: width 1s ease; }
+    .progress-bar.active { background: linear-gradient(90deg, var(--accent), var(--wisteria)); }
+    .progress-bar.locked { background: var(--text-soft); }
+    .progress-bar.planned { background: rgba(154, 140, 168, 0.3); }
+    .chapter-footer { display: flex; justify-content: space-between; margin-top: 0.75rem; font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-soft); }
+
+    /* --- Incident Cards --- */
+    .incident-card { padding: 1.75rem; }
+    .incident-title { font-family: var(--font-serif); font-size: 1.4rem; color: var(--text-main); line-height: 1.3; margin-bottom: 1rem; }
+    .incident-meta { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.5); }
+
+    /* --- Quote Cards --- */
+    .quote-card { padding: 2.5rem 2rem; position: relative; }
+    .quote-icon { position: absolute; top: 1.5rem; left: 1.5rem; font-size: 3rem; color: rgba(139, 92, 246, 0.1); font-family: var(--font-serif); line-height: 1; }
+    .quote-text { font-family: var(--font-serif); font-size: 1.35rem; font-style: italic; color: var(--text-main); line-height: 1.6; margin-bottom: 1.5rem; position: relative; z-index: 1; }
+    .quote-author { font-family: var(--font-sans); font-size: 0.9rem; color: var(--text-muted); font-weight: 500; display: flex; align-items: center; justify-content: space-between; }
+
+    /* --- Badges --- */
+    .badge {
+      font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em;
+      padding: 0.3rem 0.8rem; border-radius: 8px; font-weight: 600; display: inline-block;
+    }
+    .badge-locked { background: rgba(107, 90, 122, 0.1); color: var(--text-muted); border: 1px solid rgba(107, 90, 122, 0.2); }
+    .badge-active { background: rgba(139, 92, 246, 0.15); color: var(--accent); border: 1px solid rgba(139, 92, 246, 0.3); }
+    .badge-planned { background: rgba(255, 255, 255, 0.5); color: var(--text-soft); border: 1px solid rgba(255, 255, 255, 0.8); }
+
+    /* --- Forms & Inputs --- */
+    .input-field {
+      width: 100%; padding: 1rem 1.5rem;
+      background: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.9);
+      border-radius: 16px; font-family: var(--font-sans); font-size: 1rem; color: var(--text-main);
+      transition: var(--transition-fast); outline: none;
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.02);
+    }
+    .input-field:focus {
+      background: rgba(255,255,255,0.95); border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15), inset 0 2px 5px rgba(0,0,0,0.01);
+    }
+    textarea.input-field { min-height: 180px; resize: vertical; font-family: var(--font-serif); font-size: 1.2rem; line-height: 1.6; }
+
+    /* --- Entry Cards --- */
+    .entry-card { padding: 1.75rem; cursor: pointer; }
+    .entry-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .entry-date { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted); letter-spacing: 0.05em; }
+    .entry-mood { font-size: 0.75rem; padding: 0.3rem 0.8rem; border-radius: 999px; display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 500; }
+    .entry-title { font-family: var(--font-serif); font-size: 1.5rem; color: var(--text-main); line-height: 1.3; margin-bottom: 0.75rem; }
+    .entry-preview {
+      font-family: var(--font-serif); font-size: 1.05rem; color: var(--text-secondary); line-height: 1.6;
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
     }
 
-    .incident-card-title {
-      font-family: var(--font-serif);
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: var(--text-primary);
-      margin: 0;
+    /* --- Mood Chips (New Entry) --- */
+    .mood-chips { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem; margin: 1rem 0; }
+    .mood-chip {
+      padding: 0.75rem 1rem; border: 2px solid transparent; border-radius: 14px; cursor: pointer;
+      font-size: 0.9rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem;
+      transition: var(--transition-fast);
     }
+    .mood-chip.selected { border-color: var(--accent); transform: scale(1.05); box-shadow: 0 4px 15px rgba(139, 92, 246, 0.15); }
 
-    .incident-card-date {
-      font-family: var(--font-sans);
-      font-size: 0.8rem;
-      color: #999;
-      margin-top: 0.25rem;
+    /* --- Toast --- */
+    .toast {
+      position: fixed; bottom: 2rem; right: 2rem;
+      background: var(--text-main); color: white;
+      padding: 1rem 2rem; border-radius: 14px;
+      font-family: var(--font-sans); font-size: 0.95rem; font-weight: 500;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 1000;
+    }
+    @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    @media (max-width: 768px) {
+      .page-title { font-size: 2.5rem; }
+      .nav { width: 95%; padding: 0.5rem; gap: 0.5rem; }
+      .nav-brand { font-size: 1.5rem; }
+      .nav-link span { display: none; }
+      .grid-cards { grid-template-columns: 1fr; }
+      .editor-grid { grid-template-columns: 1fr !important; }
+      .animated-highlight-box { padding: 2rem 1.5rem; }
+      .trip-hero { padding: 2rem 1.5rem; }
     }
   </style>
 </head>
+<body>
 
-<body class="theme-lavender">
-
+  <div class="bg-mesh"></div>
   <div id="root"></div>
 
+  <!-- Dependencies -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <script type="text/babel">
-    const { useState, useRef, useEffect } = React;
+    const { useState, useEffect } = React;
 
-    // ═══════════════════════════════════════════════════════════
-    // PLACEHOLDER DATA
-    // ═══════════════════════════════════════════════════════════
-
-    function generateEntries(location, startDate, count, summaries) {
-      const entries = [];
-      const moodCycle = ['anticipation', 'adventure', 'cultural', 'romantic', 'celebration', 'reflective', 'relaxed', 'spiritual', 'playful', 'bittersweet'];
-
-      for (let i = 0; i < count; i++) {
-        const date = new Date(startDate);
-        date.setDate(date.getDate() + i);
-        const mood = moodCycle[i % moodCycle.length];
-        const photoCount = Math.floor(Math.random() * 4) + 1;
-
-        const loremBodies = [
-          'The morning light filtered through latticed windows, casting geometric shadows on the stone floor. We stood there for what felt like hours, though it might have been minutes. Some places slow time down — this was one of them. Ishrat reached for my hand without looking.',
-          'Streets narrowed into alleys that smelled of cardamom and woodsmoke. A vendor called out something we didn\'t understand, but the warmth in his voice needed no translation. She stopped at every stall, touching fabrics, holding ceramics up to the light. I carried the bags and watched her come alive.',
-          'The water stretched out before us, impossibly blue, the kind of blue that makes you question every other blue you\'ve ever seen. She leaned against the railing and said nothing. I said nothing. The silence between us was the fullest conversation we\'d had all week.',
-          'We got lost. Properly, beautifully lost. No map, no signal, just the two of us following our feet through a city that rewarded wandering. Every wrong turn revealed a courtyard, a fountain, a doorway that had been standing for centuries.',
-          'She went in alone. I sat on the steps outside, watching pigeons and tourists and the way the light changed as clouds moved across the sky. When she came back out, her eyes were different — softer, maybe. Or just more present.',
-          'The table was small, the candles were real, and the menu was in a language neither of us spoke. We pointed at things and hoped. Everything that arrived was extraordinary. She laughed when the dessert came — it was enormous, ridiculous, perfect.',
-          'The air changed as we climbed. Cooler, thinner, carrying the scent of wild herbs and distant rain. Below us the city looked like a toy — all those lives, all those stories, reduced to specks of light. She said she could see our hotel. I pretended I could too.',
-          'Rain came from nowhere, hard and sudden. We ducked into the first open door — a tea house, ancient and warm, the kind of place where the chairs don\'t match and the tea is perfect. We stayed two hours. It became the best memory of the trip.',
-          'Walking the old walls, I told her about the version of myself I\'d imagined at twenty. She told me about hers. Neither of us had become those people, and that was fine. Better than fine.',
-          'She was the teacher today. I was the student. She showed me how to read the shopkeeper\'s face, when to walk away, when to come back. I showed her how to let go of the thing you wanted. We were both bad at our lessons.',
-          'Last night energy — that particular sadness of knowing something beautiful is ending. Turkish coffee, thick and sweet. The fortune-teller turned her cup and said something about water and journeys. She laughed. I saved the cup.',
-          'At the gate, she squeezed my hand twice. Our signal. It means: I\'m here, I see you, this was worth it. The plane was delayed. We didn\'t mind. We sat in the plastic chairs and talked about next time.',
-          'The house smelled like childhood — cooking oil, incense, the particular warmth of a place where someone has been expecting you. Ammi appeared before we could set our bags down, already listing what she\'d made.',
-          'The old neighbourhood hadn\'t changed, but I had. Every street corner triggered a memory I\'d forgotten I was carrying. She walked beside me, quiet, letting me narrate a childhood she was seeing for the first time.',
-        ];
-        const bodyText = loremBodies[i % loremBodies.length];
-
-        entries.push({
-          uuid: `${location.toLowerCase().replace(/[^a-z]/g, '')}-${String(i+1).padStart(3, '0')}`,
-          date: date.toISOString(),
-          location: location,
-          mood: mood,
-          summary: summaries[i] || 'Lorem ipsum entry',
-          text: bodyText,
-          tags: [location.toLowerCase().replace(/[^a-z]/g, '-'), mood, 'ishrat'],
-          photoPlaceholders: Array.from({ length: photoCount }, (_, j) => ({
-            id: `ph-${location.toLowerCase().replace(/[^a-z]/g, '')}-${i+1}-${j+1}`,
-            description: `Photo placeholder ${j+1} for ${summaries[i] ? summaries[i].split('—')[0].trim() : 'this moment'}`,
-            slot: j + 1,
-          })),
-          status: 'draft',
-          journal: 'Ishrat\u2019s Visits',
-        });
-      }
-      return entries;
-    }
+    // =================================================================
+    // DATA LAYER
+    // =================================================================
 
     const MOODS = ['romantic', 'adventure', 'cultural', 'relaxed', 'celebration', 'bittersweet', 'anticipation', 'reflective', 'spiritual', 'playful'];
 
     const MOOD_COLORS = {
-      romantic: { bg: 'rgba(196,100,120,0.12)', text: '#c46478', icon: 'fa-heart' },
-      adventure: { bg: 'rgba(80,160,120,0.12)', text: '#50a078', icon: 'fa-mountain-sun' },
-      cultural: { bg: 'rgba(160,120,80,0.12)', text: '#a07850', icon: 'fa-landmark' },
-      relaxed: { bg: 'rgba(100,140,200,0.12)', text: '#648cc8', icon: 'fa-spa' },
-      celebration: { bg: 'rgba(200,160,60,0.12)', text: '#c8a03c', icon: 'fa-champagne-glasses' },
-      bittersweet: { bg: 'rgba(140,100,160,0.12)', text: '#8c64a0', icon: 'fa-cloud-rain' },
-      anticipation: { bg: 'rgba(200,140,60,0.12)', text: '#c88c3c', icon: 'fa-clock' },
-      reflective: { bg: 'rgba(100,120,160,0.12)', text: '#6478a0', icon: 'fa-pen-fancy' },
-      spiritual: { bg: 'rgba(120,160,140,0.12)', text: '#78a08c', icon: 'fa-moon' },
-      playful: { bg: 'rgba(200,120,100,0.12)', text: '#c87864', icon: 'fa-face-smile-beam' },
+      romantic:     { bg: 'rgba(244,114,182,0.15)', text: '#BE185D', icon: 'fa-heart' },
+      adventure:    { bg: 'rgba(16,185,129,0.15)',  text: '#047857', icon: 'fa-mountain-sun' },
+      cultural:     { bg: 'rgba(245,158,11,0.15)',  text: '#B45309', icon: 'fa-landmark' },
+      relaxed:      { bg: 'rgba(139,92,246,0.15)',  text: '#6D28D9', icon: 'fa-spa' },
+      celebration:  { bg: 'rgba(230,160,60,0.15)',  text: '#B45309', icon: 'fa-champagne-glasses' },
+      bittersweet:  { bg: 'rgba(107,90,122,0.15)',  text: '#4A3358', icon: 'fa-cloud-rain' },
+      anticipation: { bg: 'rgba(200,120,100,0.15)', text: '#9A3412', icon: 'fa-clock' },
+      reflective:   { bg: 'rgba(59,130,246,0.15)',  text: '#1D4ED8', icon: 'fa-pen-fancy' },
+      spiritual:    { bg: 'rgba(120,160,140,0.15)', text: '#047857', icon: 'fa-moon' },
+      playful:      { bg: 'rgba(210,100,140,0.15)', text: '#BE185D', icon: 'fa-face-smile-beam' },
     };
 
-    const JOURNALS = ['Travel', 'Ishrat\u2019s Visits', 'Asif\u2019s Journal'];
+    const JOURNALS = ['Travel', 'Ishrat\u2019s Trips', 'Asif\u2019s Journal'];
+
+    const loremBodies = [
+      'The morning light filtered through latticed windows, casting geometric shadows on the stone floor. We stood there for what felt like hours, though it might have been minutes. Some places slow time down \u2014 this was one of them. Ishrat reached for my hand without looking.',
+      'Streets narrowed into alleys that smelled of cardamom and woodsmoke. A vendor called out something we didn\'t understand, but the warmth in his voice needed no translation. She stopped at every stall, touching fabrics, holding ceramics up to the light. I carried the bags and watched her come alive.',
+      'The water stretched out before us, impossibly blue, the kind of blue that makes you question every other blue you\'ve ever seen. She leaned against the railing and said nothing. I said nothing. The silence between us was the fullest conversation we\'d had all week.',
+      'We got lost. Properly, beautifully lost. No map, no signal, just the two of us following our feet through a city that rewarded wandering. Every wrong turn revealed a courtyard, a fountain, a doorway that had been standing for centuries.',
+      'She went in alone. I sat on the steps outside, watching pigeons and tourists and the way the light changed as clouds moved across the sky. When she came back out, her eyes were different \u2014 softer, maybe. Or just more present.',
+      'The table was small, the candles were real, and the menu was in a language neither of us spoke. We pointed at things and hoped. Everything that arrived was extraordinary. She laughed when the dessert came \u2014 it was enormous, ridiculous, perfect.',
+      'The air changed as we climbed. Cooler, thinner, carrying the scent of wild herbs and distant rain. Below us the city looked like a toy \u2014 all those lives, all those stories, reduced to specks of light. She said she could see our hotel. I pretended I could too.',
+      'Rain came from nowhere, hard and sudden. We ducked into the first open door \u2014 a tea house, ancient and warm, the kind of place where the chairs don\'t match and the tea is perfect. We stayed two hours. It became the best memory of the trip.',
+      'Walking the old walls, I told her about the version of myself I\'d imagined at twenty. She told me about hers. Neither of us had become those people, and that was fine. Better than fine.',
+      'She was the teacher today. I was the student. She showed me how to read the shopkeeper\'s face, when to walk away, when to come back. I showed her how to let go of the thing you wanted. We were both bad at our lessons.',
+      'Last night energy \u2014 that particular sadness of knowing something beautiful is ending. Turkish coffee, thick and sweet. The fortune-teller turned her cup and said something about water and journeys. She laughed. I saved the cup.',
+      'At the gate, she squeezed my hand twice. Our signal. It means: I\'m here, I see you, this was worth it. The plane was delayed. We didn\'t mind. We sat in the plastic chairs and talked about next time.',
+      'The house smelled like childhood \u2014 cooking oil, incense, the particular warmth of a place where someone has been expecting you. Ammi appeared before we could set our bags down, already listing what she\'d made.',
+      'The old neighbourhood hadn\'t changed, but I had. Every street corner triggered a memory I\'d forgotten I was carrying. She walked beside me, quiet, letting me narrate a childhood she was seeing for the first time.',
+    ];
+
+    function generateEntries(location, startDate, count, summaries) {
+      const moodCycle = ['romantic', 'adventure', 'cultural', 'reflective', 'celebration', 'spiritual', 'relaxed', 'bittersweet', 'anticipation', 'playful'];
+      return Array.from({ length: count }, (_, i) => {
+        const date = new Date(startDate);
+        date.setDate(date.getDate() + i);
+        return {
+          uuid: `${location.toLowerCase().replace(/[^a-z]/g, '')}-${i}`,
+          date: date.toISOString().split('T')[0],
+          location,
+          mood: moodCycle[i % moodCycle.length],
+          summary: summaries[i] || 'Memory captured',
+          text: loremBodies[i % loremBodies.length],
+          tags: [location.toLowerCase().replace(/[^a-z]/g, '-'), moodCycle[i % moodCycle.length], 'ishrat'],
+          journal: 'Ishrat\u2019s Trips',
+          status: 'draft',
+        };
+      });
+    }
 
     const PLACEHOLDER_TRIPS = [
       {
-        id: 'trip-001', location: 'Istanbul', country: 'Turkey',
-        displayDate: 'Oct 2024', startDate: '2024-10-12', endDate: '2024-10-19',
-        tags: ['anniversary', 'ishrat', 'cultural'],
-        entryCount: 12, photoPlaceholders: 34,
-        entries: generateEntries('Istanbul', '2024-10-12', 12, ['Hagia Sophia at dawn — the light through those windows stopped us both', 'Grand Bazaar chaos — Ishrat found a lamp she says was "meant for us"', 'Bosphorus ferry at sunset, her head on my shoulder, neither of us speaking', 'Lost in Sultanahmet, found the best lokma of our lives', 'Ishrat praying at the Blue Mosque, I watched from outside', 'Rooftop dinner in Beyoglu — she wore the red scarf', 'Spice market morning — cumin, saffron, the smell of her mother\'s kitchen', 'Rain forced us into a tiny tea house, best accident of the trip', 'Walking the old city walls, talking about what we\'d build if we could start over', 'She taught me how to haggle, I taught her how to walk away', 'Last night — Turkish coffee, fortune reading, she laughed at mine', 'Airport goodbye to the city — she squeezed my hand at the gate'])
-      },
-      {
-        id: 'trip-002', location: 'New Brunswick, NJ', country: 'USA',
-        displayDate: 'Apr 2026', startDate: '2026-04-20', endDate: '2026-04-28',
-        tags: ['engagement', 'ishrat', 'family'],
-        entryCount: 9, photoPlaceholders: 18,
-        entries: generateEntries('New Brunswick', '2026-04-20', 9, ['Arrival day — the hotel room smells like new carpet and possibility', 'Edison exploration — Oak Tree Road breakfast, shalwar kameez shopping', 'City spark — Central Park, Museum of Natural History, Halal Guys dinner', 'Quiet couple day — sleep in, brunch, movie night', 'The Engagement Party — Fresh Meadows, biryani and roses', 'Recovery and reflection — late morning, journal writing', 'Fondue date night — Red Bank, The Melting Pot', 'Spa and serenity — Ocean Place Resort, boardwalk sunset', 'Homeward — packing, EWR, the bittersweet end'])
-      },
-      {
-        id: 'trip-003', location: 'Lahore', country: 'Pakistan',
-        displayDate: 'Jun 2022', startDate: '2022-06-10', endDate: '2022-06-20',
-        tags: ['family', 'homecoming', 'cultural'],
-        entryCount: 14, photoPlaceholders: 40,
-        entries: generateEntries('Lahore', '2022-06-10', 14, ['Landing at Allama Iqbal — the humidity, the honking, the feeling of being home', 'Ammi\'s house — she fed us before we could put our bags down', 'Food Street with cousins — nihari, paye, the old arguments about which is better', 'Badshahi Mosque — Ishrat\'s first time, she stood there speechless', 'Anarkali bazaar — she bought fabric for everyone back home', 'Wagah Border ceremony — the nationalism, the spectacle, the absurdity', 'Cousin wedding prep — mehndi night, everyone dancing', 'The wedding day — Ishrat in green, the one everyone noticed', 'Shalimar Gardens morning — peacocks, fountains, history underfoot', 'Old Lahore food crawl — gol gappay vendor she found in a side alley', 'Family gathering at Chacha\'s — children running, elders sitting, samosas appearing', 'Lahore Fort at sunset — she said she understood me better now', 'Last full day — we drove through the old neighbourhood, I showed her where I played', 'Airport — Ammi held on too long, Ishrat held me after'])
-      },
+        id: 'trip-001', slug: '2026-04-ishrat-engagement', location: 'New Brunswick, NJ', country: 'USA',
+        displayDate: 'Apr 2026', tags: ['engagement', 'ishrat', 'family'],
+        itineraryPath: 'itineraries/2026-04-ishrat-engagement.html',
+        dates: { start: '2026-04-20', end: '2026-04-28', days: 9 },
+        entries: generateEntries('New Brunswick', '2026-04-20', 9, [
+          'Arrival Day — landed EWR, Uber to Home2 Suites',
+          'Settle In & Planning — Baithakh, The Pho House',
+          'Stephanie & Movie Premiere — "Michael" IMAX Screening',
+          'Shalwar Kameez Shopping — Rangreza, East Avenue, J. Junaid Jamshed',
+          'The Engagement Party — Fresh Meadows, Queens',
+          'Tulips & Farm Market — Holland Ridge Farms, Eastmont Orchards',
+          'Delaware Day Trip — Longwood Gardens, Brandywine Valley Drive, Christiana Mall',
+          'Spa Day & Farewell — Ocean Place Spa, Baba Grill Dinner',
+          'Until We Meet Again — Farewell Brunch, Pack, Drive to EWR',
+        ]),
+      }
     ];
 
     const CHAPTERS = [
@@ -919,37 +489,37 @@
       { id: 'ch01', num: '01', title: 'Man', subtitle: 'Babu, What Does It Mean to Be a Man?', status: 'locked', words: 4200, readiness: 100 },
       { id: 'ch02', num: '02', title: 'Love', subtitle: 'Babu, Tell Me What Love Really Is', status: 'locked', words: 9084, readiness: 100 },
       { id: 'ch03', num: '03', title: 'Marriage', subtitle: 'Babu, Tell Me What Marriage Really Is', status: 'active', words: 3200, readiness: 62 },
-      { id: 'ch04', num: '04', title: 'Faith', subtitle: 'Babu, Where Do I Find God?', status: 'planned', words: 0, readiness: 0 },
-      { id: 'ch05', num: '05', title: 'Money', subtitle: 'Babu, Teach Me About Money', status: 'planned', words: 0, readiness: 0 },
-      { id: 'ch06', num: '06', title: 'Discipline', subtitle: 'Babu, What Is Real Discipline?', status: 'planned', words: 0, readiness: 0 },
-      { id: 'ch07', num: '07', title: 'Parenthood', subtitle: 'Babu, How Do I Raise My Own?', status: 'planned', words: 0, readiness: 0 },
+      { id: 'ch04', num: '04', title: 'Faith', subtitle: 'Babu, What Should I Believe?', status: 'planned', words: 0, readiness: 0 },
+      { id: 'ch05', num: '05', title: 'Education', subtitle: 'Babu, How Do I Learn What Matters?', status: 'planned', words: 0, readiness: 0 },
+      { id: 'ch06', num: '06', title: 'Parenthood', subtitle: 'Babu, How Do I Raise My Children?', status: 'planned', words: 0, readiness: 0 },
+      { id: 'ch07', num: '07', title: 'Friendship', subtitle: 'Babu, Who Can I Trust?', status: 'planned', words: 0, readiness: 0 },
     ];
 
     const QUOTES_SAMPLE = [
-      { text: 'The wound is the place where the Light enters you.', source: 'Rumi', chapter: 'ch02', used: true },
-      { text: 'Do not lose hope, nor be sad.', source: 'Quran 3:139', chapter: 'ch04', used: false },
-      { text: 'A man is not where he lives, but where he loves.', source: 'Latin Proverb', chapter: 'ch01', used: true },
-      { text: 'Between stimulus and response there is a space.', source: 'Viktor Frankl', chapter: null, used: false },
-      { text: 'The soul that has no fixed purpose in life is lost.', source: 'Montaigne', chapter: null, used: false },
+      { text: 'The wound is the place where the Light enters you.', source: 'Rumi', chapter: '01' },
+      { text: 'A man who has not passed through the inferno of his passions has never overcome them.', source: 'Carl Jung', chapter: '01' },
+      { text: 'Love is not about possession. Love is about appreciation.', source: 'Osho', chapter: '02' },
+      { text: 'The meeting of two personalities is like the contact of two chemical substances: if there is any reaction, both are transformed.', source: 'Carl Jung', chapter: '02' },
+      { text: 'Perhaps all the dragons in our lives are princesses who are only waiting to see us act, just once, with beauty and courage.', source: 'Rainer Maria Rilke', chapter: '03' },
     ];
 
     const INCIDENTS_SAMPLE = [
-      { id: 'INC-041', title: 'Afifa Khala reads to sick boy', chapter: 'ch02', status: 'PLACED' },
-      { id: 'INC-023', title: 'Caning after school report', chapter: 'ch01', status: 'PLACED' },
-      { id: 'INC-057', title: 'First prayer alone in America', chapter: 'ch04', status: 'BANKED' },
-      { id: 'INC-062', title: 'Ishrat corrects his definition of love', chapter: 'ch02', status: 'PLACED' },
-      { id: 'INC-068', title: 'Wedding day silence', chapter: 'ch03', status: 'DRAFTED' },
-      { id: 'INC-071', title: 'Erum teaches tenderness', chapter: 'ch01', status: 'PLACED' },
-      { id: 'INC-080', title: 'CSA incident with Anija', chapter: null, status: 'NEEDS-QQ' },
-      { id: 'INC-084', title: 'Engagement breaks after false accusation', chapter: 'ch03', status: 'BANKED' },
+      { title: 'The night Babu didn\'t come home', chapter: '01', status: 'PLACED' },
+      { title: 'First fight after marriage \u2014 the silence that followed', chapter: '03', status: 'PLACED' },
+      { title: 'Ishrat\'s first visit to Lahore \u2014 culture shock', chapter: '02', status: 'PLACED' },
+      { title: 'The job offer that changed everything', chapter: '01', status: 'BANKED' },
+      { title: 'Teaching my son to pray \u2014 and doubting my own faith', chapter: '04', status: 'BANKED' },
+      { title: 'Babu\'s funeral \u2014 what I couldn\'t say', chapter: '01', status: 'NEEDS-QQ' },
+      { title: 'The letter Amma never sent', chapter: '03', status: 'NEEDS-QQ' },
+      { title: 'Standing in the rain outside the mosque at 3am', chapter: '04', status: 'BANKED' },
     ];
 
-    // ═══════════════════════════════════════════════════════════
-    // UTILITY COMPONENTS
-    // ═══════════════════════════════════════════════════════════
+    // =================================================================
+    // UTILITIES
+    // =================================================================
 
-    function Icon({ name, size = '1em' }) {
-      return <i className={`fa-solid ${name}`} style={{ fontSize: size }}></i>;
+    function Icon({ name, size = '1em', color = 'inherit' }) {
+      return <i className={`fa-solid ${name}`} style={{ fontSize: size, color }}></i>;
     }
 
     function showToast(message) {
@@ -961,632 +531,132 @@
     }
 
     function copyToClipboard(text) {
-      navigator.clipboard.writeText(text).then(() => {
-        showToast('Copied to clipboard — paste into DayOne');
-      });
+      navigator.clipboard.writeText(text).then(() => showToast('Copied to DayOne clipboard'));
     }
 
-    function formatDate(isoString) {
-      const date = new Date(isoString);
-      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    function formatDate(iso) {
+      return new Date(iso + 'T12:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // DAYONE PREVIEW COMPONENT
-    // ═════════════════════════════════════════════════════════════
+    // =================================================================
+    // COMPONENTS
+    // =================================================================
 
-    function DayOnePreview({ entry, selectedJournal, setSelectedJournal, tags, setTags }) {
-      const moodColor = MOOD_COLORS[entry.mood];
-      const refinedText = entry.status === 'refined'
-        ? `${entry.text}\n\n*[Refined with Voice DNA]*`
-        : entry.text;
-
-      const markdownContent = `# ${entry.location} — ${formatDate(entry.date)}
-
-**Mood:** ${entry.mood}
-**Journal:** ${selectedJournal}
-**Tags:** ${tags.join(', ')}
-
-${refinedText}`;
-
-      const markdownWithPhotos = `${markdownContent}
-
-## Photo Moments
-${entry.photoPlaceholders.map(p => `- ${p.description}`).join('\n')}`;
+    // --- DayOne Code Preview ---
+    function DayOnePreview({ entry, selectedJournal }) {
+      const md = `# ${entry.location} \u2014 ${formatDate(entry.date)}\n\n**Mood:** ${entry.mood}\n**Journal:** ${selectedJournal || entry.journal}\n**Tags:** ${entry.tags.join(', ')}\n\n${entry.text}\n\n*[Refined with Voice DNA]*`;
 
       return (
-        <div className="dayone-preview">
-          <div className="dayone-header">
-            <div className="dayone-dot red"></div>
-            <div className="dayone-dot yellow"></div>
-            <div className="dayone-dot green"></div>
+        <div className="glass-card fade-enter stagger-2" style={{ padding: '2rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 600 }}>
+            <span><Icon name="fa-markdown" color="var(--accent)" /> Markdown Export</span>
           </div>
-          <div className="dayone-title">{entry.location}</div>
-          <div className="dayone-meta">
-            {formatDate(entry.date)} • {entry.location}
-            <span style={{ marginLeft: '0.5rem', padding: '0.35rem 0.75rem', borderRadius: '0.3rem', background: moodColor.bg, color: moodColor.text }}>
-              {entry.mood}
-            </span>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', lineHeight: '1.7', color: 'var(--text-main)', whiteSpace: 'pre-wrap', marginBottom: '1.5rem' }}>
+            {md}
           </div>
-          <div className="dayone-text">{refinedText}</div>
-          <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #444' }}>
-            <label style={{ fontSize: '0.85rem', color: '#999', display: 'block', marginBottom: '0.5rem' }}>Journal</label>
-            <select
-              value={selectedJournal}
-              onChange={e => setSelectedJournal(e.target.value)}
-              style={{
-                width: '100%', padding: '0.5rem', background: '#3c3c3c', border: '1px solid #555', color: '#ccc',
-                borderRadius: '0.4rem', fontFamily: 'var(--font-sans)', fontSize: '0.9rem', marginBottom: '1rem'
-              }}
-            >
-              {JOURNALS.map(j => <option key={j} value={j}>{j}</option>)}
-            </select>
-          </div>
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{ fontSize: '0.85rem', color: '#999', display: 'block', marginBottom: '0.5rem' }}>Tags</label>
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-              {tags.map(t => (
-                <div key={t} className="dayone-tag" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                  {t} <span style={{ cursor: 'pointer', color: '#777' }} onClick={() => setTags(tags.filter(x => x !== t))}>×</span>
-                </div>
-              ))}
-            </div>
-            <input
-              type="text"
-              placeholder="Add tag and press Enter..."
-              onKeyDown={e => {
-                if (e.key === 'Enter' && e.target.value.trim()) {
-                  setTags([...tags, e.target.value.trim()]);
-                  e.target.value = '';
-                }
-              }}
-              style={{
-                width: '100%', padding: '0.5rem', marginTop: '0.5rem', background: '#3c3c3c', border: '1px solid #555',
-                color: '#ccc', borderRadius: '0.4rem', fontFamily: 'var(--font-sans)', fontSize: '0.85rem'
-              }}
-            />
-          </div>
-          <div className="dayone-actions">
-            <button className="dayone-btn" onClick={() => copyToClipboard(markdownContent)}>
-              <Icon name="fa-copy" size="0.9em" /> Copy Markdown
-            </button>
-            <button className="dayone-btn" onClick={() => copyToClipboard(markdownWithPhotos)}>
-              <Icon name="fa-images" size="0.9em" /> Copy + Photos
-            </button>
-          </div>
-        </div>
-      );
-    }
-
-    // ═══════════════════════════════════════════════════════════
-    // JOURNAL TRIPS BROWSER
-    // ═════════════════════════════════════════════════════════════
-
-    function JournalTripsBrowser() {
-      const [selectedTrip, setSelectedTrip] = useState(null);
-      const [selectedEntry, setSelectedEntry] = useState(null);
-
-      if (selectedEntry) {
-        const [selectedJournal, setSelectedJournal] = useState(selectedEntry.journal);
-        const [tags, setTags] = useState(selectedEntry.tags);
-
-        return (
-          <div>
-            <button className="back-button" onClick={() => setSelectedEntry(null)}>
-              <Icon name="fa-arrow-left" /> Back
-            </button>
-            <div className="entry-detail">
-              <div className="entry-detail-header">
-                <div>
-                  <div className="entry-detail-meta">
-                    <div>{formatDate(selectedEntry.date)}</div>
-                    <div>{selectedEntry.location}</div>
-                    <div className="entry-detail-mood">
-                      <Icon name={MOOD_COLORS[selectedEntry.mood].icon} />
-                      <span style={{ color: MOOD_COLORS[selectedEntry.mood].text }}>{selectedEntry.mood}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="entry-detail-text">{selectedEntry.text}</div>
-              {selectedEntry.photoPlaceholders.length > 0 && (
-                <div className="entry-detail-photos">
-                  <h4>Photo Moments</h4>
-                  <div className="photo-placeholders">
-                    {selectedEntry.photoPlaceholders.map(p => (
-                      <div key={p.id} className="photo-placeholder">
-                        <div className="photo-placeholder-icon"><Icon name="fa-camera" /></div>
-                        <div className="photo-placeholder-label">{p.description}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-            <DayOnePreview entry={selectedEntry} selectedJournal={selectedJournal} setSelectedJournal={setSelectedJournal} tags={tags} setTags={setTags} />
-          </div>
-        );
-      }
-
-      if (selectedTrip) {
-        return (
-          <div>
-            <button className="back-button" onClick={() => setSelectedTrip(null)}>
-              <Icon name="fa-arrow-left" /> Back to Trips
-            </button>
-
-            {/* Trip Hero Header */}
-            <div style={{
-              marginBottom: '2rem', padding: '2rem 2.5rem', borderRadius: '20px',
-              background: 'linear-gradient(135deg, rgba(150,110,180,0.08), rgba(196,138,154,0.06))',
-              border: '1px solid var(--border-default)',
-            }}>
-              <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '2.2rem', fontWeight: 400, color: 'var(--text-primary)', marginBottom: '0.35rem' }}>
-                {selectedTrip.location}
-              </h2>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <Icon name="fa-calendar" size="0.7em" /> {selectedTrip.displayDate}
-                </span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  {selectedTrip.entryCount} entries
-                </span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                  <Icon name="fa-globe" size="0.7em" /> {selectedTrip.country}
-                </span>
-                <div style={{ display: 'flex', gap: '0.35rem' }}>
-                  {selectedTrip.tags.map(tag => (
-                    <span key={tag} style={{ fontSize: '0.7rem', padding: '0.15rem 0.5rem', borderRadius: '9999px', background: 'var(--accent-soft)', color: 'var(--accent)', fontFamily: 'var(--font-mono)' }}>{tag}</span>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Masonry-style Entry Card Grid */}
-            <div className="entry-card-grid">
-              {selectedTrip.entries.map((entry, idx) => {
-                const moodColor = MOOD_COLORS[entry.mood] || MOOD_COLORS.reflective;
-                const isLong = entry.text.length > 250;
-                const previewText = isLong ? entry.text.slice(0, 200) + '...' : entry.text;
-                const dayNum = idx + 1;
-
-                return (
-                  <div key={entry.uuid} onClick={() => setSelectedEntry(entry)}
-                    style={{
-                      breakInside: 'avoid', marginBottom: '1.25rem',
-                      background: 'var(--bg-card)', border: '1px solid var(--border-default)',
-                      borderRadius: '16px', overflow: 'hidden', cursor: 'pointer',
-                      transition: 'all 300ms cubic-bezier(0.4,0,0.2,1)',
-                      position: 'relative',
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.borderColor = moodColor.text + '40'; e.currentTarget.style.boxShadow = `0 8px 30px rgba(0,0,0,0.12), 0 0 20px ${moodColor.bg}`; }}
-                    onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = 'var(--border-default)'; e.currentTarget.style.boxShadow = 'none'; }}
-                  >
-                    {/* Photo Placeholder Banner */}
-                    <div style={{
-                      height: idx % 3 === 0 ? '140px' : idx % 3 === 1 ? '100px' : '120px',
-                      background: `linear-gradient(135deg, ${moodColor.bg}, ${moodColor.bg.replace('0.12', '0.06')})`,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      position: 'relative', overflow: 'hidden',
-                    }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', opacity: 0.5 }}>
-                        <Icon name={moodColor.icon} size="1.5rem" />
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: moodColor.text }}>
-                          {entry.photoPlaceholders.length} photo{entry.photoPlaceholders.length !== 1 ? 's' : ''}
-                        </span>
-                      </div>
-                      {/* Day badge */}
-                      <div style={{
-                        position: 'absolute', top: '0.6rem', left: '0.6rem',
-                        background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(8px)',
-                        borderRadius: '8px', padding: '0.2rem 0.5rem',
-                        fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#fff',
-                      }}>Day {dayNum}</div>
-                      {/* Status badge */}
-                      <div style={{
-                        position: 'absolute', top: '0.6rem', right: '0.6rem',
-                        background: entry.status === 'refined' ? 'rgba(150,110,180,0.8)' : entry.status === 'exported' ? 'rgba(90,172,114,0.8)' : 'rgba(100,100,120,0.5)',
-                        backdropFilter: 'blur(8px)', borderRadius: '8px', padding: '0.2rem 0.5rem',
-                        fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#fff', textTransform: 'uppercase',
-                      }}>{entry.status}</div>
-                    </div>
-
-                    {/* Card Body */}
-                    <div style={{ padding: '1.15rem 1.25rem 1rem' }}>
-                      {/* Date & Mood Row */}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                          {formatDate(entry.date)}
-                        </span>
-                        <span style={{
-                          fontSize: '0.65rem', padding: '0.15rem 0.5rem', borderRadius: '9999px',
-                          background: moodColor.bg, color: moodColor.text,
-                          fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: '0.25rem',
-                        }}>
-                          <Icon name={moodColor.icon} size="0.6em" /> {entry.mood}
-                        </span>
-                      </div>
-
-                      {/* Summary Title */}
-                      <h4 style={{
-                        fontFamily: 'var(--font-serif)', fontSize: '1.1rem', fontWeight: 500,
-                        color: 'var(--text-primary)', marginBottom: '0.5rem', lineHeight: 1.35,
-                      }}>{entry.summary}</h4>
-
-                      {/* Body Preview */}
-                      <p style={{
-                        fontFamily: 'var(--font-serif)', fontSize: '0.875rem', lineHeight: 1.7,
-                        color: 'var(--text-secondary)', margin: 0,
-                      }}>{previewText}</p>
-
-                      {/* Tags */}
-                      <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
-                        {entry.tags.slice(0, 3).map(tag => (
-                          <span key={tag} style={{
-                            fontSize: '0.6rem', padding: '0.1rem 0.4rem', borderRadius: '4px',
-                            background: 'var(--bg-tertiary)', color: 'var(--text-muted)',
-                            fontFamily: 'var(--font-mono)',
-                          }}>{tag}</span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        );
-      }
-
-      return (
-        <div className="trips-grid">
-          {PLACEHOLDER_TRIPS.map(trip => (
-            <div key={trip.id} className="trip-card" onClick={() => setSelectedTrip(trip)}>
-              <div className="trip-card-cover">
-                <Icon name="fa-map" size="2rem" />
-              </div>
-              <div className="trip-card-body">
-                <div className="trip-card-header">
-                  <div>
-                    <h3 className="trip-card-title">{trip.location}</h3>
-                    <div className="trip-card-date">{trip.displayDate}</div>
-                  </div>
-                </div>
-                <div className="trip-card-country">{trip.country}</div>
-                <div className="trip-card-stats">
-                  <div className="trip-card-stat">
-                    <Icon name="fa-feather-pointed" size="0.8em" /> {trip.entryCount} entries
-                  </div>
-                  <div className="trip-card-stat">
-                    <Icon name="fa-camera" size="0.8em" /> {trip.photoPlaceholders} photos
-                  </div>
-                </div>
-                <div className="trip-card-tags">
-                  {trip.tags.slice(0, 2).map(tag => <span key={tag} className="trip-card-tag">{tag}</span>)}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      );
-    }
-
-    // ═════════════════════════════════════════════════════════════
-    // ENTRY EDITOR
-    // ═════════════════════════════════════════════════════════════
-
-    function EntryEditor() {
-      const [selectedEntry, setSelectedEntry] = useState(null);
-      const [selectedJournal, setSelectedJournal] = useState('Ishrat\u2019s Visits');
-      const [tags, setTags] = useState([]);
-
-      const allEntries = PLACEHOLDER_TRIPS.flatMap(trip => trip.entries);
-
-      if (!selectedEntry) {
-        return (
-          <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label className="qa-label">Select an Entry to Edit</label>
-              <select
-                onChange={e => {
-                  const entry = allEntries.find(en => en.uuid === e.target.value);
-                  setSelectedEntry(entry);
-                  setTags(entry.tags || []);
-                }}
-                style={{
-                  width: '100%', padding: '0.75rem', border: '1px solid var(--border-color)', borderRadius: '0.5rem',
-                  fontFamily: 'var(--font-sans)', fontSize: '0.95rem', color: 'var(--text-primary)',
-                  background: 'var(--bg-primary)', marginBottom: '1.5rem'
-                }}
-              >
-                <option value="">Choose an entry...</option>
-                {allEntries.map(e => (
-                  <option key={e.uuid} value={e.uuid}>
-                    {e.location} — {formatDate(e.date)}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        );
-      }
-
-      return (
-        <div>
-          <button className="back-button" onClick={() => setSelectedEntry(null)}>
-            <Icon name="fa-arrow-left" /> Back
+          <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => copyToClipboard(md)}>
+            <Icon name="fa-copy" /> Copy for DayOne
           </button>
-          <div className="narrative-editor">
-            <div className="narrative-editor-header">
-              <h2 className="narrative-editor-title">{selectedEntry.location}</h2>
-              <span className={`narrative-editor-status ${selectedEntry.status}`}>
-                {selectedEntry.status}
-              </span>
-            </div>
-
-            <div className="narrative-editor-section">
-              <label className="narrative-editor-label">Original Text</label>
-              <div className="narrative-editor-text">{selectedEntry.text}</div>
-            </div>
-
-            <div className="narrative-editor-section">
-              <label className="narrative-editor-label">Mood</label>
-              <div style={{ color: MOOD_COLORS[selectedEntry.mood].text, marginBottom: '1rem' }}>
-                <Icon name={MOOD_COLORS[selectedEntry.mood].icon} /> {selectedEntry.mood}
-              </div>
-            </div>
-
-            <div className="narrative-editor-section">
-              <button className="btn btn-primary" style={{ width: '100%', marginBottom: '1rem' }}>
-                <Icon name="fa-wand-magic-sparkles" /> Refine with Voice DNA
-              </button>
-              <div style={{ padding: '1rem', background: 'var(--bg-primary)', borderRadius: '0.5rem', fontStyle: 'italic', color: '#666' }}>
-                [Refined version would appear here] — Your entry refined with your personal writing patterns and narrative DNA...
-              </div>
-            </div>
-
-            <div className="narrative-editor-section">
-              <label className="narrative-editor-label">Photo Moments</label>
-              <div className="photo-placeholders">
-                {selectedEntry.photoPlaceholders.map(p => (
-                  <div key={p.id} className="photo-placeholder">
-                    <div className="photo-placeholder-icon"><Icon name="fa-camera" /></div>
-                    <div className="photo-placeholder-label">{p.description}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-          <DayOnePreview entry={selectedEntry} selectedJournal={selectedJournal} setSelectedJournal={setSelectedJournal} tags={tags} setTags={setTags} />
         </div>
       );
     }
 
-    // ═════════════════════════════════════════════════════════════
-    // NEW ENTRY CREATOR (Q&A FLOW)
-    // ═════════════════════════════════════════════════════════════
+    // --- Active Trip Hero ---
+    function ActiveTripHero({ onNavigate }) {
+      const [activeTrip, setActiveTrip] = useState(null);
 
-    function NewEntryCreator() {
-      const [step, setStep] = useState(0);
-      const [formData, setFormData] = useState({
-        trip: null,
-        date: new Date().toISOString().split('T')[0],
-        mood: 'romantic',
-        location: '',
-        notes: '',
-      });
-      const [selectedJournal, setSelectedJournal] = useState('Ishrat\u2019s Visits');
-      const [tags, setTags] = useState(['ishrat', 'adventure']);
-      const [showPreview, setShowPreview] = useState(false);
+      useEffect(() => {
+        // Try manifest.json first, then fall back to finding upcoming/active trip from data
+        fetch('data/manifest.json')
+          .then(r => r.ok ? r.json() : null)
+          .then(data => {
+            if (data && data.active) { setActiveTrip(data.active); return; }
+            findTripFromData();
+          })
+          .catch(() => findTripFromData());
+      }, []);
 
-      if (showPreview) {
-        const previewEntry = {
-          uuid: 'new-' + Date.now(),
-          date: formData.date,
-          location: formData.trip?.location || formData.location || 'New Location',
-          mood: formData.mood,
-          text: formData.notes || 'Entry details will appear here...',
-          tags: tags,
-          photoPlaceholders: [
-            { id: 'ph-1', description: 'Photo placeholder 1 for this moment', slot: 1 },
-            { id: 'ph-2', description: 'Photo placeholder 2 — scene detail', slot: 2 },
-          ],
-          status: 'draft',
-          journal: selectedJournal,
-        };
-
-        return (
-          <div>
-            <button className="back-button" onClick={() => setShowPreview(false)}>
-              <Icon name="fa-arrow-left" /> Back to Entry
-            </button>
-            <DayOnePreview entry={previewEntry} selectedJournal={selectedJournal} setSelectedJournal={setSelectedJournal} tags={tags} setTags={setTags} />
-          </div>
-        );
+      function findTripFromData() {
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        // Find active or upcoming trip
+        for (const trip of PLACEHOLDER_TRIPS) {
+          const start = new Date(trip.dates.start + 'T00:00:00');
+          const end = new Date(trip.dates.end + 'T23:59:59');
+          if (today >= start && today <= end) {
+            setActiveTrip(trip); return;
+          }
+        }
+        for (const trip of PLACEHOLDER_TRIPS) {
+          const start = new Date(trip.dates.start + 'T00:00:00');
+          if (start > today) {
+            setActiveTrip(trip); return;
+          }
+        }
       }
 
-      const steps = [
-        {
-          label: 'Select Trip',
-          content: (
-            <div className="qa-step active">
-              <label className="qa-label">Which trip are you capturing?</label>
-              <select
-                value={formData.trip?.id || ''}
-                onChange={e => {
-                  const trip = PLACEHOLDER_TRIPS.find(t => t.id === e.target.value);
-                  setFormData({ ...formData, trip, location: trip?.location || '' });
-                }}
-                className="qa-select"
-              >
-                <option value="">Choose a trip...</option>
-                {PLACEHOLDER_TRIPS.map(t => (
-                  <option key={t.id} value={t.id}>{t.location} — {t.displayDate}</option>
-                ))}
-                <option value="new">New Trip</option>
-              </select>
-            </div>
-          ),
-        },
-        {
-          label: 'Date',
-          content: (
-            <div className="qa-step active">
-              <label className="qa-label">When was this?</label>
-              <input
-                type="date"
-                value={formData.date}
-                onChange={e => setFormData({ ...formData, date: e.target.value })}
-                className="qa-input"
-              />
-            </div>
-          ),
-        },
-        {
-          label: 'Mood',
-          content: (
-            <div className="qa-step active">
-              <label className="qa-label">How did it feel?</label>
-              <div className="mood-chips">
-                {MOODS.map(mood => (
-                  <div
-                    key={mood}
-                    className={`mood-chip ${formData.mood === mood ? 'selected' : ''}`}
-                    onClick={() => setFormData({ ...formData, mood })}
-                    style={{
-                      background: MOOD_COLORS[mood].bg,
-                      borderColor: formData.mood === mood ? MOOD_COLORS[mood].text : 'transparent',
-                    }}
-                  >
-                    <Icon name={MOOD_COLORS[mood].icon} size="0.9em" />
-                    <span style={{ color: MOOD_COLORS[mood].text }}>{mood}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ),
-        },
-        {
-          label: 'Location',
-          content: (
-            <div className="qa-step active">
-              <label className="qa-label">Where were you?</label>
-              <input
-                type="text"
-                placeholder="e.g., Bosphorus, Grand Bazaar..."
-                value={formData.location}
-                onChange={e => setFormData({ ...formData, location: e.target.value })}
-                className="qa-input"
-              />
-            </div>
-          ),
-        },
-        {
-          label: 'Capture',
-          content: (
-            <div className="qa-step active">
-              <label className="qa-label">What happened?</label>
-              <textarea
-                placeholder="Skeletal notes — the raw moment..."
-                value={formData.notes}
-                onChange={e => setFormData({ ...formData, notes: e.target.value })}
-                className="qa-textarea"
-              />
-            </div>
-          ),
-        },
-        {
-          label: 'Photos',
-          content: (
-            <div className="qa-step active">
-              <label className="qa-label">Photo Moments</label>
-              <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '1rem' }}>
-                Based on your entry, here are suggested photo placeholders:
-              </p>
-              <div className="photo-placeholders">
-                <div className="photo-placeholder">
-                  <div className="photo-placeholder-icon"><Icon name="fa-camera" /></div>
-                  <div className="photo-placeholder-label">Photo 1: The main scene</div>
-                </div>
-                <div className="photo-placeholder">
-                  <div className="photo-placeholder-icon"><Icon name="fa-camera" /></div>
-                  <div className="photo-placeholder-label">Photo 2: Detail moment</div>
-                </div>
-              </div>
-            </div>
-          ),
-        },
-      ];
+      if (!activeTrip) return null;
+
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const start = new Date(activeTrip.dates.start + 'T00:00:00');
+      const end = new Date(activeTrip.dates.end + 'T23:59:59');
+      const isLive = today >= start && today <= end;
+      const isBefore = today < start;
+      const msPerDay = 86400000;
+      const daysUntil = isBefore ? Math.ceil((start - today) / msPerDay) : 0;
+      const currentDay = isLive ? Math.floor((today - start) / msPerDay) + 1 : 0;
 
       return (
-        <div className="qa-flow">
-          <div className="qa-progress">
-            {steps.map((_, i) => (
-              <div key={i} className={`qa-dot ${i === step ? 'active' : ''} ${i < step ? 'completed' : ''}`}></div>
-            ))}
+        <div className="trip-hero stagger-2" onClick={() => window.location.href = activeTrip.itineraryPath || 'itineraries/2026-04-ishrat-engagement.html'}>
+          
+          <div className="hero-overline">Asif & Ishrat</div>
+          <div className="hero-names">Asif & Ishrat</div>
+          <div className="hero-pet-name">for my shatoot</div>
+          
+          <div className="hero-for">The Engagement Trip</div>
+          <div className="hero-dates">April 20 — 28, 2026</div>
+
+          <div className="hero-line"></div>
+
+          <div className={`trip-hero-status ${isLive ? 'live' : 'upcoming'}`}>
+            {isLive && <div className="pulse-dot"></div>}
+            {isLive ? `LIVE NOW · DAY ${currentDay} OF ${activeTrip.dates.days}` : `UPCOMING · ${daysUntil} DAYS TO GO`}
           </div>
 
-          {steps[step].content}
+        </div>
+      );
+    }
 
-          <div className="qa-buttons">
-            <button className="btn btn-ghost" onClick={() => setStep(Math.max(0, step - 1))} disabled={step === 0}>
-              <Icon name="fa-arrow-left" /> Back
-            </button>
-            {step === steps.length - 1 ? (
-              <button className="btn btn-primary" onClick={() => setShowPreview(true)}>
-                Review & Copy <Icon name="fa-arrow-right" />
-              </button>
-            ) : (
-              <button className="btn btn-primary" onClick={() => setStep(Math.min(steps.length - 1, step + 1))}>
-                Next <Icon name="fa-arrow-right" />
-              </button>
-            )}
+    // --- Home Dashboard ---
+    function HomePage({ onNavigate }) {
+      const totalWords = CHAPTERS.reduce((sum, ch) => sum + (ch.words || 0), 0);
+      const chaptersLocked = CHAPTERS.filter(c => c.status === 'locked').length;
+      const totalEntries = PLACEHOLDER_TRIPS.reduce((sum, t) => sum + t.entries.length, 0);
+
+      return (
+        <div className="container fade-enter">
+          <h1 className="page-title stagger-1" style={{ fontSize: '3.2rem', marginBottom: '2rem', textAlign: 'center' }}>Asif's Journal</h1>
+
+          <ActiveTripHero onNavigate={onNavigate} />
+
+          <div className="grid-cards stagger-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))' }}>
+            <div className="glass-card module-card" onClick={() => onNavigate('memoir')}>
+              <div className="module-icon"><Icon name="fa-book-open" /></div>
+              <h3 className="module-title">Memoir</h3>
+              <p className="module-description">"What I Wish Babu Taught Me" &mdash; Manage your chapters, incidents, and quotes.</p>
+            </div>
+            <div className="glass-card module-card" onClick={() => onNavigate('dayone')}>
+              <div className="module-icon"><Icon name="fa-feather-pointed" /></div>
+              <h3 className="module-title">DayOne Journal</h3>
+              <p className="module-description">Draft daily logs, tag locations, and apply your Voice DNA before exporting to DayOne.</p>
+            </div>
           </div>
         </div>
       );
     }
 
-
-
-    // ═════════════════════════════════════════════════════════════
-    // DAYONE JOURNAL MODULE (renamed from Journal)
-    // ═════════════════════════════════════════════════════════════
-
-    function DayOneJournalModule() {
-      const [subTab, setSubTab] = useState('browser');
-
-      return (
-        <div className="page">
-          <div className="container">
-            <h1 className="page-title">DayOne Journal</h1>
-            <p className="page-subtitle">Browse trips, edit entries, and sync moments to DayOne</p>
-
-            <div className="journal-tabs">
-              <button className={`journal-tab ${subTab === 'browser' ? 'active' : ''}`} onClick={() => setSubTab('browser')}>
-                <Icon name="fa-map-location-dot" /> Trips Browser
-              </button>
-              <button className={`journal-tab ${subTab === 'editor' ? 'active' : ''}`} onClick={() => setSubTab('editor')}>
-                <Icon name="fa-pen" /> Edit Entry
-              </button>
-              <button className={`journal-tab ${subTab === 'creator' ? 'active' : ''}`} onClick={() => setSubTab('creator')}>
-                <Icon name="fa-plus" /> New Entry
-              </button>
-            </div>
-
-            {subTab === 'browser' && <JournalTripsBrowser />}
-            {subTab === 'editor' && <EntryEditor />}
-            {subTab === 'creator' && <NewEntryCreator />}
-          </div>
-        </div>
-      );
-    }
-
-    // ═════════════════════════════════════════════════════════════
-    // MEMOIR MODULE
-    // ═════════════════════════════════════════════════════════════
-
+    // --- Memoir Module ---
     function MemoirModule() {
-      const [subTab, setSubTab] = useState('chapters');
+      const [tab, setTab] = useState('chapters');
       const [searchQuery, setSearchQuery] = useState('');
 
       const filteredQuotes = QUOTES_SAMPLE.filter(q =>
@@ -1595,353 +665,297 @@ ${entry.photoPlaceholders.map(p => `- ${p.description}`).join('\n')}`;
       );
 
       return (
-        <div className="page">
-          <div className="container">
-            <h1 className="page-title">Memoir</h1>
-            <p className="page-subtitle">"What I Wish Babu Taught Me" — Chapters, Incidents, Quotes</p>
+        <div className="container fade-enter">
+          <h1 className="page-title">Memoir</h1>
+          <p className="page-subtitle">"What I Wish Babu Taught Me" &mdash; Structure, memory banking, and voice refinement.</p>
 
-            <div className="journal-tabs">
-              <button className={`journal-tab ${subTab === 'chapters' ? 'active' : ''}`} onClick={() => setSubTab('chapters')}>
-                <Icon name="fa-book" /> Chapters
-              </button>
-              <button className={`journal-tab ${subTab === 'incidents' ? 'active' : ''}`} onClick={() => setSubTab('incidents')}>
-                <Icon name="fa-lightbulb" /> Incidents
-              </button>
-              <button className={`journal-tab ${subTab === 'quotes' ? 'active' : ''}`} onClick={() => setSubTab('quotes')}>
-                <Icon name="fa-quote-left" /> Quotes
-              </button>
-            </div>
+          <div className="journal-tabs">
+            <button className={`journal-tab ${tab === 'chapters' ? 'active' : ''}`} onClick={() => setTab('chapters')}><Icon name="fa-book" /> Chapters</button>
+            <button className={`journal-tab ${tab === 'incidents' ? 'active' : ''}`} onClick={() => setTab('incidents')}><Icon name="fa-lightbulb" /> Incidents</button>
+            <button className={`journal-tab ${tab === 'quotes' ? 'active' : ''}`} onClick={() => setTab('quotes')}><Icon name="fa-quote-left" /> Quotes</button>
+          </div>
 
-            {subTab === 'chapters' && (
-              <div className="container-narrow">
-                {CHAPTERS.map(ch => (
-                  <div key={ch.id} className="chapter-card">
-                    <span className={`chapter-status ${ch.status}`}>{ch.status}</span>
-                    <h3 className="chapter-title">Ch {ch.num}: {ch.title}</h3>
-                    <p className="chapter-description" style={{ fontStyle: 'italic', marginBottom: '0.5rem' }}>{ch.subtitle}</p>
-                    <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+          {tab === 'chapters' && (
+            <div className="grid-cards stagger-1">
+              {CHAPTERS.map(ch => (
+                <div key={ch.id} className="glass-card chapter-card">
+                  <div>
+                    <div className="chapter-header">
+                      <span className="chapter-num">{ch.num}</span>
+                      <span className={`badge badge-${ch.status}`}>{ch.status}</span>
+                    </div>
+                    <h3 className="chapter-title">{ch.title}</h3>
+                    <p className="chapter-subtitle">{ch.subtitle}</p>
+                  </div>
+                  <div>
+                    <div className="progress-track">
+                      <div className={`progress-bar ${ch.status}`} style={{ width: `${ch.readiness}%` }}></div>
+                    </div>
+                    <div className="chapter-footer">
                       <span>{ch.words.toLocaleString()} words</span>
-                      <span>Readiness: {ch.readiness}%</span>
+                      <span>{ch.readiness}% ready</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {tab === 'incidents' && (
+            <div className="grid-cards stagger-1">
+              {INCIDENTS_SAMPLE.map((inc, i) => (
+                <div key={i} className="glass-card incident-card">
+                  <h3 className="incident-title">{inc.title}</h3>
+                  <div className="incident-meta">
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                      <Icon name="fa-bookmark" /> Ch {inc.chapter}
+                    </span>
+                    <span className={`badge ${inc.status === 'PLACED' ? 'badge-locked' : inc.status === 'BANKED' ? 'badge-active' : 'badge-planned'}`}>
+                      {inc.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {tab === 'quotes' && (
+            <div className="stagger-1">
+              <input
+                className="input-field"
+                placeholder="Search quotes..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{ marginBottom: '1.5rem', maxWidth: '400px' }}
+              />
+              <div className="grid-cards">
+                {filteredQuotes.map((q, i) => (
+                  <div key={i} className="glass-card quote-card">
+                    <div className="quote-icon">&ldquo;</div>
+                    <p className="quote-text">{q.text}</p>
+                    <div className="quote-author">
+                      <span>&mdash; {q.source}</span>
+                      <span className="badge badge-active">Ch {q.chapter}</span>
                     </div>
                   </div>
                 ))}
               </div>
-            )}
+            </div>
+          )}
+        </div>
+      );
+    }
 
-            {subTab === 'incidents' && (
-              <div className="container-narrow">
-                {INCIDENTS_SAMPLE.map(inc => (
-                  <div key={inc.id} className="incident-card">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <h4 className="incident-card-title">{inc.id}: {inc.title}</h4>
-                      <span className={`badge ${inc.status === 'PLACED' ? 'badge-accent' : inc.status === 'DRAFTED' ? '' : ''}`}
-                        style={{ fontSize: '0.7rem', padding: '0.15rem 0.5rem', borderRadius: '4px',
-                          background: inc.status === 'PLACED' ? 'var(--accent-soft)' : inc.status === 'NEEDS-QQ' ? 'rgba(200,100,100,0.15)' : 'var(--bg-tertiary)',
-                          color: inc.status === 'PLACED' ? 'var(--accent)' : inc.status === 'NEEDS-QQ' ? '#c86464' : 'var(--text-muted)' }}>
-                        {inc.status}
-                      </span>
-                    </div>
-                    <div className="incident-card-date" style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                      {inc.chapter ? `Chapter: ${inc.chapter}` : 'Unassigned'}
-                    </div>
-                  </div>
-                ))}
+    // --- DayOne Journal Module ---
+    function DayOneModule() {
+      const [subTab, setSubTab] = useState('browser');
+      const [selectedTrip, setSelectedTrip] = useState(null);
+      const [selectedEntry, setSelectedEntry] = useState(null);
+
+      // New Entry state
+      const [newMood, setNewMood] = useState('romantic');
+      const [newJournal, setNewJournal] = useState('Ishrat\u2019s Trips');
+      const [newSummary, setNewSummary] = useState('');
+      const [newText, setNewText] = useState('');
+
+      // Entry detail / editor view
+      if (selectedEntry) {
+        return (
+          <div className="container fade-enter">
+            <button className="btn btn-secondary" onClick={() => setSelectedEntry(null)} style={{ marginBottom: '2rem' }}>
+              <Icon name="fa-arrow-left" /> Back
+            </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+              <DayOnePreview entry={selectedEntry} selectedJournal={selectedEntry.journal} />
+              <div className="glass-card" style={{ padding: '2.5rem' }}>
+                <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '2rem', marginBottom: '0.5rem' }}>{selectedEntry.summary}</h2>
+                <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: '0.85rem' }}>
+                  {selectedEntry.date} &middot; {selectedEntry.location} &middot; {selectedEntry.mood}
+                </p>
+                <textarea className="input-field" defaultValue={selectedEntry.text} />
+                <button className="btn btn-primary" style={{ marginTop: '1.5rem', width: '100%' }}>
+                  <Icon name="fa-wand-magic-sparkles" /> Refine with Voice DNA
+                </button>
               </div>
-            )}
+            </div>
+          </div>
+        );
+      }
 
-            {subTab === 'quotes' && (
-              <div className="container-narrow">
-                <input
-                  type="text"
-                  placeholder="Search quotes..."
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  style={{
-                    width: '100%', padding: '0.75rem', marginBottom: '1.5rem',
-                    border: '1px solid var(--border-color)', borderRadius: '0.5rem',
-                    fontFamily: 'var(--font-sans)', fontSize: '0.95rem',
-                    background: 'var(--bg-primary)', color: 'var(--text-primary)'
+      return (
+        <div className="container fade-enter">
+          <h1 className="page-title">DayOne Journal</h1>
+          <p className="page-subtitle">Browse trips, edit entries, and sync moments to DayOne.</p>
+
+          <div className="journal-tabs">
+            <button className={`journal-tab ${subTab === 'browser' ? 'active' : ''}`} onClick={() => { setSubTab('browser'); setSelectedTrip(null); }}>
+              <Icon name="fa-map-location-dot" /> Trips
+            </button>
+            <button className={`journal-tab ${subTab === 'editor' ? 'active' : ''}`} onClick={() => setSubTab('editor')}>
+              <Icon name="fa-pen" /> Edit Entry
+            </button>
+            <button className={`journal-tab ${subTab === 'new' ? 'active' : ''}`} onClick={() => setSubTab('new')}>
+              <Icon name="fa-plus" /> New Entry
+            </button>
+          </div>
+
+          {/* --- Browser: Trip List --- */}
+          {subTab === 'browser' && !selectedTrip && (
+            <div className="grid-cards stagger-1">
+              {PLACEHOLDER_TRIPS.map(trip => (
+                <div key={trip.id} className="glass-card module-card" onClick={() => setSelectedTrip(trip)}>
+                  <div className="module-icon" style={{ background: 'linear-gradient(135deg, rgba(244,114,182,0.2), rgba(139,92,246,0.2))' }}>
+                    <Icon name="fa-plane-departure" />
+                  </div>
+                  <h2 className="module-title" style={{ fontSize: '1.8rem' }}>{trip.location}</h2>
+                  <p className="module-description">{trip.displayDate} &middot; {trip.country} &middot; {trip.entries.length} entries</p>
+                  <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', flexWrap: 'wrap' }}>
+                    {trip.tags.map(tag => <span key={tag} className="badge badge-active">{tag}</span>)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* --- Browser: Trip Entries --- */}
+          {subTab === 'browser' && selectedTrip && (
+            <div>
+              <button className="btn btn-secondary" onClick={() => setSelectedTrip(null)} style={{ marginBottom: '1.5rem' }}>
+                <Icon name="fa-arrow-left" /> All Trips
+              </button>
+              <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '2rem', marginBottom: '0.25rem' }}>{selectedTrip.location}</h2>
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
+                {selectedTrip.displayDate} &middot; {selectedTrip.country} &middot; {selectedTrip.entries.length} entries
+              </p>
+              <div className="grid-cards stagger-1">
+                {selectedTrip.entries.map((entry, idx) => {
+                  const color = MOOD_COLORS[entry.mood] || MOOD_COLORS.reflective;
+                  return (
+                    <div key={entry.uuid} className="glass-card entry-card" onClick={() => setSelectedEntry(entry)} style={{ animationDelay: `${idx * 0.06}s` }}>
+                      <div className="entry-header">
+                        <span className="entry-date">Day {idx + 1} &middot; {entry.date}</span>
+                        <span className="entry-mood" style={{ background: color.bg, color: color.text }}>
+                          <Icon name={color.icon} /> {entry.mood}
+                        </span>
+                      </div>
+                      <h3 className="entry-title">{entry.summary}</h3>
+                      <p className="entry-preview">{entry.text}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* --- Editor Tab --- */}
+          {subTab === 'editor' && (
+            <div className="stagger-1">
+              <div className="glass-card" style={{ padding: '2rem', maxWidth: '600px' }}>
+                <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.3rem', marginBottom: '1.5rem' }}>Select a trip and entry to edit</h3>
+                <select className="input-field" style={{ marginBottom: '1rem' }} onChange={e => { const trip = PLACEHOLDER_TRIPS.find(t => t.id === e.target.value); setSelectedTrip(trip || null); setSelectedEntry(null); }}>
+                  <option value="">Choose trip...</option>
+                  {PLACEHOLDER_TRIPS.map(t => <option key={t.id} value={t.id}>{t.location} &mdash; {t.displayDate}</option>)}
+                </select>
+                {selectedTrip && (
+                  <select className="input-field" onChange={e => { const entry = selectedTrip.entries.find(en => en.uuid === e.target.value); if (entry) setSelectedEntry(entry); }}>
+                    <option value="">Choose entry...</option>
+                    {selectedTrip.entries.map(en => <option key={en.uuid} value={en.uuid}>{en.date} &mdash; {en.summary}</option>)}
+                  </select>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* --- New Entry Tab --- */}
+          {subTab === 'new' && (
+            <div className="stagger-1">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                <DayOnePreview
+                  entry={{
+                    location: 'New Entry',
+                    date: new Date().toISOString().split('T')[0],
+                    mood: newMood,
+                    text: newText || 'Your entry will appear here...',
+                    tags: [newMood, 'ishrat'],
+                    journal: newJournal,
                   }}
+                  selectedJournal={newJournal}
                 />
-                {filteredQuotes.map((q, qi) => (
-                  <div key={qi} className="quote-card">
-                    <div style={{ marginBottom: '0.5rem' }}>"{q.text}"</div>
-                    <div className="quote-card-source" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span>— {q.source}</span>
-                      <span style={{ display: 'flex', gap: '0.5rem' }}>
-                        {q.chapter && <span style={{ fontSize: '0.7rem', padding: '0.1rem 0.4rem', borderRadius: '4px', background: 'var(--accent-soft)', color: 'var(--accent)', fontFamily: 'var(--font-mono)' }}>{q.chapter}</span>}
-                        <span style={{ fontSize: '0.7rem', padding: '0.1rem 0.4rem', borderRadius: '4px', background: q.used ? 'rgba(90,172,114,0.15)' : 'var(--bg-tertiary)', color: q.used ? '#5aac72' : 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{q.used ? 'Used' : 'Available'}</span>
-                      </span>
+
+                <div className="glass-card" style={{ padding: '2.5rem' }}>
+                  <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.5rem', marginBottom: '1.5rem' }}>New Entry</h3>
+
+                  <label style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Mood</label>
+                  <div className="mood-chips" style={{ marginBottom: '1.5rem' }}>
+                    {MOODS.map(mood => {
+                      const color = MOOD_COLORS[mood] || MOOD_COLORS.reflective;
+                      return (
+                        <div key={mood} className={`mood-chip ${newMood === mood ? 'selected' : ''}`} onClick={() => setNewMood(mood)}
+                          style={{ background: color.bg, borderColor: newMood === mood ? color.text : 'transparent' }}>
+                          <Icon name={color.icon} size="0.9em" />
+                          <span style={{ color: color.text }}>{mood}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div>
+                      <label style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Journal</label>
+                      <select className="input-field" value={newJournal} onChange={e => setNewJournal(e.target.value)}>
+                        {JOURNALS.map(j => <option key={j} value={j}>{j}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Date</label>
+                      <input className="input-field" type="date" defaultValue={new Date().toISOString().split('T')[0]} />
                     </div>
                   </div>
-                ))}
+
+                  <label style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Summary</label>
+                  <input className="input-field" placeholder="One line that captures the moment" value={newSummary} onChange={e => setNewSummary(e.target.value)} style={{ marginBottom: '1rem' }} />
+
+                  <label style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Entry</label>
+                  <textarea className="input-field" placeholder="Let the moment breathe on the page..." value={newText} onChange={e => setNewText(e.target.value)} />
+
+                  <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+                    <button className="btn btn-primary"><Icon name="fa-wand-magic-sparkles" /> Refine with Voice DNA</button>
+                    <button className="btn btn-secondary"><Icon name="fa-save" /> Save Draft</button>
+                  </div>
+                </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       );
     }
 
-    // ═════════════════════════════════════════════════════════════
-    // HOME / DASHBOARD
-    // ═════════════════════════════════════════════════════════════
-
-    // ── Active Trip Hero Banner ──────────────────────────────────
-    function ActiveTripHero({ trip }) {
-      if (!trip) return null;
-
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const start = new Date(trip.dates.start + 'T00:00:00');
-      const end = new Date(trip.dates.end + 'T23:59:59');
-      const isBeforeTrip = today < start;
-      const isDuringTrip = today >= start && today <= end;
-      const isAfterTrip = today > end;
-
-      // Countdown or day-of calculation
-      const msPerDay = 86400000;
-      const daysUntil = isBeforeTrip ? Math.ceil((start - today) / msPerDay) : 0;
-      const currentDay = isDuringTrip ? Math.floor((today - start) / msPerDay) + 1 : 0;
-
-      // Next highlight event
-      const nextHighlight = (trip.highlights || [])
-        .filter(h => new Date(h.date + 'T00:00:00') >= today)
-        .sort((a, b) => new Date(a.date) - new Date(b.date))[0];
-
-      const statusLabel = isBeforeTrip ? 'UPCOMING' : isDuringTrip ? 'LIVE NOW' : 'COMPLETED';
-      const statusColor = isBeforeTrip ? '#c48a9a' : isDuringTrip ? '#5aac72' : 'var(--text-muted)';
-      const pulseAnim = isDuringTrip ? 'pulse 2s ease-in-out infinite' : 'none';
-
-      const handleClick = () => {
-        const path = trip.itineraryPath || '#';
-        window.open(path, '_blank');
-      };
-
-      return (
-        <div onClick={handleClick} style={{
-          position: 'relative', overflow: 'hidden', borderRadius: '20px', cursor: 'pointer',
-          background: 'linear-gradient(135deg, rgba(150,110,180,0.07) 0%, rgba(196,138,154,0.10) 50%, rgba(150,110,180,0.05) 100%)',
-          border: '1px solid rgba(150, 110, 180, 0.18)', marginBottom: '2rem',
-          boxShadow: '0 4px 20px rgba(150, 110, 180, 0.08)',
-          transition: 'all 0.4s ease'
-        }}
-          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 32px rgba(150, 110, 180, 0.15)'; }}
-          onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(150, 110, 180, 0.08)'; }}>
-
-          {/* Decorative floating hearts */}
-          <div style={{ position: 'absolute', top: '15px', right: '25px', opacity: 0.08, fontSize: '4rem', color: '#c48a9a' }}>
-            <i className="fa-solid fa-heart" />
-          </div>
-          <div style={{ position: 'absolute', bottom: '20px', left: '30px', opacity: 0.05, fontSize: '2.5rem', color: '#966eb4', transform: 'rotate(-15deg)' }}>
-            <i className="fa-solid fa-heart" />
-          </div>
-          <div style={{ position: 'absolute', top: '35%', right: '10%', opacity: 0.04, fontSize: '1.8rem', color: '#c48a9a', transform: 'rotate(20deg)' }}>
-            <i className="fa-solid fa-heart" />
-          </div>
-
-          <div style={{ padding: '2rem 2.5rem', position: 'relative', zIndex: 1 }}>
-            {/* Status badge row */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.85rem' }}>
-              <span style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
-                fontSize: '0.6rem', fontFamily: 'var(--font-mono)', fontWeight: 700,
-                letterSpacing: '0.12em', textTransform: 'uppercase',
-                padding: '0.25rem 0.65rem', borderRadius: '9999px',
-                color: isDuringTrip ? '#fff' : statusColor,
-                background: isDuringTrip ? 'linear-gradient(135deg, #5aac72, #4a9a62)' : `${statusColor}12`,
-                border: isDuringTrip ? 'none' : `1px solid ${statusColor}25`
-              }}>
-                {isDuringTrip && <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#fff', animation: pulseAnim }} />}
-                {statusLabel}
-              </span>
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-                {trip.dates.start} → {trip.dates.end}
-              </span>
-            </div>
-
-            {/* Script couple name */}
-            <div style={{ fontFamily: "'Great Vibes', cursive", fontSize: '2rem', background: 'linear-gradient(135deg, #966eb4, #c48a9a)', backgroundClip: 'text', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '0.1rem', lineHeight: 1.2 }}>
-              Asif <span style={{ fontSize: '1.4rem' }}>&</span> Ishrat
-            </div>
-
-            {/* Trip name */}
-            <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.5rem', fontWeight: 500, color: 'var(--text-primary)', margin: '0.25rem 0 0.5rem', lineHeight: 1.3 }}>
-              {trip.name}
-            </h2>
-
-            {/* Vibe + base */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>
-              <span><i className="fa-solid fa-location-dot" style={{ marginRight: '0.3rem', color: '#966eb4', opacity: 0.6, fontSize: '0.7rem' }} />{trip.base}</span>
-              <span><i className="fa-solid fa-wand-magic-sparkles" style={{ marginRight: '0.3rem', color: '#c48a9a', opacity: 0.6, fontSize: '0.7rem' }} />{trip.vibe}</span>
-            </div>
-
-            {/* Metric row with soft card backgrounds */}
-            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'stretch' }}>
-              {/* Countdown / Day indicator */}
-              {isBeforeTrip && (
-                <div style={{ textAlign: 'center', padding: '1rem 1.5rem', borderRadius: '14px', background: 'rgba(150, 110, 180, 0.06)', border: '1px solid rgba(150, 110, 180, 0.1)', minWidth: '90px' }}>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '2.5rem', fontWeight: 700, lineHeight: 1, background: 'linear-gradient(135deg, #966eb4, #c48a9a)', backgroundClip: 'text', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                    {daysUntil}
-                  </div>
-                  <div style={{ fontSize: '0.6rem', fontFamily: 'var(--font-mono)', letterSpacing: '0.12em', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
-                    {daysUntil === 1 ? 'DAY TO GO' : 'DAYS TO GO'}
-                  </div>
-                </div>
-              )}
-              {isDuringTrip && (
-                <div style={{ textAlign: 'center', padding: '1rem 1.5rem', borderRadius: '14px', background: 'rgba(90, 172, 114, 0.06)', border: '1px solid rgba(90, 172, 114, 0.12)', minWidth: '90px' }}>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '2.5rem', fontWeight: 700, lineHeight: 1, background: 'linear-gradient(135deg, #5aac72, #3d8a5a)', backgroundClip: 'text', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                    {currentDay}
-                  </div>
-                  <div style={{ fontSize: '0.6rem', fontFamily: 'var(--font-mono)', letterSpacing: '0.12em', color: '#5aac72', marginTop: '0.3rem' }}>
-                    OF {trip.dates.days} DAYS
-                  </div>
-                </div>
-              )}
-
-              {/* Flight info card */}
-              {trip.flights && (isBeforeTrip || isDuringTrip) && (
-                <div style={{ padding: '0.85rem 1.2rem', borderRadius: '14px', background: 'rgba(150, 110, 180, 0.04)', border: '1px solid rgba(150, 110, 180, 0.08)', fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '0.35rem' }}>
-                  <div>
-                    <i className="fa-solid fa-plane-departure" style={{ marginRight: '0.4rem', color: '#966eb4', opacity: 0.5, fontSize: '0.65rem' }} />
-                    <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--text-primary)' }}>{trip.flights.inbound.flight}</span>
-                    <span style={{ color: 'var(--text-muted)' }}> · {trip.flights.inbound.route} · {trip.flights.inbound.date}</span>
-                  </div>
-                  <div>
-                    <i className="fa-solid fa-plane-arrival" style={{ marginRight: '0.4rem', color: '#c48a9a', opacity: 0.5, fontSize: '0.65rem' }} />
-                    <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--text-primary)' }}>{trip.flights.outbound.flight}</span>
-                    <span style={{ color: 'var(--text-muted)' }}> · {trip.flights.outbound.route} · {trip.flights.outbound.date}</span>
-                  </div>
-                </div>
-              )}
-
-              {/* Next event card */}
-              {nextHighlight && (isBeforeTrip || isDuringTrip) && (
-                <div style={{ padding: '0.85rem 1.2rem', borderRadius: '14px', background: 'rgba(196, 138, 154, 0.06)', border: '1px solid rgba(196, 138, 154, 0.1)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                  <div style={{ color: '#c48a9a', fontFamily: 'var(--font-mono)', fontSize: '0.6rem', letterSpacing: '0.1em', fontWeight: 700, marginBottom: '0.3rem' }}>NEXT EVENT</div>
-                  <div style={{ color: 'var(--text-primary)', fontSize: '0.85rem', fontFamily: 'var(--font-serif)' }}>
-                    <i className="fa-solid fa-star" style={{ marginRight: '0.3rem', color: '#c48a9a', opacity: 0.5, fontSize: '0.6rem' }} />
-                    {nextHighlight.event}
-                  </div>
-                  <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', fontFamily: 'var(--font-mono)', marginTop: '0.15rem' }}>
-                    {nextHighlight.date} · {nextHighlight.venue}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Footer */}
-            <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid rgba(150, 110, 180, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', gap: '0.4rem' }}>
-                {trip.travelers.map(t => (
-                  <span key={t} style={{ fontSize: '0.65rem', padding: '0.2rem 0.6rem', borderRadius: '9999px', background: 'rgba(150, 110, 180, 0.08)', color: '#966eb4', fontFamily: 'var(--font-mono)', border: '1px solid rgba(150, 110, 180, 0.12)' }}>{t}</span>
-                ))}
-              </div>
-              <span style={{ fontSize: '0.75rem', color: '#966eb4', fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600 }}>
-                View Itinerary <i className="fa-solid fa-arrow-up-right-from-square" style={{ fontSize: '0.6rem' }} />
-              </span>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    // ── Home Page ──────────────────────────────────────────────────
-    function HomePage({ onNavigate }) {
-      const [activeTrip, setActiveTrip] = useState(null);
-      const [manifestLoaded, setManifestLoaded] = useState(false);
-      const totalWords = CHAPTERS.reduce((sum, ch) => sum + (ch.words || 0), 0);
-      const chaptersLocked = CHAPTERS.filter(c => c.status === 'locked').length;
-
-      useEffect(() => {
-        fetch('data/manifest.json')
-          .then(r => r.ok ? r.json() : null)
-          .then(data => {
-            if (data && data.active) setActiveTrip(data.active);
-            setManifestLoaded(true);
-          })
-          .catch(() => setManifestLoaded(true));
-      }, []);
-
-      return (
-        <div className="page">
-          <div className="container">
-            <h1 className="page-title">Journal Command Center</h1>
-            <p className="page-subtitle">Welcome, Asif. Your memoir and travel logs in one place.</p>
-
-            {/* Active Trip Hero — only shows when manifest has an active trip */}
-            {manifestLoaded && activeTrip && <ActiveTripHero trip={activeTrip} />}
-
-            <div className="dashboard-stats">
-              <div className="stat-card">
-                <div className="stat-number">{totalWords.toLocaleString()}</div>
-                <div className="stat-label">Total Words</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-number">{chaptersLocked}</div>
-                <div className="stat-label">Chapters Locked</div>
-              </div>
-            </div>
-
-            <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.3rem', marginTop: '2rem', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>
-              Modules
-            </h2>
-
-            <div className="modules-grid">
-              <div className="module-card" onClick={() => onNavigate('memoir')}>
-                <div className="module-icon"><Icon name="fa-book-open" size="2.5rem" /></div>
-                <h3 className="module-title">Memoir</h3>
-                <p className="module-description">Draft, refine, and archive chapters. Track incidents and quotes.</p>
-              </div>
-              <div className="module-card" onClick={() => onNavigate('dayone')}>
-                <div className="module-icon"><Icon name="fa-feather-pointed" size="2.5rem" /></div>
-                <h3 className="module-title">DayOne Journal</h3>
-                <p className="module-description">Browse trips, edit entries, capture new moments with DayOne sync.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    // ═════════════════════════════════════════════════════════════
+    // =================================================================
     // MAIN APP
-    // ═════════════════════════════════════════════════════════════
+    // =================================================================
 
     function App() {
-      const [currentPage, setCurrentPage] = useState('home');
+      const [page, setPage] = useState('home');
 
       return (
         <div>
           <nav className="nav">
-            <div className="nav-inner">
-              <div className="nav-brand">
-                <Icon name="fa-feather-pointed" size="1.2em" /> Asif's Journal
-              </div>
-              <div className="nav-links">
-                <button className={`nav-link ${currentPage === 'home' ? 'active' : ''}`} onClick={() => setCurrentPage('home')}>
-                  <Icon name="fa-house" /> Home
-                </button>
-                <button className={`nav-link ${currentPage === 'memoir' ? 'active' : ''}`} onClick={() => setCurrentPage('memoir')}>
-                  <Icon name="fa-book-open" /> Memoir
-                </button>
-                <button className={`nav-link ${currentPage === 'dayone' ? 'active' : ''}`} onClick={() => setCurrentPage('dayone')}>
-                  <Icon name="fa-feather-pointed" /> DayOne Journal
-                </button>
-              </div>
+            <div className="nav-brand">Asif's Journal</div>
+            <div className="nav-links">
+              <button className={`nav-link ${page === 'home' ? 'active' : ''}`} onClick={() => setPage('home')}><Icon name="fa-house" /> <span>Dashboard</span></button>
+              <button className={`nav-link ${page === 'memoir' ? 'active' : ''}`} onClick={() => setPage('memoir')}><Icon name="fa-book-open" /> <span>Memoir</span></button>
+              <button className={`nav-link ${page === 'dayone' ? 'active' : ''}`} onClick={() => setPage('dayone')}><Icon name="fa-feather-pointed" /> <span>DayOne</span></button>
             </div>
           </nav>
 
-          {currentPage === 'home' && <HomePage onNavigate={setCurrentPage} />}
-          {currentPage === 'memoir' && <MemoirModule />}
-          {currentPage === 'dayone' && <DayOneJournalModule />}
+          <main className="page">
+            {page === 'home' && <HomePage onNavigate={setPage} />}
+            {page === 'memoir' && <MemoirModule />}
+            {page === 'dayone' && <DayOneModule />}
+          </main>
         </div>
       );
     }
-
-    // ═════════════════════════════════════════════════════════════
-    // RENDER
-    // ═════════════════════════════════════════════════════════════
 
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(<App />);
