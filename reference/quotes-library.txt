@@ -1,6 +1,6 @@
 QUOTES LIBRARY
 What I Wish Babu Taught Me
-Last updated: April 11, 2026 (54 quotes + 38 reflections — QUOTE-001 through QUOTE-054, REFLECT-001 through REFLECT-038 — 92 items total; QUOTE-012 reclassified from B to C)
+Last updated: April 14, 2026 (54 quotes + 39 reflections — QUOTE-001 through QUOTE-054, REFLECT-001 through REFLECT-039 — 93 items total; QUOTE-012 reclassified from B to C)
 
 CATEGORY KEY
 Category A (Sacred, attributed): QUOTE-020 through QUOTE-041, QUOTE-054 (Quran, Hadith, Ali (AS), Hadith Qudsi)
@@ -860,3 +860,11 @@ Theme tags: faith / judgment / perspective / humility / patience
 Best fit: Man chapter (the gap between Baba's public and private self); Marriage chapter (the dead marriage that looked fine from outside); Love chapter (Amma's intelligence masking cruelty); any chapter touching on appearance vs. reality.
 Used in: unused
 Notes: Maps directly to the memoir's central observation: the household looked respectable from outside while the inside was emotional chaos. "What looks peaceful outside is often total chaos inside." That IS the family. Also maps to Atif (looked like failure, but his damage was invisible). Render as Asif's own voice: "I learned early that nothing is as it appears. The houses that look whole from the street are sometimes the ones falling apart inside."
+
+[REFLECT-039]
+Source: Asif, conversation April 14, 2026
+Original text: I inherited my strong articulation and writing skills from my mother. Whatever else she gave me that I had to unlearn, this was a gift I never had to question. Her intelligence, her way with words, her sharpness with language — these were not weapons when they passed to me. They became tools. The very voice I use to make sense of my own damage is a voice she built in me before I knew what I would need it for.
+Theme tags: Amma, gratitude, identity, love, transformation
+Best fit: Faith chapter (PRIMARY — when describing Islamic sessions and using his voice to reach others, the realization that this instrument was inherited from the woman whose version of faith was a weapon; the irony is structural: her sharpness became his, turned toward mercy instead of control); Love chapter (SECONDARY — pairs with the Amma gifts passage at lines 112-118, but that section already works without it); Parenthood chapter (TERTIARY — what parents pass down without knowing it)
+Used in: unused
+Notes: This is a critical counterweight to the memoir's portrayal of Amma. The Narrative Constant demands parents be complex, not villains. This reflection acknowledges that the same woman whose words could wound also gave Asif the gift that would eventually become his healing instrument — the ability to articulate what happened to him. The irony is structural: her sharpness with language became his sharpness with language, except he turned it inward to understand, not outward to control. Render as: "The sharpest thing my mother gave me was not a punishment. It was her tongue. Not the cruel edge of it. The precise edge. The part that knew exactly how to say what needed saying. I write because she could. That is not a small inheritance."

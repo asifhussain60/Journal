@@ -1,0 +1,79 @@
+---
+# Trip Metadata
+name: "Ishrat's Engagement Party Trip"
+slug: 2026-04-ishrat-engagement
+status: planning  # planning | active | completed | archived
+
+# People & Context
+travelers:
+  - Asif
+  - Ishrat
+occasion: Engagement party in Fresh Meadows, Queens
+theme: Romantic couple's trip with family celebration
+vibe: "Packed & purposeful — couple time, mid-range budget, halal dining"
+
+# Dates & Location
+dates:
+  start: 2026-04-20
+  end: 2026-04-28
+  days: 9
+base: Home2 Suites, New Brunswick, NJ
+regions:
+  - Central New Jersey
+  - Queens, New York
+  - NJ Shore (south)
+
+# Flights
+flights:
+  inbound:
+    flight: UA 147
+    route: LHR → EWR
+    date: 2026-04-20
+    depart: "12:00 PM BST"
+    arrive: "2:55 PM ET"
+    seat: 34D
+  outbound:
+    flight: UA 16
+    route: EWR → LHR
+    date: 2026-04-28
+    depart: "5:25 PM ET"
+    arrive: "5:55 AM +1"
+    seat: 33D
+
+# Key Events
+highlights:
+  - date: 2026-04-24
+    event: Engagement Party
+    venue: "183-10 Horace Harding Expy, Fresh Meadows, NY 11365"
+  - date: 2026-04-27
+    event: Spa Day
+    venue: "Ocean Place Resort & Spa, Long Branch, NJ"
+  - date: 2026-04-26
+    event: Fondue Date Night
+    venue: "The Melting Pot, Red Bank, NJ"
+
+# Memoir Connection
+memoir:
+  relevant_chapters:
+    - ch02-love
+    - ch04-faith
+  potential_incidents:
+    - "Ishrat's visit — couple reconnecting across continents"
+    - "Engagement party — family celebration, new beginnings"
+    - "Shalwar kameez shopping — cultural identity moment"
+
+# DayOne Journal
+dayone:
+  journal_name: "Travel"
+  tags:
+    - trip
+    - ishrat
+    - engagement
+    - new-jersey
+    - 2026
+
+# Tracking
+created: 2026-04-14
+last_updated: 2026-04-14
+photo_count: 0
+journal_entries: 9

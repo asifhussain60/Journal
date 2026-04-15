@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asif & Ishrat — Our Travels</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Nunito+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Great+Vibes&family=Dancing+Script:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-main: #FAF7FC;
+    --bg-card: rgba(255,255,255,0.85);
+    --bg-card-solid: #FFFFFF;
+    --text-main: #3D2E4A;
+    --text-muted: #7E6B8A;
+    --text-soft: #A396AC;
+    --purple-deep: #5A4763;
+    --purple-mid: #8B7394;
+    --purple-light: #A48DB2;
+    --lavender: #C4B0D0;
+    --lavender-soft: #E8DCF0;
+    --lilac: #D8CBE3;
+    --wisteria: #B094C4;
+    --gold: #C4A87A;
+    --gold-light: #D9CBB0;
+    --rose: #C48A9A;
+    --rose-soft: rgba(196,138,154,0.08);
+    --border-glow: rgba(180,150,196,0.25);
+    --font-serif: 'Cormorant Garamond', serif;
+    --font-sans: 'Nunito Sans', sans-serif;
+    --font-script: 'Great Vibes', cursive;
+    --font-script2: 'Dancing Script', cursive;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg-main);
+    color: var(--text-main);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 20% 0%, rgba(200,170,220,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 100%, rgba(180,148,196,0.08) 0%, transparent 60%);
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, h4 { font-family: var(--font-serif); font-weight: 400; }
+
+  /* ═══ HERO ═══ */
+  .hero {
+    text-align: center;
+    padding: 4rem 2rem 3rem;
+    position: relative;
+  }
+
+  .heart-frame {
+    position: relative;
+    display: inline-block;
+    width: 340px;
+    height: 320px;
+  }
+
+  .heart-border {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+  }
+
+  .heart-frame h1 {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    padding-top: 10px;
+  }
+
+  .hero-names {
+    font-family: var(--font-script);
+    color: var(--purple-mid);
+    font-size: 4.2rem;
+    line-height: 1.1;
+    display: block;
+  }
+
+  .hero-pet-name {
+    font-family: var(--font-script2);
+    color: var(--lavender);
+    font-size: 1.5rem;
+    display: block;
+    margin-top: 4px;
+    letter-spacing: 2px;
+  }
+
+  .hero-subtitle {
+    font-family: var(--font-serif);
+    color: var(--text-muted);
+    font-size: 1.5rem;
+    font-weight: 300;
+    font-style: italic;
+    margin-top: 1rem;
+    letter-spacing: 1px;
+  }
+
+  /* ═══ FILTERS ═══ */
+  .filters {
+    max-width: 900px;
+    margin: 0 auto 2rem;
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    padding: 0 2rem;
+  }
+
+  .filter-btn {
+    font-family: var(--font-sans);
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    padding: 0.45rem 1.2rem;
+    border: 1px solid var(--lavender);
+    border-radius: 100px;
+    background: transparent;
+    color: var(--purple-mid);
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+
+  .filter-btn:hover {
+    background: var(--lavender-soft);
+  }
+
+  .filter-btn.active {
+    background: var(--purple-mid);
+    color: #fff;
+    border-color: var(--purple-mid);
+  }
+
+  /* ═══ TRIP GRID ═══ */
+  .trip-grid {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 2rem 4rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 2rem;
+  }
+
+  .trip-card {
+    background: var(--bg-card-solid);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border-glow);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+
+  .trip-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(90,71,99,0.1);
+  }
+
+  .card-banner {
+    height: 140px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-banner-bg {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-script);
+    font-size: 3.5rem;
+    color: rgba(255,255,255,0.95);
+    text-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    letter-spacing: 1px;
+  }
+
+  /* Per-trip gradient themes */
+  .theme-engagement { background: linear-gradient(135deg, #B094C4, #C48A9A, #C4A87A); }
+  .theme-honeymoon { background: linear-gradient(135deg, #6EA5C4, #94C4B0, #C4C494); }
+  .theme-eid { background: linear-gradient(135deg, #3D8B7A, #5AAF5A, #C4A87A); }
+  .theme-summer { background: linear-gradient(135deg, #E8A87C, #C4685A, #8B5A7A); }
+  .theme-default { background: linear-gradient(135deg, #8B7394, #B094C4, #C4B0D0); }
+
+  .card-status {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 100px;
+    backdrop-filter: blur(8px);
+  }
+
+  .status-planning {
+    background: rgba(255,255,255,0.3);
+    color: #fff;
+  }
+  .status-active {
+    background: rgba(100,200,150,0.35);
+    color: #fff;
+  }
+  .status-completed {
+    background: rgba(196,168,122,0.35);
+    color: #fff;
+  }
+  .status-archived {
+    background: rgba(150,150,150,0.3);
+    color: rgba(255,255,255,0.8);
+  }
+
+  .card-body {
+    padding: 1.4rem 1.5rem 1.2rem;
+  }
+
+  .card-title {
+    font-family: var(--font-serif);
+    font-size: 1.35rem;
+    font-weight: 500;
+    color: var(--purple-deep);
+    margin-bottom: 0.2rem;
+    line-height: 1.3;
+  }
+
+  .card-occasion {
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+    font-style: italic;
+  }
+
+  .card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.2rem;
+    margin-bottom: 1rem;
+  }
+
+  .meta-item {
+    font-size: 0.8rem;
+    color: var(--text-soft);
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .meta-icon {
+    width: 14px;
+    height: 14px;
+    opacity: 0.6;
+  }
+
+  .card-travelers {
+    font-size: 0.78rem;
+    color: var(--purple-light);
+    font-weight: 500;
+    letter-spacing: 0.3px;
+  }
+
+  .card-highlight {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--lavender-soft);
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .highlight-label {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    color: var(--wisteria);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.3rem;
+  }
+
+  /* ═══ EMPTY STATE ═══ */
+  .empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-soft);
+    font-style: italic;
+  }
+
+  /* ═══ FOOTER ═══ */
+  .dashboard-footer {
+    text-align: center;
+    padding: 2rem;
+    font-family: var(--font-serif);
+    font-size: 0.9rem;
+    color: var(--text-soft);
+    font-style: italic;
+    border-top: 1px solid var(--lavender-soft);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .footer-heart {
+    color: var(--rose);
+    font-size: 1.1rem;
+  }
+
+  /* ═══ RESPONSIVE ═══ */
+  @media (max-width: 700px) {
+    .hero { padding: 3rem 1.5rem 2rem; }
+    .hero-names { font-size: 3rem; }
+    .hero-subtitle { font-size: 1.2rem; }
+    .heart-frame { width: 260px; height: 250px; }
+    .trip-grid { grid-template-columns: 1fr; padding: 0 1.2rem 3rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ HERO ═══ -->
+<header class="hero">
+  <div class="heart-frame">
+    <svg class="heart-border" viewBox="0 0 340 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#B094C4"/>
+          <stop offset="50%" stop-color="#C48A9A"/>
+          <stop offset="100%" stop-color="#C4A87A"/>
+        </linearGradient>
+      </defs>
+      <path d="M170 300 C170 300, 20 210, 20 120 C20 60, 70 20, 120 20 C145 20, 160 35, 170 55 C180 35, 195 20, 220 20 C270 20, 320 60, 320 120 C320 210, 170 300, 170 300Z"
+        stroke="url(#heartGrad)" stroke-width="1.5" fill="none" opacity="0.45"/>
+    </svg>
+    <h1>
+      <span class="hero-names">Asif &amp; Ishrat</span>
+      <span class="hero-pet-name">~ SyIsh ~</span>
+    </h1>
+  </div>
+  <p class="hero-subtitle">Our Travels</p>
+</header>
+
+<!-- ═══ FILTERS ═══ -->
+<div class="filters">
+  <button class="filter-btn active" onclick="filterTrips('all')">All Trips</button>
+  <button class="filter-btn" onclick="filterTrips('planning')">Planning</button>
+  <button class="filter-btn" onclick="filterTrips('active')">Active</button>
+  <button class="filter-btn" onclick="filterTrips('completed')">Completed</button>
+</div>
+
+<!-- ═══ TRIP GRID ═══ -->
+<div class="trip-grid" id="tripGrid">
+  <!-- Cards rendered by JS from trip data -->
+</div>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="dashboard-footer">
+  <span class="footer-heart">&#9829;</span> Every journey together is a chapter in our story
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════
+// TRIP DATA — Sourced from trip.yaml files
+// When the trip-agent regenerates this dashboard,
+// it reads all trip.yaml files and updates this array.
+// ═══════════════════════════════════════════════════
+const trips = [
+  {
+    name: "Ishrat's Engagement Party Trip",
+    slug: "2026-04-ishrat-engagement",
+    status: "planning",
+    travelers: ["Asif", "Ishrat"],
+    occasion: "Engagement party in Fresh Meadows, Queens",
+    vibe: "Packed & purposeful — couple time, mid-range budget, halal dining",
+    dates: { start: "2026-04-20", end: "2026-04-28", days: 9 },
+    base: "Home2 Suites, New Brunswick, NJ",
+    regions: ["Central New Jersey", "Queens, New York", "NJ Shore (south)"],
+    highlight: {
+      date: "2026-04-24",
+      event: "Engagement Party",
+      venue: "Fresh Meadows, Queens"
+    },
+    photoCount: 0,
+    journalEntries: 0,
+    theme: "engagement",
+    itineraryUrl: "2026-04-ishrat-engagement/itinerary.html"
+  }
+];
+
+// ═══ RENDERING ═══
+const themeMap = {
+  engagement: "theme-engagement",
+  honeymoon: "theme-honeymoon",
+  eid: "theme-eid",
+  summer: "theme-summer"
+};
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function getStatusClass(status) {
+  return 'status-' + status;
+}
+
+function renderTrips(filter) {
+  const grid = document.getElementById('tripGrid');
+  const filtered = filter === 'all' ? trips : trips.filter(t => t.status === filter);
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div class="empty-state">No trips found for this filter.</div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(trip => {
+    const themeClass = themeMap[trip.theme] || 'theme-default';
+    const dateRange = formatDate(trip.dates.start) + ' — ' + formatDate(trip.dates.end);
+
+    return `
+      <a class="trip-card" href="${trip.itineraryUrl}" data-status="${trip.status}">
+        <div class="card-banner">
+          <div class="card-banner-bg ${themeClass}">${trip.name.split(' ')[0]}</div>
+          <div class="card-status ${getStatusClass(trip.status)}">${trip.status}</div>
+        </div>
+        <div class="card-body">
+          <div class="card-title">${trip.name}</div>
+          <div class="card-occasion">${trip.occasion}</div>
+          <div class="card-meta">
+            <span class="meta-item">
+              <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              ${dateRange}
+            </span>
+            <span class="meta-item">
+              <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              ${trip.days || trip.dates.days} days
+            </span>
+            <span class="meta-item">
+              <svg class="meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              ${trip.regions[0]}
+            </span>
+          </div>
+          <div class="card-travelers">${trip.travelers.join(' & ')}</div>
+          ${trip.highlight ? `
+          <div class="card-highlight">
+            <div class="highlight-label">Key Event</div>
+            ${trip.highlight.event} — ${trip.highlight.venue}
+          </div>` : ''}
+        </div>
+      </a>
+    `;
+  }).join('');
+}
+
+function filterTrips(status) {
+  document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+  renderTrips(status);
+}
+
+// Initial render
+renderTrips('all');
+</script>
+
+</body>
+</html>
