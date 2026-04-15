@@ -5,6 +5,9 @@ scratchpad-*.txt
 .DS_Store
 Thumbs.db
 
+# MCP config (contains API tokens)
+.mcp.json
+
 # Editor files
 *.swp
 *.swo

@@ -1,0 +1,2021 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Asif's Journal</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Great+Vibes&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6.5.1 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3H03JBKSVTglqhf+GXT00LJ698CLLPLLUSMAOIPPAKSAINC" crossorigin="anonymous">
+
+  <!-- External Stylesheets -->
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/memoir_theme.css">
+  <link rel="stylesheet" href="css/trip_theme.css">
+  <link rel="stylesheet" href="css/sample_lavender.css">
+
+  <style>
+    /* ═════════════════════════════════════════════════════════════
+       INLINE STYLES — Journal App Components
+       ═════════════════════════════════════════════════════════════ */
+
+    body.theme-lavender {
+      --bg-primary: #faf8f6;
+      --text-primary: #2c2c2c;
+      --accent: #8b6ba8;
+      --border-color: #e8e4e0;
+      --card-bg: #ffffff;
+    }
+
+    .journal-tabs {
+      display: flex;
+      gap: 0.5rem;
+      padding: 0.5rem;
+      background: var(--card-bg);
+      border-radius: 0.5rem;
+      border: 1px solid var(--border-color);
+      margin-bottom: 1.5rem;
+    }
+
+    .journal-tab {
+      padding: 0.5rem 1rem;
+      border: none;
+      background: transparent;
+      color: var(--text-primary);
+      cursor: pointer;
+      border-radius: 0.4rem;
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .journal-tab.active {
+      background: var(--accent);
+      color: white;
+    }
+
+    .journal-tab:hover:not(.active) {
+      background: rgba(139, 107, 168, 0.1);
+      color: var(--accent);
+    }
+
+    /* Trip Cards Grid */
+    .trips-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .trip-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 0.75rem;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .trip-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 16px rgba(139, 107, 168, 0.12);
+      border-color: var(--accent);
+    }
+
+    .trip-card-cover {
+      width: 100%;
+      height: 180px;
+      background: linear-gradient(135deg, rgba(139, 107, 168, 0.1) 0%, rgba(196, 100, 120, 0.1) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      opacity: 0.3;
+    }
+
+    .trip-card-body {
+      padding: 1rem;
+    }
+
+    .trip-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 0.75rem;
+    }
+
+    .trip-card-title {
+      font-family: var(--font-serif);
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0;
+    }
+
+    .trip-card-date {
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      color: #999;
+      margin-top: 0.25rem;
+    }
+
+    .trip-card-country {
+      display: inline-block;
+      font-size: 0.8rem;
+      color: var(--accent);
+      font-weight: 600;
+      margin-top: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .trip-card-stats {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .trip-card-stat {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .trip-card-tags {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.75rem;
+    }
+
+    .trip-card-tag {
+      display: inline-block;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      background: rgba(139, 107, 168, 0.1);
+      color: var(--accent);
+      border-radius: 0.25rem;
+      text-transform: capitalize;
+    }
+
+    /* Entry Card Grid (masonry) */
+    .entry-card-grid {
+      column-count: 3;
+      column-gap: 1.25rem;
+    }
+    @media (max-width: 1024px) {
+      .entry-card-grid { column-count: 2; }
+    }
+    @media (max-width: 640px) {
+      .entry-card-grid { column-count: 1; }
+    }
+
+    /* Legacy fallback classes kept for compatibility */
+    .entry-timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .entry-item {
+      padding: 1rem;
+      background: var(--card-bg);
+      border-left: 3px solid var(--accent);
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .entry-item:hover {
+      box-shadow: 0 4px 8px rgba(139, 107, 168, 0.1);
+    }
+
+    .entry-item-date {
+      font-family: var(--font-sans);
+      font-size: 0.8rem;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.3rem;
+    }
+
+    .entry-item-text {
+      font-family: var(--font-serif);
+      font-size: 0.95rem;
+      color: var(--text-primary);
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    /* Entry Detail View */
+    .entry-detail {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 0.75rem;
+      padding: 2rem;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .entry-detail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .entry-detail-meta {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    .entry-detail-mood {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .entry-detail-text {
+      font-family: var(--font-serif);
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: var(--text-primary);
+      margin-bottom: 1.5rem;
+    }
+
+    .entry-detail-photos {
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .entry-detail-photos h4 {
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+    }
+
+    /* Photo Placeholders */
+    .photo-placeholders {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .photo-placeholder {
+      aspect-ratio: 1;
+      background: linear-gradient(135deg, rgba(139, 107, 168, 0.08) 0%, rgba(196, 100, 120, 0.08) 100%);
+      border: 2px dashed var(--border-color);
+      border-radius: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0.75rem;
+      text-align: center;
+      font-family: var(--font-sans);
+      font-size: 0.7rem;
+      color: #999;
+      gap: 0.5rem;
+    }
+
+    .photo-placeholder-icon {
+      font-size: 1.8rem;
+      opacity: 0.4;
+    }
+
+    .photo-placeholder-label {
+      font-weight: 500;
+      line-height: 1.2;
+    }
+
+    /* Mood Chips */
+    .mood-chips {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 0.75rem;
+      margin: 1rem 0;
+    }
+
+    .mood-chip {
+      padding: 0.75rem 1rem;
+      border: 2px solid transparent;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+    }
+
+    .mood-chip.selected {
+      border-color: var(--accent);
+      transform: scale(1.05);
+    }
+
+    /* Q&A Flow */
+    .qa-flow {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 0.75rem;
+      padding: 2rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .qa-progress {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      justify-content: center;
+    }
+
+    .qa-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--border-color);
+      transition: all 0.2s ease;
+    }
+
+    .qa-dot.active {
+      background: var(--accent);
+      width: 24px;
+      border-radius: 4px;
+    }
+
+    .qa-dot.completed {
+      background: var(--accent);
+    }
+
+    .qa-step {
+      display: none;
+    }
+
+    .qa-step.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .qa-label {
+      font-family: var(--font-serif);
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 1.5rem;
+    }
+
+    .qa-input, .qa-textarea, .qa-select {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--border-color);
+      border-radius: 0.5rem;
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      margin-bottom: 1.5rem;
+    }
+
+    .qa-textarea {
+      resize: vertical;
+      min-height: 120px;
+      font-family: var(--font-serif);
+    }
+
+    .qa-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: space-between;
+    }
+
+    /* Narrative Editor */
+    .narrative-editor {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 0.75rem;
+      padding: 2rem;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .narrative-editor-header {
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .narrative-editor-title {
+      font-family: var(--font-serif);
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .narrative-editor-status {
+      display: inline-block;
+      font-size: 0.8rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 0.3rem;
+      text-transform: capitalize;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    .narrative-editor-status.draft {
+      background: rgba(150, 150, 150, 0.15);
+      color: #666;
+    }
+
+    .narrative-editor-status.refined {
+      background: rgba(139, 107, 168, 0.15);
+      color: var(--accent);
+    }
+
+    .narrative-editor-status.exported {
+      background: rgba(80, 160, 120, 0.15);
+      color: #50a078;
+    }
+
+    .narrative-editor-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .narrative-editor-label {
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .narrative-editor-text {
+      font-family: var(--font-serif);
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--text-primary);
+      padding: 1rem;
+      background: var(--bg-primary);
+      border-radius: 0.5rem;
+      border: 1px solid var(--border-color);
+    }
+
+    /* DayOne Preview */
+    .dayone-preview {
+      background: #2c2c2c;
+      border-radius: 0.75rem;
+      padding: 2rem;
+      margin-top: 2rem;
+      color: #e8e8e8;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .dayone-header {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .dayone-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #666;
+    }
+
+    .dayone-dot.red { background: #ff5f56; }
+    .dayone-dot.yellow { background: #ffbd2e; }
+    .dayone-dot.green { background: #27c93f; }
+
+    .dayone-title {
+      font-family: var(--font-serif);
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .dayone-meta {
+      font-size: 0.85rem;
+      color: #999;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #444;
+    }
+
+    .dayone-text {
+      font-family: var(--font-serif);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+
+    .dayone-tags {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid #444;
+    }
+
+    .dayone-tag {
+      font-size: 0.8rem;
+      padding: 0.35rem 0.75rem;
+      background: rgba(139, 107, 168, 0.2);
+      border-radius: 0.3rem;
+      color: #aaa;
+    }
+
+    /* Buttons in DayOne Preview */
+    .dayone-actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid #444;
+    }
+
+    .dayone-btn {
+      flex: 1;
+      padding: 0.75rem;
+      background: rgba(139, 107, 168, 0.2);
+      border: 1px solid rgba(139, 107, 168, 0.4);
+      border-radius: 0.4rem;
+      color: #ccc;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+    }
+
+    .dayone-btn:hover {
+      background: rgba(139, 107, 168, 0.3);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--accent);
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 0.5rem;
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      animation: slideIn 0.3s ease;
+      z-index: 1000;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateY(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    /* Home Dashboard */
+    .dashboard-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-family: var(--font-serif);
+      font-size: 2.2rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Module Cards */
+    .modules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .module-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 0.75rem;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .module-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 16px rgba(139, 107, 168, 0.12);
+      border-color: var(--accent);
+    }
+
+    .module-icon {
+      font-size: 2.5rem;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+
+    .module-title {
+      font-family: var(--font-serif);
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .module-description {
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+      color: #666;
+      line-height: 1.5;
+    }
+
+    /* Back Button */
+    .back-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      padding: 0.5rem 1rem;
+      background: transparent;
+      border: none;
+      color: var(--accent);
+      cursor: pointer;
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .back-button:hover {
+      gap: 0.75rem;
+    }
+
+    /* Memoir Components — Keep Existing Styling */
+    .chapter-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .chapter-card:hover {
+      box-shadow: 0 4px 8px rgba(139, 107, 168, 0.1);
+    }
+
+    .chapter-status {
+      display: inline-block;
+      font-size: 0.75rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 0.3rem;
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+
+    .chapter-status.locked {
+      background: rgba(150, 150, 150, 0.15);
+      color: #666;
+    }
+
+    .chapter-status.active {
+      background: rgba(139, 107, 168, 0.15);
+      color: var(--accent);
+    }
+
+    .chapter-status.planned {
+      background: rgba(196, 100, 120, 0.15);
+      color: #c46478;
+    }
+
+    .chapter-title {
+      font-family: var(--font-serif);
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0.5rem 0;
+    }
+
+    .chapter-description {
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+      color: #666;
+      line-height: 1.5;
+    }
+
+    .quote-card {
+      background: var(--card-bg);
+      border-left: 3px solid var(--accent);
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+      font-family: var(--font-serif);
+      font-style: italic;
+      color: var(--text-primary);
+    }
+
+    .quote-card-source {
+      font-family: var(--font-sans);
+      font-size: 0.8rem;
+      color: #999;
+      margin-top: 0.5rem;
+      font-style: normal;
+    }
+
+    .incident-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+      cursor: pointer;
+    }
+
+    .incident-card-title {
+      font-family: var(--font-serif);
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0;
+    }
+
+    .incident-card-date {
+      font-family: var(--font-sans);
+      font-size: 0.8rem;
+      color: #999;
+      margin-top: 0.25rem;
+    }
+  </style>
+</head>
+
+<body class="theme-lavender">
+
+  <div id="root"></div>
+
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel">
+    const { useState, useRef, useEffect } = React;
+
+    // ═══════════════════════════════════════════════════════════
+    // PLACEHOLDER DATA
+    // ═══════════════════════════════════════════════════════════
+
+    function generateEntries(location, startDate, count, summaries) {
+      const entries = [];
+      const moodCycle = ['anticipation', 'adventure', 'cultural', 'romantic', 'celebration', 'reflective', 'relaxed', 'spiritual', 'playful', 'bittersweet'];
+
+      for (let i = 0; i < count; i++) {
+        const date = new Date(startDate);
+        date.setDate(date.getDate() + i);
+        const mood = moodCycle[i % moodCycle.length];
+        const photoCount = Math.floor(Math.random() * 4) + 1;
+
+        const loremBodies = [
+          'The morning light filtered through latticed windows, casting geometric shadows on the stone floor. We stood there for what felt like hours, though it might have been minutes. Some places slow time down — this was one of them. Ishrat reached for my hand without looking.',
+          'Streets narrowed into alleys that smelled of cardamom and woodsmoke. A vendor called out something we didn\'t understand, but the warmth in his voice needed no translation. She stopped at every stall, touching fabrics, holding ceramics up to the light. I carried the bags and watched her come alive.',
+          'The water stretched out before us, impossibly blue, the kind of blue that makes you question every other blue you\'ve ever seen. She leaned against the railing and said nothing. I said nothing. The silence between us was the fullest conversation we\'d had all week.',
+          'We got lost. Properly, beautifully lost. No map, no signal, just the two of us following our feet through a city that rewarded wandering. Every wrong turn revealed a courtyard, a fountain, a doorway that had been standing for centuries.',
+          'She went in alone. I sat on the steps outside, watching pigeons and tourists and the way the light changed as clouds moved across the sky. When she came back out, her eyes were different — softer, maybe. Or just more present.',
+          'The table was small, the candles were real, and the menu was in a language neither of us spoke. We pointed at things and hoped. Everything that arrived was extraordinary. She laughed when the dessert came — it was enormous, ridiculous, perfect.',
+          'The air changed as we climbed. Cooler, thinner, carrying the scent of wild herbs and distant rain. Below us the city looked like a toy — all those lives, all those stories, reduced to specks of light. She said she could see our hotel. I pretended I could too.',
+          'Rain came from nowhere, hard and sudden. We ducked into the first open door — a tea house, ancient and warm, the kind of place where the chairs don\'t match and the tea is perfect. We stayed two hours. It became the best memory of the trip.',
+          'Walking the old walls, I told her about the version of myself I\'d imagined at twenty. She told me about hers. Neither of us had become those people, and that was fine. Better than fine.',
+          'She was the teacher today. I was the student. She showed me how to read the shopkeeper\'s face, when to walk away, when to come back. I showed her how to let go of the thing you wanted. We were both bad at our lessons.',
+          'Last night energy — that particular sadness of knowing something beautiful is ending. Turkish coffee, thick and sweet. The fortune-teller turned her cup and said something about water and journeys. She laughed. I saved the cup.',
+          'At the gate, she squeezed my hand twice. Our signal. It means: I\'m here, I see you, this was worth it. The plane was delayed. We didn\'t mind. We sat in the plastic chairs and talked about next time.',
+          'The house smelled like childhood — cooking oil, incense, the particular warmth of a place where someone has been expecting you. Ammi appeared before we could set our bags down, already listing what she\'d made.',
+          'The old neighbourhood hadn\'t changed, but I had. Every street corner triggered a memory I\'d forgotten I was carrying. She walked beside me, quiet, letting me narrate a childhood she was seeing for the first time.',
+        ];
+        const bodyText = loremBodies[i % loremBodies.length];
+
+        entries.push({
+          uuid: `${location.toLowerCase().replace(/[^a-z]/g, '')}-${String(i+1).padStart(3, '0')}`,
+          date: date.toISOString(),
+          location: location,
+          mood: mood,
+          summary: summaries[i] || 'Lorem ipsum entry',
+          text: bodyText,
+          tags: [location.toLowerCase().replace(/[^a-z]/g, '-'), mood, 'ishrat'],
+          photoPlaceholders: Array.from({ length: photoCount }, (_, j) => ({
+            id: `ph-${location.toLowerCase().replace(/[^a-z]/g, '')}-${i+1}-${j+1}`,
+            description: `Photo placeholder ${j+1} for ${summaries[i] ? summaries[i].split('—')[0].trim() : 'this moment'}`,
+            slot: j + 1,
+          })),
+          status: 'draft',
+          journal: 'Ishrat\u2019s Visits',
+        });
+      }
+      return entries;
+    }
+
+    const MOODS = ['romantic', 'adventure', 'cultural', 'relaxed', 'celebration', 'bittersweet', 'anticipation', 'reflective', 'spiritual', 'playful'];
+
+    const MOOD_COLORS = {
+      romantic: { bg: 'rgba(196,100,120,0.12)', text: '#c46478', icon: 'fa-heart' },
+      adventure: { bg: 'rgba(80,160,120,0.12)', text: '#50a078', icon: 'fa-mountain-sun' },
+      cultural: { bg: 'rgba(160,120,80,0.12)', text: '#a07850', icon: 'fa-landmark' },
+      relaxed: { bg: 'rgba(100,140,200,0.12)', text: '#648cc8', icon: 'fa-spa' },
+      celebration: { bg: 'rgba(200,160,60,0.12)', text: '#c8a03c', icon: 'fa-champagne-glasses' },
+      bittersweet: { bg: 'rgba(140,100,160,0.12)', text: '#8c64a0', icon: 'fa-cloud-rain' },
+      anticipation: { bg: 'rgba(200,140,60,0.12)', text: '#c88c3c', icon: 'fa-clock' },
+      reflective: { bg: 'rgba(100,120,160,0.12)', text: '#6478a0', icon: 'fa-pen-fancy' },
+      spiritual: { bg: 'rgba(120,160,140,0.12)', text: '#78a08c', icon: 'fa-moon' },
+      playful: { bg: 'rgba(200,120,100,0.12)', text: '#c87864', icon: 'fa-face-smile-beam' },
+    };
+
+    const JOURNALS = ['Travel', 'Ishrat\u2019s Visits', 'Asif\u2019s Journal'];
+
+    const PLACEHOLDER_TRIPS = [
+      {
+        id: 'trip-001', location: 'Istanbul', country: 'Turkey',
+        displayDate: 'Oct 2024', startDate: '2024-10-12', endDate: '2024-10-19',
+        tags: ['anniversary', 'ishrat', 'cultural'],
+        entryCount: 12, photoPlaceholders: 34,
+        entries: generateEntries('Istanbul', '2024-10-12', 12, ['Hagia Sophia at dawn — the light through those windows stopped us both', 'Grand Bazaar chaos — Ishrat found a lamp she says was "meant for us"', 'Bosphorus ferry at sunset, her head on my shoulder, neither of us speaking', 'Lost in Sultanahmet, found the best lokma of our lives', 'Ishrat praying at the Blue Mosque, I watched from outside', 'Rooftop dinner in Beyoglu — she wore the red scarf', 'Spice market morning — cumin, saffron, the smell of her mother\'s kitchen', 'Rain forced us into a tiny tea house, best accident of the trip', 'Walking the old city walls, talking about what we\'d build if we could start over', 'She taught me how to haggle, I taught her how to walk away', 'Last night — Turkish coffee, fortune reading, she laughed at mine', 'Airport goodbye to the city — she squeezed my hand at the gate'])
+      },
+      {
+        id: 'trip-002', location: 'New Brunswick, NJ', country: 'USA',
+        displayDate: 'Apr 2026', startDate: '2026-04-20', endDate: '2026-04-28',
+        tags: ['engagement', 'ishrat', 'family'],
+        entryCount: 9, photoPlaceholders: 18,
+        entries: generateEntries('New Brunswick', '2026-04-20', 9, ['Arrival day — the hotel room smells like new carpet and possibility', 'Edison exploration — Oak Tree Road breakfast, shalwar kameez shopping', 'City spark — Central Park, Museum of Natural History, Halal Guys dinner', 'Quiet couple day — sleep in, brunch, movie night', 'The Engagement Party — Fresh Meadows, biryani and roses', 'Recovery and reflection — late morning, journal writing', 'Fondue date night — Red Bank, The Melting Pot', 'Spa and serenity — Ocean Place Resort, boardwalk sunset', 'Homeward — packing, EWR, the bittersweet end'])
+      },
+      {
+        id: 'trip-003', location: 'Lahore', country: 'Pakistan',
+        displayDate: 'Jun 2022', startDate: '2022-06-10', endDate: '2022-06-20',
+        tags: ['family', 'homecoming', 'cultural'],
+        entryCount: 14, photoPlaceholders: 40,
+        entries: generateEntries('Lahore', '2022-06-10', 14, ['Landing at Allama Iqbal — the humidity, the honking, the feeling of being home', 'Ammi\'s house — she fed us before we could put our bags down', 'Food Street with cousins — nihari, paye, the old arguments about which is better', 'Badshahi Mosque — Ishrat\'s first time, she stood there speechless', 'Anarkali bazaar — she bought fabric for everyone back home', 'Wagah Border ceremony — the nationalism, the spectacle, the absurdity', 'Cousin wedding prep — mehndi night, everyone dancing', 'The wedding day — Ishrat in green, the one everyone noticed', 'Shalimar Gardens morning — peacocks, fountains, history underfoot', 'Old Lahore food crawl — gol gappay vendor she found in a side alley', 'Family gathering at Chacha\'s — children running, elders sitting, samosas appearing', 'Lahore Fort at sunset — she said she understood me better now', 'Last full day — we drove through the old neighbourhood, I showed her where I played', 'Airport — Ammi held on too long, Ishrat held me after'])
+      },
+    ];
+
+    const CHAPTERS = [
+      { id: 'ch00', num: '00', title: 'Introduction', subtitle: 'What I Wish Babu Taught Me', status: 'locked', words: 1370, readiness: 100 },
+      { id: 'ch01', num: '01', title: 'Man', subtitle: 'Babu, What Does It Mean to Be a Man?', status: 'locked', words: 4200, readiness: 100 },
+      { id: 'ch02', num: '02', title: 'Love', subtitle: 'Babu, Tell Me What Love Really Is', status: 'locked', words: 9084, readiness: 100 },
+      { id: 'ch03', num: '03', title: 'Marriage', subtitle: 'Babu, Tell Me What Marriage Really Is', status: 'active', words: 3200, readiness: 62 },
+      { id: 'ch04', num: '04', title: 'Faith', subtitle: 'Babu, Where Do I Find God?', status: 'planned', words: 0, readiness: 0 },
+      { id: 'ch05', num: '05', title: 'Money', subtitle: 'Babu, Teach Me About Money', status: 'planned', words: 0, readiness: 0 },
+      { id: 'ch06', num: '06', title: 'Discipline', subtitle: 'Babu, What Is Real Discipline?', status: 'planned', words: 0, readiness: 0 },
+      { id: 'ch07', num: '07', title: 'Parenthood', subtitle: 'Babu, How Do I Raise My Own?', status: 'planned', words: 0, readiness: 0 },
+    ];
+
+    const QUOTES_SAMPLE = [
+      { text: 'The wound is the place where the Light enters you.', source: 'Rumi', chapter: 'ch02', used: true },
+      { text: 'Do not lose hope, nor be sad.', source: 'Quran 3:139', chapter: 'ch04', used: false },
+      { text: 'A man is not where he lives, but where he loves.', source: 'Latin Proverb', chapter: 'ch01', used: true },
+      { text: 'Between stimulus and response there is a space.', source: 'Viktor Frankl', chapter: null, used: false },
+      { text: 'The soul that has no fixed purpose in life is lost.', source: 'Montaigne', chapter: null, used: false },
+    ];
+
+    const INCIDENTS_SAMPLE = [
+      { id: 'INC-041', title: 'Afifa Khala reads to sick boy', chapter: 'ch02', status: 'PLACED' },
+      { id: 'INC-023', title: 'Caning after school report', chapter: 'ch01', status: 'PLACED' },
+      { id: 'INC-057', title: 'First prayer alone in America', chapter: 'ch04', status: 'BANKED' },
+      { id: 'INC-062', title: 'Ishrat corrects his definition of love', chapter: 'ch02', status: 'PLACED' },
+      { id: 'INC-068', title: 'Wedding day silence', chapter: 'ch03', status: 'DRAFTED' },
+      { id: 'INC-071', title: 'Erum teaches tenderness', chapter: 'ch01', status: 'PLACED' },
+      { id: 'INC-080', title: 'CSA incident with Anija', chapter: null, status: 'NEEDS-QQ' },
+      { id: 'INC-084', title: 'Engagement breaks after false accusation', chapter: 'ch03', status: 'BANKED' },
+    ];
+
+    // ═══════════════════════════════════════════════════════════
+    // UTILITY COMPONENTS
+    // ═══════════════════════════════════════════════════════════
+
+    function Icon({ name, size = '1em' }) {
+      return <i className={`fa-solid ${name}`} style={{ fontSize: size }}></i>;
+    }
+
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('Copied to clipboard — paste into DayOne');
+      });
+    }
+
+    function formatDate(isoString) {
+      const date = new Date(isoString);
+      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // DAYONE PREVIEW COMPONENT
+    // ═════════════════════════════════════════════════════════════
+
+    function DayOnePreview({ entry, selectedJournal, setSelectedJournal, tags, setTags }) {
+      const moodColor = MOOD_COLORS[entry.mood];
+      const refinedText = entry.status === 'refined'
+        ? `${entry.text}\n\n*[Refined with Voice DNA]*`
+        : entry.text;
+
+      const markdownContent = `# ${entry.location} — ${formatDate(entry.date)}
+
+**Mood:** ${entry.mood}
+**Journal:** ${selectedJournal}
+**Tags:** ${tags.join(', ')}
+
+${refinedText}`;
+
+      const markdownWithPhotos = `${markdownContent}
+
+## Photo Moments
+${entry.photoPlaceholders.map(p => `- ${p.description}`).join('\n')}`;
+
+      return (
+        <div className="dayone-preview">
+          <div className="dayone-header">
+            <div className="dayone-dot red"></div>
+            <div className="dayone-dot yellow"></div>
+            <div className="dayone-dot green"></div>
+          </div>
+          <div className="dayone-title">{entry.location}</div>
+          <div className="dayone-meta">
+            {formatDate(entry.date)} • {entry.location}
+            <span style={{ marginLeft: '0.5rem', padding: '0.35rem 0.75rem', borderRadius: '0.3rem', background: moodColor.bg, color: moodColor.text }}>
+              {entry.mood}
+            </span>
+          </div>
+          <div className="dayone-text">{refinedText}</div>
+          <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #444' }}>
+            <label style={{ fontSize: '0.85rem', color: '#999', display: 'block', marginBottom: '0.5rem' }}>Journal</label>
+            <select
+              value={selectedJournal}
+              onChange={e => setSelectedJournal(e.target.value)}
+              style={{
+                width: '100%', padding: '0.5rem', background: '#3c3c3c', border: '1px solid #555', color: '#ccc',
+                borderRadius: '0.4rem', fontFamily: 'var(--font-sans)', fontSize: '0.9rem', marginBottom: '1rem'
+              }}
+            >
+              {JOURNALS.map(j => <option key={j} value={j}>{j}</option>)}
+            </select>
+          </div>
+          <div style={{ marginBottom: '1rem' }}>
+            <label style={{ fontSize: '0.85rem', color: '#999', display: 'block', marginBottom: '0.5rem' }}>Tags</label>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              {tags.map(t => (
+                <div key={t} className="dayone-tag" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                  {t} <span style={{ cursor: 'pointer', color: '#777' }} onClick={() => setTags(tags.filter(x => x !== t))}>×</span>
+                </div>
+              ))}
+            </div>
+            <input
+              type="text"
+              placeholder="Add tag and press Enter..."
+              onKeyDown={e => {
+                if (e.key === 'Enter' && e.target.value.trim()) {
+                  setTags([...tags, e.target.value.trim()]);
+                  e.target.value = '';
+                }
+              }}
+              style={{
+                width: '100%', padding: '0.5rem', marginTop: '0.5rem', background: '#3c3c3c', border: '1px solid #555',
+                color: '#ccc', borderRadius: '0.4rem', fontFamily: 'var(--font-sans)', fontSize: '0.85rem'
+              }}
+            />
+          </div>
+          <div className="dayone-actions">
+            <button className="dayone-btn" onClick={() => copyToClipboard(markdownContent)}>
+              <Icon name="fa-copy" size="0.9em" /> Copy Markdown
+            </button>
+            <button className="dayone-btn" onClick={() => copyToClipboard(markdownWithPhotos)}>
+              <Icon name="fa-images" size="0.9em" /> Copy + Photos
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // JOURNAL TRIPS BROWSER
+    // ═════════════════════════════════════════════════════════════
+
+    function JournalTripsBrowser() {
+      const [selectedTrip, setSelectedTrip] = useState(null);
+      const [selectedEntry, setSelectedEntry] = useState(null);
+
+      if (selectedEntry) {
+        const [selectedJournal, setSelectedJournal] = useState(selectedEntry.journal);
+        const [tags, setTags] = useState(selectedEntry.tags);
+
+        return (
+          <div>
+            <button className="back-button" onClick={() => setSelectedEntry(null)}>
+              <Icon name="fa-arrow-left" /> Back
+            </button>
+            <div className="entry-detail">
+              <div className="entry-detail-header">
+                <div>
+                  <div className="entry-detail-meta">
+                    <div>{formatDate(selectedEntry.date)}</div>
+                    <div>{selectedEntry.location}</div>
+                    <div className="entry-detail-mood">
+                      <Icon name={MOOD_COLORS[selectedEntry.mood].icon} />
+                      <span style={{ color: MOOD_COLORS[selectedEntry.mood].text }}>{selectedEntry.mood}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="entry-detail-text">{selectedEntry.text}</div>
+              {selectedEntry.photoPlaceholders.length > 0 && (
+                <div className="entry-detail-photos">
+                  <h4>Photo Moments</h4>
+                  <div className="photo-placeholders">
+                    {selectedEntry.photoPlaceholders.map(p => (
+                      <div key={p.id} className="photo-placeholder">
+                        <div className="photo-placeholder-icon"><Icon name="fa-camera" /></div>
+                        <div className="photo-placeholder-label">{p.description}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            <DayOnePreview entry={selectedEntry} selectedJournal={selectedJournal} setSelectedJournal={setSelectedJournal} tags={tags} setTags={setTags} />
+          </div>
+        );
+      }
+
+      if (selectedTrip) {
+        return (
+          <div>
+            <button className="back-button" onClick={() => setSelectedTrip(null)}>
+              <Icon name="fa-arrow-left" /> Back to Trips
+            </button>
+
+            {/* Trip Hero Header */}
+            <div style={{
+              marginBottom: '2rem', padding: '2rem 2.5rem', borderRadius: '20px',
+              background: 'linear-gradient(135deg, rgba(150,110,180,0.08), rgba(196,138,154,0.06))',
+              border: '1px solid var(--border-default)',
+            }}>
+              <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '2.2rem', fontWeight: 400, color: 'var(--text-primary)', marginBottom: '0.35rem' }}>
+                {selectedTrip.location}
+              </h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <Icon name="fa-calendar" size="0.7em" /> {selectedTrip.displayDate}
+                </span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  {selectedTrip.entryCount} entries
+                </span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                  <Icon name="fa-globe" size="0.7em" /> {selectedTrip.country}
+                </span>
+                <div style={{ display: 'flex', gap: '0.35rem' }}>
+                  {selectedTrip.tags.map(tag => (
+                    <span key={tag} style={{ fontSize: '0.7rem', padding: '0.15rem 0.5rem', borderRadius: '9999px', background: 'var(--accent-soft)', color: 'var(--accent)', fontFamily: 'var(--font-mono)' }}>{tag}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Masonry-style Entry Card Grid */}
+            <div className="entry-card-grid">
+              {selectedTrip.entries.map((entry, idx) => {
+                const moodColor = MOOD_COLORS[entry.mood] || MOOD_COLORS.reflective;
+                const isLong = entry.text.length > 250;
+                const previewText = isLong ? entry.text.slice(0, 200) + '...' : entry.text;
+                const dayNum = idx + 1;
+
+                return (
+                  <div key={entry.uuid} onClick={() => setSelectedEntry(entry)}
+                    style={{
+                      breakInside: 'avoid', marginBottom: '1.25rem',
+                      background: 'var(--bg-card)', border: '1px solid var(--border-default)',
+                      borderRadius: '16px', overflow: 'hidden', cursor: 'pointer',
+                      transition: 'all 300ms cubic-bezier(0.4,0,0.2,1)',
+                      position: 'relative',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.borderColor = moodColor.text + '40'; e.currentTarget.style.boxShadow = `0 8px 30px rgba(0,0,0,0.12), 0 0 20px ${moodColor.bg}`; }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = 'var(--border-default)'; e.currentTarget.style.boxShadow = 'none'; }}
+                  >
+                    {/* Photo Placeholder Banner */}
+                    <div style={{
+                      height: idx % 3 === 0 ? '140px' : idx % 3 === 1 ? '100px' : '120px',
+                      background: `linear-gradient(135deg, ${moodColor.bg}, ${moodColor.bg.replace('0.12', '0.06')})`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      position: 'relative', overflow: 'hidden',
+                    }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', opacity: 0.5 }}>
+                        <Icon name={moodColor.icon} size="1.5rem" />
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: moodColor.text }}>
+                          {entry.photoPlaceholders.length} photo{entry.photoPlaceholders.length !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      {/* Day badge */}
+                      <div style={{
+                        position: 'absolute', top: '0.6rem', left: '0.6rem',
+                        background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(8px)',
+                        borderRadius: '8px', padding: '0.2rem 0.5rem',
+                        fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: '#fff',
+                      }}>Day {dayNum}</div>
+                      {/* Status badge */}
+                      <div style={{
+                        position: 'absolute', top: '0.6rem', right: '0.6rem',
+                        background: entry.status === 'refined' ? 'rgba(150,110,180,0.8)' : entry.status === 'exported' ? 'rgba(90,172,114,0.8)' : 'rgba(100,100,120,0.5)',
+                        backdropFilter: 'blur(8px)', borderRadius: '8px', padding: '0.2rem 0.5rem',
+                        fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: '#fff', textTransform: 'uppercase',
+                      }}>{entry.status}</div>
+                    </div>
+
+                    {/* Card Body */}
+                    <div style={{ padding: '1.15rem 1.25rem 1rem' }}>
+                      {/* Date & Mood Row */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                          {formatDate(entry.date)}
+                        </span>
+                        <span style={{
+                          fontSize: '0.65rem', padding: '0.15rem 0.5rem', borderRadius: '9999px',
+                          background: moodColor.bg, color: moodColor.text,
+                          fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: '0.25rem',
+                        }}>
+                          <Icon name={moodColor.icon} size="0.6em" /> {entry.mood}
+                        </span>
+                      </div>
+
+                      {/* Summary Title */}
+                      <h4 style={{
+                        fontFamily: 'var(--font-serif)', fontSize: '1.1rem', fontWeight: 500,
+                        color: 'var(--text-primary)', marginBottom: '0.5rem', lineHeight: 1.35,
+                      }}>{entry.summary}</h4>
+
+                      {/* Body Preview */}
+                      <p style={{
+                        fontFamily: 'var(--font-serif)', fontSize: '0.875rem', lineHeight: 1.7,
+                        color: 'var(--text-secondary)', margin: 0,
+                      }}>{previewText}</p>
+
+                      {/* Tags */}
+                      <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
+                        {entry.tags.slice(0, 3).map(tag => (
+                          <span key={tag} style={{
+                            fontSize: '0.6rem', padding: '0.1rem 0.4rem', borderRadius: '4px',
+                            background: 'var(--bg-tertiary)', color: 'var(--text-muted)',
+                            fontFamily: 'var(--font-mono)',
+                          }}>{tag}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div className="trips-grid">
+          {PLACEHOLDER_TRIPS.map(trip => (
+            <div key={trip.id} className="trip-card" onClick={() => setSelectedTrip(trip)}>
+              <div className="trip-card-cover">
+                <Icon name="fa-map" size="2rem" />
+              </div>
+              <div className="trip-card-body">
+                <div className="trip-card-header">
+                  <div>
+                    <h3 className="trip-card-title">{trip.location}</h3>
+                    <div className="trip-card-date">{trip.displayDate}</div>
+                  </div>
+                </div>
+                <div className="trip-card-country">{trip.country}</div>
+                <div className="trip-card-stats">
+                  <div className="trip-card-stat">
+                    <Icon name="fa-feather-pointed" size="0.8em" /> {trip.entryCount} entries
+                  </div>
+                  <div className="trip-card-stat">
+                    <Icon name="fa-camera" size="0.8em" /> {trip.photoPlaceholders} photos
+                  </div>
+                </div>
+                <div className="trip-card-tags">
+                  {trip.tags.slice(0, 2).map(tag => <span key={tag} className="trip-card-tag">{tag}</span>)}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // ENTRY EDITOR
+    // ═════════════════════════════════════════════════════════════
+
+    function EntryEditor() {
+      const [selectedEntry, setSelectedEntry] = useState(null);
+      const [selectedJournal, setSelectedJournal] = useState('Ishrat\u2019s Visits');
+      const [tags, setTags] = useState([]);
+
+      const allEntries = PLACEHOLDER_TRIPS.flatMap(trip => trip.entries);
+
+      if (!selectedEntry) {
+        return (
+          <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label className="qa-label">Select an Entry to Edit</label>
+              <select
+                onChange={e => {
+                  const entry = allEntries.find(en => en.uuid === e.target.value);
+                  setSelectedEntry(entry);
+                  setTags(entry.tags || []);
+                }}
+                style={{
+                  width: '100%', padding: '0.75rem', border: '1px solid var(--border-color)', borderRadius: '0.5rem',
+                  fontFamily: 'var(--font-sans)', fontSize: '0.95rem', color: 'var(--text-primary)',
+                  background: 'var(--bg-primary)', marginBottom: '1.5rem'
+                }}
+              >
+                <option value="">Choose an entry...</option>
+                {allEntries.map(e => (
+                  <option key={e.uuid} value={e.uuid}>
+                    {e.location} — {formatDate(e.date)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        );
+      }
+
+      return (
+        <div>
+          <button className="back-button" onClick={() => setSelectedEntry(null)}>
+            <Icon name="fa-arrow-left" /> Back
+          </button>
+          <div className="narrative-editor">
+            <div className="narrative-editor-header">
+              <h2 className="narrative-editor-title">{selectedEntry.location}</h2>
+              <span className={`narrative-editor-status ${selectedEntry.status}`}>
+                {selectedEntry.status}
+              </span>
+            </div>
+
+            <div className="narrative-editor-section">
+              <label className="narrative-editor-label">Original Text</label>
+              <div className="narrative-editor-text">{selectedEntry.text}</div>
+            </div>
+
+            <div className="narrative-editor-section">
+              <label className="narrative-editor-label">Mood</label>
+              <div style={{ color: MOOD_COLORS[selectedEntry.mood].text, marginBottom: '1rem' }}>
+                <Icon name={MOOD_COLORS[selectedEntry.mood].icon} /> {selectedEntry.mood}
+              </div>
+            </div>
+
+            <div className="narrative-editor-section">
+              <button className="btn btn-primary" style={{ width: '100%', marginBottom: '1rem' }}>
+                <Icon name="fa-wand-magic-sparkles" /> Refine with Voice DNA
+              </button>
+              <div style={{ padding: '1rem', background: 'var(--bg-primary)', borderRadius: '0.5rem', fontStyle: 'italic', color: '#666' }}>
+                [Refined version would appear here] — Your entry refined with your personal writing patterns and narrative DNA...
+              </div>
+            </div>
+
+            <div className="narrative-editor-section">
+              <label className="narrative-editor-label">Photo Moments</label>
+              <div className="photo-placeholders">
+                {selectedEntry.photoPlaceholders.map(p => (
+                  <div key={p.id} className="photo-placeholder">
+                    <div className="photo-placeholder-icon"><Icon name="fa-camera" /></div>
+                    <div className="photo-placeholder-label">{p.description}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <DayOnePreview entry={selectedEntry} selectedJournal={selectedJournal} setSelectedJournal={setSelectedJournal} tags={tags} setTags={setTags} />
+        </div>
+      );
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // NEW ENTRY CREATOR (Q&A FLOW)
+    // ═════════════════════════════════════════════════════════════
+
+    function NewEntryCreator() {
+      const [step, setStep] = useState(0);
+      const [formData, setFormData] = useState({
+        trip: null,
+        date: new Date().toISOString().split('T')[0],
+        mood: 'romantic',
+        location: '',
+        notes: '',
+      });
+      const [selectedJournal, setSelectedJournal] = useState('Ishrat\u2019s Visits');
+      const [tags, setTags] = useState(['ishrat', 'adventure']);
+      const [showPreview, setShowPreview] = useState(false);
+
+      if (showPreview) {
+        const previewEntry = {
+          uuid: 'new-' + Date.now(),
+          date: formData.date,
+          location: formData.trip?.location || formData.location || 'New Location',
+          mood: formData.mood,
+          text: formData.notes || 'Entry details will appear here...',
+          tags: tags,
+          photoPlaceholders: [
+            { id: 'ph-1', description: 'Photo placeholder 1 for this moment', slot: 1 },
+            { id: 'ph-2', description: 'Photo placeholder 2 — scene detail', slot: 2 },
+          ],
+          status: 'draft',
+          journal: selectedJournal,
+        };
+
+        return (
+          <div>
+            <button className="back-button" onClick={() => setShowPreview(false)}>
+              <Icon name="fa-arrow-left" /> Back to Entry
+            </button>
+            <DayOnePreview entry={previewEntry} selectedJournal={selectedJournal} setSelectedJournal={setSelectedJournal} tags={tags} setTags={setTags} />
+          </div>
+        );
+      }
+
+      const steps = [
+        {
+          label: 'Select Trip',
+          content: (
+            <div className="qa-step active">
+              <label className="qa-label">Which trip are you capturing?</label>
+              <select
+                value={formData.trip?.id || ''}
+                onChange={e => {
+                  const trip = PLACEHOLDER_TRIPS.find(t => t.id === e.target.value);
+                  setFormData({ ...formData, trip, location: trip?.location || '' });
+                }}
+                className="qa-select"
+              >
+                <option value="">Choose a trip...</option>
+                {PLACEHOLDER_TRIPS.map(t => (
+                  <option key={t.id} value={t.id}>{t.location} — {t.displayDate}</option>
+                ))}
+                <option value="new">New Trip</option>
+              </select>
+            </div>
+          ),
+        },
+        {
+          label: 'Date',
+          content: (
+            <div className="qa-step active">
+              <label className="qa-label">When was this?</label>
+              <input
+                type="date"
+                value={formData.date}
+                onChange={e => setFormData({ ...formData, date: e.target.value })}
+                className="qa-input"
+              />
+            </div>
+          ),
+        },
+        {
+          label: 'Mood',
+          content: (
+            <div className="qa-step active">
+              <label className="qa-label">How did it feel?</label>
+              <div className="mood-chips">
+                {MOODS.map(mood => (
+                  <div
+                    key={mood}
+                    className={`mood-chip ${formData.mood === mood ? 'selected' : ''}`}
+                    onClick={() => setFormData({ ...formData, mood })}
+                    style={{
+                      background: MOOD_COLORS[mood].bg,
+                      borderColor: formData.mood === mood ? MOOD_COLORS[mood].text : 'transparent',
+                    }}
+                  >
+                    <Icon name={MOOD_COLORS[mood].icon} size="0.9em" />
+                    <span style={{ color: MOOD_COLORS[mood].text }}>{mood}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ),
+        },
+        {
+          label: 'Location',
+          content: (
+            <div className="qa-step active">
+              <label className="qa-label">Where were you?</label>
+              <input
+                type="text"
+                placeholder="e.g., Bosphorus, Grand Bazaar..."
+                value={formData.location}
+                onChange={e => setFormData({ ...formData, location: e.target.value })}
+                className="qa-input"
+              />
+            </div>
+          ),
+        },
+        {
+          label: 'Capture',
+          content: (
+            <div className="qa-step active">
+              <label className="qa-label">What happened?</label>
+              <textarea
+                placeholder="Skeletal notes — the raw moment..."
+                value={formData.notes}
+                onChange={e => setFormData({ ...formData, notes: e.target.value })}
+                className="qa-textarea"
+              />
+            </div>
+          ),
+        },
+        {
+          label: 'Photos',
+          content: (
+            <div className="qa-step active">
+              <label className="qa-label">Photo Moments</label>
+              <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '1rem' }}>
+                Based on your entry, here are suggested photo placeholders:
+              </p>
+              <div className="photo-placeholders">
+                <div className="photo-placeholder">
+                  <div className="photo-placeholder-icon"><Icon name="fa-camera" /></div>
+                  <div className="photo-placeholder-label">Photo 1: The main scene</div>
+                </div>
+                <div className="photo-placeholder">
+                  <div className="photo-placeholder-icon"><Icon name="fa-camera" /></div>
+                  <div className="photo-placeholder-label">Photo 2: Detail moment</div>
+                </div>
+              </div>
+            </div>
+          ),
+        },
+      ];
+
+      return (
+        <div className="qa-flow">
+          <div className="qa-progress">
+            {steps.map((_, i) => (
+              <div key={i} className={`qa-dot ${i === step ? 'active' : ''} ${i < step ? 'completed' : ''}`}></div>
+            ))}
+          </div>
+
+          {steps[step].content}
+
+          <div className="qa-buttons">
+            <button className="btn btn-ghost" onClick={() => setStep(Math.max(0, step - 1))} disabled={step === 0}>
+              <Icon name="fa-arrow-left" /> Back
+            </button>
+            {step === steps.length - 1 ? (
+              <button className="btn btn-primary" onClick={() => setShowPreview(true)}>
+                Review & Copy <Icon name="fa-arrow-right" />
+              </button>
+            ) : (
+              <button className="btn btn-primary" onClick={() => setStep(Math.min(steps.length - 1, step + 1))}>
+                Next <Icon name="fa-arrow-right" />
+              </button>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // TRIP PLANNER MODULE
+    // ═════════════════════════════════════════════════════════════
+
+    const TRIP_PLANS = {
+      'trip-002': {
+        name: "Ishrat's Engagement Party Trip",
+        travelers: ['Asif', 'Ishrat'],
+        base: 'Home2 Suites, New Brunswick, NJ',
+        vibe: 'Packed & purposeful',
+        flights: {
+          inbound: { flight: 'UA 147', route: 'LHR → EWR', date: 'Apr 20', depart: '12:00 PM BST', arrive: '2:55 PM ET' },
+          outbound: { flight: 'UA 16', route: 'EWR → LHR', date: 'Apr 28', depart: '5:25 PM ET', arrive: '5:55 AM +1' }
+        },
+        days: [
+          { num: 1, date: '2026-04-20', weekday: 'Sunday', title: 'Arrival Day', mood: 'anticipation', items: ['Land EWR 2:55 PM', 'Uber to Home2 Suites', 'Settle in, light dinner', 'Evening walk'], mapQuery: 'Home2+Suites+New+Brunswick+NJ' },
+          { num: 2, date: '2026-04-21', weekday: 'Monday', title: 'Edison Exploration', mood: 'adventure', items: ['Oak Tree Road breakfast', 'Shalwar kameez shopping', 'Lunch at Karahi Point', 'Evening rest'], mapQuery: 'Oak+Tree+Road+Edison+NJ' },
+          { num: 3, date: '2026-04-22', weekday: 'Tuesday', title: 'City Spark', mood: 'cultural', items: ['Train to NYC', 'Central Park walk', 'Museum visit', 'Halal Guys dinner'], mapQuery: 'Central+Park+New+York' },
+          { num: 4, date: '2026-04-23', weekday: 'Wednesday', title: 'Quiet Couple Day', mood: 'romantic', items: ['Sleep in', 'Brunch at hotel', 'Spa prep shopping', 'Movie night in'], mapQuery: 'New+Brunswick+NJ' },
+          { num: 5, date: '2026-04-24', weekday: 'Thursday', title: 'The Engagement Party', mood: 'celebration', items: ['Morning prep', 'Drive to Fresh Meadows', 'Engagement Party', 'Late return'], mapQuery: 'Fresh+Meadows+Queens+NY' },
+          { num: 6, date: '2026-04-25', weekday: 'Friday', title: 'Recovery & Reflection', mood: 'relaxed', items: ['Late morning', 'Journal writing', 'Light walk', 'Homemade dinner'], mapQuery: 'New+Brunswick+NJ' },
+          { num: 7, date: '2026-04-26', weekday: 'Saturday', title: 'Fondue Date Night', mood: 'romantic', items: ['Lazy morning', 'Red Bank exploration', 'The Melting Pot dinner', 'Moonlit drive home'], mapQuery: 'The+Melting+Pot+Red+Bank+NJ' },
+          { num: 8, date: '2026-04-27', weekday: 'Sunday', title: 'Spa & Serenity', mood: 'relaxed', items: ['Ocean Place Resort & Spa', 'Couples treatment', 'Boardwalk sunset', 'Last night dinner'], mapQuery: 'Ocean+Place+Resort+Long+Branch+NJ' },
+          { num: 9, date: '2026-04-28', weekday: 'Monday', title: 'Homeward', mood: 'bittersweet', items: ['Pack & check out', 'Drive to EWR', 'UA 16 departs 5:25 PM', 'Arrive LHR next morning'], mapQuery: 'Newark+Liberty+International+Airport' },
+        ]
+      },
+      'trip-001': {
+        name: "Istanbul Anniversary", travelers: ['Asif', 'Ishrat'], base: 'Sultanahmet, Istanbul', vibe: 'Cultural & romantic',
+        flights: { inbound: { flight: 'TK 1972', route: 'LHR → IST', date: 'Oct 12', depart: '9:30 AM BST', arrive: '4:15 PM TRT' }, outbound: { flight: 'TK 1971', route: 'IST → LHR', date: 'Oct 19', depart: '8:00 AM TRT', arrive: '10:30 AM BST' } },
+        days: []
+      }
+    };
+
+    const isPastDate = (dateStr) => new Date(dateStr) < new Date('2026-04-15');
+    const getDayOfWeek = (dateStr) => new Date(dateStr).toLocaleDateString('en-US', { weekday: 'long' });
+
+    function FlightCard({ flight, direction }) {
+      return (
+        <div style={{ flex: 1, borderRadius: '16px', border: '1px solid var(--border-default)', padding: '1.25rem', background: 'linear-gradient(135deg, var(--bg-card) 0%, var(--bg-tertiary) 100%)', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '1.5px', marginBottom: '0.5rem' }}>{direction.toUpperCase()}</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--font-sans)' }}>{flight.flight}</div>
+            <div style={{ fontSize: '1rem', color: 'var(--text-secondary)', marginTop: '0.2rem', fontFamily: 'var(--font-serif)' }}>{flight.route}</div>
+            <div style={{ borderTop: '1px solid var(--border-default)', paddingTop: '0.75rem', marginTop: '0.75rem' }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>{flight.date}</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                <div><div style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', fontSize: '0.65rem', letterSpacing: '1px' }}>DEPART</div><div style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: '0.9rem' }}>{flight.depart}</div></div>
+                <div><div style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', fontSize: '0.65rem', letterSpacing: '1px' }}>ARRIVE</div><div style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: '0.9rem' }}>{flight.arrive}</div></div>
+              </div>
+            </div>
+          </div>
+          <div style={{ position: 'absolute', top: -40, right: -40, width: 120, height: 120, background: 'var(--accent-soft)', borderRadius: '50%', opacity: 0.15 }} />
+          <i className="fa-solid fa-plane" style={{ position: 'absolute', bottom: '0.75rem', right: '0.75rem', fontSize: '1.5rem', color: 'var(--accent)', opacity: 0.12 }} />
+        </div>
+      );
+    }
+
+    function PlannedDayCard({ day }) {
+      const mc = MOOD_COLORS[day.mood] || MOOD_COLORS.reflective;
+      return (
+        <div style={{ borderRadius: '16px', border: '1px solid var(--border-default)', background: 'var(--bg-card)', padding: '1.25rem', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', borderLeft: `4px solid ${mc.text}`, transition: 'all 0.3s ease' }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.1)'; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.75rem' }}>
+            <div>
+              <span style={{ display: 'inline-block', background: 'var(--accent)', color: '#fff', padding: '0.2rem 0.5rem', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700, fontFamily: 'var(--font-mono)', marginBottom: '0.4rem' }}>Day {day.num}</span>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{formatDate(day.date)} · {day.weekday}</div>
+            </div>
+            <span style={{ background: mc.bg, color: mc.text, padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 600, fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <i className={`fa-solid ${mc.icon}`} style={{ fontSize: '0.6rem' }} /> {day.mood}
+            </span>
+          </div>
+          <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.2rem', fontWeight: 500, color: 'var(--text-primary)', margin: '0.5rem 0 0.75rem' }}>{day.title}</h3>
+          <ul style={{ margin: 0, paddingLeft: '1.25rem', color: 'var(--text-secondary)', fontSize: '0.875rem', lineHeight: 1.7 }}>
+            {day.items.map((item, idx) => <li key={idx} style={{ marginBottom: '0.25rem' }}>{item}</li>)}
+          </ul>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '1rem' }}>
+            <a href={`https://www.google.com/maps/search/${day.mapQuery}`} target="_blank" rel="noopener noreferrer"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', padding: '0.3rem 0.7rem', background: 'var(--accent-soft)', color: 'var(--accent)', borderRadius: '9999px', textDecoration: 'none', fontSize: '0.75rem', fontWeight: 600 }}>
+              <i className="fa-solid fa-map-location-dot" style={{ fontSize: '0.65rem' }} /> Map
+            </a>
+            <span style={{ padding: '0.3rem 0.7rem', background: 'var(--bg-tertiary)', color: 'var(--text-muted)', borderRadius: '9999px', fontSize: '0.65rem', fontWeight: 600, fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>Planned</span>
+          </div>
+        </div>
+      );
+    }
+
+    function ActualDayCard({ day, entry }) {
+      const mc = MOOD_COLORS[entry.mood] || MOOD_COLORS.reflective;
+      return (
+        <div style={{ borderRadius: '16px', border: '1px solid var(--border-default)', background: 'var(--bg-card)', padding: '1.25rem', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', borderLeft: `4px solid ${mc.text}`, transition: 'all 0.3s ease' }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.1)'; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.75rem' }}>
+            <div>
+              <span style={{ display: 'inline-block', background: 'var(--text-muted)', color: '#fff', padding: '0.2rem 0.5rem', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700, fontFamily: 'var(--font-mono)', marginBottom: '0.4rem' }}>Day {day.num || '—'}</span>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{formatDate(entry.date)} · {getDayOfWeek(entry.date)}</div>
+            </div>
+            <span style={{ background: mc.bg, color: mc.text, padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 600, fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <i className={`fa-solid ${mc.icon}`} style={{ fontSize: '0.6rem' }} /> {entry.mood}
+            </span>
+          </div>
+          <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.2rem', fontWeight: 500, color: 'var(--text-primary)', margin: '0.5rem 0 0.75rem' }}>{entry.summary || 'Untitled'}</h3>
+          <p style={{ fontFamily: 'var(--font-serif)', fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: '1rem' }}>{entry.text}</p>
+          {entry.photoPlaceholders && entry.photoPlaceholders.length > 0 && (
+            <div style={{ marginBottom: '1rem' }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.5rem', fontWeight: 600, letterSpacing: '0.5px' }}>PHOTOS</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: '0.5rem' }}>
+                {entry.photoPlaceholders.map((p, idx) => (
+                  <div key={idx} style={{ aspectRatio: '1', borderRadius: '8px', background: `linear-gradient(135deg, ${mc.bg}, transparent)`, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed var(--border-default)', color: 'var(--text-muted)' }}>
+                    <i className="fa-solid fa-camera" style={{ fontSize: '1.2rem', opacity: 0.4 }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <button onClick={() => copyToClipboard(entry.text)} style={{ padding: '0.3rem 0.7rem', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+              <i className="fa-solid fa-copy" style={{ fontSize: '0.65rem' }} /> Copy Entry
+            </button>
+            <span style={{ padding: '0.3rem 0.7rem', background: 'rgba(90,172,114,0.15)', color: '#5aac72', borderRadius: '9999px', fontSize: '0.65rem', fontWeight: 600, fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>Journaled</span>
+          </div>
+        </div>
+      );
+    }
+
+    function ItineraryView({ trip, entries }) {
+      const plan = TRIP_PLANS[trip.id];
+      const renderDayCards = () => {
+        if (plan && plan.days && plan.days.length > 0) {
+          return plan.days.map(day => {
+            if (isPastDate(day.date)) {
+              const entry = entries.find(e => new Date(e.date).toISOString().split('T')[0] === day.date);
+              if (entry) return <ActualDayCard key={day.date} day={day} entry={entry} />;
+              return (
+                <div key={day.date} style={{ borderRadius: '16px', border: '1px dashed var(--border-default)', background: 'var(--bg-tertiary)', padding: '1.25rem', opacity: 0.6, borderLeft: '4px solid var(--text-muted)' }}>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '0.5rem' }}>{formatDate(day.date)} · {day.weekday}</div>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', fontFamily: 'var(--font-serif)', margin: 0 }}>No entry logged</p>
+                </div>
+              );
+            }
+            return <PlannedDayCard key={day.date} day={day} />;
+          });
+        }
+        if (entries && entries.length > 0) {
+          return entries.map((entry, idx) => <ActualDayCard key={entry.uuid || idx} day={{ num: idx + 1 }} entry={entry} />);
+        }
+        return <div style={{ gridColumn: '1 / -1', color: 'var(--text-muted)', textAlign: 'center', padding: '3rem', fontFamily: 'var(--font-serif)', fontSize: '1.1rem' }}>No itinerary or entries yet.</div>;
+      };
+      return (
+        <div style={{ padding: '2.5rem 1.5rem', maxWidth: '1200px', margin: '0 auto' }}>
+          {/* Hero */}
+          <div style={{ textAlign: 'center', marginBottom: '2.5rem', paddingBottom: '2.5rem', borderBottom: '1px solid var(--border-default)' }}>
+            <div style={{ fontFamily: 'var(--font-script)', fontSize: '3.5rem', background: 'linear-gradient(135deg, #966eb4, #c48a9a)', backgroundClip: 'text', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '0.5rem' }}>Asif ♥ Ishrat</div>
+            <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '2rem', fontWeight: 400, color: 'var(--text-primary)', margin: '0.5rem 0' }}>{plan?.name || trip.location}</h1>
+            <div style={{ fontSize: '1rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-serif)' }}>{plan?.base || trip.country}</div>
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>{trip.displayDate} · {trip.entryCount} entries</div>
+            {plan?.vibe && <div style={{ fontSize: '0.9rem', color: 'var(--accent)', fontStyle: 'italic', marginTop: '0.5rem', fontFamily: 'var(--font-serif)' }}>{plan.vibe}</div>}
+          </div>
+          {/* Flights */}
+          {plan?.flights && (
+            <div style={{ marginBottom: '2.5rem' }}>
+              <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.3rem', fontWeight: 400, color: 'var(--text-primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><i className="fa-solid fa-plane" style={{ fontSize: '1rem', color: 'var(--accent)' }} /> Flights</h2>
+              <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap' }}>
+                {plan.flights.inbound && <FlightCard flight={plan.flights.inbound} direction="inbound" />}
+                {plan.flights.outbound && <FlightCard flight={plan.flights.outbound} direction="outbound" />}
+              </div>
+            </div>
+          )}
+          {/* Day Grid */}
+          <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.3rem', fontWeight: 400, color: 'var(--text-primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><i className="fa-solid fa-calendar" style={{ fontSize: '1rem', color: 'var(--accent)' }} /> Day by Day</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1.25rem' }}>{renderDayCards()}</div>
+        </div>
+      );
+    }
+
+    function TripPlannerModule() {
+      const [selectedTrip, setSelectedTrip] = useState(null);
+      if (selectedTrip) {
+        return (
+          <div className="page">
+            <div className="container">
+              <button className="back-button" onClick={() => setSelectedTrip(null)}><Icon name="fa-arrow-left" /> All Trips</button>
+              <ItineraryView trip={selectedTrip} entries={selectedTrip.entries || []} />
+            </div>
+          </div>
+        );
+      }
+      return (
+        <div className="page">
+          <div className="container">
+            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+              <div style={{ fontFamily: 'var(--font-script)', fontSize: '2.5rem', background: 'linear-gradient(135deg, #966eb4, #c48a9a)', backgroundClip: 'text', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '0.25rem' }}>Asif & Ishrat</div>
+              <h1 className="page-title">Trip Planner</h1>
+              <p className="page-subtitle">Plan, live, and journal every trip together</p>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.25rem' }}>
+              {PLACEHOLDER_TRIPS.map(trip => {
+                const plan = TRIP_PLANS[trip.id];
+                const allPast = isPastDate(trip.endDate);
+                return (
+                  <div key={trip.id} onClick={() => setSelectedTrip(trip)}
+                    style={{ borderRadius: '16px', overflow: 'hidden', background: 'var(--bg-card)', border: '1px solid var(--border-default)', cursor: 'pointer', transition: 'all 0.3s ease', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.1)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; }}>
+                    <div style={{ padding: '1.5rem', background: 'linear-gradient(135deg, rgba(150,110,180,0.08), rgba(196,138,154,0.06))', textAlign: 'center' }}>
+                      <i className="fa-solid fa-heart" style={{ fontSize: '2rem', color: 'var(--accent)', opacity: 0.6 }} />
+                    </div>
+                    <div style={{ padding: '1.25rem' }}>
+                      <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.2rem', fontWeight: 500, color: 'var(--text-primary)', margin: '0 0 0.35rem' }}>{plan?.name || trip.location}</h3>
+                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>{trip.displayDate} · {trip.country}</div>
+                      <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                        <span><i className="fa-solid fa-feather-pointed" style={{ fontSize: '0.7rem', marginRight: '0.2rem' }} />{trip.entryCount} entries</span>
+                        <span>{allPast ? <span style={{ color: '#5aac72' }}><i className="fa-solid fa-check" style={{ fontSize: '0.65rem', marginRight: '0.2rem' }} />Complete</span> : <span style={{ color: 'var(--accent)' }}><i className="fa-solid fa-clock" style={{ fontSize: '0.65rem', marginRight: '0.2rem' }} />Upcoming</span>}</span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap', marginTop: '0.6rem' }}>
+                        {trip.tags.slice(0, 3).map(tag => (
+                          <span key={tag} style={{ fontSize: '0.6rem', padding: '0.1rem 0.4rem', borderRadius: '4px', background: 'var(--accent-soft)', color: 'var(--accent)', fontFamily: 'var(--font-mono)' }}>{tag}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // DAYONE JOURNAL MODULE (renamed from Journal)
+    // ═════════════════════════════════════════════════════════════
+
+    function DayOneJournalModule() {
+      const [subTab, setSubTab] = useState('browser');
+
+      return (
+        <div className="page">
+          <div className="container">
+            <h1 className="page-title">DayOne Journal</h1>
+            <p className="page-subtitle">Browse trips, edit entries, and sync moments to DayOne</p>
+
+            <div className="journal-tabs">
+              <button className={`journal-tab ${subTab === 'browser' ? 'active' : ''}`} onClick={() => setSubTab('browser')}>
+                <Icon name="fa-map-location-dot" /> Trips Browser
+              </button>
+              <button className={`journal-tab ${subTab === 'editor' ? 'active' : ''}`} onClick={() => setSubTab('editor')}>
+                <Icon name="fa-pen" /> Edit Entry
+              </button>
+              <button className={`journal-tab ${subTab === 'creator' ? 'active' : ''}`} onClick={() => setSubTab('creator')}>
+                <Icon name="fa-plus" /> New Entry
+              </button>
+            </div>
+
+            {subTab === 'browser' && <JournalTripsBrowser />}
+            {subTab === 'editor' && <EntryEditor />}
+            {subTab === 'creator' && <NewEntryCreator />}
+          </div>
+        </div>
+      );
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // MEMOIR MODULE
+    // ═════════════════════════════════════════════════════════════
+
+    function MemoirModule() {
+      const [subTab, setSubTab] = useState('chapters');
+      const [searchQuery, setSearchQuery] = useState('');
+
+      const filteredQuotes = QUOTES_SAMPLE.filter(q =>
+        q.text.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        q.source.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+
+      return (
+        <div className="page">
+          <div className="container">
+            <h1 className="page-title">Memoir</h1>
+            <p className="page-subtitle">"What I Wish Babu Taught Me" — Chapters, Incidents, Quotes</p>
+
+            <div className="journal-tabs">
+              <button className={`journal-tab ${subTab === 'chapters' ? 'active' : ''}`} onClick={() => setSubTab('chapters')}>
+                <Icon name="fa-book" /> Chapters
+              </button>
+              <button className={`journal-tab ${subTab === 'incidents' ? 'active' : ''}`} onClick={() => setSubTab('incidents')}>
+                <Icon name="fa-lightbulb" /> Incidents
+              </button>
+              <button className={`journal-tab ${subTab === 'quotes' ? 'active' : ''}`} onClick={() => setSubTab('quotes')}>
+                <Icon name="fa-quote-left" /> Quotes
+              </button>
+            </div>
+
+            {subTab === 'chapters' && (
+              <div className="container-narrow">
+                {CHAPTERS.map(ch => (
+                  <div key={ch.id} className="chapter-card">
+                    <span className={`chapter-status ${ch.status}`}>{ch.status}</span>
+                    <h3 className="chapter-title">Ch {ch.num}: {ch.title}</h3>
+                    <p className="chapter-description" style={{ fontStyle: 'italic', marginBottom: '0.5rem' }}>{ch.subtitle}</p>
+                    <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                      <span>{ch.words.toLocaleString()} words</span>
+                      <span>Readiness: {ch.readiness}%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {subTab === 'incidents' && (
+              <div className="container-narrow">
+                {INCIDENTS_SAMPLE.map(inc => (
+                  <div key={inc.id} className="incident-card">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <h4 className="incident-card-title">{inc.id}: {inc.title}</h4>
+                      <span className={`badge ${inc.status === 'PLACED' ? 'badge-accent' : inc.status === 'DRAFTED' ? '' : ''}`}
+                        style={{ fontSize: '0.7rem', padding: '0.15rem 0.5rem', borderRadius: '4px',
+                          background: inc.status === 'PLACED' ? 'var(--accent-soft)' : inc.status === 'NEEDS-QQ' ? 'rgba(200,100,100,0.15)' : 'var(--bg-tertiary)',
+                          color: inc.status === 'PLACED' ? 'var(--accent)' : inc.status === 'NEEDS-QQ' ? '#c86464' : 'var(--text-muted)' }}>
+                        {inc.status}
+                      </span>
+                    </div>
+                    <div className="incident-card-date" style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                      {inc.chapter ? `Chapter: ${inc.chapter}` : 'Unassigned'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {subTab === 'quotes' && (
+              <div className="container-narrow">
+                <input
+                  type="text"
+                  placeholder="Search quotes..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  style={{
+                    width: '100%', padding: '0.75rem', marginBottom: '1.5rem',
+                    border: '1px solid var(--border-color)', borderRadius: '0.5rem',
+                    fontFamily: 'var(--font-sans)', fontSize: '0.95rem',
+                    background: 'var(--bg-primary)', color: 'var(--text-primary)'
+                  }}
+                />
+                {filteredQuotes.map((q, qi) => (
+                  <div key={qi} className="quote-card">
+                    <div style={{ marginBottom: '0.5rem' }}>"{q.text}"</div>
+                    <div className="quote-card-source" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>— {q.source}</span>
+                      <span style={{ display: 'flex', gap: '0.5rem' }}>
+                        {q.chapter && <span style={{ fontSize: '0.7rem', padding: '0.1rem 0.4rem', borderRadius: '4px', background: 'var(--accent-soft)', color: 'var(--accent)', fontFamily: 'var(--font-mono)' }}>{q.chapter}</span>}
+                        <span style={{ fontSize: '0.7rem', padding: '0.1rem 0.4rem', borderRadius: '4px', background: q.used ? 'rgba(90,172,114,0.15)' : 'var(--bg-tertiary)', color: q.used ? '#5aac72' : 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{q.used ? 'Used' : 'Available'}</span>
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // HOME / DASHBOARD
+    // ═════════════════════════════════════════════════════════════
+
+    function HomePage({ onNavigate }) {
+      const totalWords = CHAPTERS.reduce((sum, ch) => sum + (ch.words || 0), 0);
+      const totalTrips = PLACEHOLDER_TRIPS.length;
+      const totalEntries = PLACEHOLDER_TRIPS.reduce((sum, t) => sum + t.entryCount, 0);
+      const chaptersLocked = CHAPTERS.filter(c => c.status === 'locked').length;
+
+      return (
+        <div className="page">
+          <div className="container">
+            <h1 className="page-title">Journal Command Center</h1>
+            <p className="page-subtitle">Welcome, Asif. Your memoir and travel logs in one place.</p>
+
+            <div className="dashboard-stats">
+              <div className="stat-card">
+                <div className="stat-number">{totalWords.toLocaleString()}</div>
+                <div className="stat-label">Total Words</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-number">{chaptersLocked}</div>
+                <div className="stat-label">Chapters Locked</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-number">{totalTrips}</div>
+                <div className="stat-label">Trips Logged</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-number">{totalEntries}</div>
+                <div className="stat-label">Entries Captured</div>
+              </div>
+            </div>
+
+            <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.3rem', marginTop: '2rem', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>
+              Modules
+            </h2>
+
+            <div className="modules-grid">
+              <div className="module-card" onClick={() => onNavigate('trips')}>
+                <div className="module-icon"><Icon name="fa-map-location-dot" size="2.5rem" /></div>
+                <h3 className="module-title">Trip Planner</h3>
+                <p className="module-description">Plan romantic itineraries, track actual vs. planned, and relive every trip with Ishrat.</p>
+              </div>
+              <div className="module-card" onClick={() => onNavigate('memoir')}>
+                <div className="module-icon"><Icon name="fa-book-open" size="2.5rem" /></div>
+                <h3 className="module-title">Memoir</h3>
+                <p className="module-description">Draft, refine, and archive chapters. Track incidents and quotes.</p>
+              </div>
+              <div className="module-card" onClick={() => onNavigate('dayone')}>
+                <div className="module-icon"><Icon name="fa-feather-pointed" size="2.5rem" /></div>
+                <h3 className="module-title">DayOne Journal</h3>
+                <p className="module-description">Browse trips, edit entries, capture new moments with DayOne sync.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // MAIN APP
+    // ═════════════════════════════════════════════════════════════
+
+    function App() {
+      const [currentPage, setCurrentPage] = useState('home');
+
+      return (
+        <div>
+          <nav className="nav">
+            <div className="nav-inner">
+              <div className="nav-brand">
+                <Icon name="fa-feather-pointed" size="1.2em" /> Asif's Journal
+              </div>
+              <div className="nav-links">
+                <button className={`nav-link ${currentPage === 'home' ? 'active' : ''}`} onClick={() => setCurrentPage('home')}>
+                  <Icon name="fa-house" /> Home
+                </button>
+                <button className={`nav-link ${currentPage === 'trips' ? 'active' : ''}`} onClick={() => setCurrentPage('trips')}>
+                  <Icon name="fa-map-location-dot" /> Trip Planner
+                </button>
+                <button className={`nav-link ${currentPage === 'memoir' ? 'active' : ''}`} onClick={() => setCurrentPage('memoir')}>
+                  <Icon name="fa-book-open" /> Memoir
+                </button>
+                <button className={`nav-link ${currentPage === 'dayone' ? 'active' : ''}`} onClick={() => setCurrentPage('dayone')}>
+                  <Icon name="fa-feather-pointed" /> DayOne Journal
+                </button>
+              </div>
+            </div>
+          </nav>
+
+          {currentPage === 'home' && <HomePage onNavigate={setCurrentPage} />}
+          {currentPage === 'trips' && <TripPlannerModule />}
+          {currentPage === 'memoir' && <MemoirModule />}
+          {currentPage === 'dayone' && <DayOneJournalModule />}
+        </div>
+      );
+    }
+
+    // ═════════════════════════════════════════════════════════════
+    // RENDER
+    // ═════════════════════════════════════════════════════════════
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+
+</body>
+</html>

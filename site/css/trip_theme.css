@@ -1,0 +1,258 @@
+/* ═══════════════════════════════════════════════════
+   TRIP THEME — Lavender Romance
+   Soft, romantic, warm. Inspired by Asif's itinerary
+   design. Deep purples with lavender and gold accents.
+   ═══════════════════════════════════════════════════ */
+
+[data-theme="trip"] {
+  --bg-primary: #0e0b14;
+  --bg-secondary: #16121e;
+  --bg-tertiary: #1e1a28;
+  --bg-card: #1a1524;
+  --bg-card-hover: #221c30;
+
+  --text-primary: #e8e2f0;
+  --text-secondary: #a698b8;
+  --text-muted: #6e6285;
+
+  --border-default: rgba(180, 148, 196, 0.1);
+  --border-subtle: rgba(180, 148, 196, 0.05);
+  --border-accent: rgba(180, 148, 196, 0.25);
+
+  --accent-rgb: 180, 148, 196;
+  --accent: #b494c4;
+  --accent-soft: rgba(180, 148, 196, 0.1);
+  --accent-hover: rgba(180, 148, 196, 0.18);
+
+  /* Trip-specific */
+  --lavender: #b494c4;
+  --lavender-soft: #d8cbe3;
+  --wisteria: #9478a8;
+  --purple-deep: #5a4763;
+  --purple-mid: #8b7394;
+  --lilac: #c4b0d0;
+  --rose: #c48a9a;
+  --rose-soft: rgba(196,138,154,0.12);
+  --gold-trip: #c4a87a;
+  --gold-trip-soft: rgba(196,168,122,0.1);
+  --teal: #6ec6b8;
+  --teal-soft: rgba(110,198,184,0.1);
+}
+
+/* ─── Trip Background ─── */
+[data-theme="trip"] .page {
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(180,148,196,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(196,138,154,0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(90,71,99,0.02) 0%, transparent 70%),
+    var(--bg-primary);
+}
+
+/* ─── Trip Card System ─── */
+[data-theme="trip"] .trip-card {
+  background: linear-gradient(145deg, rgba(26,21,36,0.95) 0%, rgba(34,28,48,0.9) 100%);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  padding: 1.75rem;
+  transition: all var(--transition-base);
+  position: relative;
+}
+[data-theme="trip"] .trip-card:hover {
+  border-color: var(--border-accent);
+  box-shadow: 0 0 30px rgba(180,148,196,0.08);
+  transform: translateY(-2px);
+}
+
+/* ─── Day Timeline ─── */
+[data-theme="trip"] .day-timeline {
+  position: relative;
+  padding-left: 2.5rem;
+}
+[data-theme="trip"] .day-timeline::before {
+  content: '';
+  position: absolute;
+  left: 0.75rem;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg,
+    var(--lavender) 0%,
+    var(--wisteria) 40%,
+    var(--rose) 70%,
+    transparent 100%
+  );
+  opacity: 0.3;
+}
+
+[data-theme="trip"] .day-node {
+  position: relative;
+  padding: 1rem 0;
+}
+[data-theme="trip"] .day-node::before {
+  content: '';
+  position: absolute;
+  left: -1.875rem;
+  top: 1.35rem;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--lavender);
+  border: 2px solid var(--bg-primary);
+  box-shadow: 0 0 8px rgba(180,148,196,0.3);
+}
+
+[data-theme="trip"] .day-node.today::before {
+  background: var(--rose);
+  box-shadow: 0 0 12px rgba(196,138,154,0.4);
+  width: 12px;
+  height: 12px;
+  left: calc(-1.875rem - 1px);
+}
+
+[data-theme="trip"] .day-node.future::before {
+  background: var(--bg-tertiary);
+  border-color: var(--text-muted);
+  box-shadow: none;
+}
+
+/* ─── Itinerary Items ─── */
+[data-theme="trip"] .itinerary-item {
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-md);
+  background: rgba(180,148,196,0.04);
+  border: 1px solid var(--border-subtle);
+  margin-bottom: 0.5rem;
+  transition: all var(--transition-fast);
+}
+[data-theme="trip"] .itinerary-item:hover {
+  background: rgba(180,148,196,0.08);
+  border-color: var(--border-default);
+}
+
+[data-theme="trip"] .itinerary-time {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--lavender);
+  min-width: 70px;
+}
+
+/* ─── Mood Tags ─── */
+[data-theme="trip"] .mood-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+[data-theme="trip"] .mood-romantic { background: var(--rose-soft); color: var(--rose); }
+[data-theme="trip"] .mood-adventure { background: var(--teal-soft); color: var(--teal); }
+[data-theme="trip"] .mood-cultural { background: var(--gold-trip-soft); color: var(--gold-trip); }
+[data-theme="trip"] .mood-relaxed { background: var(--accent-soft); color: var(--lavender-soft); }
+
+/* ─── Trip Header Hero ─── */
+[data-theme="trip"] .trip-hero {
+  text-align: center;
+  padding: 3rem 1rem 2rem;
+  position: relative;
+}
+[data-theme="trip"] .trip-hero-names {
+  font-family: var(--font-script);
+  font-size: 3.5rem;
+  color: var(--lavender);
+  line-height: 1.2;
+  margin-bottom: 0.5rem;
+}
+[data-theme="trip"] .trip-hero-occasion {
+  font-family: var(--font-serif);
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+[data-theme="trip"] .trip-hero-dates {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin-top: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ─── Interactive Entry Builder ─── */
+[data-theme="trip"] .entry-builder {
+  background: linear-gradient(145deg, rgba(26,21,36,0.98) 0%, rgba(22,18,30,0.98) 100%);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-xl);
+  padding: 2rem;
+  box-shadow: 0 0 40px rgba(180,148,196,0.05);
+}
+
+[data-theme="trip"] .question-prompt {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  color: var(--lavender-soft);
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+[data-theme="trip"] .choice-chip {
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--radius-full);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+[data-theme="trip"] .choice-chip:hover {
+  border-color: var(--lavender);
+  color: var(--lavender);
+  background: rgba(180,148,196,0.08);
+}
+[data-theme="trip"] .choice-chip.selected {
+  background: var(--accent-soft);
+  border-color: var(--lavender);
+  color: var(--lavender-soft);
+}
+
+/* ─── Photo Grid ─── */
+[data-theme="trip"] .photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.5rem;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+/* ─── Flight Card ─── */
+[data-theme="trip"] .flight-card {
+  background: linear-gradient(135deg, rgba(90,71,99,0.15) 0%, rgba(26,21,36,0.95) 100%);
+  border: 1px solid rgba(180,148,196,0.15);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+[data-theme="trip"] .flight-route {
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  color: var(--lavender-soft);
+  letter-spacing: 0.05em;
+}
+[data-theme="trip"] .flight-arrow {
+  color: var(--text-muted);
+  font-size: 1.5rem;
+}
+[data-theme="trip"] .flight-detail {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+/* ─── Progress Ring (Trip) ─── */
+[data-theme="trip"] .progress-fill {
+  background: linear-gradient(90deg, var(--wisteria), var(--lavender), var(--rose));
+}

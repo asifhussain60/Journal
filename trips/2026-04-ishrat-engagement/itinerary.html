@@ -6,7 +6,7 @@
 <title>Asif &amp; Ishrat — The Engagement Trip</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Nunito+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Great+Vibes&family=Dancing+Script:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Nunito+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Great+Vibes&family=Dancing+Script:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
@@ -40,6 +40,7 @@
     --font-serif: 'Cormorant Garamond', serif;
     --font-sans: 'Nunito Sans', sans-serif;
     --font-script: 'Great Vibes', cursive;
+    --font-mono: 'DM Mono', monospace;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -645,6 +646,253 @@
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--lavender); border-radius: 3px; }
 
+  /* ═══ BUDGET PANEL ═══ */
+  .page-wrapper {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+  .page-wrapper > .main-content {
+    flex: 1;
+    min-width: 0;
+    max-width: 900px;
+  }
+
+  .budget-panel {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 1.5rem;
+    height: fit-content;
+    max-height: calc(100vh - 3rem);
+    overflow-y: auto;
+    background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-glow);
+    border-radius: 16px;
+    padding: 1.25rem 1rem;
+    box-shadow: 0 4px 24px rgba(90, 71, 99, 0.06);
+    z-index: 10;
+    margin-top: 2rem;
+  }
+
+  .budget-panel-header {
+    text-align: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-gold);
+  }
+  .budget-panel-header .overline {
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    margin-bottom: 0.25rem;
+  }
+  .budget-panel-header h3 {
+    font-family: var(--font-serif);
+    font-size: 1.3rem;
+    color: var(--purple-deep);
+    font-weight: 400;
+    margin-bottom: 0.5rem;
+  }
+
+  .budget-summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .budget-stat {
+    text-align: center;
+    padding: 0.5rem 0.25rem;
+    background: var(--bg-main);
+    border-radius: 8px;
+  }
+  .budget-stat.full-width {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, rgba(196,168,122,0.08), rgba(180,148,196,0.08));
+    border: 1px solid var(--border-gold);
+  }
+  .budget-stat-value {
+    font-family: var(--font-mono);
+    font-size: 1.05rem;
+    color: var(--purple-deep);
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+  .budget-stat.full-width .budget-stat-value {
+    font-size: 1.25rem;
+    color: var(--gold);
+  }
+  .budget-stat-label {
+    font-family: var(--font-sans);
+    font-size: 0.55rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--text-soft);
+    margin-top: 0.15rem;
+  }
+
+  .budget-categories {
+    margin-top: 0.75rem;
+  }
+
+  .budget-cat {
+    border: 1px solid var(--border-glow);
+    border-radius: 10px;
+    margin-bottom: 0.5rem;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  .budget-cat:hover {
+    box-shadow: 0 2px 8px rgba(90, 71, 99, 0.08);
+  }
+  .budget-cat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 0.75rem;
+    cursor: pointer;
+    background: var(--bg-card-solid);
+    transition: background 0.2s;
+    user-select: none;
+  }
+  .budget-cat-header:hover {
+    background: var(--bg-main);
+  }
+  .budget-cat-icon {
+    font-size: 0.85rem;
+    margin-right: 0.4rem;
+    opacity: 0.7;
+  }
+  .budget-cat-name {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-main);
+    flex: 1;
+  }
+  .budget-cat-total {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--purple-deep);
+    margin-right: 0.4rem;
+    letter-spacing: -0.02em;
+  }
+  .budget-cat-chevron {
+    font-size: 0.6rem;
+    color: var(--text-soft);
+    transition: transform 0.25s ease;
+  }
+  .budget-cat.open .budget-cat-chevron {
+    transform: rotate(180deg);
+  }
+
+  .budget-cat-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    background: var(--bg-main);
+  }
+  .budget-cat.open .budget-cat-body {
+    max-height: 500px;
+  }
+
+  .budget-txn {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 0.35rem 0.75rem;
+    border-top: 1px solid rgba(180, 150, 196, 0.1);
+  }
+  .budget-txn:first-child { border-top: 1px solid var(--border-glow); }
+  .budget-txn-payee {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    flex: 1;
+  }
+  .budget-txn-date {
+    font-size: 0.58rem;
+    color: var(--text-soft);
+    margin-right: 0.5rem;
+    white-space: nowrap;
+  }
+  .budget-txn-amount {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--rose);
+    font-weight: 500;
+    white-space: nowrap;
+    letter-spacing: -0.02em;
+  }
+  .budget-txn-card {
+    font-size: 0.5rem;
+    color: var(--text-soft);
+    margin-left: 0.3rem;
+  }
+
+  .budget-panel-footer {
+    text-align: center;
+    margin-top: 0.75rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--border-glow);
+    font-size: 0.55rem;
+    color: var(--text-soft);
+    letter-spacing: 0.05em;
+  }
+  .budget-panel-footer span { color: var(--lavender); }
+
+  /* Budget panel mobile toggle */
+  .budget-mobile-toggle {
+    display: none;
+    position: fixed;
+    bottom: 80px;
+    right: 1.25rem;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--purple-mid);
+    color: white;
+    font-size: 1.2rem;
+    border: none;
+    box-shadow: 0 4px 16px rgba(90, 71, 99, 0.25);
+    cursor: pointer;
+    z-index: 1001;
+    align-items: center;
+    justify-content: center;
+  }
+
+  @media (max-width: 1050px) {
+    .page-wrapper {
+      flex-direction: column;
+      align-items: center;
+    }
+    .budget-panel {
+      display: none;
+      position: fixed;
+      top: auto;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      max-height: 60vh;
+      border-radius: 16px 16px 0 0;
+      margin-top: 0;
+      z-index: 1000;
+      box-shadow: 0 -4px 24px rgba(90, 71, 99, 0.15);
+    }
+    .budget-panel.mobile-open {
+      display: block;
+    }
+    .budget-mobile-toggle {
+      display: flex;
+    }
+  }
+
 </style>
 </head>
 <body>
@@ -676,6 +924,8 @@
     <div class="hero-line"></div>
   </section>
 
+  <div class="page-wrapper">
+  <div class="main-content">
   <div class="container">
 
     <!-- FLIGHTS -->
@@ -1447,6 +1697,126 @@
     </section>
 
   </div> <!-- /container -->
+  </div> <!-- /main-content -->
+
+  <!-- BUDGET PANEL -->
+  <aside class="budget-panel" id="budgetPanel">
+    <div class="budget-panel-header">
+      <div class="overline">YNAB &bull; Piggy Bank</div>
+      <h3>Holiday Budget</h3>
+      <div class="budget-summary">
+        <div class="budget-stat">
+          <div class="budget-stat-value">$1,953</div>
+          <div class="budget-stat-label">Budgeted (Apr)</div>
+        </div>
+        <div class="budget-stat">
+          <div class="budget-stat-value">$1,598</div>
+          <div class="budget-stat-label">Spent</div>
+        </div>
+        <div class="budget-stat full-width">
+          <div class="budget-stat-value">$9,967</div>
+          <div class="budget-stat-label">Available Balance</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="budget-categories">
+
+      <!-- Entertainment -->
+      <div class="budget-cat">
+        <div class="budget-cat-header" onclick="toggleBudgetCat(this)">
+          <span class="budget-cat-icon">🎬</span>
+          <span class="budget-cat-name">Entertainment</span>
+          <span class="budget-cat-total">$32.72</span>
+          <span class="budget-cat-chevron">▼</span>
+        </div>
+        <div class="budget-cat-body">
+          <div class="budget-txn">
+            <span class="budget-txn-date">Apr 13</span>
+            <span class="budget-txn-payee">Fandango</span>
+            <span class="budget-txn-amount">$32.72</span>
+            <span class="budget-txn-card">SAPPHIRE</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Flights -->
+      <div class="budget-cat">
+        <div class="budget-cat-header" onclick="toggleBudgetCat(this)">
+          <span class="budget-cat-icon">✈</span>
+          <span class="budget-cat-name">Flights</span>
+          <span class="budget-cat-total">$913.51</span>
+          <span class="budget-cat-chevron">▼</span>
+        </div>
+        <div class="budget-cat-body">
+          <div class="budget-txn">
+            <span class="budget-txn-date">Mar 16</span>
+            <span class="budget-txn-payee">United Airlines</span>
+            <span class="budget-txn-amount">$803.53</span>
+            <span class="budget-txn-card">UNITED</span>
+          </div>
+          <div class="budget-txn">
+            <span class="budget-txn-date">Mar 16</span>
+            <span class="budget-txn-payee">United Airlines — Seat</span>
+            <span class="budget-txn-amount">$54.99</span>
+            <span class="budget-txn-card">UNITED</span>
+          </div>
+          <div class="budget-txn">
+            <span class="budget-txn-date">Mar 16</span>
+            <span class="budget-txn-payee">United Airlines — Seat</span>
+            <span class="budget-txn-amount">$54.99</span>
+            <span class="budget-txn-card">UNITED</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transport -->
+      <div class="budget-cat">
+        <div class="budget-cat-header" onclick="toggleBudgetCat(this)">
+          <span class="budget-cat-icon">🚕</span>
+          <span class="budget-cat-name">Transport</span>
+          <span class="budget-cat-total">$579.12</span>
+          <span class="budget-cat-chevron">▼</span>
+        </div>
+        <div class="budget-cat-body">
+          <div class="budget-txn">
+            <span class="budget-txn-date">Mar 30</span>
+            <span class="budget-txn-payee">Britanica Airport Taxi</span>
+            <span class="budget-txn-amount">$579.12</span>
+            <span class="budget-txn-card">SAPPHIRE</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Travel Insurance -->
+      <div class="budget-cat">
+        <div class="budget-cat-header" onclick="toggleBudgetCat(this)">
+          <span class="budget-cat-icon">🛡</span>
+          <span class="budget-cat-name">Travel Insurance</span>
+          <span class="budget-cat-total">$72.66</span>
+          <span class="budget-cat-chevron">▼</span>
+        </div>
+        <div class="budget-cat-body">
+          <div class="budget-txn">
+            <span class="budget-txn-date">Mar 15</span>
+            <span class="budget-txn-payee">Travel Guard Group</span>
+            <span class="budget-txn-amount">$72.66</span>
+            <span class="budget-txn-card">UNITED</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="budget-panel-footer">
+      Synced from <span>YNAB</span> &bull; April 15, 2026
+    </div>
+  </aside>
+
+  </div> <!-- /page-wrapper -->
+
+  <!-- MOBILE BUDGET TOGGLE -->
+  <button class="budget-mobile-toggle" id="budgetMobileBtn" onclick="toggleMobileBudget()">💰</button>
 
   <footer>
     <div class="script-text">With love</div>
@@ -1625,6 +1995,18 @@
     document.getElementById('journalModal').addEventListener('click', function(e) {
       if(e.target === this) closeJournal();
     });
+
+    // Budget Panel Accordion
+    function toggleBudgetCat(header) {
+      var cat = header.parentElement;
+      cat.classList.toggle('open');
+    }
+
+    // Mobile Budget Panel Toggle
+    function toggleMobileBudget() {
+      var panel = document.getElementById('budgetPanel');
+      panel.classList.toggle('mobile-open');
+    }
   </script>
 
 </body>
