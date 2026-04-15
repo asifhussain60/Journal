@@ -214,14 +214,18 @@
 
           <div className="grid-cards stagger-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))' }}>
             <div className="glass-card module-card" onClick={() => onNavigate('memoir')}>
-              <div className="module-icon"><Icon name="fa-book-open" /></div>
-              <h3 className="module-title">Memoir</h3>
-              <p className="module-description">"What I Wish Babu Taught Me" &mdash; Manage your chapters, incidents, and quotes.</p>
+              <div className="module-card-header">
+                <div className="module-icon"><Icon name="fa-book-open" size="1.8em" /></div>
+                <h3 className="module-title">Memoir</h3>
+              </div>
+              <p className="module-description">"What I Wish Babu Taught Me" &mdash; Manage your chapters, incidents, and quotes in a structured, elegant format.</p>
             </div>
             <div className="glass-card module-card" onClick={() => onNavigate('dayone')}>
-              <div className="module-icon"><Icon name="fa-feather-pointed" /></div>
-              <h3 className="module-title">DayOne Journal</h3>
-              <p className="module-description">Draft daily logs, tag locations, and apply your Voice DNA before exporting to DayOne.</p>
+              <div className="module-card-header">
+                <div className="module-icon"><Icon name="fa-feather-pointed" size="1.8em" /></div>
+                <h3 className="module-title">DayOne Journal</h3>
+              </div>
+              <p className="module-description">Draft daily logs, tag locations, and apply your <em>Voice DNA</em> before seamlessly exporting directly to DayOne.</p>
             </div>
           </div>
         </div>

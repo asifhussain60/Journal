@@ -344,20 +344,31 @@ body::after {
 
 /* ═══ MODULE CARDS ═══ */
 .module-card {
-  padding: 3rem 2.5rem;
+  padding: 2.5rem 2.5rem;
   cursor: pointer;
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+.module-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(198,166,255,.18);
+}
+.module-card-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 .module-icon {
-  width: 70px;
-  height: 70px;
-  border-radius: 20px;
+  width: 80px;
+  height: 80px;
+  min-width: 80px;
+  border-radius: 22px;
   background: linear-gradient(135deg, rgba(255,255,255,.18), rgba(255,255,255,.08));
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
+  font-size: 2.2rem;
   color: var(--lavender);
-  margin-bottom: 1.5rem;
   border: 1px solid rgba(255,255,255,.20);
   box-shadow: 0 8px 25px rgba(198,166,255,.10);
 }
@@ -365,13 +376,14 @@ body::after {
   font-family: var(--font-serif);
   font-size: 2.2rem;
   color: var(--text);
-  margin-bottom: 0.75rem;
-  line-height: 1.1;
+  margin-bottom: 0;
+  line-height: 1.15;
 }
 .module-description {
   font-size: 1.05rem;
   color: var(--text-muted);
   line-height: 1.6;
+  padding-left: 0;
 }
 
 /* ═══ TRIP HERO ═══ */
