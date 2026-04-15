@@ -1,7 +1,7 @@
 ============================================================
 INCIDENT BANK — What I Wish Dad Taught Me
 ============================================================
-Last updated: April 12, 2026
+Last updated: April 15, 2026
 
 INTAKE TRIGGER: Say "intake" or drop a list of rough incidents.
 Claude will batch-scan, ask ONE qualifying round, and log them here.

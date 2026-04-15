@@ -1,11 +1,11 @@
 # Chapter Status Tracker
 
-Last updated: April 10, 2026
+Last updated: April 15, 2026
 
 ## File Locations
 
-All chapter drafts are stored in the Journal folder as plain text files:
-- /sessions/laughing-serene-wozniak/mnt/Journal/
+All chapter drafts are stored in the journal repo as plain text files:
+- chapters/
 
 ## Chapters
 
@@ -22,10 +22,10 @@ All chapter drafts are stored in the Journal folder as plain text files:
 - **Notes:** Fully written. Covers Bollywood ideals, Amma's dominance, Baba's passivity, Ishrat correcting his view of women, Erum teaching tenderness, admission about treating mother better. Dad's advice covers the male vs man distinction, respecting women, discipline, private character.
 
 ### Chapter 2: "Dad, Tell Me What Love Really Is"
-- **Status:** IN PROGRESS
+- **Status:** LOCKED
 - **File:** ch02-love.txt
-- **Dad's advice section:** DRAFTED (may need refinement)
-- **Notes:** Narrative covers childhood emotional starvation through Ishrat's transformative love. Dad's advice section is drafted covering love with parents, siblings, friends, wife, and breaking patterns. May still need additions or refinement per Asif's direction.
+- **Dad's advice section:** COMPLETE
+- **Notes:** Narrative covers childhood emotional starvation through Ishrat's transformative love. Dad's advice section covers love with parents, siblings, friends, wife, and breaking patterns. All 11 incidents placed. Chapter locked — do not modify unless Asif requests changes.
 
 ### Chapter 3: "Dad, Tell Me What Marriage [Really Is]"
 - **Status:** IN PROGRESS

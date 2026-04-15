@@ -36,7 +36,7 @@ If text is partially cut off, partially obscured, or unclear, note this explicit
 
 ### Stage 2: Log
 Append each extracted quote to the quotes library file at:
-`/sessions/laughing-serene-wozniak/mnt/Journal/quotes-library.txt`
+`reference/quotes-library.txt`
 
 Use this exact format for each entry:
 
