@@ -1,0 +1,53 @@
+{
+  "active": {
+    "slug": "2026-04-ishrat-engagement",
+    "name": "Ishrat's Engagement Party Trip",
+    "travelers": ["Asif", "Ishrat"],
+    "vibe": "Packed & purposeful — couple time, mid-range budget, halal dining",
+    "occasion": "Engagement party in Fresh Meadows, Queens",
+    "base": "Home2 Suites, New Brunswick, NJ",
+    "dates": {
+      "start": "2026-04-20",
+      "end": "2026-04-28",
+      "days": 9
+    },
+    "flights": {
+      "inbound": {
+        "flight": "UA 147",
+        "route": "LHR → EWR",
+        "date": "2026-04-20",
+        "depart": "12:00 PM BST",
+        "arrive": "2:55 PM ET"
+      },
+      "outbound": {
+        "flight": "UA 16",
+        "route": "EWR → LHR",
+        "date": "2026-04-28",
+        "depart": "5:25 PM ET",
+        "arrive": "5:55 AM +1"
+      }
+    },
+    "highlights": [
+      { "date": "2026-04-24", "event": "Engagement Party", "venue": "Fresh Meadows, NY" },
+      { "date": "2026-04-27", "event": "Spa Day", "venue": "Ocean Place Resort, Long Branch, NJ" },
+      { "date": "2026-04-26", "event": "Fondue Date Night", "venue": "The Melting Pot, Red Bank, NJ" }
+    ],
+    "itineraryPath": "/trips/2026-04-ishrat-engagement/itinerary.html"
+  },
+  "archive": [
+    {
+      "slug": "2024-10-istanbul",
+      "name": "Istanbul Anniversary",
+      "dates": { "start": "2024-10-12", "end": "2024-10-19" },
+      "travelers": ["Asif", "Ishrat"],
+      "status": "completed"
+    },
+    {
+      "slug": "2022-06-lahore",
+      "name": "Lahore Homecoming",
+      "dates": { "start": "2022-06-10", "end": "2022-06-20" },
+      "travelers": ["Asif", "Ishrat"],
+      "status": "completed"
+    }
+  ]
+}

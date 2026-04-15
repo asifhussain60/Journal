@@ -1,0 +1,12 @@
+{
+  "name": "babu-journal",
+  "version": "0.1.0",
+  "description": "Babu — Journal Command Center. Memoir + Trip Planner + DayOne integration.",
+  "private": true,
+  "scripts": {
+    "dev": "npx serve . -l 3000 --cors",
+    "start": "npx serve . -l 3000 --cors"
+  },
+  "keywords": ["journal", "memoir", "trip-planner"],
+  "author": "Asif Hussain"
+}

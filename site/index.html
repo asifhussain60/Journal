@@ -9,7 +9,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Great+Vibes&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
   <!-- Font Awesome 6.5.1 -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3H03JBKSVTglqhf+GXT00LJ698CLLPLLUSMAOIPPAKSAINC" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
 
   <!-- External Stylesheets -->
   <link rel="stylesheet" href="css/base.css">
@@ -1545,235 +1546,7 @@ ${entry.photoPlaceholders.map(p => `- ${p.description}`).join('\n')}`;
       );
     }
 
-    // ═════════════════════════════════════════════════════════════
-    // TRIP PLANNER MODULE
-    // ═════════════════════════════════════════════════════════════
 
-    const TRIP_PLANS = {
-      'trip-002': {
-        name: "Ishrat's Engagement Party Trip",
-        travelers: ['Asif', 'Ishrat'],
-        base: 'Home2 Suites, New Brunswick, NJ',
-        vibe: 'Packed & purposeful',
-        flights: {
-          inbound: { flight: 'UA 147', route: 'LHR → EWR', date: 'Apr 20', depart: '12:00 PM BST', arrive: '2:55 PM ET' },
-          outbound: { flight: 'UA 16', route: 'EWR → LHR', date: 'Apr 28', depart: '5:25 PM ET', arrive: '5:55 AM +1' }
-        },
-        days: [
-          { num: 1, date: '2026-04-20', weekday: 'Sunday', title: 'Arrival Day', mood: 'anticipation', items: ['Land EWR 2:55 PM', 'Uber to Home2 Suites', 'Settle in, light dinner', 'Evening walk'], mapQuery: 'Home2+Suites+New+Brunswick+NJ' },
-          { num: 2, date: '2026-04-21', weekday: 'Monday', title: 'Edison Exploration', mood: 'adventure', items: ['Oak Tree Road breakfast', 'Shalwar kameez shopping', 'Lunch at Karahi Point', 'Evening rest'], mapQuery: 'Oak+Tree+Road+Edison+NJ' },
-          { num: 3, date: '2026-04-22', weekday: 'Tuesday', title: 'City Spark', mood: 'cultural', items: ['Train to NYC', 'Central Park walk', 'Museum visit', 'Halal Guys dinner'], mapQuery: 'Central+Park+New+York' },
-          { num: 4, date: '2026-04-23', weekday: 'Wednesday', title: 'Quiet Couple Day', mood: 'romantic', items: ['Sleep in', 'Brunch at hotel', 'Spa prep shopping', 'Movie night in'], mapQuery: 'New+Brunswick+NJ' },
-          { num: 5, date: '2026-04-24', weekday: 'Thursday', title: 'The Engagement Party', mood: 'celebration', items: ['Morning prep', 'Drive to Fresh Meadows', 'Engagement Party', 'Late return'], mapQuery: 'Fresh+Meadows+Queens+NY' },
-          { num: 6, date: '2026-04-25', weekday: 'Friday', title: 'Recovery & Reflection', mood: 'relaxed', items: ['Late morning', 'Journal writing', 'Light walk', 'Homemade dinner'], mapQuery: 'New+Brunswick+NJ' },
-          { num: 7, date: '2026-04-26', weekday: 'Saturday', title: 'Fondue Date Night', mood: 'romantic', items: ['Lazy morning', 'Red Bank exploration', 'The Melting Pot dinner', 'Moonlit drive home'], mapQuery: 'The+Melting+Pot+Red+Bank+NJ' },
-          { num: 8, date: '2026-04-27', weekday: 'Sunday', title: 'Spa & Serenity', mood: 'relaxed', items: ['Ocean Place Resort & Spa', 'Couples treatment', 'Boardwalk sunset', 'Last night dinner'], mapQuery: 'Ocean+Place+Resort+Long+Branch+NJ' },
-          { num: 9, date: '2026-04-28', weekday: 'Monday', title: 'Homeward', mood: 'bittersweet', items: ['Pack & check out', 'Drive to EWR', 'UA 16 departs 5:25 PM', 'Arrive LHR next morning'], mapQuery: 'Newark+Liberty+International+Airport' },
-        ]
-      },
-      'trip-001': {
-        name: "Istanbul Anniversary", travelers: ['Asif', 'Ishrat'], base: 'Sultanahmet, Istanbul', vibe: 'Cultural & romantic',
-        flights: { inbound: { flight: 'TK 1972', route: 'LHR → IST', date: 'Oct 12', depart: '9:30 AM BST', arrive: '4:15 PM TRT' }, outbound: { flight: 'TK 1971', route: 'IST → LHR', date: 'Oct 19', depart: '8:00 AM TRT', arrive: '10:30 AM BST' } },
-        days: []
-      }
-    };
-
-    const isPastDate = (dateStr) => new Date(dateStr) < new Date('2026-04-15');
-    const getDayOfWeek = (dateStr) => new Date(dateStr).toLocaleDateString('en-US', { weekday: 'long' });
-
-    function FlightCard({ flight, direction }) {
-      return (
-        <div style={{ flex: 1, borderRadius: '16px', border: '1px solid var(--border-default)', padding: '1.25rem', background: 'linear-gradient(135deg, var(--bg-card) 0%, var(--bg-tertiary) 100%)', position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '1.5px', marginBottom: '0.5rem' }}>{direction.toUpperCase()}</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--font-sans)' }}>{flight.flight}</div>
-            <div style={{ fontSize: '1rem', color: 'var(--text-secondary)', marginTop: '0.2rem', fontFamily: 'var(--font-serif)' }}>{flight.route}</div>
-            <div style={{ borderTop: '1px solid var(--border-default)', paddingTop: '0.75rem', marginTop: '0.75rem' }}>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>{flight.date}</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                <div><div style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', fontSize: '0.65rem', letterSpacing: '1px' }}>DEPART</div><div style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: '0.9rem' }}>{flight.depart}</div></div>
-                <div><div style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', fontSize: '0.65rem', letterSpacing: '1px' }}>ARRIVE</div><div style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: '0.9rem' }}>{flight.arrive}</div></div>
-              </div>
-            </div>
-          </div>
-          <div style={{ position: 'absolute', top: -40, right: -40, width: 120, height: 120, background: 'var(--accent-soft)', borderRadius: '50%', opacity: 0.15 }} />
-          <i className="fa-solid fa-plane" style={{ position: 'absolute', bottom: '0.75rem', right: '0.75rem', fontSize: '1.5rem', color: 'var(--accent)', opacity: 0.12 }} />
-        </div>
-      );
-    }
-
-    function PlannedDayCard({ day }) {
-      const mc = MOOD_COLORS[day.mood] || MOOD_COLORS.reflective;
-      return (
-        <div style={{ borderRadius: '16px', border: '1px solid var(--border-default)', background: 'var(--bg-card)', padding: '1.25rem', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', borderLeft: `4px solid ${mc.text}`, transition: 'all 0.3s ease' }}
-          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.1)'; }}
-          onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.75rem' }}>
-            <div>
-              <span style={{ display: 'inline-block', background: 'var(--accent)', color: '#fff', padding: '0.2rem 0.5rem', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700, fontFamily: 'var(--font-mono)', marginBottom: '0.4rem' }}>Day {day.num}</span>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{formatDate(day.date)} · {day.weekday}</div>
-            </div>
-            <span style={{ background: mc.bg, color: mc.text, padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 600, fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-              <i className={`fa-solid ${mc.icon}`} style={{ fontSize: '0.6rem' }} /> {day.mood}
-            </span>
-          </div>
-          <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.2rem', fontWeight: 500, color: 'var(--text-primary)', margin: '0.5rem 0 0.75rem' }}>{day.title}</h3>
-          <ul style={{ margin: 0, paddingLeft: '1.25rem', color: 'var(--text-secondary)', fontSize: '0.875rem', lineHeight: 1.7 }}>
-            {day.items.map((item, idx) => <li key={idx} style={{ marginBottom: '0.25rem' }}>{item}</li>)}
-          </ul>
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '1rem' }}>
-            <a href={`https://www.google.com/maps/search/${day.mapQuery}`} target="_blank" rel="noopener noreferrer"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', padding: '0.3rem 0.7rem', background: 'var(--accent-soft)', color: 'var(--accent)', borderRadius: '9999px', textDecoration: 'none', fontSize: '0.75rem', fontWeight: 600 }}>
-              <i className="fa-solid fa-map-location-dot" style={{ fontSize: '0.65rem' }} /> Map
-            </a>
-            <span style={{ padding: '0.3rem 0.7rem', background: 'var(--bg-tertiary)', color: 'var(--text-muted)', borderRadius: '9999px', fontSize: '0.65rem', fontWeight: 600, fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>Planned</span>
-          </div>
-        </div>
-      );
-    }
-
-    function ActualDayCard({ day, entry }) {
-      const mc = MOOD_COLORS[entry.mood] || MOOD_COLORS.reflective;
-      return (
-        <div style={{ borderRadius: '16px', border: '1px solid var(--border-default)', background: 'var(--bg-card)', padding: '1.25rem', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', borderLeft: `4px solid ${mc.text}`, transition: 'all 0.3s ease' }}
-          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.1)'; }}
-          onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '0.75rem' }}>
-            <div>
-              <span style={{ display: 'inline-block', background: 'var(--text-muted)', color: '#fff', padding: '0.2rem 0.5rem', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700, fontFamily: 'var(--font-mono)', marginBottom: '0.4rem' }}>Day {day.num || '—'}</span>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{formatDate(entry.date)} · {getDayOfWeek(entry.date)}</div>
-            </div>
-            <span style={{ background: mc.bg, color: mc.text, padding: '0.2rem 0.6rem', borderRadius: '9999px', fontSize: '0.7rem', fontWeight: 600, fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-              <i className={`fa-solid ${mc.icon}`} style={{ fontSize: '0.6rem' }} /> {entry.mood}
-            </span>
-          </div>
-          <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.2rem', fontWeight: 500, color: 'var(--text-primary)', margin: '0.5rem 0 0.75rem' }}>{entry.summary || 'Untitled'}</h3>
-          <p style={{ fontFamily: 'var(--font-serif)', fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: '1rem' }}>{entry.text}</p>
-          {entry.photoPlaceholders && entry.photoPlaceholders.length > 0 && (
-            <div style={{ marginBottom: '1rem' }}>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '0.5rem', fontWeight: 600, letterSpacing: '0.5px' }}>PHOTOS</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: '0.5rem' }}>
-                {entry.photoPlaceholders.map((p, idx) => (
-                  <div key={idx} style={{ aspectRatio: '1', borderRadius: '8px', background: `linear-gradient(135deg, ${mc.bg}, transparent)`, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed var(--border-default)', color: 'var(--text-muted)' }}>
-                    <i className="fa-solid fa-camera" style={{ fontSize: '1.2rem', opacity: 0.4 }} />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <button onClick={() => copyToClipboard(entry.text)} style={{ padding: '0.3rem 0.7rem', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-              <i className="fa-solid fa-copy" style={{ fontSize: '0.65rem' }} /> Copy Entry
-            </button>
-            <span style={{ padding: '0.3rem 0.7rem', background: 'rgba(90,172,114,0.15)', color: '#5aac72', borderRadius: '9999px', fontSize: '0.65rem', fontWeight: 600, fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>Journaled</span>
-          </div>
-        </div>
-      );
-    }
-
-    function ItineraryView({ trip, entries }) {
-      const plan = TRIP_PLANS[trip.id];
-      const renderDayCards = () => {
-        if (plan && plan.days && plan.days.length > 0) {
-          return plan.days.map(day => {
-            if (isPastDate(day.date)) {
-              const entry = entries.find(e => new Date(e.date).toISOString().split('T')[0] === day.date);
-              if (entry) return <ActualDayCard key={day.date} day={day} entry={entry} />;
-              return (
-                <div key={day.date} style={{ borderRadius: '16px', border: '1px dashed var(--border-default)', background: 'var(--bg-tertiary)', padding: '1.25rem', opacity: 0.6, borderLeft: '4px solid var(--text-muted)' }}>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginBottom: '0.5rem' }}>{formatDate(day.date)} · {day.weekday}</div>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', fontFamily: 'var(--font-serif)', margin: 0 }}>No entry logged</p>
-                </div>
-              );
-            }
-            return <PlannedDayCard key={day.date} day={day} />;
-          });
-        }
-        if (entries && entries.length > 0) {
-          return entries.map((entry, idx) => <ActualDayCard key={entry.uuid || idx} day={{ num: idx + 1 }} entry={entry} />);
-        }
-        return <div style={{ gridColumn: '1 / -1', color: 'var(--text-muted)', textAlign: 'center', padding: '3rem', fontFamily: 'var(--font-serif)', fontSize: '1.1rem' }}>No itinerary or entries yet.</div>;
-      };
-      return (
-        <div style={{ padding: '2.5rem 1.5rem', maxWidth: '1200px', margin: '0 auto' }}>
-          {/* Hero */}
-          <div style={{ textAlign: 'center', marginBottom: '2.5rem', paddingBottom: '2.5rem', borderBottom: '1px solid var(--border-default)' }}>
-            <div style={{ fontFamily: 'var(--font-script)', fontSize: '3.5rem', background: 'linear-gradient(135deg, #966eb4, #c48a9a)', backgroundClip: 'text', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '0.5rem' }}>Asif ♥ Ishrat</div>
-            <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '2rem', fontWeight: 400, color: 'var(--text-primary)', margin: '0.5rem 0' }}>{plan?.name || trip.location}</h1>
-            <div style={{ fontSize: '1rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-serif)' }}>{plan?.base || trip.country}</div>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>{trip.displayDate} · {trip.entryCount} entries</div>
-            {plan?.vibe && <div style={{ fontSize: '0.9rem', color: 'var(--accent)', fontStyle: 'italic', marginTop: '0.5rem', fontFamily: 'var(--font-serif)' }}>{plan.vibe}</div>}
-          </div>
-          {/* Flights */}
-          {plan?.flights && (
-            <div style={{ marginBottom: '2.5rem' }}>
-              <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.3rem', fontWeight: 400, color: 'var(--text-primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><i className="fa-solid fa-plane" style={{ fontSize: '1rem', color: 'var(--accent)' }} /> Flights</h2>
-              <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap' }}>
-                {plan.flights.inbound && <FlightCard flight={plan.flights.inbound} direction="inbound" />}
-                {plan.flights.outbound && <FlightCard flight={plan.flights.outbound} direction="outbound" />}
-              </div>
-            </div>
-          )}
-          {/* Day Grid */}
-          <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.3rem', fontWeight: 400, color: 'var(--text-primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><i className="fa-solid fa-calendar" style={{ fontSize: '1rem', color: 'var(--accent)' }} /> Day by Day</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1.25rem' }}>{renderDayCards()}</div>
-        </div>
-      );
-    }
-
-    function TripPlannerModule() {
-      const [selectedTrip, setSelectedTrip] = useState(null);
-      if (selectedTrip) {
-        return (
-          <div className="page">
-            <div className="container">
-              <button className="back-button" onClick={() => setSelectedTrip(null)}><Icon name="fa-arrow-left" /> All Trips</button>
-              <ItineraryView trip={selectedTrip} entries={selectedTrip.entries || []} />
-            </div>
-          </div>
-        );
-      }
-      return (
-        <div className="page">
-          <div className="container">
-            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-              <div style={{ fontFamily: 'var(--font-script)', fontSize: '2.5rem', background: 'linear-gradient(135deg, #966eb4, #c48a9a)', backgroundClip: 'text', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '0.25rem' }}>Asif & Ishrat</div>
-              <h1 className="page-title">Trip Planner</h1>
-              <p className="page-subtitle">Plan, live, and journal every trip together</p>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.25rem' }}>
-              {PLACEHOLDER_TRIPS.map(trip => {
-                const plan = TRIP_PLANS[trip.id];
-                const allPast = isPastDate(trip.endDate);
-                return (
-                  <div key={trip.id} onClick={() => setSelectedTrip(trip)}
-                    style={{ borderRadius: '16px', overflow: 'hidden', background: 'var(--bg-card)', border: '1px solid var(--border-default)', cursor: 'pointer', transition: 'all 0.3s ease', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
-                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.1)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; }}>
-                    <div style={{ padding: '1.5rem', background: 'linear-gradient(135deg, rgba(150,110,180,0.08), rgba(196,138,154,0.06))', textAlign: 'center' }}>
-                      <i className="fa-solid fa-heart" style={{ fontSize: '2rem', color: 'var(--accent)', opacity: 0.6 }} />
-                    </div>
-                    <div style={{ padding: '1.25rem' }}>
-                      <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.2rem', fontWeight: 500, color: 'var(--text-primary)', margin: '0 0 0.35rem' }}>{plan?.name || trip.location}</h3>
-                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>{trip.displayDate} · {trip.country}</div>
-                      <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                        <span><i className="fa-solid fa-feather-pointed" style={{ fontSize: '0.7rem', marginRight: '0.2rem' }} />{trip.entryCount} entries</span>
-                        <span>{allPast ? <span style={{ color: '#5aac72' }}><i className="fa-solid fa-check" style={{ fontSize: '0.65rem', marginRight: '0.2rem' }} />Complete</span> : <span style={{ color: 'var(--accent)' }}><i className="fa-solid fa-clock" style={{ fontSize: '0.65rem', marginRight: '0.2rem' }} />Upcoming</span>}</span>
-                      </div>
-                      <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap', marginTop: '0.6rem' }}>
-                        {trip.tags.slice(0, 3).map(tag => (
-                          <span key={tag} style={{ fontSize: '0.6rem', padding: '0.1rem 0.4rem', borderRadius: '4px', background: 'var(--accent-soft)', color: 'var(--accent)', fontFamily: 'var(--font-mono)' }}>{tag}</span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      );
-    }
 
     // ═════════════════════════════════════════════════════════════
     // DAYONE JOURNAL MODULE (renamed from Journal)
@@ -1913,17 +1686,191 @@ ${entry.photoPlaceholders.map(p => `- ${p.description}`).join('\n')}`;
     // HOME / DASHBOARD
     // ═════════════════════════════════════════════════════════════
 
+    // ── Active Trip Hero Banner ──────────────────────────────────
+    function ActiveTripHero({ trip }) {
+      if (!trip) return null;
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const start = new Date(trip.dates.start + 'T00:00:00');
+      const end = new Date(trip.dates.end + 'T23:59:59');
+      const isBeforeTrip = today < start;
+      const isDuringTrip = today >= start && today <= end;
+      const isAfterTrip = today > end;
+
+      // Countdown or day-of calculation
+      const msPerDay = 86400000;
+      const daysUntil = isBeforeTrip ? Math.ceil((start - today) / msPerDay) : 0;
+      const currentDay = isDuringTrip ? Math.floor((today - start) / msPerDay) + 1 : 0;
+
+      // Next highlight event
+      const nextHighlight = (trip.highlights || [])
+        .filter(h => new Date(h.date + 'T00:00:00') >= today)
+        .sort((a, b) => new Date(a.date) - new Date(b.date))[0];
+
+      const statusLabel = isBeforeTrip ? 'UPCOMING' : isDuringTrip ? 'LIVE NOW' : 'COMPLETED';
+      const statusColor = isBeforeTrip ? '#c48a9a' : isDuringTrip ? '#5aac72' : 'var(--text-muted)';
+      const pulseAnim = isDuringTrip ? 'pulse 2s ease-in-out infinite' : 'none';
+
+      const handleClick = () => {
+        const path = trip.itineraryPath || '#';
+        window.open(path, '_blank');
+      };
+
+      return (
+        <div onClick={handleClick} style={{
+          position: 'relative', overflow: 'hidden', borderRadius: '20px', cursor: 'pointer',
+          background: 'linear-gradient(135deg, rgba(150,110,180,0.07) 0%, rgba(196,138,154,0.10) 50%, rgba(150,110,180,0.05) 100%)',
+          border: '1px solid rgba(150, 110, 180, 0.18)', marginBottom: '2rem',
+          boxShadow: '0 4px 20px rgba(150, 110, 180, 0.08)',
+          transition: 'all 0.4s ease'
+        }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 32px rgba(150, 110, 180, 0.15)'; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(150, 110, 180, 0.08)'; }}>
+
+          {/* Decorative floating hearts */}
+          <div style={{ position: 'absolute', top: '15px', right: '25px', opacity: 0.08, fontSize: '4rem', color: '#c48a9a' }}>
+            <i className="fa-solid fa-heart" />
+          </div>
+          <div style={{ position: 'absolute', bottom: '20px', left: '30px', opacity: 0.05, fontSize: '2.5rem', color: '#966eb4', transform: 'rotate(-15deg)' }}>
+            <i className="fa-solid fa-heart" />
+          </div>
+          <div style={{ position: 'absolute', top: '35%', right: '10%', opacity: 0.04, fontSize: '1.8rem', color: '#c48a9a', transform: 'rotate(20deg)' }}>
+            <i className="fa-solid fa-heart" />
+          </div>
+
+          <div style={{ padding: '2rem 2.5rem', position: 'relative', zIndex: 1 }}>
+            {/* Status badge row */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.85rem' }}>
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
+                fontSize: '0.6rem', fontFamily: 'var(--font-mono)', fontWeight: 700,
+                letterSpacing: '0.12em', textTransform: 'uppercase',
+                padding: '0.25rem 0.65rem', borderRadius: '9999px',
+                color: isDuringTrip ? '#fff' : statusColor,
+                background: isDuringTrip ? 'linear-gradient(135deg, #5aac72, #4a9a62)' : `${statusColor}12`,
+                border: isDuringTrip ? 'none' : `1px solid ${statusColor}25`
+              }}>
+                {isDuringTrip && <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#fff', animation: pulseAnim }} />}
+                {statusLabel}
+              </span>
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                {trip.dates.start} → {trip.dates.end}
+              </span>
+            </div>
+
+            {/* Script couple name */}
+            <div style={{ fontFamily: "'Great Vibes', cursive", fontSize: '2rem', background: 'linear-gradient(135deg, #966eb4, #c48a9a)', backgroundClip: 'text', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: '0.1rem', lineHeight: 1.2 }}>
+              Asif <span style={{ fontSize: '1.4rem' }}>&</span> Ishrat
+            </div>
+
+            {/* Trip name */}
+            <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.5rem', fontWeight: 500, color: 'var(--text-primary)', margin: '0.25rem 0 0.5rem', lineHeight: 1.3 }}>
+              {trip.name}
+            </h2>
+
+            {/* Vibe + base */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>
+              <span><i className="fa-solid fa-location-dot" style={{ marginRight: '0.3rem', color: '#966eb4', opacity: 0.6, fontSize: '0.7rem' }} />{trip.base}</span>
+              <span><i className="fa-solid fa-wand-magic-sparkles" style={{ marginRight: '0.3rem', color: '#c48a9a', opacity: 0.6, fontSize: '0.7rem' }} />{trip.vibe}</span>
+            </div>
+
+            {/* Metric row with soft card backgrounds */}
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'stretch' }}>
+              {/* Countdown / Day indicator */}
+              {isBeforeTrip && (
+                <div style={{ textAlign: 'center', padding: '1rem 1.5rem', borderRadius: '14px', background: 'rgba(150, 110, 180, 0.06)', border: '1px solid rgba(150, 110, 180, 0.1)', minWidth: '90px' }}>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '2.5rem', fontWeight: 700, lineHeight: 1, background: 'linear-gradient(135deg, #966eb4, #c48a9a)', backgroundClip: 'text', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                    {daysUntil}
+                  </div>
+                  <div style={{ fontSize: '0.6rem', fontFamily: 'var(--font-mono)', letterSpacing: '0.12em', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
+                    {daysUntil === 1 ? 'DAY TO GO' : 'DAYS TO GO'}
+                  </div>
+                </div>
+              )}
+              {isDuringTrip && (
+                <div style={{ textAlign: 'center', padding: '1rem 1.5rem', borderRadius: '14px', background: 'rgba(90, 172, 114, 0.06)', border: '1px solid rgba(90, 172, 114, 0.12)', minWidth: '90px' }}>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '2.5rem', fontWeight: 700, lineHeight: 1, background: 'linear-gradient(135deg, #5aac72, #3d8a5a)', backgroundClip: 'text', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                    {currentDay}
+                  </div>
+                  <div style={{ fontSize: '0.6rem', fontFamily: 'var(--font-mono)', letterSpacing: '0.12em', color: '#5aac72', marginTop: '0.3rem' }}>
+                    OF {trip.dates.days} DAYS
+                  </div>
+                </div>
+              )}
+
+              {/* Flight info card */}
+              {trip.flights && (isBeforeTrip || isDuringTrip) && (
+                <div style={{ padding: '0.85rem 1.2rem', borderRadius: '14px', background: 'rgba(150, 110, 180, 0.04)', border: '1px solid rgba(150, 110, 180, 0.08)', fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '0.35rem' }}>
+                  <div>
+                    <i className="fa-solid fa-plane-departure" style={{ marginRight: '0.4rem', color: '#966eb4', opacity: 0.5, fontSize: '0.65rem' }} />
+                    <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--text-primary)' }}>{trip.flights.inbound.flight}</span>
+                    <span style={{ color: 'var(--text-muted)' }}> · {trip.flights.inbound.route} · {trip.flights.inbound.date}</span>
+                  </div>
+                  <div>
+                    <i className="fa-solid fa-plane-arrival" style={{ marginRight: '0.4rem', color: '#c48a9a', opacity: 0.5, fontSize: '0.65rem' }} />
+                    <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, color: 'var(--text-primary)' }}>{trip.flights.outbound.flight}</span>
+                    <span style={{ color: 'var(--text-muted)' }}> · {trip.flights.outbound.route} · {trip.flights.outbound.date}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Next event card */}
+              {nextHighlight && (isBeforeTrip || isDuringTrip) && (
+                <div style={{ padding: '0.85rem 1.2rem', borderRadius: '14px', background: 'rgba(196, 138, 154, 0.06)', border: '1px solid rgba(196, 138, 154, 0.1)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <div style={{ color: '#c48a9a', fontFamily: 'var(--font-mono)', fontSize: '0.6rem', letterSpacing: '0.1em', fontWeight: 700, marginBottom: '0.3rem' }}>NEXT EVENT</div>
+                  <div style={{ color: 'var(--text-primary)', fontSize: '0.85rem', fontFamily: 'var(--font-serif)' }}>
+                    <i className="fa-solid fa-star" style={{ marginRight: '0.3rem', color: '#c48a9a', opacity: 0.5, fontSize: '0.6rem' }} />
+                    {nextHighlight.event}
+                  </div>
+                  <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', fontFamily: 'var(--font-mono)', marginTop: '0.15rem' }}>
+                    {nextHighlight.date} · {nextHighlight.venue}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid rgba(150, 110, 180, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', gap: '0.4rem' }}>
+                {trip.travelers.map(t => (
+                  <span key={t} style={{ fontSize: '0.65rem', padding: '0.2rem 0.6rem', borderRadius: '9999px', background: 'rgba(150, 110, 180, 0.08)', color: '#966eb4', fontFamily: 'var(--font-mono)', border: '1px solid rgba(150, 110, 180, 0.12)' }}>{t}</span>
+                ))}
+              </div>
+              <span style={{ fontSize: '0.75rem', color: '#966eb4', fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600 }}>
+                View Itinerary <i className="fa-solid fa-arrow-up-right-from-square" style={{ fontSize: '0.6rem' }} />
+              </span>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ── Home Page ──────────────────────────────────────────────────
     function HomePage({ onNavigate }) {
+      const [activeTrip, setActiveTrip] = useState(null);
+      const [manifestLoaded, setManifestLoaded] = useState(false);
       const totalWords = CHAPTERS.reduce((sum, ch) => sum + (ch.words || 0), 0);
-      const totalTrips = PLACEHOLDER_TRIPS.length;
-      const totalEntries = PLACEHOLDER_TRIPS.reduce((sum, t) => sum + t.entryCount, 0);
       const chaptersLocked = CHAPTERS.filter(c => c.status === 'locked').length;
+
+      useEffect(() => {
+        fetch('data/manifest.json')
+          .then(r => r.ok ? r.json() : null)
+          .then(data => {
+            if (data && data.active) setActiveTrip(data.active);
+            setManifestLoaded(true);
+          })
+          .catch(() => setManifestLoaded(true));
+      }, []);
 
       return (
         <div className="page">
           <div className="container">
             <h1 className="page-title">Journal Command Center</h1>
             <p className="page-subtitle">Welcome, Asif. Your memoir and travel logs in one place.</p>
+
+            {/* Active Trip Hero — only shows when manifest has an active trip */}
+            {manifestLoaded && activeTrip && <ActiveTripHero trip={activeTrip} />}
 
             <div className="dashboard-stats">
               <div className="stat-card">
@@ -1934,14 +1881,6 @@ ${entry.photoPlaceholders.map(p => `- ${p.description}`).join('\n')}`;
                 <div className="stat-number">{chaptersLocked}</div>
                 <div className="stat-label">Chapters Locked</div>
               </div>
-              <div className="stat-card">
-                <div className="stat-number">{totalTrips}</div>
-                <div className="stat-label">Trips Logged</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-number">{totalEntries}</div>
-                <div className="stat-label">Entries Captured</div>
-              </div>
             </div>
 
             <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.3rem', marginTop: '2rem', marginBottom: '1.5rem', color: 'var(--text-primary)' }}>
@@ -1949,11 +1888,6 @@ ${entry.photoPlaceholders.map(p => `- ${p.description}`).join('\n')}`;
             </h2>
 
             <div className="modules-grid">
-              <div className="module-card" onClick={() => onNavigate('trips')}>
-                <div className="module-icon"><Icon name="fa-map-location-dot" size="2.5rem" /></div>
-                <h3 className="module-title">Trip Planner</h3>
-                <p className="module-description">Plan romantic itineraries, track actual vs. planned, and relive every trip with Ishrat.</p>
-              </div>
               <div className="module-card" onClick={() => onNavigate('memoir')}>
                 <div className="module-icon"><Icon name="fa-book-open" size="2.5rem" /></div>
                 <h3 className="module-title">Memoir</h3>
@@ -1988,9 +1922,6 @@ ${entry.photoPlaceholders.map(p => `- ${p.description}`).join('\n')}`;
                 <button className={`nav-link ${currentPage === 'home' ? 'active' : ''}`} onClick={() => setCurrentPage('home')}>
                   <Icon name="fa-house" /> Home
                 </button>
-                <button className={`nav-link ${currentPage === 'trips' ? 'active' : ''}`} onClick={() => setCurrentPage('trips')}>
-                  <Icon name="fa-map-location-dot" /> Trip Planner
-                </button>
                 <button className={`nav-link ${currentPage === 'memoir' ? 'active' : ''}`} onClick={() => setCurrentPage('memoir')}>
                   <Icon name="fa-book-open" /> Memoir
                 </button>
@@ -2002,7 +1933,6 @@ ${entry.photoPlaceholders.map(p => `- ${p.description}`).join('\n')}`;
           </nav>
 
           {currentPage === 'home' && <HomePage onNavigate={setCurrentPage} />}
-          {currentPage === 'trips' && <TripPlannerModule />}
           {currentPage === 'memoir' && <MemoirModule />}
           {currentPage === 'dayone' && <DayOneJournalModule />}
         </div>
