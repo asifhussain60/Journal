@@ -1,0 +1,110 @@
+/* ═══════════════════════════════════════════════════
+   LAVENDER ROMANCE — Light Romantic Theme
+   Soft lavender-white base, purple-lilac accents,
+   gold highlights. Warm and romantic for trip
+   itineraries and personal pages.
+   ═══════════════════════════════════════════════════ */
+
+[data-theme="lavender-romance"] {
+  /* ─── Core Token Overrides (base.css) ─── */
+  --bg-primary: #FAF7FC;
+  --bg-secondary: #F5F0FA;
+  --bg-tertiary: #EDE6F4;
+  --bg-card: rgba(255, 255, 255, 0.85);
+  --bg-card-hover: rgba(255, 255, 255, 0.95);
+  --bg-card-solid: #FFFFFF;
+
+  --text-primary: #3D2E4A;
+  --text-secondary: #7E6B8A;
+  --text-muted: #A396AC;
+
+  --border-default: rgba(180, 150, 196, 0.25);
+  --border-subtle: rgba(180, 150, 196, 0.12);
+  --border-accent: rgba(180, 148, 196, 0.4);
+
+  --accent-rgb: 139, 115, 148;
+  --accent: #8B7394;
+  --accent-soft: rgba(139, 115, 148, 0.12);
+  --accent-hover: rgba(139, 115, 148, 0.2);
+
+  --success: #10B981;
+  --warning: #F59E0B;
+  --error: #EF4444;
+  --info: #3B82F6;
+
+  /* ─── Shadows (light-optimized) ─── */
+  --shadow-sm: 0 1px 3px rgba(90, 71, 99, 0.06);
+  --shadow-md: 0 4px 20px rgba(90, 71, 99, 0.08);
+  --shadow-lg: 0 8px 32px rgba(90, 71, 99, 0.12);
+  --shadow-glow: 0 0 20px rgba(180, 148, 196, 0.15);
+
+  /* ─── Font Preferences ─── */
+  --font-sans: 'Nunito Sans', 'Inter', sans-serif;
+  --font-mono: 'DM Mono', 'JetBrains Mono', monospace;
+  --font-dance: 'Dancing Script', cursive;
+
+  /* ─── Extended Romantic Palette ─── */
+  --purple-deep: #5A4763;
+  --purple-mid: #8B7394;
+  --purple-light: #A48DB2;
+  --lavender: #C4B0D0;
+  --lavender-soft: #E8DCF0;
+  --lilac: #D8CBE3;
+  --wisteria: #B094C4;
+
+  --gold: #C4A87A;
+  --gold-light: #D9CBB0;
+  --gold-glow: rgba(196, 168, 122, 0.1);
+  --rose: #C48A9A;
+  --rose-soft: rgba(196, 138, 154, 0.08);
+  --border-gold: rgba(196, 168, 122, 0.2);
+}
+
+/* ─── Body Background ─── */
+[data-theme="lavender-romance"] body {
+  background-color: var(--bg-primary);
+  background-image:
+    radial-gradient(ellipse at 20% 0%, rgba(200, 170, 220, 0.12) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 100%, rgba(180, 148, 196, 0.08) 0%, transparent 60%);
+  background-attachment: fixed;
+  line-height: 1.65;
+}
+
+/* ─── Scrollbar ─── */
+[data-theme="lavender-romance"] ::-webkit-scrollbar { width: 6px; }
+[data-theme="lavender-romance"] ::-webkit-scrollbar-track { background: transparent; }
+[data-theme="lavender-romance"] ::-webkit-scrollbar-thumb { background: var(--lavender); border-radius: 3px; }
+
+/* ─── Links ─── */
+[data-theme="lavender-romance"] a { color: var(--purple-mid); }
+[data-theme="lavender-romance"] a:hover { color: var(--purple-deep); }
+
+/* ─── Button Overrides ─── */
+[data-theme="lavender-romance"] .btn-primary {
+  background: var(--purple-mid);
+  color: #FFFFFF;
+  border-color: var(--purple-mid);
+}
+[data-theme="lavender-romance"] .btn-primary:hover {
+  background: var(--purple-deep);
+  filter: none;
+}
+[data-theme="lavender-romance"] .btn-secondary {
+  background: transparent;
+  color: var(--text-secondary);
+  border-color: var(--border-default);
+}
+[data-theme="lavender-romance"] .btn-secondary:hover {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* ─── Form Overrides ─── */
+[data-theme="lavender-romance"] .input {
+  background: var(--bg-primary);
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
+[data-theme="lavender-romance"] .input:focus {
+  border-color: var(--lavender);
+}
