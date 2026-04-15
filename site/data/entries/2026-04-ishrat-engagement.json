@@ -1,0 +1,101 @@
+[
+  {
+    "uuid": "newbrunswick-0",
+    "date": "2026-04-20",
+    "location": "New Brunswick",
+    "mood": "romantic",
+    "summary": "Arrival Day \u2014 landed EWR, Uber to Home2 Suites",
+    "text": "The morning light filtered through latticed windows, casting geometric shadows on the stone floor. We stood there for what felt like hours, though it might have been minutes. Some places slow time down \u2014 this was one of them. Ishrat reached for my hand without looking.",
+    "tags": ["new-brunswick", "romantic", "ishrat"],
+    "journal": "Ishrat\u2019s Trips",
+    "status": "draft"
+  },
+  {
+    "uuid": "newbrunswick-1",
+    "date": "2026-04-21",
+    "location": "New Brunswick",
+    "mood": "adventure",
+    "summary": "Settle In & Planning \u2014 Baithakh, The Pho House",
+    "text": "Streets narrowed into alleys that smelled of cardamom and woodsmoke. A vendor called out something we didn\u2019t understand, but the warmth in his voice needed no translation. She stopped at every stall, touching fabrics, holding ceramics up to the light. I carried the bags and watched her come alive.",
+    "tags": ["new-brunswick", "adventure", "ishrat"],
+    "journal": "Ishrat\u2019s Trips",
+    "status": "draft"
+  },
+  {
+    "uuid": "newbrunswick-2",
+    "date": "2026-04-22",
+    "location": "New Brunswick",
+    "mood": "cultural",
+    "summary": "Stephanie & Movie Premiere \u2014 \u201cMichael\u201d IMAX Screening",
+    "text": "The water stretched out before us, impossibly blue, the kind of blue that makes you question every other blue you\u2019ve ever seen. She leaned against the railing and said nothing. I said nothing. The silence between us was the fullest conversation we\u2019d had all week.",
+    "tags": ["new-brunswick", "cultural", "ishrat"],
+    "journal": "Ishrat\u2019s Trips",
+    "status": "draft"
+  },
+  {
+    "uuid": "newbrunswick-3",
+    "date": "2026-04-23",
+    "location": "New Brunswick",
+    "mood": "reflective",
+    "summary": "Shalwar Kameez Shopping \u2014 Rangreza, East Avenue, J. Junaid Jamshed",
+    "text": "We got lost. Properly, beautifully lost. No map, no signal, just the two of us following our feet through a city that rewarded wandering. Every wrong turn revealed a courtyard, a fountain, a doorway that had been standing for centuries.",
+    "tags": ["new-brunswick", "reflective", "ishrat"],
+    "journal": "Ishrat\u2019s Trips",
+    "status": "draft"
+  },
+  {
+    "uuid": "newbrunswick-4",
+    "date": "2026-04-24",
+    "location": "New Brunswick",
+    "mood": "celebration",
+    "summary": "The Engagement Party \u2014 Fresh Meadows, Queens",
+    "text": "She went in alone. I sat on the steps outside, watching pigeons and tourists and the way the light changed as clouds moved across the sky. When she came back out, her eyes were different \u2014 softer, maybe. Or just more present.",
+    "tags": ["new-brunswick", "celebration", "ishrat"],
+    "journal": "Ishrat\u2019s Trips",
+    "status": "draft"
+  },
+  {
+    "uuid": "newbrunswick-5",
+    "date": "2026-04-25",
+    "location": "New Brunswick",
+    "mood": "spiritual",
+    "summary": "Tulips & Farm Market \u2014 Holland Ridge Farms, Eastmont Orchards",
+    "text": "The table was small, the candles were real, and the menu was in a language neither of us spoke. We pointed at things and hoped. Everything that arrived was extraordinary. She laughed when the dessert came \u2014 it was enormous, ridiculous, perfect.",
+    "tags": ["new-brunswick", "spiritual", "ishrat"],
+    "journal": "Ishrat\u2019s Trips",
+    "status": "draft"
+  },
+  {
+    "uuid": "newbrunswick-6",
+    "date": "2026-04-26",
+    "location": "New Brunswick",
+    "mood": "relaxed",
+    "summary": "Delaware Day Trip \u2014 Longwood Gardens, Brandywine Valley Drive, Christiana Mall",
+    "text": "The air changed as we climbed. Cooler, thinner, carrying the scent of wild herbs and distant rain. Below us the city looked like a toy \u2014 all those lives, all those stories, reduced to specks of light. She said she could see our hotel. I pretended I could too.",
+    "tags": ["new-brunswick", "relaxed", "ishrat"],
+    "journal": "Ishrat\u2019s Trips",
+    "status": "draft"
+  },
+  {
+    "uuid": "newbrunswick-7",
+    "date": "2026-04-27",
+    "location": "New Brunswick",
+    "mood": "bittersweet",
+    "summary": "Spa Day & Farewell \u2014 Ocean Place Spa, Baba Grill Dinner",
+    "text": "Rain came from nowhere, hard and sudden. We ducked into the first open door \u2014 a tea house, ancient and warm, the kind of place where the chairs don\u2019t match and the tea is perfect. We stayed two hours. It became the best memory of the trip.",
+    "tags": ["new-brunswick", "bittersweet", "ishrat"],
+    "journal": "Ishrat\u2019s Trips",
+    "status": "draft"
+  },
+  {
+    "uuid": "newbrunswick-8",
+    "date": "2026-04-28",
+    "location": "New Brunswick",
+    "mood": "anticipation",
+    "summary": "Until We Meet Again \u2014 Farewell Brunch, Pack, Drive to EWR",
+    "text": "Walking the old walls, I told her about the version of myself I\u2019d imagined at twenty. She told me about hers. Neither of us had become those people, and that was fine. Better than fine.",
+    "tags": ["new-brunswick", "anticipation", "ishrat"],
+    "journal": "Ishrat\u2019s Trips",
+    "status": "draft"
+  }
+]

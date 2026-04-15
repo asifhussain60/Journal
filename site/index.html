@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="lavender-romance">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,10 +14,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F4D6;</text></svg>">
 
-  <!-- Design System -->
-  <link rel="stylesheet" href="css/base.css">
-  <link rel="stylesheet" href="css/themes/lavender-romance.css">
-  <link rel="stylesheet" href="css/app.css">
+  <!-- Design System — Dark Rose Theme -->
+  <link rel="stylesheet" href="css/app-dark.css">
 </head>
 <body>
 
@@ -53,61 +51,33 @@
 
     const JOURNALS = ['Travel', 'Ishrat\u2019s Trips', 'Asif\u2019s Journal'];
 
-    const loremBodies = [
-      'The morning light filtered through latticed windows, casting geometric shadows on the stone floor. We stood there for what felt like hours, though it might have been minutes. Some places slow time down \u2014 this was one of them. Ishrat reached for my hand without looking.',
-      'Streets narrowed into alleys that smelled of cardamom and woodsmoke. A vendor called out something we didn\'t understand, but the warmth in his voice needed no translation. She stopped at every stall, touching fabrics, holding ceramics up to the light. I carried the bags and watched her come alive.',
-      'The water stretched out before us, impossibly blue, the kind of blue that makes you question every other blue you\'ve ever seen. She leaned against the railing and said nothing. I said nothing. The silence between us was the fullest conversation we\'d had all week.',
-      'We got lost. Properly, beautifully lost. No map, no signal, just the two of us following our feet through a city that rewarded wandering. Every wrong turn revealed a courtyard, a fountain, a doorway that had been standing for centuries.',
-      'She went in alone. I sat on the steps outside, watching pigeons and tourists and the way the light changed as clouds moved across the sky. When she came back out, her eyes were different \u2014 softer, maybe. Or just more present.',
-      'The table was small, the candles were real, and the menu was in a language neither of us spoke. We pointed at things and hoped. Everything that arrived was extraordinary. She laughed when the dessert came \u2014 it was enormous, ridiculous, perfect.',
-      'The air changed as we climbed. Cooler, thinner, carrying the scent of wild herbs and distant rain. Below us the city looked like a toy \u2014 all those lives, all those stories, reduced to specks of light. She said she could see our hotel. I pretended I could too.',
-      'Rain came from nowhere, hard and sudden. We ducked into the first open door \u2014 a tea house, ancient and warm, the kind of place where the chairs don\'t match and the tea is perfect. We stayed two hours. It became the best memory of the trip.',
-      'Walking the old walls, I told her about the version of myself I\'d imagined at twenty. She told me about hers. Neither of us had become those people, and that was fine. Better than fine.',
-      'She was the teacher today. I was the student. She showed me how to read the shopkeeper\'s face, when to walk away, when to come back. I showed her how to let go of the thing you wanted. We were both bad at our lessons.',
-      'Last night energy \u2014 that particular sadness of knowing something beautiful is ending. Turkish coffee, thick and sweet. The fortune-teller turned her cup and said something about water and journeys. She laughed. I saved the cup.',
-      'At the gate, she squeezed my hand twice. Our signal. It means: I\'m here, I see you, this was worth it. The plane was delayed. We didn\'t mind. We sat in the plastic chairs and talked about next time.',
-      'The house smelled like childhood \u2014 cooking oil, incense, the particular warmth of a place where someone has been expecting you. Ammi appeared before we could set our bags down, already listing what she\'d made.',
-      'The old neighbourhood hadn\'t changed, but I had. Every street corner triggered a memory I\'d forgotten I was carrying. She walked beside me, quiet, letting me narrate a childhood she was seeing for the first time.',
-    ];
+    // Load trip data from manifest.json + per-trip entry files
+    async function loadTrips() {
+      const res = await fetch('data/manifest.json');
+      const manifest = await res.json();
+      const allTrips = [];
 
-    function generateEntries(location, startDate, count, summaries) {
-      const moodCycle = ['romantic', 'adventure', 'cultural', 'reflective', 'celebration', 'spiritual', 'relaxed', 'bittersweet', 'anticipation', 'playful'];
-      return Array.from({ length: count }, (_, i) => {
-        const date = new Date(startDate);
-        date.setDate(date.getDate() + i);
-        return {
-          uuid: `${location.toLowerCase().replace(/[^a-z]/g, '')}-${i}`,
-          date: date.toISOString().split('T')[0],
-          location,
-          mood: moodCycle[i % moodCycle.length],
-          summary: summaries[i] || 'Memory captured',
-          text: loremBodies[i % loremBodies.length],
-          tags: [location.toLowerCase().replace(/[^a-z]/g, '-'), moodCycle[i % moodCycle.length], 'ishrat'],
-          journal: 'Ishrat\u2019s Trips',
-          status: 'draft',
-        };
-      });
-    }
-
-    const PLACEHOLDER_TRIPS = [
-      {
-        id: 'trip-001', slug: '2026-04-ishrat-engagement', location: 'New Brunswick, NJ', country: 'USA',
-        displayDate: 'Apr 2026', tags: ['engagement', 'ishrat', 'family'],
-        itineraryPath: 'itineraries/2026-04-ishrat-engagement.html',
-        dates: { start: '2026-04-20', end: '2026-04-28', days: 9 },
-        entries: generateEntries('New Brunswick', '2026-04-20', 9, [
-          'Arrival Day — landed EWR, Uber to Home2 Suites',
-          'Settle In & Planning — Baithakh, The Pho House',
-          'Stephanie & Movie Premiere — "Michael" IMAX Screening',
-          'Shalwar Kameez Shopping — Rangreza, East Avenue, J. Junaid Jamshed',
-          'The Engagement Party — Fresh Meadows, Queens',
-          'Tulips & Farm Market — Holland Ridge Farms, Eastmont Orchards',
-          'Delaware Day Trip — Longwood Gardens, Brandywine Valley Drive, Christiana Mall',
-          'Spa Day & Farewell — Ocean Place Spa, Baba Grill Dinner',
-          'Until We Meet Again — Farewell Brunch, Pack, Drive to EWR',
-        ]),
+      if (manifest.active) {
+        const trip = manifest.active;
+        let entries = [];
+        try {
+          const r = await fetch(`data/entries/${trip.slug}.json`);
+          if (r.ok) entries = await r.json();
+        } catch (e) {}
+        allTrips.push({ ...trip, entries });
       }
-    ];
+
+      for (const trip of (manifest.archive || [])) {
+        let entries = [];
+        try {
+          const r = await fetch(`data/entries/${trip.slug}.json`);
+          if (r.ok) entries = await r.json();
+        } catch (e) {}
+        allTrips.push({ ...trip, entries });
+      }
+
+      return allTrips;
+    }
 
     const CHAPTERS = [
       { id: 'ch00', num: '00', title: 'Introduction', subtitle: 'What I Wish Babu Taught Me', status: 'locked', words: 1370, readiness: 100 },
@@ -187,41 +157,21 @@
     }
 
     // --- Active Trip Hero ---
-    function ActiveTripHero({ onNavigate }) {
-      const [activeTrip, setActiveTrip] = useState(null);
+    function ActiveTripHero({ trips, onNavigate }) {
+      const today = new Date(); today.setHours(0, 0, 0, 0);
 
-      useEffect(() => {
-        // Try manifest.json first, then fall back to finding upcoming/active trip from data
-        fetch('data/manifest.json')
-          .then(r => r.ok ? r.json() : null)
-          .then(data => {
-            if (data && data.active) { setActiveTrip(data.active); return; }
-            findTripFromData();
-          })
-          .catch(() => findTripFromData());
-      }, []);
-
-      function findTripFromData() {
-        const today = new Date(); today.setHours(0, 0, 0, 0);
-        // Find active or upcoming trip
-        for (const trip of PLACEHOLDER_TRIPS) {
-          const start = new Date(trip.dates.start + 'T00:00:00');
-          const end = new Date(trip.dates.end + 'T23:59:59');
-          if (today >= start && today <= end) {
-            setActiveTrip(trip); return;
-          }
-        }
-        for (const trip of PLACEHOLDER_TRIPS) {
-          const start = new Date(trip.dates.start + 'T00:00:00');
-          if (start > today) {
-            setActiveTrip(trip); return;
-          }
-        }
-      }
+      // Find active (in-progress) or next upcoming trip
+      const activeTrip = trips.find(trip => {
+        const start = new Date(trip.dates.start + 'T00:00:00');
+        const end = new Date(trip.dates.end + 'T23:59:59');
+        return today >= start && today <= end;
+      }) || trips.find(trip => {
+        const start = new Date(trip.dates.start + 'T00:00:00');
+        return start > today;
+      });
 
       if (!activeTrip) return null;
 
-      const today = new Date(); today.setHours(0, 0, 0, 0);
       const start = new Date(activeTrip.dates.start + 'T00:00:00');
       const end = new Date(activeTrip.dates.end + 'T23:59:59');
       const isLive = today >= start && today <= end;
@@ -252,16 +202,16 @@
     }
 
     // --- Home Dashboard ---
-    function HomePage({ onNavigate }) {
+    function HomePage({ trips, onNavigate }) {
       const totalWords = CHAPTERS.reduce((sum, ch) => sum + (ch.words || 0), 0);
       const chaptersLocked = CHAPTERS.filter(c => c.status === 'locked').length;
-      const totalEntries = PLACEHOLDER_TRIPS.reduce((sum, t) => sum + t.entries.length, 0);
+      const totalEntries = trips.reduce((sum, t) => sum + t.entries.length, 0);
 
       return (
         <div className="container fade-enter">
           <h1 className="page-title stagger-1" style={{ fontSize: '3.2rem', marginBottom: '2rem', textAlign: 'center' }}>Asif's Journal</h1>
 
-          <ActiveTripHero onNavigate={onNavigate} />
+          <ActiveTripHero trips={trips} onNavigate={onNavigate} />
 
           <div className="grid-cards stagger-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))' }}>
             <div className="glass-card module-card" onClick={() => onNavigate('memoir')}>
@@ -372,7 +322,7 @@
     }
 
     // --- DayOne Journal Module ---
-    function DayOneModule() {
+    function DayOneModule({ trips }) {
       const [subTab, setSubTab] = useState('browser');
       const [selectedTrip, setSelectedTrip] = useState(null);
       const [selectedEntry, setSelectedEntry] = useState(null);
@@ -427,7 +377,7 @@
           {/* --- Browser: Trip List --- */}
           {subTab === 'browser' && !selectedTrip && (
             <div className="grid-cards stagger-1">
-              {PLACEHOLDER_TRIPS.map(trip => (
+              {trips.map(trip => (
                 <div key={trip.id} className="glass-card module-card" onClick={() => setSelectedTrip(trip)}>
                   <div className="module-icon" style={{ background: 'linear-gradient(135deg, rgba(244,114,182,0.2), rgba(139,92,246,0.2))' }}>
                     <Icon name="fa-plane-departure" />
@@ -477,9 +427,9 @@
             <div className="stagger-1">
               <div className="glass-card" style={{ padding: '2rem', maxWidth: '600px' }}>
                 <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.3rem', marginBottom: '1.5rem' }}>Select a trip and entry to edit</h3>
-                <select className="input-field" style={{ marginBottom: '1rem' }} onChange={e => { const trip = PLACEHOLDER_TRIPS.find(t => t.id === e.target.value); setSelectedTrip(trip || null); setSelectedEntry(null); }}>
+                <select className="input-field" style={{ marginBottom: '1rem' }} onChange={e => { const trip = trips.find(t => t.id === e.target.value); setSelectedTrip(trip || null); setSelectedEntry(null); }}>
                   <option value="">Choose trip...</option>
-                  {PLACEHOLDER_TRIPS.map(t => <option key={t.id} value={t.id}>{t.location} &mdash; {t.displayDate}</option>)}
+                  {trips.map(t => <option key={t.id} value={t.id}>{t.location} &mdash; {t.displayDate}</option>)}
                 </select>
                 {selectedTrip && (
                   <select className="input-field" onChange={e => { const entry = selectedTrip.entries.find(en => en.uuid === e.target.value); if (entry) setSelectedEntry(entry); }}>
@@ -561,6 +511,9 @@
 
     function App() {
       const [page, setPage] = useState('home');
+      const [trips, setTrips] = useState([]);
+
+      useEffect(() => { loadTrips().then(setTrips); }, []);
 
       return (
         <div>
@@ -574,9 +527,9 @@
           </nav>
 
           <main className="page">
-            {page === 'home' && <HomePage onNavigate={setPage} />}
+            {page === 'home' && <HomePage trips={trips} onNavigate={setPage} />}
             {page === 'memoir' && <MemoirModule />}
-            {page === 'dayone' && <DayOneModule />}
+            {page === 'dayone' && <DayOneModule trips={trips} />}
           </main>
         </div>
       );

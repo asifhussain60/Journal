@@ -1,54 +1,82 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="lavender-romance">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Asif &amp; Ishrat — The Engagement Trip</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F4D6;</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Nunito+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Great+Vibes&family=Dancing+Script:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 
-  <!-- Journal Design System -->
-  <link rel="stylesheet" href="../css/base.css">
-  <link rel="stylesheet" href="../css/themes/lavender-romance.css">
-  <link rel="stylesheet" href="../css/itinerary.css">
+  <!-- Journal Design System — Dark Rose Theme -->
+  <link rel="stylesheet" href="../css/itinerary-dark.css">
+
+  <!-- Font Awesome for nav icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 </head>
 <body>
 
-  <nav class="site-breadcrumb">
-    <a href="../index.html">
-      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
-      Home
-    </a>
+  <!-- ═══ SITE NAV (matches home page) ═══ -->
+  <nav class="itn-nav">
+    <div class="itn-nav-inner">
+      <a href="../index.html" class="itn-nav-brand">Asif's Journal</a>
+      <div class="itn-nav-links">
+        <a href="../index.html" class="itn-nav-link">
+          <i class="fa-solid fa-house"></i> <span>Dashboard</span>
+        </a>
+        <a href="../index.html#memoir" class="itn-nav-link">
+          <i class="fa-solid fa-book-open"></i> <span>Memoir</span>
+        </a>
+        <a href="../index.html#dayone" class="itn-nav-link">
+          <i class="fa-solid fa-feather-pointed"></i> <span>DayOne</span>
+        </a>
+      </div>
+    </div>
   </nav>
 
   <!-- HERO -->
   <section class="hero itn-section">
-    <div class="overline">The Engagement Trip</div>
+    <!-- Floating decorative particles -->
+    <div class="hero-particles">
+      <span class="particle p1">&hearts;</span>
+      <span class="particle p2">&hearts;</span>
+      <span class="particle p3">&hearts;</span>
+      <span class="particle p4">&#10022;</span>
+      <span class="particle p5">&#10022;</span>
+    </div>
 
-    <div class="heart-frame">
-      <svg class="heart-border" viewBox="0 0 620 580" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="heartGrad" x1="20" y1="20" x2="600" y2="560">
-            <stop offset="0%" stop-color="#C4B0D0"/>
-            <stop offset="50%" stop-color="#B094C4"/>
-            <stop offset="100%" stop-color="#C4B0D0"/>
-          </linearGradient>
-        </defs>
-        <path d="M310 540 C310 540, 30 390, 30 215 C30 105, 125 30, 215 30 C265 30, 295 55, 310 90 C325 55, 355 30, 405 30 C495 30, 590 105, 590 215 C590 390, 310 540, 310 540Z"
-          stroke="url(#heartGrad)" stroke-width="2" fill="none" opacity="0.5"/>
-      </svg>
-      <h1>
-        <span class="hero-names">Asif &amp; Ishrat</span>
-        <span class="hero-pet-name">~ SyIsh ~</span>
-      </h1>
+    <div class="hero-badge">
+      <span class="hero-badge-dot"></span>
+      The Engagement Trip
+    </div>
+
+    <div class="hero-card">
+      <div class="hero-card-glow"></div>
+      <div class="hero-card-inner">
+        <div class="hero-ampersand-row">
+          <span class="hero-name-left">Asif</span>
+          <span class="hero-amp">&amp;</span>
+          <span class="hero-name-right">Ishrat</span>
+        </div>
+        <div class="hero-pet-name">~ SyIsh ~</div>
+        <div class="hero-card-rule"></div>
+        <div class="hero-subtitle">Nine Days of Love in New Jersey</div>
+      </div>
     </div>
 
     <p class="hero-dates">April 20th &ndash; 28th, 2026</p>
-    <div class="divider"><span class="divider-heart">&hearts;</span></div>
+
+    <div class="hero-cta-row">
+      <a href="#timeline" class="hero-cta">
+        <span>View Itinerary</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </a>
+    </div>
+
     <div class="hero-line"></div>
   </section>
 
@@ -106,7 +134,7 @@
     </section>
 
     <!-- TIMELINE -->
-    <section class="itn-section">
+    <section class="itn-section" id="timeline">
       <div class="section-header">
         <div class="overline">Nine Days Together</div>
         <h2>The Itinerary</h2>
@@ -988,10 +1016,18 @@
   <script>
     // Accordion Toggle for Timeline
     function toggleCard(card) {
-      card.classList.toggle('open');
-      const mapEl = card.querySelector('.day-map');
-      if (card.classList.contains('open') && mapEl && !mapEl._leaflet_id) {
-        setTimeout(function(){ initMap(mapEl.id); }, 100);
+      var isOpen = card.classList.contains('open');
+      // Collapse all cards first
+      document.querySelectorAll('.day-card.open').forEach(function(c) {
+        c.classList.remove('open');
+      });
+      // If it wasn't open, open it
+      if (!isOpen) {
+        card.classList.add('open');
+        var mapEl = card.querySelector('.day-map');
+        if (mapEl && !mapEl._leaflet_id) {
+          setTimeout(function(){ initMap(mapEl.id); }, 100);
+        }
       }
     }
 
