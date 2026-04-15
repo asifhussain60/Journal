@@ -178,6 +178,7 @@ body::after {
   font-size: 3.5rem;
   font-weight: 500;
   color: var(--text);
+  text-align: center;
   margin-bottom: 0.25rem;
   letter-spacing: -0.01em;
   line-height: 1.1;
@@ -187,6 +188,7 @@ body::after {
   color: var(--text-muted);
   margin-bottom: 3rem;
   font-weight: 400;
+  text-align: center;
   max-width: 600px;
 }
 
@@ -309,10 +311,14 @@ body::after {
 
 /* ═══ SUB-NAV TABS ═══ */
 .journal-tabs {
-  display: inline-flex;
+  display: flex;
+  justify-content: center;
   background: rgba(255,255,255,.08);
   padding: 0.5rem;
   border-radius: 18px;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
   border: 1px solid rgba(255,255,255,.12);
   margin-bottom: 2.5rem;
 }
@@ -971,7 +977,7 @@ select.input-field {
 .rc-btn-row {
   display: flex;
   gap: 0.35rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 .rc-pill {
   padding: 0.35rem 0.7rem;
@@ -1095,6 +1101,41 @@ select.input-field {
 .chapter-reader-container[data-content-width="narrow"] { max-width: 600px; }
 .chapter-reader-container[data-content-width="medium"] { max-width: 720px; }
 .chapter-reader-container[data-content-width="wide"]   { max-width: 900px; }
+
+/* Sidebar positions track content width to avoid overlap.
+   data-content-width is on .chapter-reader-wrap. */
+
+/* Narrow: expanded sidebars track 600px content */
+.chapter-reader-wrap[data-content-width="narrow"] .toc-sidebar:not(.collapsed) {
+  left: max(1.25rem, calc((100vw - 600px) / 2 - 264px));
+}
+.chapter-reader-wrap[data-content-width="narrow"] .notes-sidebar:not(.collapsed) {
+  right: max(1.25rem, calc((100vw - 600px) / 2 - 264px));
+}
+/* Narrow: collapsed hover buttons track 600px content */
+.chapter-reader-wrap[data-content-width="narrow"] .toc-sidebar.collapsed {
+  left: calc((100vw - 600px) / 2 - 64px);
+}
+.chapter-reader-wrap[data-content-width="narrow"] .notes-sidebar.collapsed {
+  right: calc((100vw - 600px) / 2 - 64px);
+}
+
+/* Wide: collapsed hover buttons track 900px content */
+.chapter-reader-wrap[data-content-width="wide"] .toc-sidebar.collapsed {
+  left: calc((100vw - 900px) / 2 - 64px);
+}
+.chapter-reader-wrap[data-content-width="wide"] .notes-sidebar.collapsed {
+  right: calc((100vw - 900px) / 2 - 64px);
+}
+/* Wide: if somehow expanded, fit to available gutter */
+.chapter-reader-wrap[data-content-width="wide"] .toc-sidebar:not(.collapsed) {
+  left: 0.75rem;
+  width: min(220px, calc((100vw - 900px) / 2 - 1.5rem));
+}
+.chapter-reader-wrap[data-content-width="wide"] .notes-sidebar:not(.collapsed) {
+  right: 0.75rem;
+  width: min(220px, calc((100vw - 900px) / 2 - 1.5rem));
+}
 
 /* ─── Reading Theme Overrides ─── */
 
@@ -1453,13 +1494,19 @@ select.input-field {
 .toc-sidebar {
   position: fixed;
   top: 120px;
-  left: max(1rem, calc((100vw - 720px) / 2 - 290px));
+  left: max(1.25rem, calc((100vw - 720px) / 2 - 280px));
   z-index: 90;
-  width: 250px;
+  width: 240px;
   transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .toc-sidebar.collapsed {
-  width: 40px;
+  width: auto;
+  top: 50%;
+  transform: translateY(-50%);
+  left: calc((100vw - 720px) / 2 - 64px);
+}
+.toc-sidebar.collapsed .toc-content {
+  display: none;
 }
 .toc-toggle {
   width: 32px;
@@ -1473,13 +1520,34 @@ select.input-field {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   margin-bottom: 0.5rem;
+}
+/* Collapsed: circular floating button with pulse */
+.toc-sidebar.collapsed .toc-toggle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(60,48,90,0.95), rgba(80,62,110,0.9));
+  border: 1px solid rgba(198,166,255,0.25);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 12px rgba(198,166,255,0.1);
+  margin-bottom: 0;
+  animation: floatPulse 3s ease-in-out infinite;
+}
+.toc-sidebar.collapsed .toc-toggle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.5), 0 0 18px rgba(198,166,255,0.2);
+  border-color: rgba(198,166,255,0.5);
 }
 .toc-toggle:hover {
   background: rgba(255,255,255,0.12);
   color: var(--text);
   border-color: rgba(198,166,255,0.3);
+}
+
+@keyframes floatPulse {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
 }
 .toc-content {
   background: linear-gradient(135deg, rgba(43,34,64,0.92), rgba(58,48,80,0.88));
@@ -1490,9 +1558,12 @@ select.input-field {
   padding: 1rem;
   box-shadow: 0 8px 32px rgba(0,0,0,0.3);
   animation: fadeSlideUp 0.3s ease both;
-  max-height: calc(100vh - 160px);
+  height: calc(100vh - 200px);
+  max-height: calc(100vh - 200px);
   overflow-y: auto;
   overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
 }
 .toc-content::-webkit-scrollbar { width: 4px; }
 .toc-content::-webkit-scrollbar-thumb { background: rgba(198,166,255,0.2); border-radius: 2px; }
@@ -1662,13 +1733,19 @@ select.input-field {
 .notes-sidebar {
   position: fixed;
   top: 120px;
-  right: max(1rem, calc((100vw - 720px) / 2 - 290px));
+  right: max(1.25rem, calc((100vw - 720px) / 2 - 280px));
   z-index: 90;
-  width: 250px;
+  width: 240px;
   transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .notes-sidebar.collapsed {
-  width: 40px;
+  width: auto;
+  top: 50%;
+  transform: translateY(-50%);
+  right: calc((100vw - 720px) / 2 - 64px);
+}
+.notes-sidebar.collapsed .notes-content {
+  display: none;
 }
 .notes-toggle {
   width: 32px;
@@ -1682,9 +1759,27 @@ select.input-field {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   margin-bottom: 0.5rem;
   margin-left: auto;
+}
+/* Collapsed: circular floating button with pulse */
+.notes-sidebar.collapsed .notes-toggle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(60,48,90,0.95), rgba(80,62,110,0.9));
+  border: 1px solid rgba(198,166,255,0.25);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 12px rgba(198,166,255,0.1);
+  margin-bottom: 0;
+  margin-left: 0;
+  animation: floatPulse 3s ease-in-out infinite;
+  animation-delay: 0.5s;
+}
+.notes-sidebar.collapsed .notes-toggle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.5), 0 0 18px rgba(198,166,255,0.2);
+  border-color: rgba(198,166,255,0.5);
 }
 .notes-toggle:hover {
   background: rgba(255,255,255,0.12);
@@ -1700,9 +1795,12 @@ select.input-field {
   padding: 1rem;
   box-shadow: 0 8px 32px rgba(0,0,0,0.3);
   animation: fadeSlideUp 0.3s ease both;
-  max-height: calc(100vh - 160px);
+  height: calc(100vh - 200px);
+  max-height: calc(100vh - 200px);
   overflow-y: auto;
   overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
 }
 .notes-content::-webkit-scrollbar { width: 4px; }
 .notes-content::-webkit-scrollbar-thumb { background: rgba(198,166,255,0.2); border-radius: 2px; }
@@ -2156,5 +2254,260 @@ select.input-field {
 @media (max-width: 1100px) {
   .toc-sidebar, .notes-sidebar {
     display: none;
+  }
+}
+
+/* ============================================================
+   BOOKSHELF — Upright books on wooden shelves
+   ============================================================ */
+
+.bookshelf {
+  max-width: 900px;
+  margin: 1.5rem auto 2rem;
+}
+
+/* Each shelf row holds books + a wooden plank */
+.shelf-row {
+  position: relative;
+  padding-bottom: 16px;
+  margin-bottom: 2.5rem;
+}
+.shelf-row:last-child {
+  margin-bottom: 0;
+}
+
+/* Wooden shelf plank — appears under every row */
+.shelf-wood {
+  position: absolute;
+  bottom: 0;
+  left: -3%;
+  right: -3%;
+  height: 16px;
+  background: linear-gradient(to bottom, #7a4a24, #5c3318, #4a2a12);
+  border-radius: 3px;
+  box-shadow:
+    0 5px 10px rgba(0,0,0,0.5),
+    inset 0 1px 0 rgba(255,255,255,0.06),
+    inset 0 -1px 0 rgba(0,0,0,0.3);
+  z-index: 0;
+}
+/* Wood grain highlight */
+.shelf-wood::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 5%;
+  right: 5%;
+  height: 1px;
+  background: rgba(200,160,100,0.12);
+  border-radius: 1px;
+}
+
+/* Books container — strict 4-column grid */
+.shelf-books {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  align-items: end;
+  padding: 0 1.25rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* Individual book — upright card */
+.book-spine-card {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4.2;
+  border-radius: 2px 5px 5px 2px;
+  border-left: 5px solid #3b2a4a;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0.85rem 0.65rem 0.6rem;
+  color: #ece5f4;
+  transform-origin: bottom center;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  z-index: 10;
+  box-shadow:
+    inset 2px 0 6px rgba(0,0,0,0.18),
+    inset -1px 0 1px rgba(255,255,255,0.1),
+    3px 4px 10px rgba(0,0,0,0.35);
+}
+
+.book-spine-card.clickable {
+  cursor: pointer;
+}
+
+.book-spine-card.clickable:hover {
+  transform: translateY(-12px) rotate(-1.5deg);
+  box-shadow:
+    inset 2px 0 6px rgba(0,0,0,0.18),
+    inset -1px 0 1px rgba(255,255,255,0.1),
+    6px 14px 20px rgba(0,0,0,0.45);
+  z-index: 20;
+}
+
+/* Planned books — muted, ghostly */
+.book-spine-card.planned {
+  opacity: 0.38;
+  filter: saturate(0.25) brightness(0.85);
+}
+.book-spine-card.planned:hover {
+  transform: none;
+  box-shadow:
+    inset 2px 0 6px rgba(0,0,0,0.18),
+    inset -1px 0 1px rgba(255,255,255,0.1),
+    3px 4px 10px rgba(0,0,0,0.35);
+}
+
+/* Page-edge texture on the right side */
+.book-pages-edge {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  right: 0;
+  width: 2px;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(252,250,245,0.2),
+    rgba(252,250,245,0.2) 1px,
+    rgba(200,195,185,0.1) 1px,
+    rgba(200,195,185,0.1) 2px
+  );
+  border-radius: 0 2px 2px 0;
+  pointer-events: none;
+}
+
+/* Top decorative binding line */
+.book-binding-top {
+  height: 2px;
+  width: 100%;
+  border-bottom: 2px solid rgba(255,255,255,0.1);
+  margin-bottom: 0.4rem;
+  flex-shrink: 0;
+}
+
+/* Book body — icon + title area */
+.book-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  gap: 0.2rem;
+  padding-top: 0.1rem;
+  overflow: hidden;
+}
+
+/* Chapter label — e.g. "Chapter 01" */
+.book-chapter-label {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  opacity: 0.6;
+  margin-bottom: 0.1rem;
+}
+
+/* Large thematic cover icon */
+.book-cover-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 1rem 0;
+  color: rgba(255,255,255,0.15);
+  flex-shrink: 0;
+}
+
+/* Chapter title — big, prominent serif */
+.book-title {
+  font-family: 'Playfair Display', 'Georgia', serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1.15;
+  margin: 0;
+  color: #ece5f4;
+  word-break: break-word;
+}
+
+/* Subtitle under title */
+.book-subtitle {
+  font-size: 1.1rem;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.25;
+  color: rgba(236,229,244,0.4);
+  margin: 0.2rem 0 0;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Bottom binding — word count + status */
+.book-binding-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  padding-top: 0.35rem;
+  border-top: 2px solid rgba(255,255,255,0.08);
+}
+
+/* (word count + status removed — bottom binding is decorative only) */
+
+/* Active chapter — subtle glow */
+.book-spine-card.active-chapter {
+  box-shadow:
+    inset 2px 0 6px rgba(0,0,0,0.18),
+    inset -1px 0 1px rgba(255,255,255,0.1),
+    3px 4px 10px rgba(0,0,0,0.35),
+    0 0 14px rgba(200,80,80,0.15);
+}
+
+/* ---- Responsive — bookshelf ---- */
+@media (max-width: 768px) {
+  .shelf-books {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.6rem;
+    padding: 0 0.75rem;
+  }
+  .book-title {
+    font-size: 1.2rem;
+  }
+  .book-cover-icon {
+    padding: 0.6rem 0;
+  }
+  .shelf-wood {
+    left: -2%;
+    right: -2%;
+  }
+}
+
+@media (max-width: 480px) {
+  .shelf-books {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+  .book-spine-card {
+    padding: 0.6rem 0.4rem 0.5rem;
+  }
+  .book-title {
+    font-size: 1.1rem;
+  }
+  .book-chapter-label {
+    font-size: 1.1rem;
+  }
+  .book-subtitle {
+    display: none;
+  }
+  .bookshelf {
+    margin: 1rem auto;
   }
 }

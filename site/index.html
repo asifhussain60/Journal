@@ -12,6 +12,7 @@
 
   <!-- Font Awesome 6.5.1 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
+  <link href="https://fonts.cdnfonts.com/css/opendyslexic" rel="stylesheet">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F4D6;</text></svg>">
 
   <!-- Design System — Dark Rose Theme -->
@@ -231,7 +232,6 @@
     function MemoirModule({ onOpenChapter }) {
       const [tab, setTab] = useState('chapters');
       const [searchQuery, setSearchQuery] = useState('');
-
       const filteredQuotes = QUOTES_SAMPLE.filter(q =>
         q.text.toLowerCase().includes(searchQuery.toLowerCase()) ||
         q.source.toLowerCase().includes(searchQuery.toLowerCase())
@@ -248,31 +248,58 @@
             <button className={`journal-tab ${tab === 'quotes' ? 'active' : ''}`} onClick={() => setTab('quotes')}><Icon name="fa-quote-left" /> Quotes</button>
           </div>
 
-          {tab === 'chapters' && (
-            <div className="grid-cards stagger-1">
-              {CHAPTERS.map(ch => (
-                <div key={ch.id} className={`glass-card chapter-card ${ch.file ? 'clickable' : ''}`} onClick={() => ch.file && onOpenChapter && onOpenChapter(ch)}>
-                  <div>
-                    <div className="chapter-header">
-                      <span className="chapter-num">{ch.num}</span>
-                      <span className={`badge badge-${ch.status}`}>{ch.status}</span>
+          {tab === 'chapters' && (() => {
+            const bookMeta = {
+              ch00: { bg: '#5e3d7a', border: '#4a2d64', icon: 'fa-door-open' },
+              ch01: { bg: '#6e4580', border: '#5a3568', icon: 'fa-person' },
+              ch02: { bg: '#4a4280', border: '#38327a', icon: 'fa-heart' },
+              ch03: { bg: '#7a5085', border: '#643e6e', icon: 'fa-ring' },
+              ch04: { bg: '#3f4068', border: '#2c2c4f', icon: 'fa-mosque' },
+              ch05: { bg: '#58335b', border: '#442347', icon: 'fa-graduation-cap' },
+              ch06: { bg: '#363554', border: '#24233c', icon: 'fa-baby' },
+              ch07: { bg: '#60425c', border: '#4a3047', icon: 'fa-hands-holding' },
+            };
+            const rows = [];
+            for (let i = 0; i < CHAPTERS.length; i += 4) {
+              rows.push(CHAPTERS.slice(i, i + 4));
+            }
+            return (
+              <div className="bookshelf stagger-1">
+                {rows.map((row, ri) => (
+                  <div key={ri} className="shelf-row">
+                    <div className="shelf-books">
+                      {row.map(ch => {
+                        const meta = bookMeta[ch.id] || { bg: '#4d3a62', border: '#3b2a4a', icon: 'fa-book' };
+                        const isClickable = !!ch.file;
+                        const isPlanned = ch.status === 'planned';
+                        return (
+                          <div
+                            key={ch.id}
+                            className={`book-spine-card ${isClickable ? 'clickable' : ''} ${isPlanned ? 'planned' : ''} ${ch.status === 'active' ? 'active-chapter' : ''}`}
+                            style={{ backgroundColor: meta.bg, borderLeftColor: meta.border }}
+                            onClick={() => isClickable && onOpenChapter && onOpenChapter(ch)}
+                          >
+                            <div className="book-binding-top"></div>
+                            <div className="book-body">
+                              <span className="book-chapter-label">Chapter {ch.num}</span>
+                              <div className="book-cover-icon">
+                                <Icon name={meta.icon} size="4.4em" />
+                              </div>
+                              <h3 className="book-title">{ch.title}</h3>
+                              <p className="book-subtitle">{ch.subtitle}</p>
+                            </div>
+                            <div className="book-binding-bottom"></div>
+                            <div className="book-pages-edge"></div>
+                          </div>
+                        );
+                      })}
                     </div>
-                    <h3 className="chapter-title">{ch.title}</h3>
-                    <p className="chapter-subtitle">{ch.subtitle}</p>
+                    <div className="shelf-wood"></div>
                   </div>
-                  <div>
-                    <div className="progress-track">
-                      <div className={`progress-bar ${ch.status}`} style={{ width: `${ch.readiness}%` }}></div>
-                    </div>
-                    <div className="chapter-footer">
-                      <span>{ch.words.toLocaleString()} words</span>
-                      <span>{ch.readiness}% ready</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            );
+          })()}
 
           {tab === 'incidents' && (
             <div className="grid-cards stagger-1">
@@ -553,7 +580,7 @@
         try { const v = parseFloat(localStorage.getItem('rp_fontScale')); return isNaN(v) ? 1 : v; } catch(e) { return 1; }
       });
       const [fontFamily, setFontFamily] = useState(() => {
-        try { return localStorage.getItem('rp_fontFamily') || 'lato'; } catch(e) { return 'lato'; }
+        try { const v = localStorage.getItem('rp_fontFamily'); return (v && v !== 'garamond') ? v : 'lato'; } catch(e) { return 'lato'; }
       });
       const [readingTheme, setReadingTheme] = useState(() => {
         try { return localStorage.getItem('rp_readingTheme') || 'dark'; } catch(e) { return 'dark'; }
@@ -591,10 +618,10 @@
       const FONT_MAP = {
         lato: "'Lato', 'Inter', sans-serif",
         inter: "'Inter', 'Lato', sans-serif",
-        garamond: "'Cormorant Garamond', 'Georgia', serif",
-        georgia: "'Georgia', 'Garamond', serif"
+        georgia: "'Georgia', 'Garamond', serif",
+        dyslexic: "'OpenDyslexic', 'Comic Sans MS', sans-serif"
       };
-      const FONT_LABELS = { lato: 'Lato', inter: 'Inter', garamond: 'Garamond', georgia: 'Georgia' };
+      const FONT_LABELS = { lato: 'Lato', inter: 'Inter', georgia: 'Georgia', dyslexic: 'Dyslexic' };
       const SPACING_OPTS = [{ val: 1.6, label: 'Tight' }, { val: 1.75, label: 'Normal' }, { val: 1.85, label: 'Relaxed' }, { val: 2.1, label: 'Airy' }];
       const WIDTH_OPTS = [{ val: 'narrow', label: 'Narrow', icon: 'fa-compress' }, { val: 'medium', label: 'Medium', icon: 'fa-grip-lines' }, { val: 'wide', label: 'Wide', icon: 'fa-expand' }];
 
@@ -623,6 +650,17 @@
       useEffect(() => { try { localStorage.setItem('rp_readingTheme', readingTheme); } catch(e) {} }, [readingTheme]);
       useEffect(() => { try { localStorage.setItem('rp_lineSpacing', lineSpacing); } catch(e) {} }, [lineSpacing]);
       useEffect(() => { try { localStorage.setItem('rp_contentWidth', contentWidth); } catch(e) {} }, [contentWidth]);
+
+      // Auto-collapse sidebars in wide mode, re-expand in narrow/medium
+      useEffect(() => {
+        if (contentWidth === 'wide') {
+          setTocOpen(false);
+          setNotesOpen(false);
+        } else {
+          setTocOpen(true);
+          setNotesOpen(true);
+        }
+      }, [contentWidth]);
 
       // Load notes: try JSON file first, fallback to localStorage
       useEffect(() => {
@@ -783,7 +821,7 @@
       }
 
       return (
-        <div className="chapter-reader-wrap">
+        <div className="chapter-reader-wrap" data-content-width={contentWidth}>
 
           {/* ═══ Floating Side TOC ═══ */}
           {!loading && content && sections.length > 0 && (
