@@ -1,6 +1,6 @@
 # Journal Workflow v2 — File-First Model
-# AUTHORITATIVE: This file completely replaces SKILL.md Sections 1-10.
-# When SKILL.md conflicts with this file, THIS FILE WINS.
+# AUTHORITATIVE: This file completely replaces skill.md Sections 1-10.
+# When skill.md conflicts with this file, THIS FILE WINS.
 # Last updated: April 11, 2026
 
 ============================================================

@@ -66,7 +66,7 @@ Today was architecture day — not for the trip itself, but for how we'll rememb
 
 Then the budget panel — YNAB Holiday transactions pulled live into the itinerary sidebar. Entertainment, flights, transport, travel insurance. Real numbers, not estimates. DM Mono font so the dollar signs actually line up. Ishrat will love that I'm tracking this. Or she'll roll her eyes. Either way, the numbers are honest.
 
-The bigger work was invisible: restructuring the entire journal repo. Deleted the ChatGPT-era artifacts that were cluttering the place — old GPT scratchpads, disconnected dashboards, duplicate reference files. Consolidated everything into a single reference/ folder. Created FRAMEWORK.md — the governing document that defines how the journal skill, trip-log, and trip-planner talk to each other. Three skills, clear boundaries, one shared contract (trip.yaml).
+The bigger work was invisible: restructuring the entire journal repo. Deleted the ChatGPT-era artifacts that were cluttering the place — old GPT scratchpads, disconnected dashboards, duplicate reference files. Consolidated everything into a single reference/ folder. Created framework.md — the governing document that defines how the journal skill, trip-log, and trip-planner talk to each other. Three skills, clear boundaries, one shared contract (trip.yaml).
 
 This is the first entry created through the trip-log → DayOne pipeline. If this works, every day of the trip gets logged in memoir voice, tagged automatically, and fed back into the chapter engine for "What I Wish Babu Taught Me."
 

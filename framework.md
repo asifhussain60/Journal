@@ -27,7 +27,7 @@ This document governs the three skills that operate on this repository: **journa
 │      journal/                                        │
 │        day-01.md .. day-NN.md                        │
 │  skills-staging/    ← skills under development       │
-│  FRAMEWORK.md       ← this file                      │
+│  framework.md       ← this file                      │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -179,7 +179,7 @@ Trip-log creates DayOne entries tagged with trip metadata from `trip.yaml`. Jour
 
 ```
 journal/
-├── FRAMEWORK.md              ← this file
+├── framework.md              ← this file
 ├── .gitignore
 ├── .mcp.json                 ← YNAB MCP config (gitignored)
 ├── chapters/
@@ -221,9 +221,9 @@ journal/
 │           ├── day-01.md .. day-09.md
 └── skills-staging/
     └── trip-planner/
-        ├── SKILL.md
-        ├── YNAB-SETUP.md
-        ├── YNAB-VSCODE-SETUP.md
+        ├── skill.md
+        ├── ynab-setup.md
+        ├── ynab-vscode-setup.md
         └── references/
             ├── travel-knowledge-base.md
             ├── itinerary-design-guide.md

@@ -121,7 +121,7 @@ LOCATION 1 — Journal/ (user's persistent folder)
 LOCATION 2 — .claude/skills/journal/ (skill config, read-only)
   Purpose: Agent instructions, references, scripts
   Contains:
-    - SKILL.md
+    - skill.md
     - references/           (7 files: voice, craft, arc, bio, etc.)
     - scripts/              (4 files: delta, snapshot, etc.)
 
