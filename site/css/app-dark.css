@@ -371,7 +371,7 @@ body::after {
 /* ═══ TRIP HERO ═══ */
 .trip-hero {
   position: relative;
-  padding: 4rem 3rem;
+  padding: 2.5rem 3rem;
   border-radius: 24px;
   overflow: hidden;
   margin: 0 auto 3rem auto;
@@ -413,22 +413,14 @@ body::after {
   font-size: 0.7rem;
   font-weight: 500;
   color: var(--lavender);
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 .hero-names {
   font-family: var(--font-script);
   color: var(--mauve);
   font-size: 5rem;
   line-height: 1.1;
-  margin-bottom: 0.25rem;
-}
-.hero-pet-name {
-  font-family: var(--font-script);
-  color: var(--rose);
-  font-size: 2.2rem;
-  display: block;
-  margin-bottom: 2rem;
-  font-weight: 400;
+  margin-bottom: 0.75rem;
 }
 .hero-for {
   display: block;
@@ -445,13 +437,13 @@ body::after {
   font-style: italic;
   font-size: 1.2rem;
   color: var(--text-muted);
-  margin-bottom: 2.5rem;
+  margin-bottom: 1rem;
 }
 .hero-line {
   width: 80px;
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--gold), transparent);
-  margin: 0 auto 2.5rem auto;
+  margin: 0 auto 1rem auto;
 }
 
 .trip-hero-status {
@@ -776,9 +768,6 @@ select.input-field {
   .hero-names {
     font-size: 3.5rem;
   }
-  .hero-pet-name {
-    font-size: 1.8rem;
-  }
   .hero-for {
     font-size: 1.6rem;
   }
@@ -791,9 +780,6 @@ select.input-field {
   }
   .hero-names {
     font-size: 2.8rem;
-  }
-  .hero-pet-name {
-    font-size: 1.5rem;
   }
   .hero-for {
     font-size: 1.3rem;

@@ -152,9 +152,9 @@ body::after{
 
 .hero{
   position:relative;
-  min-height:100vh;
-  padding:7rem 1.25rem 5rem;
-  margin-bottom:2.5rem;
+  min-height:auto;
+  padding:2.2rem 1.25rem 1rem;
+  margin-bottom:1.5rem;
   display:grid;
   place-items:center;
   text-align:center;
@@ -203,7 +203,7 @@ body::after{
   display:inline-flex;
   align-items:center;
   gap:.55rem;
-  padding:.55rem .95rem;
+  padding:.45rem .95rem;
   border-radius:999px;
   color:#fff9fd;
   background:rgba(255,255,255,.12);
@@ -212,7 +212,7 @@ body::after{
   font-size:.85rem;
   letter-spacing:.16em;
   text-transform:uppercase;
-  margin-bottom:1.2rem;
+  margin-bottom:.3rem;
 }
 .hero-badge-dot{
   width:.55rem;height:.55rem;border-radius:50%;
@@ -248,7 +248,7 @@ body::after{
   position:relative;
   z-index:1;
   border-radius:35px;
-  padding:clamp(2.2rem,5vw,4rem);
+  padding:clamp(.8rem,1.6vw,1.3rem);
   background:
     linear-gradient(180deg, rgba(255,255,255,.20), rgba(255,255,255,.12)),
     linear-gradient(135deg, rgba(255,176,204,.08), rgba(198,166,255,.05));
@@ -259,53 +259,53 @@ body::after{
   display:flex;
   align-items:flex-end;
   justify-content:center;
-  gap:clamp(.8rem,3vw,2rem);
+  gap:clamp(.6rem,2vw,1.4rem);
   flex-wrap:wrap;
 }
 .hero-name-left,.hero-name-right{
   font-family:"Cormorant Garamond",serif;
-  font-size:clamp(2.8rem,7vw,6.2rem);
-  line-height:.95;
+  font-size:clamp(2.4rem,5.5vw,5rem);
+  line-height:.92;
   letter-spacing:.03em;
 }
 .hero-amp{
   font-family:"Great Vibes",cursive;
-  font-size:clamp(3rem,8vw,6.5rem);
+  font-size:clamp(2.6rem,6.5vw,5.2rem);
   line-height:1;
   color:var(--rose-2);
-  transform:translateY(.35rem);
+  transform:translateY(.25rem);
 }
 .hero-pet-name{
-  margin-top:.8rem;
+  margin-top:.3rem;
   font-family:"Dancing Script",cursive;
-  font-size:clamp(1.6rem,3vw,2.4rem);
+  font-size:clamp(1.4rem,2.5vw,2rem);
   color:var(--blush);
 }
 .hero-card-rule{
   width:min(240px,48%);
   height:1px;
-  margin:1.3rem auto 1rem;
+  margin:.3rem auto .25rem;
   background:linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent);
 }
 .hero-subtitle{
   font-family:"Cormorant Garamond",serif;
-  font-size:clamp(1.3rem,2.3vw,2rem);
+  font-size:clamp(1.15rem,2vw,1.7rem);
   color:#f5e4ee;
   letter-spacing:.04em;
 }
 .hero-dates{
-  margin:1.35rem 0 0;
-  font-size:1rem;
+  margin:.3rem 0 0;
+  font-size:.92rem;
   letter-spacing:.14em;
   text-transform:uppercase;
   color:var(--muted);
 }
-.hero-cta-row{margin-top:1.75rem}
+.hero-cta-row{margin-top:.4rem}
 .hero-cta{
   display:inline-flex;
   align-items:center;
   gap:.7rem;
-  padding:.95rem 1.25rem;
+  padding:.7rem 1.15rem;
   border-radius:999px;
   text-decoration:none;
   color:#fffdfd;
@@ -321,7 +321,7 @@ body::after{
 .hero-line{
   width:min(220px,42vw);
   height:2px;
-  margin:2rem auto 0;
+  margin:.4rem auto 0;
   background:linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent);
   opacity:.7;
 }
@@ -501,19 +501,11 @@ body::after{
   gap:1rem;
 }
 .timeline::before{
-  content:"";
-  position:absolute;
-  left:1.2rem;
-  top:1rem;
-  bottom:1rem;
-  width:2px;
-  border-radius:999px;
-  background:linear-gradient(180deg, rgba(255,176,204,.40), rgba(198,166,255,.10), rgba(255,176,204,.40));
-  opacity:.7;
+  display:none;
 }
 .day-card{
   position:relative;
-  margin-left:1.4rem;
+  margin-left:0;
   border-radius:28px;
   background:linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,.09));
   border:1px solid rgba(255,255,255,.20);
@@ -521,13 +513,7 @@ body::after{
   transition:transform .3s ease, box-shadow .3s ease, border-color .3s ease;
 }
 .day-card::before{
-  content:"";
-  position:absolute;
-  left:-1.15rem;
-  top:1.5rem;
-  width:14px;height:14px;border-radius:50%;
-  background:linear-gradient(135deg, var(--gold), var(--rose));
-  box-shadow:0 0 0 7px rgba(255,176,204,.10), 0 0 14px rgba(255,176,204,.18);
+  display:none;
 }
 .day-card:hover{
   transform:translateY(-4px);
@@ -1073,7 +1059,8 @@ body::after{
 @media (max-width:860px){
   .hero{
     min-height:auto;
-    padding-top:6rem;
+    padding-top:2.2rem;
+    padding-bottom:.8rem;
   }
   .flight-card{
     grid-template-columns:1fr;
@@ -1091,9 +1078,7 @@ body::after{
   .itn-nav-links{display:none}
   .love-strip{grid-template-columns:1fr}
   .itn-section{padding:1rem}
-  .timeline::before{left:.65rem}
-  .day-card{margin-left:.85rem}
-  .day-card::before{left:-.72rem}
+  .day-card{margin-left:0}
   .day-title{font-size:1.55rem}
   .event{
     grid-template-columns:1fr;

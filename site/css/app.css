@@ -7,24 +7,50 @@
 
 /* ─── Glass Tokens ─── */
 :root {
-  --bg-mesh-1: rgba(180, 140, 210, 0.45);
-  --bg-mesh-2: rgba(150, 110, 180, 0.35);
-  --bg-mesh-3: rgba(220, 160, 180, 0.3);
-  --bg-mesh-4: rgba(120, 180, 200, 0.2);
+  /* Mesh blobs — soft and airy, NOT dark */
+  --bg-mesh-1: rgba(200, 170, 225, 0.18);
+  --bg-mesh-2: rgba(180, 150, 210, 0.14);
+  --bg-mesh-3: rgba(225, 180, 200, 0.12);
+  --bg-mesh-4: rgba(170, 200, 220, 0.10);
 
-  --glass-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.4) 100%);
-  --glass-bg-hover: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.6) 100%);
-  --glass-border: rgba(255, 255, 255, 0.7);
+  /* Glass surfaces — high white for light theme */
+  --glass-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.55) 100%);
+  --glass-bg-hover: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.75) 100%);
+  --glass-border: rgba(255, 255, 255, 0.75);
   --glass-border-light: rgba(255, 255, 255, 0.95);
-  --glass-shadow: 0 10px 40px rgba(74, 51, 88, 0.08);
-  --glass-shadow-hover: 0 16px 50px rgba(74, 51, 88, 0.15);
+  --glass-shadow: 0 10px 40px rgba(74, 51, 88, 0.06);
+  --glass-shadow-hover: 0 16px 50px rgba(74, 51, 88, 0.10);
+
+  /* ─── Light theme overrides (prevent base.css dark defaults) ─── */
+  --bg-primary: #FAF7FC;
+  --bg-secondary: #F5F0FA;
+  --bg-tertiary: #EDE6F4;
+  --bg-card: rgba(255, 255, 255, 0.85);
+  --bg-card-hover: rgba(255, 255, 255, 0.95);
+
+  --text-primary: #3D2E4A;
+  --text-secondary: #7E6B8A;
+  --text-muted: #A396AC;
+
+  --border-default: rgba(180, 150, 196, 0.2);
+  --border-subtle: rgba(180, 150, 196, 0.1);
+
+  /* Romantic palette tokens (used in JSX) */
+  --purple-deep: #5A4763;
+  --purple-mid: #8B7394;
+  --purple-light: #A48DB2;
+  --lavender: #C4B0D0;
+  --lavender-soft: #E8DCF0;
+  --wisteria: #B094C4;
+  --gold: #C4A87A;
+  --rose: #C48A9A;
 
   /* Backward-compat aliases for JSX inline styles */
-  --bg-main: var(--bg-primary, #EFE9F5);
-  --text-main: var(--text-primary, #2D1E3A);
+  --bg-main: #FAF7FC;
+  --text-main: #3D2E4A;
   --text-soft: #9A8CA8;
 
-  /* Keep original Glass 2.0 accent (vibrant purple) */
+  /* Accent — vibrant purple for interactive elements */
   --accent: #8B5CF6;
 
   /* App-page font stack (matches Google Fonts loaded in HTML) */
@@ -40,6 +66,9 @@
 body {
   font-family: var(--font-sans);
   background-color: var(--bg-main);
+  background-image:
+    radial-gradient(ellipse at 20% 0%, rgba(200, 170, 220, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 100%, rgba(196, 168, 122, 0.05) 0%, transparent 60%);
   color: var(--text-main);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -56,11 +85,12 @@ body {
   height: 100vh;
   z-index: -1;
   background:
-    radial-gradient(circle at 10% 20%, var(--bg-mesh-1), transparent 50%),
-    radial-gradient(circle at 90% 80%, var(--bg-mesh-2), transparent 50%),
-    radial-gradient(circle at 50% 50%, var(--bg-mesh-3), transparent 60%),
-    radial-gradient(circle at 80% 10%, var(--bg-mesh-4), transparent 50%);
-  filter: blur(60px);
+    radial-gradient(ellipse 60% 50% at 10% 20%, var(--bg-mesh-1), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 90% 80%, var(--bg-mesh-2), transparent 55%),
+    radial-gradient(ellipse 70% 60% at 50% 50%, var(--bg-mesh-3), transparent 65%),
+    radial-gradient(ellipse 40% 40% at 80% 10%, var(--bg-mesh-4), transparent 55%);
+  filter: blur(80px);
+  opacity: 0.85;
   animation: mesh-shift 25s ease-in-out infinite alternate;
 }
 @keyframes mesh-shift {
@@ -162,11 +192,13 @@ body {
   left: 50%;
   transform: translateX(-50%);
   z-index: 100;
-  background: rgba(255, 255, 255, 0.7);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.6) 100%);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 8px 32px rgba(74, 51, 88, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow:
+    0 4px 24px rgba(74, 51, 88, 0.06),
+    inset 0 1px 0 rgba(255,255,255,0.6);
   border-radius: 999px;
   padding: 0.5rem 1rem;
   display: flex;
@@ -296,7 +328,7 @@ body {
   color: var(--accent);
   margin-bottom: 1.5rem;
   border: 1px solid white;
-  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.15);
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.1);
 }
 .module-title {
   font-family: var(--font-serif);
