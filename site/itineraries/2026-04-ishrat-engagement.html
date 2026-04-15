@@ -893,9 +893,55 @@
     }
   }
 
+  /* ═══ BREADCRUMB ═══ */
+  .site-breadcrumb {
+    position: absolute;
+    top: 1.5rem;
+    left: 1.5rem;
+    z-index: 100;
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+  .site-breadcrumb a {
+    color: var(--text-soft);
+    text-decoration: none;
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .site-breadcrumb a:hover {
+    color: var(--purple-deep);
+  }
+  .site-breadcrumb svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  @media (max-width: 600px) {
+    .site-breadcrumb {
+      top: 1rem;
+      left: 1rem;
+    }
+  }
+
 </style>
 </head>
 <body>
+
+  <nav class="site-breadcrumb">
+    <a href="../index.html">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      Home
+    </a>
+  </nav>
 
   <!-- HERO -->
   <section class="hero">
