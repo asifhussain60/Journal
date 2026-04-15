@@ -279,7 +279,7 @@
                         return (
                           <div
                             key={ch.id}
-                            className={`book-spine-card ${isClickable ? 'clickable' : ''} ${isPlanned ? 'planned' : ''} ${ch.status === 'active' ? 'active-chapter' : ''}`}
+                            className={`book-spine-card ${isPlanned ? 'has-lock planned' : ''} ${isClickable ? 'clickable' : ''} ${ch.status === 'active' ? 'active-chapter' : ''}`}
                             style={{ backgroundColor: meta.bg, borderLeftColor: meta.border }}
                             onClick={() => isClickable && onOpenChapter && onOpenChapter(ch)}
                           >
@@ -292,6 +292,11 @@
                               <h3 className="book-title">{ch.title}</h3>
                               <p className="book-subtitle">{ch.subtitle}</p>
                             </div>
+                            {isPlanned && (
+                              <div className="book-lock-emboss">
+                                <Icon name="fa-lock" size="3.5em" />
+                              </div>
+                            )}
                             <div className="book-binding-bottom"></div>
                             <div className="book-pages-edge"></div>
                           </div>
