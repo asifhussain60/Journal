@@ -42,9 +42,7 @@
   <script type="text/babel">
     const { useState, useEffect, useRef, useCallback, useMemo } = React;
 
-    // =================================================================
     // DATA LAYER
-    // =================================================================
 
     const MOODS = ['romantic', 'adventure', 'cultural', 'relaxed', 'celebration', 'bittersweet', 'anticipation', 'reflective', 'spiritual', 'playful'];
 
@@ -121,9 +119,7 @@
       { title: 'Standing in the rain outside the mosque at 3am', chapter: '04', status: 'BANKED' },
     ];
 
-    // =================================================================
     // UTILITIES
-    // =================================================================
 
     function Icon({ name, size = '1em', color = 'inherit' }) {
       return <i className={`fa-solid ${name}`} style={{ fontSize: size, color }}></i>;
@@ -137,9 +133,7 @@
       return new Date().toISOString().slice(0, 10);
     }
 
-    // =================================================================
     // DESIGN SYSTEM — ATOMS
-    // =================================================================
 
     function Button({ variant = 'primary', size = 'md', loading = false, disabled, icon, iconRight, children, className = '', type = 'button', ...rest }) {
       const cls = ['btn', `btn-${variant}`, `btn-size-${size}`, loading && 'is-loading', className].filter(Boolean).join(' ');
@@ -185,9 +179,7 @@
       return <Tag className={cls} {...rest}>{children}</Tag>;
     }
 
-    // =================================================================
     // DESIGN SYSTEM — FORM ATOMS + FormField
-    // =================================================================
 
     function Input({ className = '', ...rest }) {
       return <input className={['input-field', className].filter(Boolean).join(' ')} {...rest} />;
@@ -259,9 +251,7 @@
       );
     }
 
-    // =================================================================
     // DESIGN SYSTEM — MOLECULES
-    // =================================================================
 
     const CARD_VARIANT_CLASS = {
       flat:     'card-flat',
@@ -385,9 +375,7 @@
       );
     }
 
-    // =================================================================
     // DESIGN SYSTEM — ORGANISMS
-    // =================================================================
 
     const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
@@ -538,9 +526,7 @@
       return ctx;
     }
 
-    // =================================================================
     // DESIGN SYSTEM — STATE HOOKS
-    // =================================================================
 
     function useFetch(url, options) {
       const [state, setState] = useState({ data: null, loading: true, error: null });
@@ -594,9 +580,7 @@
       return state;
     }
 
-    // =================================================================
     // DESIGN SYSTEM — COMMAND PALETTE
-    // =================================================================
 
     function CommandPalette({ open, onClose, commands = [] }) {
       const [query, setQuery] = useState('');
@@ -726,11 +710,8 @@
       return { open, setOpen };
     }
 
-    // =================================================================
     // COMPONENTS
-    // =================================================================
 
-    // --- DayOne Code Preview ---
     function DayOnePreview({ entry, selectedJournal }) {
       const { show: toast } = useToast();
       const md = `# ${entry.location} \u2014 ${formatDate(entry.date)}\n\n**Mood:** ${entry.mood}\n**Journal:** ${selectedJournal || entry.journal}\n**Tags:** ${entry.tags.join(', ')}\n\n${entry.text}\n\n*[Refined with Voice DNA]*`;
@@ -757,11 +738,8 @@
       );
     }
 
-    // --- Active Trip Hero ---
     function ActiveTripHero({ trips, onNavigate }) {
       const today = new Date(); today.setHours(0, 0, 0, 0);
-
-      // Find active (in-progress) or next upcoming trip
       const activeTrip = trips.find(trip => {
         const start = new Date(trip.dates.start + 'T00:00:00');
         const end = new Date(trip.dates.end + 'T23:59:59');
@@ -807,7 +785,6 @@
       );
     }
 
-    // --- Home Dashboard ---
     function HomePage({ trips, onNavigate }) {
       const totalWords = CHAPTERS.reduce((sum, ch) => sum + (ch.words || 0), 0);
       const chaptersLocked = CHAPTERS.filter(c => c.status === 'locked').length;
@@ -839,7 +816,6 @@
       );
     }
 
-    // --- Memoir Module ---
     function MemoirModule({ onOpenChapter }) {
       const [tab, setTab] = useState('chapters');
       const [searchQuery, setSearchQuery] = useState('');
@@ -884,8 +860,7 @@
                         const isClickable = !!ch.file;
                         const isPlanned = ch.status === 'planned';
                         return (
-                          <div
-                            key={ch.id}
+                          <div key={ch.id}
                             className={`book-spine-card ${isPlanned ? 'has-lock planned' : ''} ${isClickable ? 'clickable' : ''} ${ch.status === 'active' ? 'active-chapter' : ''}`}
                             style={{ backgroundColor: meta.bg, borderLeftColor: meta.border }}
                             role={isClickable ? 'button' : undefined}
@@ -893,27 +868,15 @@
                             aria-label={isClickable ? `Open Chapter ${ch.num}: ${ch.title}` : `Chapter ${ch.num}: ${ch.title} (${ch.status})`}
                             aria-disabled={!isClickable || undefined}
                             onClick={() => isClickable && onOpenChapter && onOpenChapter(ch)}
-                            onKeyDown={e => {
-                              if (isClickable && (e.key === 'Enter' || e.key === ' ')) {
-                                e.preventDefault();
-                                onOpenChapter && onOpenChapter(ch);
-                              }
-                            }}
-                          >
+                            onKeyDown={e => { if (isClickable && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onOpenChapter && onOpenChapter(ch); } }}>
                             <div className="book-binding-top"></div>
                             <div className="book-body">
                               <span className="book-chapter-label">Chapter {ch.num}</span>
-                              <div className="book-cover-icon">
-                                <Icon name={meta.icon} size="4.4em" />
-                              </div>
+                              <div className="book-cover-icon"><Icon name={meta.icon} size="4.4em" /></div>
                               <h3 className="book-title">{ch.title}</h3>
                               <p className="book-subtitle">{ch.subtitle}</p>
                             </div>
-                            {isPlanned && (
-                              <div className="book-lock-emboss">
-                                <Icon name="fa-lock" size="3.5em" />
-                              </div>
-                            )}
+                            {isPlanned && <div className="book-lock-emboss"><Icon name="fa-lock" size="3.5em" /></div>}
                             <div className="book-binding-bottom"></div>
                             <div className="book-pages-edge"></div>
                           </div>
@@ -948,12 +911,7 @@
           {tab === 'quotes' && (
             <div className="stagger-1">
               <FormField label="Search quotes">
-                <Input
-                  placeholder="Search quotes..."
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  style={{ maxWidth: '400px' }}
-                />
+                <Input placeholder="Search quotes..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} style={{ maxWidth: '400px' }} />
               </FormField>
               <div className="grid-cards">
                 {filteredQuotes.map((q, i) => (
@@ -973,19 +931,15 @@
       );
     }
 
-    // --- DayOne Journal Module ---
     function DayOneModule({ trips }) {
       const [subTab, setSubTab] = useState('browser');
       const [selectedTrip, setSelectedTrip] = useState(null);
       const [selectedEntry, setSelectedEntry] = useState(null);
-
-      // New Entry state
       const [newMood, setNewMood] = useState('romantic');
       const [newJournal, setNewJournal] = useState('Ishrat\u2019s Trips');
       const [newSummary, setNewSummary] = useState('');
       const [newText, setNewText] = useState('');
 
-      // Entry detail / editor view
       if (selectedEntry) {
         return (
           <div className="container fade-enter">
@@ -1028,7 +982,6 @@
             </button>
           </div>
 
-          {/* --- Browser: Trip List --- */}
           {subTab === 'browser' && !selectedTrip && (
             <div className="grid-cards stagger-1">
               {trips.map(trip => (
@@ -1046,7 +999,6 @@
             </div>
           )}
 
-          {/* --- Browser: Trip Entries --- */}
           {subTab === 'browser' && selectedTrip && (
             <div>
               <Button variant="secondary" icon="fa-arrow-left" onClick={() => setSelectedTrip(null)} style={{ marginBottom: '1.5rem' }}>
@@ -1076,7 +1028,6 @@
             </div>
           )}
 
-          {/* --- Editor Tab --- */}
           {subTab === 'editor' && (
             <div className="stagger-1">
               <Card variant="glass" style={{ padding: '2rem', maxWidth: '600px' }}>
@@ -1099,7 +1050,6 @@
             </div>
           )}
 
-          {/* --- New Entry Tab --- */}
           {subTab === 'new' && (
             <div className="stagger-1">
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -1124,16 +1074,10 @@
                         const color = MOOD_COLORS[mood] || MOOD_COLORS.reflective;
                         const isSelected = newMood === mood;
                         return (
-                          <button
-                            key={mood}
-                            type="button"
-                            role="radio"
-                            aria-checked={isSelected}
-                            aria-label={`Mood: ${mood}`}
+                          <button key={mood} type="button" role="radio" aria-checked={isSelected} aria-label={`Mood: ${mood}`}
                             className={`mood-chip ${isSelected ? 'selected' : ''}`}
                             onClick={() => setNewMood(mood)}
-                            style={{ background: color.bg, borderColor: isSelected ? color.text : 'transparent' }}
-                          >
+                            style={{ background: color.bg, borderColor: isSelected ? color.text : 'transparent' }}>
                             <Icon name={color.icon} size="0.9em" />
                             <span style={{ color: color.text }}>{mood}</span>
                           </button>
@@ -1154,19 +1098,10 @@
                   </div>
 
                   <FormField label="Summary">
-                    <Input
-                      placeholder="One line that captures the moment"
-                      value={newSummary}
-                      onChange={e => setNewSummary(e.target.value)}
-                    />
+                    <Input placeholder="One line that captures the moment" value={newSummary} onChange={e => setNewSummary(e.target.value)} />
                   </FormField>
-
                   <FormField label="Entry">
-                    <Textarea
-                      placeholder="Let the moment breathe on the page..."
-                      value={newText}
-                      onChange={e => setNewText(e.target.value)}
-                    />
+                    <Textarea placeholder="Let the moment breathe on the page..." value={newText} onChange={e => setNewText(e.target.value)} />
                   </FormField>
 
                   <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
@@ -1181,9 +1116,7 @@
       );
     }
 
-    // =================================================================
     // TRIP MODULE (Phase 3)
-    // =================================================================
 
     const TRIP_SUB_TABS = [
       { id: 'overview', label: 'Overview', icon: 'fa-map-location-dot' },
@@ -1239,13 +1172,11 @@
           {subTab === 'overview' && <TripOverview trip={trip} />}
           {subTab === 'tools'    && <TripTools    trip={trip} />}
           {subTab === 'queue'    && <QueuePanel   trip={trip} />}
-
           {subTab === 'overview' && <FloatingChat trip={trip} />}
         </div>
       );
     }
 
-    // Phase 3 sub-tab placeholders \u2014 expanded by commits (d)/(e)/(f)/(g).
     function tripStatus(trip) {
       const today = new Date(); today.setHours(0, 0, 0, 0);
       const start = new Date(trip.dates.start + 'T00:00:00');
@@ -1552,9 +1483,7 @@
       );
     }
 
-    // =================================================================
     // CHAPTER SECTIONS DATA
-    // =================================================================
 
     const CHAPTER_SECTIONS = {
       ch00: [
@@ -1590,9 +1519,7 @@
       ]
     };
 
-    // =================================================================
     // CHAPTER READER
-    // =================================================================
 
     function ChapterReader({ chapter, onBack, onNavigateChapter, onProgress }) {
       const [content, setContent] = useState(null);
@@ -1663,14 +1590,10 @@
           .catch(() => { setContent(null); setLoading(false); });
       }, [chapter.id]);
 
-      // Persist bookmarks
       useEffect(() => {
         try { localStorage.setItem('bm_' + chapter.id, JSON.stringify(bookmarks)); } catch(e) {}
       }, [bookmarks, chapter.id]);
 
-      // Reader preferences are persisted by useLocalStoragePrefs('reader', ...) above.
-
-      // Auto-collapse sidebars in wide mode, re-expand in narrow/medium
       useEffect(() => {
         if (contentWidth === 'wide') {
           setTocOpen(false);
@@ -1681,7 +1604,6 @@
         }
       }, [contentWidth]);
 
-      // Load notes: try JSON file first, fallback to localStorage
       useEffect(() => {
         const lsKey = 'notes_' + chapter.id;
         fetch('data/notes/' + chapter.id + '-notes.json')
@@ -1693,13 +1615,11 @@
           });
       }, [chapter.id]);
 
-      // Persist notes to localStorage on every change
       useEffect(() => {
         if (!notesLoaded) return;
         try { localStorage.setItem('notes_' + chapter.id, JSON.stringify(notes)); } catch(e) {}
       }, [notes, chapter.id, notesLoaded]);
 
-      // Show resume banner if bookmarks exist on load
       useEffect(() => {
         if (bookmarks.length > 0) setShowResume(true);
         const t = setTimeout(() => setShowResume(false), 8000);
@@ -1714,7 +1634,6 @@
           setScrollProgress(pct);
           if (onProgress) onProgress(pct);
 
-          // Determine active section based on scroll position
           let current = 0;
           for (let i = sections.length - 1; i >= 0; i--) {
             const el = sectionRefs.current['sec-' + i];
@@ -1725,7 +1644,6 @@
           }
           setActiveSection(current);
 
-          // Track which paragraph is currently in the viewport center
           const paraEls = document.querySelectorAll('[id^="para-"]');
           let closestIdx = 0;
           let closestDist = Infinity;
@@ -1746,12 +1664,10 @@
 
       useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, [chapter.id]);
 
-      // Parse text into paragraphs — first line is title, skip it
       const paragraphs = content ? content.split('\n\n').filter(p => p.trim()) : [];
       const titleLine = paragraphs.length > 0 ? paragraphs[0] : chapter.subtitle;
       let bodyParagraphs = paragraphs.slice(1);
 
-      // Merge short salutation lines (e.g. "Kids,") into the next paragraph
       if (bodyParagraphs.length > 1) {
         const merged = [];
         for (let i = 0; i < bodyParagraphs.length; i++) {
@@ -1766,18 +1682,15 @@
         bodyParagraphs = merged;
       }
 
-      // Build a map: paragraph index → section index (for inserting dividers)
       const sectionAtPara = useMemo(() => {
         const map = {};
         sections.forEach((sec, idx) => { map[sec.para - 1] = idx; });
         return map;
       }, [sections]);
 
-      // Compute reading time (~230 wpm)
       const wordCount = content ? content.split(/\s+/).length : chapter.words;
       const readingMinutes = Math.max(1, Math.round(wordCount / 230));
 
-      // Detect "Dad's Advice" section
       function isAdviceHeading(text) {
         return /^(Babu[''\u2019]s Advice|Dad[''\u2019]s Advice|What I Wish)/i.test(text.trim());
       }
@@ -1818,7 +1731,6 @@
         setNotes(prev => prev.filter(n => n.id !== noteId));
       }
 
-      // Map paragraph index → notes at that paragraph
       const notesAtPara = useMemo(() => {
         const map = {};
         notes.forEach(n => {
@@ -1841,8 +1753,6 @@
 
       return (
         <div className="chapter-reader-wrap" data-content-width={contentWidth}>
-
-          {/* ═══ Floating Side TOC ═══ */}
           {!loading && content && sections.length > 0 && (
             <aside className={`toc-sidebar ${tocOpen ? 'open' : 'collapsed'}`}>
               <button className="toc-toggle" onClick={() => setTocOpen(o => !o)} title={tocOpen ? 'Collapse TOC' : 'Expand TOC'} aria-label={tocOpen ? 'Collapse table of contents' : 'Expand table of contents'} aria-expanded={tocOpen}>
@@ -1856,38 +1766,25 @@
                   </div>
                   <nav className="toc-nav">
                     {sections.map((sec, idx) => (
-                      <button
-                        key={idx}
-                        className={`toc-item ${activeSection === idx ? 'active' : ''}`}
-                        onClick={() => scrollToSection(idx)}
-                      >
+                      <button key={idx} className={`toc-item ${activeSection === idx ? 'active' : ''}`} onClick={() => scrollToSection(idx)}>
                         <span className="toc-marker"></span>
                         <span className="toc-item-text">{sec.title}</span>
                       </button>
                     ))}
                   </nav>
-
                   <div className="toc-divider"></div>
-
                   <button className="toc-bookmark-action" onClick={bookmarkCurrentParagraph} title="Bookmark the paragraph currently in view">
-                    <Icon name="fa-bookmark" size="0.7em" />
-                    <span>Bookmark Here</span>
+                    <Icon name="fa-bookmark" size="0.7em" /> <span>Bookmark Here</span>
                   </button>
-
                   {bookmarks.length > 0 && (
                     <div className="toc-bookmarks">
                       <div className="toc-header" style={{ marginTop: '0.6rem' }}>
-                        <Icon name="fa-bookmark" size="0.65em" />
-                        <span>Bookmarks ({bookmarks.length})</span>
+                        <Icon name="fa-bookmark" size="0.65em" /> <span>Bookmarks ({bookmarks.length})</span>
                       </div>
                       {bookmarks.map(bIdx => (
                         <div key={bIdx} className="toc-bookmark-row">
-                          <button className="toc-bookmark-item" onClick={() => scrollToBookmark(bIdx)}>
-                            <span className="toc-bm-preview">{getParaPreview(bIdx)}</span>
-                          </button>
-                          <button className="toc-bookmark-remove" onClick={() => toggleBookmark(bIdx)} title="Remove bookmark" aria-label="Remove bookmark">
-                            <Icon name="fa-xmark" size="0.55em" />
-                          </button>
+                          <button className="toc-bookmark-item" onClick={() => scrollToBookmark(bIdx)}><span className="toc-bm-preview">{getParaPreview(bIdx)}</span></button>
+                          <button className="toc-bookmark-remove" onClick={() => toggleBookmark(bIdx)} title="Remove bookmark" aria-label="Remove bookmark"><Icon name="fa-xmark" size="0.55em" /></button>
                         </div>
                       ))}
                     </div>
@@ -1897,7 +1794,6 @@
             </aside>
           )}
 
-          {/* ═══ Floating Right Notes Panel ═══ */}
           {!loading && content && (
             <aside className={`notes-sidebar ${notesOpen ? 'open' : 'collapsed'}`}>
               <button className="notes-toggle" onClick={() => setNotesOpen(o => !o)} title={notesOpen ? 'Collapse Notes' : 'Expand Notes'} aria-label={notesOpen ? 'Collapse notes panel' : 'Expand notes panel'} aria-expanded={notesOpen}>
@@ -1911,20 +1807,13 @@
                     <span className="notes-count">{notes.length}</span>
                   </div>
 
-                  {/* Note composer */}
                   <div className="note-composer">
                     <div className="note-type-row">
                       {Object.entries(NOTE_TYPES).map(([key, t]) => (
-                        <button
-                          key={key}
-                          type="button"
-                          className={`note-type-chip ${noteType === key ? 'active' : ''}`}
+                        <button key={key} type="button" className={`note-type-chip ${noteType === key ? 'active' : ''}`}
                           onClick={() => setNoteType(key)}
                           style={noteType === key ? { borderColor: t.color, background: t.color + '18' } : {}}
-                          title={t.label}
-                          aria-label={`Set note type to ${t.label}`}
-                          aria-pressed={noteType === key}
-                        >
+                          title={t.label} aria-label={`Set note type to ${t.label}`} aria-pressed={noteType === key}>
                           <Icon name={t.icon} size="0.65em" />
                           <span className="note-type-label">{t.label}</span>
                         </button>
@@ -1935,22 +1824,16 @@
                       <span>Anchored to: {getParaPreview(currentParaIdx)}</span>
                     </div>
                     <FormField label="Note text">
-                      <textarea
-                        className="note-input"
-                        placeholder="Add a note about this passage..."
-                        value={noteText}
+                      <textarea className="note-input" placeholder="Add a note about this passage..." value={noteText}
                         onChange={e => setNoteText(e.target.value)}
                         onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) addNote(); }}
-                        rows={4}
-                        aria-label="Note text"
-                      />
+                        rows={4} aria-label="Note text" />
                     </FormField>
                     <button type="button" className="note-add-btn" onClick={addNote} disabled={!noteText.trim()} aria-label="Add note">
                       <Icon name="fa-plus" size="0.7em" /> Add Note
                     </button>
                   </div>
 
-                  {/* Notes list */}
                   <div className="notes-list">
                     {notes.length === 0 && (
                       <div className="notes-empty">
@@ -1963,17 +1846,11 @@
                       return (
                         <div key={note.id} className="note-card">
                           <div className="note-card-header">
-                            <span className="note-card-type" style={{ color: nt.color }}>
-                              <Icon name={nt.icon} size="0.6em" /> {nt.label}
-                            </span>
-                            <button className="note-card-remove" onClick={() => removeNote(note.id)} title="Delete note" aria-label="Delete note">
-                              <Icon name="fa-xmark" size="0.6em" />
-                            </button>
+                            <span className="note-card-type" style={{ color: nt.color }}><Icon name={nt.icon} size="0.6em" /> {nt.label}</span>
+                            <button className="note-card-remove" onClick={() => removeNote(note.id)} title="Delete note" aria-label="Delete note"><Icon name="fa-xmark" size="0.6em" /></button>
                           </div>
                           <p className="note-card-text">{note.text}</p>
-                          <button className="note-card-anchor" onClick={() => scrollToBookmark(note.paraIdx)}>
-                            <Icon name="fa-map-pin" size="0.55em" /> {note.paraPreview}
-                          </button>
+                          <button className="note-card-anchor" onClick={() => scrollToBookmark(note.paraIdx)}><Icon name="fa-map-pin" size="0.55em" /> {note.paraPreview}</button>
                         </div>
                       );
                     })}
@@ -1983,23 +1860,16 @@
             </aside>
           )}
 
-          {/* ═══ Resume Reading Banner ═══ */}
           {showResume && bookmarks.length > 0 && (
             <div className="resume-banner">
               <Icon name="fa-bookmark" size="0.85em" />
               <span>Continue where you left off?</span>
-              <button className="resume-btn" onClick={() => scrollToBookmark(bookmarks[bookmarks.length - 1])}>
-                Resume <Icon name="fa-arrow-right" size="0.7em" />
-              </button>
-              <button className="resume-dismiss" onClick={() => setShowResume(false)} aria-label="Dismiss resume banner">
-                <Icon name="fa-xmark" size="0.75em" />
-              </button>
+              <button className="resume-btn" onClick={() => scrollToBookmark(bookmarks[bookmarks.length - 1])}>Resume <Icon name="fa-arrow-right" size="0.7em" /></button>
+              <button className="resume-dismiss" onClick={() => setShowResume(false)} aria-label="Dismiss resume banner"><Icon name="fa-xmark" size="0.75em" /></button>
             </div>
           )}
 
           <div className="chapter-reader-container" data-content-width={contentWidth}>
-
-            {/* Chapter header */}
             <header className="chapter-reader-header">
               <div className="chapter-reader-num">Chapter {chapter.num}</div>
               <h1 className="chapter-reader-title">{chapter.title}</h1>
@@ -2007,9 +1877,7 @@
               <div className="chapter-header-rule"></div>
             </header>
 
-            {/* ═══ Reading Controls ═══ */}
             <div className="rc-wrapper">
-              {/* Collapsed toolbar */}
               <div className="rc-toolbar">
                 <button className={`rc-toggle-btn ${controlsOpen ? 'active' : ''}`} onClick={() => setControlsOpen(o => !o)} title="Customize view">
                   <Icon name="fa-sliders" size="0.9em" />
@@ -2023,11 +1891,8 @@
                 </div>
               </div>
 
-              {/* Expanded panel */}
               <div className={`rc-panel ${controlsOpen ? 'open' : ''}`}>
                 <div className="rc-panel-inner">
-
-                  {/* Row 1: Font Size + Font Family */}
                   <div className="rc-group">
                     <label className="rc-label">Font Size</label>
                     <div className="rc-size-row">
@@ -2056,7 +1921,6 @@
                     </div>
                   </div>
 
-                  {/* Row 2: Theme + Line Spacing */}
                   <div className="rc-group">
                     <label className="rc-label">Theme</label>
                     <div className="rc-btn-row">
@@ -2083,7 +1947,6 @@
                     </div>
                   </div>
 
-                  {/* Row 3: Content Width */}
                   <div className="rc-group rc-group-full">
                     <label className="rc-label">Content Width</label>
                     <div className="rc-btn-row">
@@ -2099,7 +1962,6 @@
               </div>
             </div>
 
-            {/* Content body */}
             <article ref={articleRef} className="chapter-reader-body" data-reading-theme={readingTheme} style={{ fontSize: (1.2 * fontScale) + 'rem', fontFamily: FONT_MAP[fontFamily], lineHeight: lineSpacing }}>
               {loading && (
                 <div className="chapter-loading">
@@ -2176,7 +2038,6 @@
               })}
             </article>
 
-            {/* Chapter navigation footer */}
             <footer className="chapter-nav-footer">
               <div className="chapter-nav-row">
                 {prevChapter && prevChapter.file ? (
@@ -2209,41 +2070,25 @@
       );
     }
 
-    // =================================================================
     // SCROLL TO TOP BUTTON
-    // =================================================================
 
     function ScrollToTop({ progress }) {
       const [visible, setVisible] = useState(false);
-
       useEffect(() => {
-        function onScroll() {
-          setVisible(window.scrollY > 400);
-        }
+        const onScroll = () => setVisible(window.scrollY > 400);
         window.addEventListener('scroll', onScroll);
         return () => window.removeEventListener('scroll', onScroll);
       }, []);
-
-      // SVG circle math: r=21, circumference=2*pi*21 ≈ 131.95
       const r = 21;
       const circ = 2 * Math.PI * r;
       const offset = circ - (circ * (progress || 0) / 100);
       const showRing = typeof progress === 'number' && progress > 0;
-
       return (
-        <button
-          className={`scroll-top-btn ${visible ? 'show' : ''}`}
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          aria-label="Scroll to top"
-        >
+        <button className={`scroll-top-btn ${visible ? 'show' : ''}`} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="Scroll to top">
           {showRing && (
             <svg className="scroll-top-ring" width="52" height="52" viewBox="0 0 52 52">
               <circle className="ring-track" cx="26" cy="26" r={r} />
-              <circle className="ring-fill" cx="26" cy="26" r={r}
-                strokeDasharray={circ}
-                strokeDashoffset={offset}
-                transform="rotate(-90 26 26)"
-              />
+              <circle className="ring-fill" cx="26" cy="26" r={r} strokeDasharray={circ} strokeDashoffset={offset} transform="rotate(-90 26 26)" />
             </svg>
           )}
           <svg className="scroll-top-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -2253,9 +2098,7 @@
       );
     }
 
-    // =================================================================
     // MAIN APP
-    // =================================================================
 
     function App() {
       const [page, setPage] = useState('home');
