@@ -1,0 +1,93 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://journal.local/schemas/pending.schema.json",
+  "title": "Pending Queue Row",
+  "description": "A single row appended to trips/{slug}/pending.json. App writes, Cowork drains.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "id",
+    "createdAt",
+    "kind",
+    "source",
+    "status",
+    "memoryWorthy",
+    "payload"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1",
+      "description": "Pinned to '1' for Phase 1 contract lock."
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Stable identifier. Drain MUST be idempotent on this id."
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 UTC timestamp when the App wrote the row."
+    },
+    "tripSlug": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Active trip slug; matches trips/{slug}/ folder."
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "receipt",
+        "voice",
+        "itinerary",
+        "note"
+      ],
+      "description": "Source-type of the capture. Drain routes on this field."
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "app",
+        "cli",
+        "test"
+      ],
+      "description": "Origin surface. 'app' in normal flow; 'test' for fixtures."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "drained",
+        "stuck"
+      ],
+      "description": "Row lifecycle state. App only writes 'pending'. Cowork flips to 'drained' or 'stuck'."
+    },
+    "memoryWorthy": {
+      "type": "boolean",
+      "description": "User flag marking a row for memoir consideration."
+    },
+    "imagePath": {
+      "type": "string",
+      "description": "Relative path to a receipt image (receipt kind only), e.g. trips/{slug}/receipts/{id}.jpg."
+    },
+    "visionUsed": {
+      "type": "boolean",
+      "description": "True when macOS Vision produced the first-pass OCR. Logged by extract-receipt."
+    },
+    "payload": {
+      "type": "object",
+      "description": "Kind-specific body. Loose by design — contract tightens in later phases per kind.",
+      "additionalProperties": true
+    },
+    "dedupKey": {
+      "type": "string",
+      "description": "Optional stable hash used by drain to skip duplicates."
+    },
+    "notes": {
+      "type": "string",
+      "description": "Freeform note attached to the capture."
+    }
+  }
+}

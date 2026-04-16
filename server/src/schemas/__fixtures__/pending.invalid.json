@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "2",
+  "id": "",
+  "createdAt": "not-a-timestamp",
+  "kind": "screenshot",
+  "source": "app",
+  "status": "queued",
+  "memoryWorthy": "yes",
+  "payload": "should-be-an-object",
+  "unknownField": true
+}

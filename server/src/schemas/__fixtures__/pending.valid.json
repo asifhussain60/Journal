@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "1",
+  "id": "pending-01HV3Z9XYZ-receipt-abc",
+  "createdAt": "2026-04-16T14:22:07.123Z",
+  "tripSlug": "2026-04-ishrat-engagement",
+  "kind": "receipt",
+  "source": "app",
+  "status": "pending",
+  "memoryWorthy": false,
+  "imagePath": "trips/2026-04-ishrat-engagement/receipts/pending-01HV3Z9XYZ-receipt-abc.jpg",
+  "visionUsed": true,
+  "payload": {
+    "merchant": "Caffe Nero",
+    "date": "2026-04-16",
+    "currency": "GBP",
+    "total": 8.45,
+    "category": "Food:Cafe",
+    "items": [
+      { "name": "Flat White", "price": 3.85 },
+      { "name": "Almond Croissant", "price": 3.10 }
+    ]
+  },
+  "dedupKey": "nero-20260416-8.45",
+  "notes": "Morning stop before the Victoria & Albert visit."
+}

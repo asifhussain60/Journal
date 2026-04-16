@@ -1,0 +1,101 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://journal.local/schemas/edit-log.schema.json",
+  "title": "Edit Log Row",
+  "description": "A single entry in trips/{slug}/edit-log.json. Provenance for bounded writes to trip.yaml. Tracked in git per \u00a75.10.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "id",
+    "createdAt",
+    "target",
+    "intent",
+    "patch",
+    "inversePatch",
+    "actor",
+    "status"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Stable identifier for the edit event. Used by revert."
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "tripSlug": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target": {
+      "type": "string",
+      "enum": [
+        "trip.yaml"
+      ],
+      "description": "Canonical file the patch applies to. Only trip.yaml in Phase 1."
+    },
+    "intent": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Natural-language intent that generated the patch, as produced by FloatingChat edit mode."
+    },
+    "patch": {
+      "type": "array",
+      "description": "RFC 6902 JSON Patch operations applied to the target.",
+      "items": {
+        "type": "object",
+        "required": ["op", "path"],
+        "properties": {
+          "op": {
+            "type": "string",
+            "enum": ["add", "remove", "replace", "move", "copy", "test"]
+          },
+          "path": { "type": "string" },
+          "from": { "type": "string" },
+          "value": {}
+        }
+      }
+    },
+    "inversePatch": {
+      "type": "array",
+      "description": "Inverse patch that restores the target to its prior state. Revert applies this.",
+      "items": {
+        "type": "object",
+        "required": ["op", "path"],
+        "properties": {
+          "op": {
+            "type": "string",
+            "enum": ["add", "remove", "replace", "move", "copy", "test"]
+          },
+          "path": { "type": "string" },
+          "from": { "type": "string" },
+          "value": {}
+        }
+      }
+    },
+    "snapshotRef": {
+      "type": "string",
+      "description": "Relative path to the pre-write snapshot, e.g. trips/{slug}/snapshots/trip.yaml-{id}.yaml."
+    },
+    "actor": {
+      "type": "string",
+      "enum": ["app", "cowork"],
+      "description": "Surface that authored the edit. Phase 1 admits both for forward compatibility."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["applied", "reverted", "failed"]
+    },
+    "failureReason": {
+      "type": "string",
+      "description": "Populated when status == 'failed'. Human-readable reason from the validator."
+    }
+  }
+}

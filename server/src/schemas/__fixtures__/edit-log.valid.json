@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "1",
+  "id": "edit-01HV3ZA1BCD-move-dinner",
+  "createdAt": "2026-04-16T18:45:12.004Z",
+  "tripSlug": "2026-04-ishrat-engagement",
+  "target": "trip.yaml",
+  "intent": "Move Friday's dinner reservation from 19:30 to 20:15 so we can catch the Turbine Hall sunset first.",
+  "patch": [
+    {
+      "op": "replace",
+      "path": "/days/4/events/2/start",
+      "value": "20:15"
+    },
+    {
+      "op": "replace",
+      "path": "/days/4/events/2/end",
+      "value": "22:00"
+    }
+  ],
+  "inversePatch": [
+    {
+      "op": "replace",
+      "path": "/days/4/events/2/start",
+      "value": "19:30"
+    },
+    {
+      "op": "replace",
+      "path": "/days/4/events/2/end",
+      "value": "21:15"
+    }
+  ],
+  "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-edit-01HV3ZA1BCD-move-dinner.yaml",
+  "actor": "app",
+  "status": "applied"
+}
