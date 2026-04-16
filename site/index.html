@@ -1404,6 +1404,63 @@
       );
     }
 
+    function StuckSection({ tick, onChange }) {
+      const [state, setState] = useState({ items: null, loading: true });
+      const [expanded, setExpanded] = useState(true);
+      const toast = React.useContext(ToastContext);
+      useEffect(() => {
+        let cancelled = false;
+        fetch('http://localhost:3001/api/dead-letter')
+          .then(r => r.ok ? r.json() : null)
+          .then(body => { if (!cancelled) setState({ items: body && Array.isArray(body.items) ? body.items : [], loading: false }); })
+          .catch(() => { if (!cancelled) setState({ items: [], loading: false }); });
+        return () => { cancelled = true; };
+      }, [tick]);
+      async function act(url, payload, success, failure) {
+        try {
+          const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+          const body = await r.json().catch(() => ({}));
+          if (r.ok && body.ok) { toast && toast.show(success, 'success'); onChange(); }
+          else { toast && toast.show(body.error || failure, 'error'); }
+        } catch { toast && toast.show(failure, 'error'); }
+      }
+      if (state.loading || !state.items || state.items.length === 0) return null;
+      return (
+        <Card variant="glass" style={{ padding: '0.85rem', marginBottom: '1rem', borderColor: 'var(--error)' }}>
+          <button type="button" onClick={() => setExpanded(e => !e)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0, width: '100%', justifyContent: 'space-between' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Icon name="fa-triangle-exclamation" color="var(--error)" />
+              <Text weight="600">Stuck — {state.items.length} item{state.items.length === 1 ? '' : 's'}</Text>
+            </span>
+            <Icon name={expanded ? 'fa-chevron-up' : 'fa-chevron-down'} />
+          </button>
+          {expanded && (
+            <div style={{ marginTop: '0.75rem', display: 'grid', gap: '0.6rem' }}>
+              {state.items.map(it => {
+                const r = it.row || {};
+                const dl = r.deadLetter || {};
+                return (
+                  <Card key={`${it.queueName}:${it.id}`} variant="glass" style={{ padding: '0.7rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '0.75rem', flexWrap: 'wrap' }}>
+                      <div>
+                        <Text weight="600" size="sm">{it.queueName} · <span style={{ fontFamily: 'var(--font-mono, monospace)' }}>{it.id}</span></Text>
+                        {dl.reason && <Text size="sm" color="muted">{dl.reason}</Text>}
+                        {dl.failedAt && <Text size="sm" color="muted" variant="mono">failed {new Date(dl.failedAt).toLocaleString()}</Text>}
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.4rem' }}>
+                        <Button variant="primary" size="sm" onClick={() => act(`http://localhost:3001/api/queue/${it.queueName}/replay`, { id: it.id }, 'Re-submitted', 'Replay failed')}>Re-submit</Button>
+                        <Button variant="secondary" size="sm" onClick={() => act('http://localhost:3001/api/dead-letter/discard', { queueName: it.queueName, id: it.id }, 'Discarded', 'Discard failed')}>Discard</Button>
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </Card>
+      );
+    }
+
     function QueuePanel({ trip }) {
       const [state, setState] = useState({ items: null, loading: true, error: null });
       const [tick, setTick] = useState(0);
@@ -1419,44 +1476,53 @@
         window.addEventListener('queue:refresh', onRefresh);
         return () => { cancelled = true; window.removeEventListener('queue:refresh', onRefresh); };
       }, [tick]);
+      const refresh = () => { setTick(t => t + 1); window.dispatchEvent(new CustomEvent('queue:refresh')); };
       if (state.loading) return <SkeletonRow variant="queue-row" count={3} />;
       if (!state.items || state.items.length === 0) {
-        return <EmptyState icon="fa-inbox" title="Queue is empty" description="Captured receipts and voice notes will appear here." />;
+        return (
+          <div>
+            <StuckSection tick={tick} onChange={refresh} />
+            <EmptyState icon="fa-inbox" title="Queue is empty" description="Captured receipts and voice notes will appear here." />
+          </div>
+        );
       }
       return (
-        <div style={{ display: 'grid', gap: '0.75rem' }}>
-          {state.items.map((it, i) => {
-            const p = it.payload || {};
-            const rowId = it.id || String(i);
-            const isOpen = openId === rowId;
-            const primary = p.merchant || it.title || (it.kind ? it.kind[0].toUpperCase() + it.kind.slice(1) : 'Pending item');
-            const amountStr = p.amount != null ? `${p.currency || ''} ${Number(p.amount).toFixed(2)}`.trim() : null;
-            return (
-              <Card key={rowId} variant="glass" style={{ padding: '1rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.75rem', minWidth: 0 }}>
-                    {it.memoryWorthy && <Icon name="fa-star" color="var(--accent, #f4d49c)" />}
-                    <Text weight="600" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{primary}</Text>
-                    {amountStr && <Text variant="mono" size="sm" color="muted">{amountStr}</Text>}
-                    {p.date && <Text variant="mono" size="sm" color="muted">{p.date}</Text>}
+        <div>
+          <StuckSection tick={tick} onChange={refresh} />
+          <div style={{ display: 'grid', gap: '0.75rem' }}>
+            {state.items.map((it, i) => {
+              const p = it.payload || {};
+              const rowId = it.id || String(i);
+              const isOpen = openId === rowId;
+              const primary = p.merchant || it.title || (it.kind ? it.kind[0].toUpperCase() + it.kind.slice(1) : 'Pending item');
+              const amountStr = p.amount != null ? `${p.currency || ''} ${Number(p.amount).toFixed(2)}`.trim() : null;
+              return (
+                <Card key={rowId} variant="glass" style={{ padding: '1rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.75rem', minWidth: 0 }}>
+                      {it.memoryWorthy && <Icon name="fa-star" color="var(--accent, #f4d49c)" />}
+                      <Text weight="600" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{primary}</Text>
+                      {amountStr && <Text variant="mono" size="sm" color="muted">{amountStr}</Text>}
+                      {p.date && <Text variant="mono" size="sm" color="muted">{p.date}</Text>}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <StatusBadge status={it.status || 'pending'} size="sm" />
+                      <IconButton icon={isOpen ? 'fa-chevron-up' : 'fa-chevron-down'} label={isOpen ? 'Hide details' : 'Show details'} onClick={() => setOpenId(o => o === rowId ? null : rowId)} />
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <StatusBadge status={it.status || 'pending'} size="sm" />
-                    <IconButton icon={isOpen ? 'fa-chevron-up' : 'fa-chevron-down'} label={isOpen ? 'Hide details' : 'Show details'} onClick={() => setOpenId(o => o === rowId ? null : rowId)} />
-                  </div>
-                </div>
-                {isOpen && (
-                  <div style={{ marginTop: '0.75rem', display: 'grid', gap: '0.35rem' }}>
-                    {p.description && <Text size="sm">{p.description}</Text>}
-                    {p.category && <Text size="sm" color="muted">Category: {p.category}</Text>}
-                    {it.imagePath && <Text size="sm" variant="mono" color="muted">{it.imagePath}</Text>}
-                    <Text size="sm" variant="mono" color="muted">id: {it.id}</Text>
-                    {it.visionUsed !== undefined && <Text size="sm" variant="mono" color="muted">visionUsed: {String(it.visionUsed)}</Text>}
-                  </div>
-                )}
-              </Card>
-            );
-          })}
+                  {isOpen && (
+                    <div style={{ marginTop: '0.75rem', display: 'grid', gap: '0.35rem' }}>
+                      {p.description && <Text size="sm">{p.description}</Text>}
+                      {p.category && <Text size="sm" color="muted">Category: {p.category}</Text>}
+                      {it.imagePath && <Text size="sm" variant="mono" color="muted">{it.imagePath}</Text>}
+                      <Text size="sm" variant="mono" color="muted">id: {it.id}</Text>
+                      {it.visionUsed !== undefined && <Text size="sm" variant="mono" color="muted">visionUsed: {String(it.visionUsed)}</Text>}
+                    </div>
+                  )}
+                </Card>
+              );
+            })}
+          </div>
         </div>
       );
     }
