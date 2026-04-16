@@ -33,7 +33,7 @@ A **creation and editing tool** for DayOne journal entries — NOT an archive vi
 ### Architecture
 - **React 18** via CDN (no build step, no Vite, no npm bundler)
 - **Babel standalone** for in-browser JSX transformation
-- **Single-file SPA**: everything lives in `site/index.html` (`<script type="text/babel">` block 2,488 lines after Phase 5; Gate D caps it at 2,500)
+- **Single-file SPA**: everything lives in `site/index.html` (`<script type="text/babel">` block 2,600 lines after Phase 6; Gate G caps it at 2,600)
 - **External CSS**: design system split across 4 files
 - **No backend server** — served locally via `npx serve . -l 3000 --cors` from the `journal/` root directory
 - **Data layer**: JSON files fetched at runtime + inline JS constants
@@ -437,8 +437,11 @@ The React app is a thin edge client; every Anthropic API call goes through a loc
 | POST | `/api/queue/:name` | **Phases 4 + 5.** Schema-validated append to `trips/{slug}/{name}.json` (atomic temp-rename). Requires the body to be a full queue row with `schemaVersion: "1"`. Returns `{ ok, id, count, tripSlug }`. 404 on unknown queue name. Registered queues: `pending` (Phase 4), `voice-inbox` and `itinerary-inbox` (Phase 5; both share `pending.schema.json`). |
 | GET | `/api/queue/:name` | **Phases 4 + 5.** Reads `trips/{slug}/{name}.json`. Returns `{ ok, items, tripSlug }` with `items: []` when the file is missing. |
 | POST | `/api/ingest-itinerary` | **Phase 5.** Body: `{ itineraryText }`. Parses a pasted itinerary into a skeleton `{ flights, hotels, highlights, dates }` using `promptName: "ingest-itinerary"` (Haiku). Returns `{ ok: true, extracted, usage, model, promptName }` on success, or `{ ok: false, error: "structure ambiguous…", rawText }` at HTTP 200 when the model response cannot be parsed as JSON (so the UI can show the reason). HTTP 400 for empty input, HTTP 502 for Anthropic failures. |
+| POST | `/api/trip-edit` | **Phase 6.** Body: `{ message, dryRun?, tripContext }`. Tier 0 keyword hint + `promptName: "trip-edit"` (Sonnet) classifies intent. Returns `{ ok, intent: "edit"|"qa"|"unknown", summary, proposed: { diffs[{field,old,new}], patch[RFC 6902] } }`. When `dryRun: false` and intent=edit, applies the patch atomically (snapshot → write → edit-log) and returns `applied: true, editId`. Applies go through `server/src/trip-edit-ops.js` + semantic validators. |
+| POST | `/api/trip-edit/revert` | **Phase 6.** Body: `{ patchId, tripSlug? }`. Idempotent revert: reads the edit-log row, applies `inversePatch` to the current `trip.yaml`, re-validates, writes atomically, appends a `reverted` log row. |
+| GET | `/api/edit-log` | **Phase 6.** Reads `trips/{slug}/edit-log.json`. Returns `{ ok, items, tripSlug }` with `items: []` when the file is missing. |
 
-Additional feature endpoints ship in later phases (`/api/trip-edit`, `/api/trip-edit/revert`, `/api/usage/summary`). See the execution plan §7.
+Additional feature endpoints ship in later phases (`/api/usage/summary`, orchestrator routes). See the execution plan §7.
 
 ### 10.2 Cross-cutting middleware (Phase 1)
 

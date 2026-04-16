@@ -393,6 +393,34 @@ Acceptance gates (all required to pass before tag):
 - Gate E — `cd server && npm run harass` passes (rate limits on `/api/ingest-itinerary` alongside existing endpoints).
 - Gate F — **DEFERRED to a single comprehensive browser walkthrough after all phases.** Covers VoiceEntry mic/denied/unsupported paths, ItineraryPaste parse→preview→accept, CommandPalette wiring, and no-regression on Receipt, FloatingChat, Dashboard, Memoir, DayOne, Tier 0 tools.
 
+**Phase 6 design restoration + bounded itinerary editing (complete when all acceptance gates pass under `tag phase-06-design-restore-and-editing`):**
+
+The primary editing surface: FloatingChat classifies natural-language intent, previews proposed diffs, and writes atomic patches to `trip.yaml` with snapshot-based revert.
+
+- **Design restoration** — `<head>` now loads the canonical lavender stack: `base.css` → `app-dark.css` (kept for Phase 4+ components) → `app.css` → `itinerary.css` → `lavender-romance.css` → `ai-drawer.css`. Body gets `data-theme="lavender-romance"`. Five literal `\uXXXX` escapes in JSX text nodes were fixed (they rendered as backslash-u strings in the browser because JSX doesn't process unicode escapes in text). Trip components now carry the canonical class names: `trip-details-card`, `flights-card`, `highlights-card`, `flight-card`, `highlight-item`, `glass-pill-nav`, `traveler-badge`.
+- **trip-edit schema + validators** (`server/src/schemas/trip-edit.schema.json`, `server/src/validators/trip-edit-rules.js`) — structural + semantic: dates monotonic, flight dates within trip bounds, depart < arrive, no flight overlap on the wall-clock timeline, hotel checkOut > checkIn, highlight dates within bounds, start < end. `validateTrip(obj)` returns `{ valid, errors }` — never throws.
+- **Proxy** (`server/src/index.js`):
+  - `POST /api/trip-edit` → Tier 0 keyword hint + Sonnet `trip-edit` prompt classifies intent (`edit` / `qa` / `unknown`) and returns `{ intent, summary, proposed: { diffs, patch } }`. When `dryRun: false` and intent=edit, calls `applyTripEdit(slug, { intent, patch })`.
+  - `POST /api/trip-edit/revert` → idempotent by edit-log `id`; applies `inversePatch` to the current `trip.yaml`, re-validates, writes atomically, appends a reverted row.
+  - `GET /api/edit-log` → reads `trips/{slug}/edit-log.json`; returns `[]` when missing.
+- **Write pipeline** (`server/src/trip-edit-ops.js`) — snapshot (`trips/{slug}/snapshots/trip.yaml-{id}.yaml`) → `fast-json-patch` apply → semantic validate → atomic temp+rename → append to `edit-log.json`. Revert mirrors the flow with the `inversePatch`. `edit-log.json` is tracked in git (provenance); `snapshots/` is gitignored.
+- **DiffViewer** (`site/index.html`) — compact read-only per-field diff: rose strikethrough for old, green for new, monospace, max-height 150px.
+- **FloatingChat edit mode** — `send()` classifies via Tier 0 keywords; edit intent calls `/api/trip-edit` dryRun=true and renders a proposed bubble with `<DiffViewer>` + Apply / Discard buttons. Apply posts dryRun=false; applied bubbles gain a Revert button. If the Sonnet model downgrades a keyword-flagged message to qa, the client re-issues as `/api/trip-qa` so the user still gets a useful reply. Every apply/revert dispatches a `trip:edited` window event.
+- **Trip > Edits sub-tab** — 5th sub-tab (`fa-clock-rotate-left`). `EditsPanel` fetches `/api/edit-log`, subscribes to `trip:edited`, renders rows with intent, timestamp, actor, `<StatusBadge>` (applied/reverted/failed → active/drained/stuck), and per-row Revert on applied.
+- **Client helpers** (`site/js/claude-client.js`) — `BabuAI.tripEdit(message, tripContext, { dryRun })`, `BabuAI.tripEditRevert(patchId, tripSlug)`, `BabuAI.editLogGet()`.
+
+Acceptance gates (all required to pass before tag):
+
+- Gate A — ≥5 canonical trip classes present in `site/index.html` (`trip-details-card`, `flight-card`, `flight-row`, `highlights-card`, `highlight-item`, `glass-pill-nav`, `traveler-badge`).
+- Gate B — zero literal `\uXXXX` escapes in JSX text nodes.
+- Gate C — ≥5 CSS files referenced in `site/index.html` (base.css, app.css, itinerary.css, lavender-romance.css, ai-drawer.css; app-dark.css retained for Phase 4+ components).
+- Gate D — `POST /api/trip-edit` responds.
+- Gate E — `POST /api/trip-edit/revert` responds.
+- Gate F — `cd server && npm run validate` passes (3 schemas).
+- Gate G — `<script type="text/babel">` block ≤ 2,600 lines.
+- Gate H — `cd server && npm run harass` passes, including `/api/trip-edit` and `/api/trip-edit/revert`.
+- Gate I — **DEFERRED to final visual pass.** Covers lavender theme rendering, FloatingChat edit lifecycle (dryRun → apply → revert), Edits sub-tab, regression on all prior modules.
+
 See `_workspace/ideas/app-cowork-execution-plan.md` for the full phase roadmap (Phases 1–9), UI canon, proxy endpoint inventory, and acceptance criteria.
 
 ---
