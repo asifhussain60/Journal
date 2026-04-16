@@ -38,5 +38,6 @@ _workspace/
 trips/*/pending.json
 trips/*/receipts/
 trips/*/voice-inbox/
+trips/*/voice-inbox.json
 trips/*/itinerary-inbox.json
 trips/*/snapshots/

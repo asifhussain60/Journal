@@ -33,7 +33,7 @@ A **creation and editing tool** for DayOne journal entries — NOT an archive vi
 ### Architecture
 - **React 18** via CDN (no build step, no Vite, no npm bundler)
 - **Babel standalone** for in-browser JSX transformation
-- **Single-file SPA**: everything lives in `site/index.html` (`<script type="text/babel">` block ~2,300 lines after Phase 4; Gate F caps it at 2,400)
+- **Single-file SPA**: everything lives in `site/index.html` (`<script type="text/babel">` block 2,488 lines after Phase 5; Gate D caps it at 2,500)
 - **External CSS**: design system split across 4 files
 - **No backend server** — served locally via `npx serve . -l 3000 --cors` from the `journal/` root directory
 - **Data layer**: JSON files fetched at runtime + inline JS constants
@@ -119,12 +119,10 @@ function App() {
 
 ### Trip Module (Phase 4, sub-tabs: Overview, Capture, Tools, Queue)
 - **Overview** — `<TripOverview>` reads `useActiveTrip()` and renders the trip name, date range, live-day/countdown `<StatusBadge>`, travelers, base, occasion, flights, and highlights. Read-only.
-- **Capture** (Phase 4) — `<TripCapture>` is the in-flow intake tab. Today it carries one primary action, **Capture Receipt**, which opens `<CaptureModal>`:
-  - Click-or-drop image picker (`<input type="file" accept="image/*" capture="environment">` + drag-drop zone). 5 MB cap; MIME enforced by magic-number sniff server-side.
-  - Preview → `POST /api/upload` → `POST /api/extract-receipt` with a `<StepProgress steps={["Reading image","Extracting details","Review"]} />`.
-  - Review step: editable `<FormField>` + `<Input>` form (merchant, amount, currency, date, category, description) pre-filled from the extraction; `memoryWorthy` star via `<IconButton>`.
-  - **Approve** posts a schema-valid `pending` row via `BabuAI.queuePost('pending', row)` and dispatches `queue:refresh`. Failures surface the raw model output + a Retry button; the form is always editable so the user can salvage a bad extraction.
-  - Phase 5 will add **Voice Entry** and **Paste Itinerary** buttons to this sub-tab.
+- **Capture** (Phases 4 + 5) — `<TripCapture>` renders three sibling cards in Trip > Capture, each self-contained:
+  - **Receipt** (Phase 4) — opens `<CaptureModal>`: click-or-drop image picker (`<input type="file" accept="image/*" capture="environment">` + drag-drop zone, 5 MB cap; server-side magic-number MIME sniff) → `POST /api/upload` → `POST /api/extract-receipt` with a `<StepProgress steps={["Reading image","Extracting details","Review"]} />` → editable `<FormField>` + `<Input>` form (merchant, amount, currency, date, category, description) pre-filled from extraction; `memoryWorthy` star via `<IconButton>` → **Approve** posts a schema-valid `pending` row via `BabuAI.queuePost('pending', row)` and dispatches `queue:refresh`. Failures surface raw model output + Retry; the form is always editable.
+  - **Voice entry** (Phase 5) — `<VoiceEntry>` uses the Web Speech API (`SpeechRecognition` / `webkitSpeechRecognition`) with interim results. Start → `fa-beat` mic indicator + live transcript → Stop → editable `<Textarea>` → Save writes `{ schemaVersion: "1", kind: "voice", source: "app", status: "pending", memoryWorthy: false, payload: { transcript } }` via `BabuAI.queuePost('voice-inbox', row)`. **Transcript only — no audio is uploaded, saved, or played back.** Denied permission and unsupported browsers render `<EmptyState>`.
+  - **Paste itinerary** (Phase 5) — `<ItineraryPaste>` opens a `<Modal>` with a large `<Textarea>`, a **Parse** button (explicit — no debounce autoparse), and a read-only skeleton preview (dates badge + Flights / Hotels / Highlights `<Card variant="flat">` sections). Parse calls `BabuAI.ingestItinerary(text)` → `POST /api/ingest-itinerary`. Accept writes `{ schemaVersion: "1", kind: "itinerary", source: "app", status: "pending", memoryWorthy: false, payload: { extracted, original } }` via `BabuAI.queuePost('itinerary-inbox', row)`. Parse-failure responses (`{ ok: false, error, rawText }`) surface the reason so the user can edit and retry.
 - **Tools** — `<TripTools>` hosts two zero-cost Tier 0 widgets:
   - `<TipHelper>` — country `<Select>` populated from `/api/reference-data/currency`; on change, displays tipping range + currency + notes from `/api/reference-data/tipping`. No model call.
   - `<PackingList>` — categorised checkboxes from `/api/reference-data/packing`; checked state persists via `useLocalStoragePrefs("packing-{slug}")`. Shows "X of Y packed".
@@ -436,16 +434,17 @@ The React app is a thin edge client; every Anthropic API call goes through a loc
 | GET | `/api/reference-data/:name` | **Phase 3, Tier 0.** Serves the JSON file at `server/src/reference-data/{name}.json`. Currently provides `tipping`, `currency`, `packing`. 404 on miss. **No model call** — does not contribute model rows to `usage.jsonl`. |
 | POST | `/api/upload` | **Phase 4.** Multipart image upload (field: `file`). `multer` memory storage; 5 MB cap; image type verified by magic-number sniff (header alone is untrusted). Writes to `trips/{activeSlug}/receipts/{uuid}.{ext}` and returns `{ ok, id, imagePath, bytes, ext }`. Oversize returns HTTP 413. |
 | POST | `/api/extract-receipt` | **Phase 4.** Body: `{ imagePath }`. Tries macOS Vision first (via `server/scripts/mac-vision-ocr.swift`); on empty/unavailable, falls back to Haiku vision with the base64 image. Returns `{ ok, extracted, visionUsed, rawText?, usage, model, promptName }`. `visionUsed` flows into `usage.jsonl` via `res.locals.visionUsed`. Prompt: `extract-receipt`. |
-| POST | `/api/queue/:name` | **Phase 4.** Schema-validated append to `trips/{slug}/{name}.json` (atomic temp-rename). Requires the body to be a full queue row with `schemaVersion: "1"`. Returns `{ ok, id, count, tripSlug }`. 404 on unknown queue name. Phase 4 registers the `pending` queue. |
-| GET | `/api/queue/:name` | **Phase 4.** Reads `trips/{slug}/{name}.json`. Returns `{ ok, items, tripSlug }` with `items: []` when the file is missing. |
+| POST | `/api/queue/:name` | **Phases 4 + 5.** Schema-validated append to `trips/{slug}/{name}.json` (atomic temp-rename). Requires the body to be a full queue row with `schemaVersion: "1"`. Returns `{ ok, id, count, tripSlug }`. 404 on unknown queue name. Registered queues: `pending` (Phase 4), `voice-inbox` and `itinerary-inbox` (Phase 5; both share `pending.schema.json`). |
+| GET | `/api/queue/:name` | **Phases 4 + 5.** Reads `trips/{slug}/{name}.json`. Returns `{ ok, items, tripSlug }` with `items: []` when the file is missing. |
+| POST | `/api/ingest-itinerary` | **Phase 5.** Body: `{ itineraryText }`. Parses a pasted itinerary into a skeleton `{ flights, hotels, highlights, dates }` using `promptName: "ingest-itinerary"` (Haiku). Returns `{ ok: true, extracted, usage, model, promptName }` on success, or `{ ok: false, error: "structure ambiguous…", rawText }` at HTTP 200 when the model response cannot be parsed as JSON (so the UI can show the reason). HTTP 400 for empty input, HTTP 502 for Anthropic failures. |
 
-Additional feature endpoints ship in later phases (`/api/ingest-itinerary`, `/api/trip-edit`, `/api/trip-edit/revert`, `/api/usage/summary`). See the execution plan §7.
+Additional feature endpoints ship in later phases (`/api/trip-edit`, `/api/trip-edit/revert`, `/api/usage/summary`). See the execution plan §7.
 
 ### 10.2 Cross-cutting middleware (Phase 1)
 
 - **Usage logger** — every request appends one JSONL row to `server/logs/usage.jsonl` with `{ timestamp, endpoint, method, model, promptName, tokensIn, tokensOut, durationMs, statusCode, visionUsed }`. Non-model endpoints log `tokensIn=0, tokensOut=0, model=null`. File is gitignored.
 - **Rate limit** — 20 requests per 60 seconds, per IP, per endpoint path. `/health` is exempt. 21st request within the window returns HTTP 429 with `{ ok: false, error, endpoint, retryAfterSeconds }`.
-- **Prompt loader** — `server/src/prompts/index.js` exposes `hasPrompt(name)` and `loadPrompt(name)`. Each prompt module exports `{ name, system, description, model? }`. Phase 1 registered `example`; Phase 3 added `trip-qa` (Haiku-pinned via `prompt.model`) and `trip-assistant` (Sonnet meta-router); Phase 4 added `extract-receipt` (Haiku; JSON-only; used by both the Vision-then-text path and the direct-vision fallback).
+- **Prompt loader** — `server/src/prompts/index.js` exposes `hasPrompt(name)` and `loadPrompt(name)`. Each prompt module exports `{ name, system, description, model? }`. Phase 1 registered `example`; Phase 3 added `trip-qa` (Haiku-pinned via `prompt.model`) and `trip-assistant` (Sonnet meta-router); Phase 4 added `extract-receipt` (Haiku; JSON-only; used by both the Vision-then-text path and the direct-vision fallback); Phase 5 added `ingest-itinerary` (Haiku; JSON-only; returns `{ flights, hotels, highlights, dates }` skeleton from a pasted itinerary).
 - **Receipt pipeline helpers** (Phase 4) — `server/src/receipts.js` exposes the active-trip slug resolver, magic-number image sniffer, atomic-append/read for trip queue files, and the `macVisionOcr(imagePath)` wrapper around `swift mac-vision-ocr.swift` with a cached availability probe. `server/scripts/mac-vision-ocr.swift` runs `VNRecognizeTextRequest` in `.accurate` mode and prints recognized lines to stdout.
 - **Reference data** (Phase 3) — `server/src/reference-data/` holds the Tier 0 JSON files served by `GET /api/reference-data/:name`. Names are validated against `^[a-z][a-z0-9-]*$` and resolved with a path-traversal guard.
 
@@ -455,10 +454,10 @@ The App writes scratch queues under `trips/{slug}/`. Cowork (Claude Code in term
 
 | Path | Kind | Lifecycle | Git |
 |---|---|---|---|
-| `trips/{slug}/pending.json` | Capture queue (receipts, voice, notes) | delete-on-drain | gitignored |
-| `trips/{slug}/voice-inbox/*.jsonl` | Voice transcript queue | delete-on-drain | gitignored |
+| `trips/{slug}/pending.json` | Capture queue (Phase 4 receipts) | delete-on-drain | gitignored |
+| `trips/{slug}/voice-inbox.json` | Voice transcript queue (Phase 5; single JSON array, not JSONL) | delete-on-drain | gitignored |
 | `trips/{slug}/receipts/{id}.{ext}` | Receipt image binaries | delete-on-drain | gitignored |
-| `trips/{slug}/itinerary-inbox.json` | Itinerary paste queue | delete-on-drain | gitignored |
+| `trips/{slug}/itinerary-inbox.json` | Itinerary paste queue (Phase 5) | delete-on-drain | gitignored |
 | `trips/{slug}/snapshots/*` | Pre-write snapshots for revert | delete-on-drain | gitignored |
 | `trips/{slug}/dead-letter/*` | Rows drain failed on | survives until user discards | tracked |
 | `trips/{slug}/edit-log.json` | Provenance log for bounded trip.yaml writes | durable | tracked |

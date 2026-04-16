@@ -368,6 +368,31 @@ Acceptance gates (all required to pass before tag):
 - Gate G — `cd server && npm run harass` passes (rate limits on `/api/upload`, `/api/extract-receipt`, `/api/queue/pending`; smoke round-trip + self-cleanup).
 - Gate H — Dashboard, Memoir, DayOne, FloatingChat Q&A, TipHelper, PackingList all still work.
 
+**Phase 5 intake: voice + itinerary (complete when all acceptance gates pass under `tag phase-05-intake-voice-itinerary`):**
+
+Two more intake flows living alongside the Receipt card in Trip > Capture; both feed Cowork synthesis drains.
+
+- **Capture sub-tab layout** — three sibling cards: Receipt (Phase 4), Voice (Phase 5), Itinerary (Phase 5). Each card self-contains its flow; no extra tabs or routes.
+- **VoiceEntry** (`site/index.html`) — Web Speech API (`SpeechRecognition` / `webkitSpeechRecognition`) with interim results and editable transcript. Start → `fa-beat` mic indicator + live transcript → Stop → edit the textarea freely → Save writes `{ schemaVersion: "1", kind: "voice", source: "app", status: "pending", memoryWorthy: false, payload: { transcript } }` to `trips/{slug}/voice-inbox.json` via `POST /api/queue/voice-inbox`. Denied permission and unsupported browsers surface as `<EmptyState>`. **Transcript only — no audio is uploaded, saved, or played back.**
+- **ItineraryPaste** (`site/index.html`) — button opens a `<Modal>` with a large `<Textarea>`, a Parse button, and a read-only skeleton preview. Parse calls `POST /api/ingest-itinerary`; preview renders dates badge + Flights / Hotels / Highlights `<Card variant="flat">` sections. Accept writes `{ schemaVersion: "1", kind: "itinerary", source: "app", status: "pending", memoryWorthy: false, payload: { extracted, original } }` to `trips/{slug}/itinerary-inbox.json`. **Deviation from brief:** explicit Parse button instead of 500 ms debounce autoparse — avoids mid-typing API calls, keeps the decision visible.
+- **Proxy** (`server/src/index.js`) — one new endpoint:
+  - `POST /api/ingest-itinerary` → `promptName: "ingest-itinerary"` (Haiku); body `{ itineraryText }`; returns `{ ok, extracted: { flights, hotels, highlights, dates } }` on parse, `{ ok: false, error: "structure ambiguous…", rawText }` when the model response won't parse as JSON (HTTP 200 so the UI can show the reason).
+- **Queue registration** — `voice-inbox` and `itinerary-inbox` both validate against the existing `pending.schema.json` (the `kind` enum already covers `voice` and `itinerary`); no new schema file.
+- **Prompt** — `ingest-itinerary.js` (Haiku; returns one JSON object `{ flights[], hotels[], highlights[], dates }`; empty arrays when a category is absent; never invents values).
+- **Browser client** (`site/js/claude-client.js`) — `BabuAI.ingestItinerary(text)` added.
+- **CommandPalette** — two new commands: `New voice entry`, `Paste itinerary`. Both route to Trip > Capture via a new `trip:set-subtab` window event that `TripModule` listens for.
+- **Compaction** — Phase 5 added ~200 lines of UI (VoiceEntry ~85, ItineraryPaste ~103, wiring ~15) and compacted ~47 lines out of ChapterReader (arrow-function helpers, one-line useMemo body, removed blank lines between hooks). Script block finishes at **2,488 lines** under the 2,500 cap (Gate D).
+- **`trips/*/voice-inbox.json` and `trips/*/itinerary-inbox.json` remain gitignored** per Phase 1 policy — no transcripts or itinerary pastes land in git.
+
+Acceptance gates (all required to pass before tag):
+
+- Gate A — `POST /api/ingest-itinerary` with a synthetic itinerary returns `{ ok: true, extracted: { flights, hotels, highlights, dates } }`.
+- Gate B — `POST /api/queue/voice-inbox` and `POST /api/queue/itinerary-inbox` with valid rows return `{ ok: true, id }`; `GET` echoes.
+- Gate C — `cd server && npm run validate` passes (voice and itinerary rows share the `pending.schema.json` contract).
+- Gate D — `<script type="text/babel">` block stays ≤ 2,500 lines.
+- Gate E — `cd server && npm run harass` passes (rate limits on `/api/ingest-itinerary` alongside existing endpoints).
+- Gate F — **DEFERRED to a single comprehensive browser walkthrough after all phases.** Covers VoiceEntry mic/denied/unsupported paths, ItineraryPaste parse→preview→accept, CommandPalette wiring, and no-regression on Receipt, FloatingChat, Dashboard, Memoir, DayOne, Tier 0 tools.
+
 See `_workspace/ideas/app-cowork-execution-plan.md` for the full phase roadmap (Phases 1–9), UI canon, proxy endpoint inventory, and acceptance criteria.
 
 ---
