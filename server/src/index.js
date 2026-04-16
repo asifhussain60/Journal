@@ -63,6 +63,7 @@ import {
   deleteDeadLetterEntry,
 } from "./dead-letter.js";
 import { shadow } from "./middleware/shadow-write.js";
+import { accessAuth, accessAuthStatus } from "./middleware/access-auth.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -103,7 +104,16 @@ function extractJsonObject(raw) {
 
 const PORT = Number(process.env.PORT ?? 3001);
 const DEFAULT_MODEL = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6";
-const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN ?? "http://localhost:3000";
+// ALLOWED_ORIGINS is a comma-separated list. Defaults cover local dev + both
+// deployed hostnames (production + develop preview). Override via env when
+// staging against a different Pages URL.
+const ALLOWED_ORIGINS = (
+  process.env.ALLOWED_ORIGINS ??
+  "http://localhost:3000,https://journal.kashkole.com,https://journal-dev.kashkole.com"
+)
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
 const MONTHLY_CAP = Number(process.env.MONTHLY_CAP ?? 50);
 
 // --- Key load (fail fast if missing) ------------------------------------------
@@ -112,13 +122,36 @@ const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
 
 // --- App setup ---------------------------------------------------------------
 const app = express();
-app.use(cors({ origin: ALLOWED_ORIGIN, methods: ["GET", "POST"] }));
+// Trust the loopback proxy so req.ip reflects the real origin when cloudflared
+// forwards traffic to 127.0.0.1. Without this, req.ip is always "::ffff:127...".
+app.set("trust proxy", "loopback");
+app.use(
+  cors({
+    origin: (origin, cb) => {
+      // Allow same-origin and non-browser callers (curl, launchd scripts).
+      if (!origin) return cb(null, true);
+      if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+      cb(new Error(`CORS: origin not allowed: ${origin}`));
+    },
+    // credentials:true is required so the Cloudflare Access auth cookie rides
+    // along on cross-origin fetches from journal(-dev)?.kashkole.com to
+    // journal-api.kashkole.com.
+    credentials: true,
+    methods: ["GET", "POST"],
+  })
+);
 app.use(express.json({ limit: "1mb" }));
+// Access gate: deny before any logging/rate-limit work happens on unauth'd
+// public traffic. Loopback requests bypass; CF env vars absent = pass-through.
+app.use(accessAuth());
 
-// Phase 1 + 8 middleware — order matters:
-//   1. usage-logger first, so every request (even throttled/rate-limited) is logged.
-//   2. rate-limit second, so logger captures the 429 as well.
-//   3. throttle-budget last, after rate-limit and logging. Adds X-Budget-State
+// Middleware order — intentional:
+//   0. accessAuth (above) — rejects unauth'd public traffic at the door. Does
+//      not consume usage budget or log, since it's not real app traffic.
+//   1. usage-logger — captures every authenticated request (even throttled /
+//      rate-limited ones) for the usage summary + budget cap.
+//   2. rate-limit — so logger captures the 429 as well.
+//   3. throttle-budget — after rate-limit and logging. Adds X-Budget-State
 //      header to every response; enforces soft/hard policies from Phase 8.
 app.use(usageLogger());
 app.use(buildRateLimiter());
@@ -162,7 +195,8 @@ app.get("/health", (_req, res) => {
     model: DEFAULT_MODEL,
     keySource: KEY_SOURCE,
     port: PORT,
-    allowedOrigin: ALLOWED_ORIGIN,
+    allowedOrigins: ALLOWED_ORIGINS,
+    access: accessAuthStatus(),
     ts: new Date().toISOString(),
   });
 });

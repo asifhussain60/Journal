@@ -1,0 +1,22 @@
+# Cloudflare Tunnel config — Journal API (Mac)
+#
+# Template — the installer script replaces <TUNNEL_UUID> with the real UUID
+# that `cloudflared tunnel create journal-api` produces in ~/.cloudflared/.
+#
+# Production location: ~/.cloudflared/journal-config.yml
+# Version-controlled copy: infra/cloudflare/journal-config.template.yml
+# Mirrors the NOOR-CANVAS pattern (credentials-based, ingress rules in YAML).
+
+tunnel: <TUNNEL_UUID>
+credentials-file: <HOME>/.cloudflared/<TUNNEL_UUID>.json
+
+ingress:
+  # Journal API — tunneled to the local Express proxy.
+  - hostname: journal-api.kashkole.com
+    service: http://127.0.0.1:3001
+    originRequest:
+      httpHostHeader: journal-api.kashkole.com
+      connectTimeout: 10s
+
+  # Catchall: any other hostname arriving on this tunnel gets 404.
+  - service: http_status:404

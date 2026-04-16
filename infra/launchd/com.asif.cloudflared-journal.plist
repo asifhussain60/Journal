@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Auto-starts the Journal API Cloudflare Tunnel at user login.
+
+  Installed automatically by infra/cloudflare/install-journal-tunnel.sh.
+  Placeholders {{CLOUDFLARED_BIN}} and {{HOME}} are replaced at install time.
+
+  Manual install (if not using the installer):
+    1. Replace {{CLOUDFLARED_BIN}} with the absolute path to cloudflared
+       (e.g. /opt/homebrew/bin/cloudflared).
+    2. Replace {{HOME}} with your home directory (e.g. /Users/asifhussain).
+    3. Copy the result to ~/Library/LaunchAgents/.
+    4. launchctl load -w ~/Library/LaunchAgents/com.asif.cloudflared-journal.plist
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.asif.cloudflared-journal</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>{{CLOUDFLARED_BIN}}</string>
+    <string>tunnel</string>
+    <string>--config</string>
+    <string>{{HOME}}/.cloudflared/journal-config.yml</string>
+    <string>--no-autoupdate</string>
+    <string>run</string>
+  </array>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>KeepAlive</key>
+  <dict>
+    <key>SuccessfulExit</key>
+    <false/>
+    <key>Crashed</key>
+    <true/>
+  </dict>
+
+  <key>StandardOutPath</key>
+  <string>{{HOME}}/.cloudflared/journal-tunnel.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>{{HOME}}/.cloudflared/journal-tunnel.log</string>
+
+  <key>ThrottleInterval</key>
+  <integer>10</integer>
+
+  <key>ProcessType</key>
+  <string>Background</string>
+</dict>
+</plist>

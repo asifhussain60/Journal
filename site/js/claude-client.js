@@ -3,10 +3,27 @@
 // Uses fetch only; no dependencies; safe to load before or after React.
 
 (function () {
-  const BASE = (window.BABU_AI_PROXY_URL || "http://localhost:3001").replace(/\/+$/, "");
+  // Env-aware API base. Localhost uses the dev proxy directly; every deployed
+  // host (Cloudflare Pages production + preview) funnels through the single
+  // Mac-hosted tunnel at journal-api.kashkole.com. Override via
+  // window.BABU_AI_PROXY_URL before this script loads if you need to point at
+  // something custom (e.g. a second machine's tunnel).
+  function defaultApiBase() {
+    if (typeof window === "undefined") return "http://localhost:3001";
+    const host = window.location.hostname;
+    if (host === "localhost" || host === "127.0.0.1" || host === "") {
+      return "http://localhost:3001";
+    }
+    return "https://journal-api.kashkole.com";
+  }
+
+  const BASE = (window.BABU_AI_PROXY_URL || defaultApiBase()).replace(/\/+$/, "");
 
   async function getJSON(path, init = {}) {
-    const r = await fetch(BASE + path, init);
+    // credentials:include lets the Cloudflare Access auth cookie ride along
+    // cross-origin from journal(.dev)?.kashkole.com to journal-api.kashkole.com.
+    // Safe on localhost — ignored when there's no cookie to send.
+    const r = await fetch(BASE + path, { credentials: "include", ...init });
     const body = await r.json().catch(() => ({ ok: false, error: "non-JSON response" }));
     if (!r.ok || body.ok === false) {
       const msg = body.error || `HTTP ${r.status}`;
@@ -94,7 +111,7 @@
       if (!(file instanceof File || file instanceof Blob)) throw new Error("uploadReceipt: File required");
       const form = new FormData();
       form.append("file", file);
-      const r = await fetch(BASE + "/api/upload", { method: "POST", body: form });
+      const r = await fetch(BASE + "/api/upload", { method: "POST", body: form, credentials: "include" });
       const body = await r.json().catch(() => ({ ok: false, error: "non-JSON response" }));
       if (!r.ok || body.ok === false) {
         const err = new Error(body.error || `HTTP ${r.status}`);

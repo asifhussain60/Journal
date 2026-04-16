@@ -20,7 +20,7 @@
   <array>
     <string>/bin/bash</string>
     <string>-lc</string>
-    <string>cd {{REPO}}/server &amp;&amp; exec node src/index.js</string>
+    <string>cd {{REPO}}/server &amp;&amp; if [ -f .env ]; then exec node --env-file=.env src/index.js; else exec node src/index.js; fi</string>
   </array>
 
   <key>RunAtLoad</key>
