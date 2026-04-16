@@ -1958,19 +1958,13 @@
       const articleRef = useRef(null);
 
       const NOTE_TYPES = {
-        edit:       { label: 'Edit',       icon: 'fa-pen',           color: '#c6a6ff' },
-        reflection: { label: 'Reflection', icon: 'fa-lightbulb',     color: '#f4d49c' },
+        edit:       { label: 'Edit',       icon: 'fa-pen',              color: '#c6a6ff' },
+        reflection: { label: 'Reflection', icon: 'fa-lightbulb',        color: '#f4d49c' },
         research:   { label: 'Research',   icon: 'fa-magnifying-glass', color: '#34d399' },
-        continuity: { label: 'Continuity', icon: 'fa-link',          color: '#ffb0cc' },
-        voice:      { label: 'Voice',      icon: 'fa-microphone',    color: '#93c5fd' }
+        continuity: { label: 'Continuity', icon: 'fa-link',             color: '#ffb0cc' },
+        voice:      { label: 'Voice',      icon: 'fa-microphone',       color: '#93c5fd' }
       };
-
-      const FONT_MAP = {
-        lato: "'Lato', 'Inter', sans-serif",
-        inter: "'Inter', 'Lato', sans-serif",
-        georgia: "'Georgia', 'Garamond', serif",
-        dyslexic: "'OpenDyslexic', 'Comic Sans MS', sans-serif"
-      };
+      const FONT_MAP = { lato: "'Lato', 'Inter', sans-serif", inter: "'Inter', 'Lato', sans-serif", georgia: "'Georgia', 'Garamond', serif", dyslexic: "'OpenDyslexic', 'Comic Sans MS', sans-serif" };
       const FONT_LABELS = { lato: 'Lato', inter: 'Inter', georgia: 'Georgia', dyslexic: 'Dyslexic' };
       const SPACING_OPTS = [{ val: 1.6, label: 'Tight' }, { val: 1.75, label: 'Normal' }, { val: 1.85, label: 'Relaxed' }, { val: 2.1, label: 'Airy' }];
       const WIDTH_OPTS = [{ val: 'narrow', label: 'Narrow', icon: 'fa-compress' }, { val: 'medium', label: 'Medium', icon: 'fa-grip-lines' }, { val: 'wide', label: 'Wide', icon: 'fa-expand' }];
@@ -1988,21 +1982,13 @@
           .then(text => { setContent(text); setLoading(false); })
           .catch(() => { setContent(null); setLoading(false); });
       }, [chapter.id]);
-
       useEffect(() => {
         try { localStorage.setItem('bm_' + chapter.id, JSON.stringify(bookmarks)); } catch(e) {}
       }, [bookmarks, chapter.id]);
-
       useEffect(() => {
-        if (contentWidth === 'wide') {
-          setTocOpen(false);
-          setNotesOpen(false);
-        } else {
-          setTocOpen(true);
-          setNotesOpen(true);
-        }
+        if (contentWidth === 'wide') { setTocOpen(false); setNotesOpen(false); }
+        else { setTocOpen(true); setNotesOpen(true); }
       }, [contentWidth]);
-
       useEffect(() => {
         const lsKey = 'notes_' + chapter.id;
         fetch('data/notes/' + chapter.id + '-notes.json')
@@ -2013,12 +1999,10 @@
             setNotesLoaded(true);
           });
       }, [chapter.id]);
-
       useEffect(() => {
         if (!notesLoaded) return;
         try { localStorage.setItem('notes_' + chapter.id, JSON.stringify(notes)); } catch(e) {}
       }, [notes, chapter.id, notesLoaded]);
-
       useEffect(() => {
         if (bookmarks.length > 0) setShowResume(true);
         const t = setTimeout(() => setShowResume(false), 8000);
@@ -2090,65 +2074,34 @@
       const wordCount = content ? content.split(/\s+/).length : chapter.words;
       const readingMinutes = Math.max(1, Math.round(wordCount / 230));
 
-      function isAdviceHeading(text) {
-        return /^(Babu[''\u2019]s Advice|Dad[''\u2019]s Advice|What I Wish)/i.test(text.trim());
-      }
-
-      function toggleBookmark(paraIdx) {
-        setBookmarks(prev => prev.includes(paraIdx) ? prev.filter(b => b !== paraIdx) : [...prev, paraIdx].sort((a,b) => a - b));
-      }
-
-      function bookmarkCurrentParagraph() {
-        if (!bookmarks.includes(currentParaIdx)) {
-          setBookmarks(prev => [...prev, currentParaIdx].sort((a,b) => a - b));
-        }
-      }
-
-      function getParaPreview(idx) {
+      const isAdviceHeading = (text) => /^(Babu[''\u2019]s Advice|Dad[''\u2019]s Advice|What I Wish)/i.test(text.trim());
+      const toggleBookmark = (paraIdx) => setBookmarks(prev => prev.includes(paraIdx) ? prev.filter(b => b !== paraIdx) : [...prev, paraIdx].sort((a,b) => a - b));
+      const bookmarkCurrentParagraph = () => { if (!bookmarks.includes(currentParaIdx)) setBookmarks(prev => [...prev, currentParaIdx].sort((a,b) => a - b)); };
+      const getParaPreview = (idx) => {
         if (!bodyParagraphs[idx]) return 'Para ' + (idx + 1);
         const text = bodyParagraphs[idx].trim().replace(/\n+/g, ' ');
         const words = text.split(/\s+/).slice(0, 5).join(' ');
         return words.length < text.length ? words + '…' : words;
-      }
-
-      function addNote() {
+      };
+      const addNote = () => {
         if (!noteText.trim()) return;
-        const note = {
+        setNotes(prev => [...prev, {
           id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-          type: noteType,
-          text: noteText.trim(),
-          paraIdx: currentParaIdx,
-          paraPreview: getParaPreview(currentParaIdx),
-          timestamp: new Date().toISOString(),
-          chapter: chapter.id
-        };
-        setNotes(prev => [...prev, note]);
+          type: noteType, text: noteText.trim(),
+          paraIdx: currentParaIdx, paraPreview: getParaPreview(currentParaIdx),
+          timestamp: new Date().toISOString(), chapter: chapter.id
+        }]);
         setNoteText('');
-      }
-
-      function removeNote(noteId) {
-        setNotes(prev => prev.filter(n => n.id !== noteId));
-      }
+      };
+      const removeNote = (noteId) => setNotes(prev => prev.filter(n => n.id !== noteId));
 
       const notesAtPara = useMemo(() => {
         const map = {};
-        notes.forEach(n => {
-          if (!map[n.paraIdx]) map[n.paraIdx] = [];
-          map[n.paraIdx].push(n);
-        });
+        notes.forEach(n => { (map[n.paraIdx] = map[n.paraIdx] || []).push(n); });
         return map;
       }, [notes]);
-
-      function scrollToSection(idx) {
-        const el = sectionRefs.current['sec-' + idx];
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-
-      function scrollToBookmark(paraIdx) {
-        const el = document.getElementById('para-' + paraIdx);
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        setShowResume(false);
-      }
+      const scrollToSection = (idx) => { const el = sectionRefs.current['sec-' + idx]; if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+      const scrollToBookmark = (paraIdx) => { const el = document.getElementById('para-' + paraIdx); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); setShowResume(false); };
 
       return (
         <div className="chapter-reader-wrap" data-content-width={contentWidth}>
