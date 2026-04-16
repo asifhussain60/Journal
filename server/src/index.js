@@ -3,10 +3,13 @@
 // exposes a small surface for the journal site to call without exposing the key to the browser.
 //
 // Endpoints:
-//   GET  /health              — liveness + model + key-source diagnostics (no secrets)
-//   POST /api/voice-test      — Babu-memoir smoke test (proves wiring + voice)
-//   POST /api/refine          — voice DNA refinement: { text, model?, max_tokens?, promptName? }
-//   POST /api/chat            — generic passthrough: { system?, messages, model?, max_tokens?, promptName? }
+//   GET  /health                       — liveness + model + key-source diagnostics
+//   POST /api/voice-test               — Babu-memoir smoke test
+//   POST /api/refine                   — voice DNA refinement: { text, model?, max_tokens?, promptName? }
+//   POST /api/chat                     — generic passthrough: { system?, messages, model?, max_tokens?, promptName? }
+//   POST /api/trip-qa                  — Phase 3: Haiku-backed trip Q&A
+//   POST /api/trip-assistant           — Phase 3: meta-router prompt for FloatingChat
+//   GET  /api/reference-data/:name     — Phase 3: Tier 0 JSON files (tipping/currency/packing)
 //
 // CORS is locked to http://localhost:3000 (the `npx serve` dev port for site/).
 //
@@ -18,12 +21,20 @@
 
 import express from "express";
 import cors from "cors";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { readFile } from "node:fs/promises";
 import Anthropic from "@anthropic-ai/sdk";
 import { loadAnthropicKey } from "./keychain.js";
 import { makeRefineHandler } from "./refine.js";
 import { usageLogger } from "./middleware/usage-logger.js";
 import { buildRateLimiter } from "./middleware/rate-limit.js";
 import { hasPrompt, loadPrompt } from "./prompts/index.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const REFERENCE_DATA_DIR = path.resolve(__dirname, "./reference-data");
+const REFERENCE_NAME_RE = /^[a-z][a-z0-9-]*$/;
 
 const PORT = Number(process.env.PORT ?? 3001);
 const DEFAULT_MODEL = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6";
@@ -168,6 +179,94 @@ app.post("/api/chat", async (req, res) => {
     });
   } catch (err) {
     res.status(502).json({ ok: false, error: err?.message ?? String(err) });
+  }
+});
+
+// --- Trip Q&A (Haiku) --------------------------------------------------------
+// Body: { message, tripContext }
+//   - tripContext is the active trip JSON (may be null). Stringified into the
+//     head of the user message so the prompt's instructions stay deterministic.
+//   - Pinned to claude-haiku-4-5-20251001 via prompt.model; caller may not override.
+app.post("/api/trip-qa", async (req, res) => {
+  const { message, tripContext } = req.body ?? {};
+  if (typeof message !== "string" || message.trim().length === 0) {
+    return res.status(400).json({ ok: false, error: "message (non-empty string) is required" });
+  }
+  req.body.promptName = "trip-qa"; // ensure usage-logger captures it
+  try {
+    const prompt = loadPrompt("trip-qa");
+    const ctxBlock = tripContext
+      ? `Active trip context (JSON):\n\`\`\`json\n${JSON.stringify(tripContext, null, 2)}\n\`\`\`\n\n`
+      : "No active trip context is available.\n\n";
+    const msg = await anthropic.messages.create({
+      model: prompt.model ?? DEFAULT_MODEL,
+      max_tokens: 600,
+      system: prompt.system,
+      messages: [{ role: "user", content: `${ctxBlock}Question: ${message.trim()}` }],
+    });
+    const response = msg.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim();
+    res.json({ ok: true, model: msg.model, usage: msg.usage, promptName: prompt.name, response });
+  } catch (err) {
+    res.status(502).json({ ok: false, error: err?.message ?? String(err) });
+  }
+});
+
+// --- Trip assistant (router; Phase 6 will fully exercise) --------------------
+// Body: { message, tripContext, intent? }
+//   - intent is advisory; the model still classifies and answers.
+app.post("/api/trip-assistant", async (req, res) => {
+  const { message, tripContext, intent } = req.body ?? {};
+  if (typeof message !== "string" || message.trim().length === 0) {
+    return res.status(400).json({ ok: false, error: "message (non-empty string) is required" });
+  }
+  req.body.promptName = "trip-assistant";
+  try {
+    const prompt = loadPrompt("trip-assistant");
+    const ctxBlock = tripContext
+      ? `Active trip context (JSON):\n\`\`\`json\n${JSON.stringify(tripContext, null, 2)}\n\`\`\`\n\n`
+      : "No active trip context is available.\n\n";
+    const intentHint = intent ? `Caller-suggested intent: ${intent}\n` : "";
+    const msg = await anthropic.messages.create({
+      model: DEFAULT_MODEL,
+      max_tokens: 600,
+      system: prompt.system,
+      messages: [{ role: "user", content: `${ctxBlock}${intentHint}Message: ${message.trim()}` }],
+    });
+    const response = msg.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim();
+    res.json({
+      ok: true,
+      model: msg.model,
+      usage: msg.usage,
+      promptName: prompt.name,
+      intent: intent ?? null,
+      response,
+    });
+  } catch (err) {
+    res.status(502).json({ ok: false, error: err?.message ?? String(err) });
+  }
+});
+
+// --- Reference data (Tier 0, no model call) ----------------------------------
+// GET /api/reference-data/:name → server/src/reference-data/{name}.json
+// 404 if the file is missing. No usage-logger row of interest (model=null,
+// tokens=0) — Tier 0 means zero token cost.
+app.get("/api/reference-data/:name", async (req, res) => {
+  const { name } = req.params;
+  if (!REFERENCE_NAME_RE.test(name)) {
+    return res.status(400).json({ ok: false, error: "invalid reference name" });
+  }
+  const filePath = path.join(REFERENCE_DATA_DIR, `${name}.json`);
+  if (!filePath.startsWith(REFERENCE_DATA_DIR + path.sep)) {
+    return res.status(400).json({ ok: false, error: "invalid reference path" });
+  }
+  try {
+    const raw = await readFile(filePath, "utf8");
+    res.type("application/json").send(raw);
+  } catch (err) {
+    if (err.code === "ENOENT") {
+      return res.status(404).json({ ok: false, error: `reference data "${name}" not found` });
+    }
+    res.status(500).json({ ok: false, error: err?.message ?? String(err) });
   }
 });
 
