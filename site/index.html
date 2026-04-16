@@ -23,6 +23,7 @@
 </head>
 <body>
 
+  <a href="#main-content" class="skip-link">Skip to main content</a>
   <div class="bg-mesh"></div>
   <div id="root"></div>
 
@@ -130,6 +131,10 @@
 
     function formatDate(iso) {
       return new Date(iso + 'T12:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+
+    function todayISO() {
+      return new Date().toISOString().slice(0, 10);
     }
 
     // =================================================================
@@ -666,8 +671,10 @@
             aria-label="Command palette"
           >
             <div className="command-palette-input-row">
+              <label htmlFor="command-palette-search" className="visually-hidden">Command search</label>
               <Icon name="fa-magnifying-glass" />
               <input
+                id="command-palette-search"
                 ref={inputRef}
                 className="command-palette-input"
                 type="text"
@@ -736,17 +743,17 @@
       }
 
       return (
-        <div className="glass-card fade-enter stagger-2" style={{ padding: '2rem' }}>
+        <Card variant="glass" className="fade-enter stagger-2" style={{ padding: '2rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 600 }}>
             <span><Icon name="fa-markdown" color="var(--accent)" /> Markdown Export</span>
           </div>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', lineHeight: '1.7', color: 'var(--text-main)', whiteSpace: 'pre-wrap', marginBottom: '1.5rem' }}>
             {md}
           </div>
-          <button className="btn btn-primary" style={{ width: '100%' }} onClick={copyMd}>
-            <Icon name="fa-copy" /> Copy for DayOne
-          </button>
-        </div>
+          <Button variant="primary" icon="fa-copy" style={{ width: '100%' }} onClick={copyMd}>
+            Copy for DayOne
+          </Button>
+        </Card>
       );
     }
 
@@ -774,8 +781,15 @@
       const daysUntil = isBefore ? Math.ceil((start - today) / msPerDay) : 0;
       const currentDay = isLive ? Math.floor((today - start) / msPerDay) + 1 : 0;
 
+      const openTrip = () => { window.location.href = activeTrip.itineraryPath || 'itineraries/2026-04-ishrat-engagement.html'; };
       return (
-        <div className="trip-hero stagger-2" onClick={() => window.location.href = activeTrip.itineraryPath || 'itineraries/2026-04-ishrat-engagement.html'}>
+        <div
+          className="trip-hero stagger-2"
+          role="button"
+          tabIndex={0}
+          aria-label={`Open itinerary for ${activeTrip.displayDate || 'the active trip'}`}
+          onClick={openTrip}
+          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openTrip(); } }}>
           
           <div className="hero-overline">Asif & Ishrat</div>
           <div className="hero-names">Asif & Ishrat</div>
@@ -806,20 +820,20 @@
           <ActiveTripHero trips={trips} onNavigate={onNavigate} />
 
           <div className="grid-cards stagger-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))' }}>
-            <div className="glass-card module-card" onClick={() => onNavigate('memoir')}>
+            <Card variant="module" role="button" tabIndex={0} onClick={() => onNavigate('memoir')} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onNavigate('memoir'); } }} aria-label="Open Memoir module">
               <div className="module-card-header">
                 <div className="module-icon"><Icon name="fa-book-open" size="1.8em" /></div>
                 <h3 className="module-title">Memoir</h3>
               </div>
               <p className="module-description">"What I Wish Babu Taught Me" &mdash; Manage your chapters, incidents, and quotes in a structured, elegant format.</p>
-            </div>
-            <div className="glass-card module-card" onClick={() => onNavigate('dayone')}>
+            </Card>
+            <Card variant="module" role="button" tabIndex={0} onClick={() => onNavigate('dayone')} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onNavigate('dayone'); } }} aria-label="Open DayOne Journal module">
               <div className="module-card-header">
                 <div className="module-icon"><Icon name="fa-feather-pointed" size="1.8em" /></div>
                 <h3 className="module-title">DayOne Journal</h3>
               </div>
               <p className="module-description">Draft daily logs, tag locations, and apply your <em>Voice DNA</em> before seamlessly exporting directly to DayOne.</p>
-            </div>
+            </Card>
           </div>
         </div>
       );
@@ -874,7 +888,17 @@
                             key={ch.id}
                             className={`book-spine-card ${isPlanned ? 'has-lock planned' : ''} ${isClickable ? 'clickable' : ''} ${ch.status === 'active' ? 'active-chapter' : ''}`}
                             style={{ backgroundColor: meta.bg, borderLeftColor: meta.border }}
+                            role={isClickable ? 'button' : undefined}
+                            tabIndex={isClickable ? 0 : undefined}
+                            aria-label={isClickable ? `Open Chapter ${ch.num}: ${ch.title}` : `Chapter ${ch.num}: ${ch.title} (${ch.status})`}
+                            aria-disabled={!isClickable || undefined}
                             onClick={() => isClickable && onOpenChapter && onOpenChapter(ch)}
+                            onKeyDown={e => {
+                              if (isClickable && (e.key === 'Enter' || e.key === ' ')) {
+                                e.preventDefault();
+                                onOpenChapter && onOpenChapter(ch);
+                              }
+                            }}
                           >
                             <div className="book-binding-top"></div>
                             <div className="book-body">
@@ -906,40 +930,41 @@
           {tab === 'incidents' && (
             <div className="grid-cards stagger-1">
               {INCIDENTS_SAMPLE.map((inc, i) => (
-                <div key={i} className="glass-card incident-card">
+                <Card key={i} variant="glass" className="incident-card">
                   <h3 className="incident-title">{inc.title}</h3>
                   <div className="incident-meta">
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                    <Text as="span" variant="mono" size="sm" color="muted">
                       <Icon name="fa-bookmark" /> Ch {inc.chapter}
-                    </span>
+                    </Text>
                     <span className={`badge ${inc.status === 'PLACED' ? 'badge-locked' : inc.status === 'BANKED' ? 'badge-active' : 'badge-planned'}`}>
                       {inc.status}
                     </span>
                   </div>
-                </div>
+                </Card>
               ))}
             </div>
           )}
 
           {tab === 'quotes' && (
             <div className="stagger-1">
-              <input
-                className="input-field"
-                placeholder="Search quotes..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                style={{ marginBottom: '1.5rem', maxWidth: '400px' }}
-              />
+              <FormField label="Search quotes">
+                <Input
+                  placeholder="Search quotes..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  style={{ maxWidth: '400px' }}
+                />
+              </FormField>
               <div className="grid-cards">
                 {filteredQuotes.map((q, i) => (
-                  <div key={i} className="glass-card quote-card">
+                  <Card key={i} variant="glass" className="quote-card">
                     <div className="quote-icon">&ldquo;</div>
                     <p className="quote-text">{q.text}</p>
                     <div className="quote-author">
                       <span>&mdash; {q.source}</span>
                       <span className="badge badge-active">Ch {q.chapter}</span>
                     </div>
-                  </div>
+                  </Card>
                 ))}
               </div>
             </div>
@@ -964,21 +989,23 @@
       if (selectedEntry) {
         return (
           <div className="container fade-enter">
-            <button className="btn btn-secondary" onClick={() => setSelectedEntry(null)} style={{ marginBottom: '2rem' }}>
-              <Icon name="fa-arrow-left" /> Back
-            </button>
+            <Button variant="secondary" icon="fa-arrow-left" onClick={() => setSelectedEntry(null)} style={{ marginBottom: '2rem' }}>
+              Back
+            </Button>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
               <DayOnePreview entry={selectedEntry} selectedJournal={selectedEntry.journal} />
-              <div className="glass-card" style={{ padding: '2.5rem' }}>
-                <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '2rem', marginBottom: '0.5rem' }}>{selectedEntry.summary}</h2>
-                <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: '0.85rem' }}>
+              <Card variant="glass" style={{ padding: '2.5rem' }}>
+                <Text as="h2" variant="serif" size="xl" style={{ marginBottom: '0.5rem' }}>{selectedEntry.summary}</Text>
+                <Text variant="mono" size="sm" color="muted" style={{ marginBottom: '1.5rem' }}>
                   {selectedEntry.date} &middot; {selectedEntry.location} &middot; {selectedEntry.mood}
-                </p>
-                <textarea className="input-field" defaultValue={selectedEntry.text} />
-                <button className="btn btn-primary" style={{ marginTop: '1.5rem', width: '100%' }}>
-                  <Icon name="fa-wand-magic-sparkles" /> Refine with Voice DNA
-                </button>
-              </div>
+                </Text>
+                <FormField label="Entry text">
+                  <Textarea defaultValue={selectedEntry.text} />
+                </FormField>
+                <Button variant="primary" icon="fa-wand-magic-sparkles" style={{ marginTop: '1.5rem', width: '100%' }}>
+                  Refine with Voice DNA
+                </Button>
+              </Card>
             </div>
           </div>
         );
@@ -1005,16 +1032,16 @@
           {subTab === 'browser' && !selectedTrip && (
             <div className="grid-cards stagger-1">
               {trips.map(trip => (
-                <div key={trip.id} className="glass-card module-card" onClick={() => setSelectedTrip(trip)}>
+                <Card key={trip.id} variant="module" role="button" tabIndex={0} aria-label={`Open trip ${trip.location}`} onClick={() => setSelectedTrip(trip)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedTrip(trip); } }}>
                   <div className="module-icon" style={{ background: 'linear-gradient(135deg, rgba(244,114,182,0.2), rgba(139,92,246,0.2))' }}>
                     <Icon name="fa-plane-departure" />
                   </div>
-                  <h2 className="module-title" style={{ fontSize: '1.8rem' }}>{trip.location}</h2>
+                  <Text as="h2" variant="serif" className="module-title" style={{ fontSize: '1.8rem' }}>{trip.location}</Text>
                   <p className="module-description">{trip.displayDate} &middot; {trip.country} &middot; {trip.entries.length} entries</p>
                   <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', flexWrap: 'wrap' }}>
                     {trip.tags.map(tag => <span key={tag} className="badge badge-active">{tag}</span>)}
                   </div>
-                </div>
+                </Card>
               ))}
             </div>
           )}
@@ -1022,18 +1049,18 @@
           {/* --- Browser: Trip Entries --- */}
           {subTab === 'browser' && selectedTrip && (
             <div>
-              <button className="btn btn-secondary" onClick={() => setSelectedTrip(null)} style={{ marginBottom: '1.5rem' }}>
-                <Icon name="fa-arrow-left" /> All Trips
-              </button>
-              <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '2rem', marginBottom: '0.25rem' }}>{selectedTrip.location}</h2>
-              <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
+              <Button variant="secondary" icon="fa-arrow-left" onClick={() => setSelectedTrip(null)} style={{ marginBottom: '1.5rem' }}>
+                All Trips
+              </Button>
+              <Text as="h2" variant="serif" size="xl" style={{ marginBottom: '0.25rem' }}>{selectedTrip.location}</Text>
+              <Text variant="mono" size="sm" color="muted" style={{ marginBottom: '1.5rem' }}>
                 {selectedTrip.displayDate} &middot; {selectedTrip.country} &middot; {selectedTrip.entries.length} entries
-              </p>
+              </Text>
               <div className="grid-cards stagger-1">
                 {selectedTrip.entries.map((entry, idx) => {
                   const color = MOOD_COLORS[entry.mood] || MOOD_COLORS.reflective;
                   return (
-                    <div key={entry.uuid} className="glass-card entry-card" onClick={() => setSelectedEntry(entry)} style={{ animationDelay: `${idx * 0.06}s` }}>
+                    <Card key={entry.uuid} variant="glass" className="entry-card" role="button" tabIndex={0} aria-label={`Open entry ${entry.summary}`} onClick={() => setSelectedEntry(entry)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedEntry(entry); } }} style={{ animationDelay: `${idx * 0.06}s` }}>
                       <div className="entry-header">
                         <span className="entry-date">Day {idx + 1} &middot; {entry.date}</span>
                         <span className="entry-mood" style={{ background: color.bg, color: color.text }}>
@@ -1042,7 +1069,7 @@
                       </div>
                       <h3 className="entry-title">{entry.summary}</h3>
                       <p className="entry-preview">{entry.text}</p>
-                    </div>
+                    </Card>
                   );
                 })}
               </div>
@@ -1052,19 +1079,23 @@
           {/* --- Editor Tab --- */}
           {subTab === 'editor' && (
             <div className="stagger-1">
-              <div className="glass-card" style={{ padding: '2rem', maxWidth: '600px' }}>
-                <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.3rem', marginBottom: '1.5rem' }}>Select a trip and entry to edit</h3>
-                <select className="input-field" style={{ marginBottom: '1rem' }} onChange={e => { const trip = trips.find(t => t.id === e.target.value); setSelectedTrip(trip || null); setSelectedEntry(null); }}>
-                  <option value="">Choose trip...</option>
-                  {trips.map(t => <option key={t.id} value={t.id}>{t.location} &mdash; {t.displayDate}</option>)}
-                </select>
+              <Card variant="glass" style={{ padding: '2rem', maxWidth: '600px' }}>
+                <Text as="h3" variant="serif" size="lg" style={{ marginBottom: '1.5rem' }}>Select a trip and entry to edit</Text>
+                <FormField label="Trip">
+                  <Select onChange={e => { const trip = trips.find(t => t.id === e.target.value); setSelectedTrip(trip || null); setSelectedEntry(null); }}>
+                    <option value="">Choose trip...</option>
+                    {trips.map(t => <option key={t.id} value={t.id}>{t.location} &mdash; {t.displayDate}</option>)}
+                  </Select>
+                </FormField>
                 {selectedTrip && (
-                  <select className="input-field" onChange={e => { const entry = selectedTrip.entries.find(en => en.uuid === e.target.value); if (entry) setSelectedEntry(entry); }}>
-                    <option value="">Choose entry...</option>
-                    {selectedTrip.entries.map(en => <option key={en.uuid} value={en.uuid}>{en.date} &mdash; {en.summary}</option>)}
-                  </select>
+                  <FormField label="Entry">
+                    <Select onChange={e => { const entry = selectedTrip.entries.find(en => en.uuid === e.target.value); if (entry) setSelectedEntry(entry); }}>
+                      <option value="">Choose entry...</option>
+                      {selectedTrip.entries.map(en => <option key={en.uuid} value={en.uuid}>{en.date} &mdash; {en.summary}</option>)}
+                    </Select>
+                  </FormField>
                 )}
-              </div>
+              </Card>
             </div>
           )}
 
@@ -1075,7 +1106,7 @@
                 <DayOnePreview
                   entry={{
                     location: 'New Entry',
-                    date: new Date().toISOString().split('T')[0],
+                    date: todayISO(),
                     mood: newMood,
                     text: newText || 'Your entry will appear here...',
                     tags: [newMood, 'ishrat'],
@@ -1084,47 +1115,65 @@
                   selectedJournal={newJournal}
                 />
 
-                <div className="glass-card" style={{ padding: '2.5rem' }}>
-                  <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.5rem', marginBottom: '1.5rem' }}>New Entry</h3>
+                <Card variant="glass" style={{ padding: '2.5rem' }}>
+                  <Text as="h3" variant="serif" size="xl" style={{ marginBottom: '1.5rem' }}>New Entry</Text>
 
-                  <label style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Mood</label>
-                  <div className="mood-chips" style={{ marginBottom: '1.5rem' }}>
-                    {MOODS.map(mood => {
-                      const color = MOOD_COLORS[mood] || MOOD_COLORS.reflective;
-                      return (
-                        <div key={mood} className={`mood-chip ${newMood === mood ? 'selected' : ''}`} onClick={() => setNewMood(mood)}
-                          style={{ background: color.bg, borderColor: newMood === mood ? color.text : 'transparent' }}>
-                          <Icon name={color.icon} size="0.9em" />
-                          <span style={{ color: color.text }}>{mood}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <FormField label="Mood">
+                    <div className="mood-chips" role="radiogroup" aria-label="Mood">
+                      {MOODS.map(mood => {
+                        const color = MOOD_COLORS[mood] || MOOD_COLORS.reflective;
+                        const isSelected = newMood === mood;
+                        return (
+                          <button
+                            key={mood}
+                            type="button"
+                            role="radio"
+                            aria-checked={isSelected}
+                            aria-label={`Mood: ${mood}`}
+                            className={`mood-chip ${isSelected ? 'selected' : ''}`}
+                            onClick={() => setNewMood(mood)}
+                            style={{ background: color.bg, borderColor: isSelected ? color.text : 'transparent' }}
+                          >
+                            <Icon name={color.icon} size="0.9em" />
+                            <span style={{ color: color.text }}>{mood}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </FormField>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                    <div>
-                      <label style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Journal</label>
-                      <select className="input-field" value={newJournal} onChange={e => setNewJournal(e.target.value)}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <FormField label="Journal">
+                      <Select value={newJournal} onChange={e => setNewJournal(e.target.value)}>
                         {JOURNALS.map(j => <option key={j} value={j}>{j}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Date</label>
-                      <input className="input-field" type="date" defaultValue={new Date().toISOString().split('T')[0]} />
-                    </div>
+                      </Select>
+                    </FormField>
+                    <FormField label="Date">
+                      <Input type="date" defaultValue={todayISO()} />
+                    </FormField>
                   </div>
 
-                  <label style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Summary</label>
-                  <input className="input-field" placeholder="One line that captures the moment" value={newSummary} onChange={e => setNewSummary(e.target.value)} style={{ marginBottom: '1rem' }} />
+                  <FormField label="Summary">
+                    <Input
+                      placeholder="One line that captures the moment"
+                      value={newSummary}
+                      onChange={e => setNewSummary(e.target.value)}
+                    />
+                  </FormField>
 
-                  <label style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Entry</label>
-                  <textarea className="input-field" placeholder="Let the moment breathe on the page..." value={newText} onChange={e => setNewText(e.target.value)} />
+                  <FormField label="Entry">
+                    <Textarea
+                      placeholder="Let the moment breathe on the page..."
+                      value={newText}
+                      onChange={e => setNewText(e.target.value)}
+                    />
+                  </FormField>
 
-                  <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
-                    <button className="btn btn-primary"><Icon name="fa-wand-magic-sparkles" /> Refine with Voice DNA</button>
-                    <button className="btn btn-secondary"><Icon name="fa-save" /> Save Draft</button>
+                  <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                    <Button variant="primary" icon="fa-wand-magic-sparkles">Refine with Voice DNA</Button>
+                    <Button variant="secondary" icon="fa-save">Save Draft</Button>
                   </div>
-                </div>
+                </Card>
               </div>
             </div>
           )}
@@ -1425,7 +1474,7 @@
           {/* ═══ Floating Side TOC ═══ */}
           {!loading && content && sections.length > 0 && (
             <aside className={`toc-sidebar ${tocOpen ? 'open' : 'collapsed'}`}>
-              <button className="toc-toggle" onClick={() => setTocOpen(o => !o)} title={tocOpen ? 'Collapse TOC' : 'Expand TOC'}>
+              <button className="toc-toggle" onClick={() => setTocOpen(o => !o)} title={tocOpen ? 'Collapse TOC' : 'Expand TOC'} aria-label={tocOpen ? 'Collapse table of contents' : 'Expand table of contents'} aria-expanded={tocOpen}>
                 <Icon name={tocOpen ? 'fa-angles-left' : 'fa-list'} size="0.75em" />
               </button>
               {tocOpen && (
@@ -1465,7 +1514,7 @@
                           <button className="toc-bookmark-item" onClick={() => scrollToBookmark(bIdx)}>
                             <span className="toc-bm-preview">{getParaPreview(bIdx)}</span>
                           </button>
-                          <button className="toc-bookmark-remove" onClick={() => toggleBookmark(bIdx)} title="Remove bookmark">
+                          <button className="toc-bookmark-remove" onClick={() => toggleBookmark(bIdx)} title="Remove bookmark" aria-label="Remove bookmark">
                             <Icon name="fa-xmark" size="0.55em" />
                           </button>
                         </div>
@@ -1480,7 +1529,7 @@
           {/* ═══ Floating Right Notes Panel ═══ */}
           {!loading && content && (
             <aside className={`notes-sidebar ${notesOpen ? 'open' : 'collapsed'}`}>
-              <button className="notes-toggle" onClick={() => setNotesOpen(o => !o)} title={notesOpen ? 'Collapse Notes' : 'Expand Notes'}>
+              <button className="notes-toggle" onClick={() => setNotesOpen(o => !o)} title={notesOpen ? 'Collapse Notes' : 'Expand Notes'} aria-label={notesOpen ? 'Collapse notes panel' : 'Expand notes panel'} aria-expanded={notesOpen}>
                 <Icon name={notesOpen ? 'fa-angles-right' : 'fa-sticky-note'} size="0.75em" />
               </button>
               {notesOpen && (
@@ -1497,10 +1546,13 @@
                       {Object.entries(NOTE_TYPES).map(([key, t]) => (
                         <button
                           key={key}
+                          type="button"
                           className={`note-type-chip ${noteType === key ? 'active' : ''}`}
                           onClick={() => setNoteType(key)}
                           style={noteType === key ? { borderColor: t.color, background: t.color + '18' } : {}}
                           title={t.label}
+                          aria-label={`Set note type to ${t.label}`}
+                          aria-pressed={noteType === key}
                         >
                           <Icon name={t.icon} size="0.65em" />
                           <span className="note-type-label">{t.label}</span>
@@ -1511,15 +1563,18 @@
                       <Icon name="fa-map-pin" size="0.6em" />
                       <span>Anchored to: {getParaPreview(currentParaIdx)}</span>
                     </div>
-                    <textarea
-                      className="note-input"
-                      placeholder="Add a note about this passage..."
-                      value={noteText}
-                      onChange={e => setNoteText(e.target.value)}
-                      onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) addNote(); }}
-                      rows={4}
-                    />
-                    <button className="note-add-btn" onClick={addNote} disabled={!noteText.trim()}>
+                    <FormField label="Note text">
+                      <textarea
+                        className="note-input"
+                        placeholder="Add a note about this passage..."
+                        value={noteText}
+                        onChange={e => setNoteText(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) addNote(); }}
+                        rows={4}
+                        aria-label="Note text"
+                      />
+                    </FormField>
+                    <button type="button" className="note-add-btn" onClick={addNote} disabled={!noteText.trim()} aria-label="Add note">
                       <Icon name="fa-plus" size="0.7em" /> Add Note
                     </button>
                   </div>
@@ -1540,7 +1595,7 @@
                             <span className="note-card-type" style={{ color: nt.color }}>
                               <Icon name={nt.icon} size="0.6em" /> {nt.label}
                             </span>
-                            <button className="note-card-remove" onClick={() => removeNote(note.id)} title="Delete note">
+                            <button className="note-card-remove" onClick={() => removeNote(note.id)} title="Delete note" aria-label="Delete note">
                               <Icon name="fa-xmark" size="0.6em" />
                             </button>
                           </div>
@@ -1565,7 +1620,7 @@
               <button className="resume-btn" onClick={() => scrollToBookmark(bookmarks[bookmarks.length - 1])}>
                 Resume <Icon name="fa-arrow-right" size="0.7em" />
               </button>
-              <button className="resume-dismiss" onClick={() => setShowResume(false)}>
+              <button className="resume-dismiss" onClick={() => setShowResume(false)} aria-label="Dismiss resume banner">
                 <Icon name="fa-xmark" size="0.75em" />
               </button>
             </div>
@@ -1603,7 +1658,7 @@
 
                   {/* Row 1: Font Size + Font Family */}
                   <div className="rc-group">
-                    <div className="rc-label">Font Size</div>
+                    <label className="rc-label">Font Size</label>
                     <div className="rc-size-row">
                       <button className="rc-circle-btn" onClick={() => setFontScale(s => Math.max(0.8, +(s - 0.1).toFixed(1)))}>
                         <span style={{ fontSize: '0.85em', fontWeight: 700 }}>&minus;</span>
@@ -1619,7 +1674,7 @@
                   </div>
 
                   <div className="rc-group">
-                    <div className="rc-label">Font</div>
+                    <label className="rc-label">Font</label>
                     <div className="rc-btn-row">
                       {Object.keys(FONT_MAP).map(f => (
                         <button key={f} className={`rc-pill ${fontFamily === f ? 'active' : ''}`} onClick={() => setFontFamily(f)}
@@ -1632,7 +1687,7 @@
 
                   {/* Row 2: Theme + Line Spacing */}
                   <div className="rc-group">
-                    <div className="rc-label">Theme</div>
+                    <label className="rc-label">Theme</label>
                     <div className="rc-btn-row">
                       <button className={`rc-theme-swatch dark ${readingTheme === 'dark' ? 'active' : ''}`} onClick={() => setReadingTheme('dark')}>
                         <span className="swatch-dot dark-dot"></span> Dark
@@ -1647,7 +1702,7 @@
                   </div>
 
                   <div className="rc-group">
-                    <div className="rc-label">Line Spacing</div>
+                    <label className="rc-label">Line Spacing</label>
                     <div className="rc-btn-row">
                       {SPACING_OPTS.map(s => (
                         <button key={s.val} className={`rc-pill ${lineSpacing === s.val ? 'active' : ''}`} onClick={() => setLineSpacing(s.val)}>
@@ -1659,7 +1714,7 @@
 
                   {/* Row 3: Content Width */}
                   <div className="rc-group rc-group-full">
-                    <div className="rc-label">Content Width</div>
+                    <label className="rc-label">Content Width</label>
                     <div className="rc-btn-row">
                       {WIDTH_OPTS.map(w => (
                         <button key={w.val} className={`rc-pill ${contentWidth === w.val ? 'active' : ''}`} onClick={() => setContentWidth(w.val)}>
@@ -1730,6 +1785,8 @@
                         className={`bookmark-btn ${isBookmarked ? 'active' : ''}`}
                         onClick={() => toggleBookmark(i)}
                         title={isBookmarked ? 'Remove bookmark' : 'Bookmark this paragraph'}
+                        aria-label={isBookmarked ? 'Remove bookmark' : 'Bookmark this paragraph'}
+                        aria-pressed={isBookmarked}
                       >
                         <Icon name={isBookmarked ? 'fa-bookmark' : 'fa-bookmark'} size="0.7em" />
                       </button>
@@ -1862,7 +1919,7 @@
             </div>
           </nav>
 
-          <main className="page">
+          <main id="main-content" className="page">
             {page === 'home' && <HomePage trips={trips} onNavigate={setPage} />}
             {page === 'memoir' && <MemoirModule onOpenChapter={openChapter} />}
             {page === 'dayone' && <DayOneModule trips={trips} />}
