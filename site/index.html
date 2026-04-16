@@ -1857,20 +1857,17 @@
       const inputRef = useRef(null);
       const convRef = useRef(null);
       const taResize = (el) => { if (!el) return; el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 96) + 'px'; };
-
       useEffect(() => {
-        function onChatFocus() { setOpen(true); setTimeout(() => inputRef.current && inputRef.current.focus(), 0); }
+        const onChatFocus = () => { setOpen(true); setTimeout(() => inputRef.current && inputRef.current.focus(), 0); };
         window.addEventListener('floating-chat:focus', onChatFocus);
         return () => window.removeEventListener('floating-chat:focus', onChatFocus);
       }, []);
-
       useEffect(() => {
         if (!open) return;
-        function onKey(e) { if (e.key === 'Escape') { e.stopPropagation(); setOpen(false); } }
+        const onKey = (e) => { if (e.key === 'Escape') { e.stopPropagation(); setOpen(false); } };
         document.addEventListener('keydown', onKey);
         return () => document.removeEventListener('keydown', onKey);
       }, [open]);
-
       useEffect(() => { if (open && inputRef.current) inputRef.current.focus(); }, [open]);
       useEffect(() => { if (convRef.current) convRef.current.scrollTop = convRef.current.scrollHeight; }, [messages, pending]);
 
@@ -1938,23 +1935,15 @@
       const discardProposal = (idx) => setMessages(m => m.map((x, i) => i === idx ? { ...x, role: 'discarded' } : x));
 
       useEffect(() => { if (!pulse) return; const t = setTimeout(() => setPulse(false), 2800); return () => clearTimeout(t); }, [pulse]);
-
-      function onKeyDown(e) {
+      const onKeyDown = (e) => {
         if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); send(); }
         else if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
-      }
-
-      const lastError = messages.length && messages[messages.length - 1].role === 'error' ? messages[messages.length - 1] : null;
-
+      };
       return (
         <div className="floating-chat" aria-live="off">
           {!open && (
-            <button
-              type="button"
-              className={`floating-chat-bubble ${pulse ? 'is-pulsing' : ''}`}
-              aria-label="Open trip assistant chat"
-              onClick={() => { setOpen(true); setPulse(false); }}
-            >
+            <button type="button" className={`floating-chat-bubble ${pulse ? 'is-pulsing' : ''}`}
+              aria-label="Open trip assistant chat" onClick={() => { setOpen(true); setPulse(false); }}>
               <Icon name="fa-comment-dots" />
             </button>
           )}
@@ -1973,37 +1962,26 @@
                 )}
                 {messages.map((m, i) => (
                   <div key={i} className={`floating-chat-msg ${m.role}`}>
-                    {m.role === 'proposed' && (
-                      <>
-                        <Text size="sm" style={{ margin: 0, marginBottom: '0.4rem' }}><Icon name="fa-wand-magic-sparkles" /> {m.text}</Text>
-                        <DiffViewer diffs={m.diffs} />
-                        <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.5rem' }}>
-                          <Button variant="primary" size="sm" icon="fa-check" loading={pending} onClick={() => applyProposal(i, m)}>Apply</Button>
-                          <Button variant="ghost" size="sm" icon="fa-xmark" onClick={() => discardProposal(i)}>Discard</Button>
-                        </div>
-                      </>
-                    )}
-                    {m.role === 'applied' && (
-                      <>
-                        <Text size="sm" style={{ margin: 0 }}><Icon name="fa-check" /> Applied</Text>
-                        <Button variant="ghost" size="sm" icon="fa-rotate-left" onClick={() => revertProposal(i, m)}>Revert</Button>
-                      </>
-                    )}
+                    {m.role === 'proposed' && <>
+                      <Text size="sm" style={{ margin: 0, marginBottom: '0.4rem' }}><Icon name="fa-wand-magic-sparkles" /> {m.text}</Text>
+                      <DiffViewer diffs={m.diffs} />
+                      <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.5rem' }}>
+                        <Button variant="primary" size="sm" icon="fa-check" loading={pending} onClick={() => applyProposal(i, m)}>Apply</Button>
+                        <Button variant="ghost" size="sm" icon="fa-xmark" onClick={() => discardProposal(i)}>Discard</Button>
+                      </div>
+                    </>}
+                    {m.role === 'applied' && <>
+                      <Text size="sm" style={{ margin: 0 }}><Icon name="fa-check" /> Applied</Text>
+                      <Button variant="ghost" size="sm" icon="fa-rotate-left" onClick={() => revertProposal(i, m)}>Revert</Button>
+                    </>}
                     {m.role === 'reverted' && <Text size="sm" style={{ margin: 0 }}><Icon name="fa-rotate-left" /> Reverted</Text>}
                     {m.role === 'discarded' && <Text size="sm" color="muted" style={{ margin: 0 }}>Discarded.</Text>}
-                    {m.role === 'edit-error' && (
-                      <>
-                        <Text size="sm" color="error" style={{ margin: 0 }}>{m.applyError || 'Edit failed.'}</Text>
-                        <Button variant="secondary" size="sm" icon="fa-rotate" onClick={() => { setMessages(prev => prev.filter((_, j) => j !== i)); send(m.last); }}>Retry</Button>
-                      </>
-                    )}
+                    {m.role === 'edit-error' && <>
+                      <Text size="sm" color="error" style={{ margin: 0 }}>{m.applyError || 'Edit failed.'}</Text>
+                      <Button variant="secondary" size="sm" icon="fa-rotate" onClick={() => { setMessages(prev => prev.filter((_, j) => j !== i)); send(m.last); }}>Retry</Button>
+                    </>}
                     {(m.role === 'user' || m.role === 'assistant' || m.role === 'system') && m.text}
-                    {m.role === 'error' && (
-                      <>
-                        {m.text}
-                        <Button variant="secondary" size="sm" icon="fa-rotate" onClick={() => { setMessages(prev => prev.slice(0, -1)); send(m.last); }}>Retry</Button>
-                      </>
-                    )}
+                    {m.role === 'error' && <>{m.text}<Button variant="secondary" size="sm" icon="fa-rotate" onClick={() => { setMessages(prev => prev.slice(0, -1)); send(m.last); }}>Retry</Button></>}
                   </div>
                 ))}
                 {pending && <div className="floating-chat-msg assistant"><ThinkingDots /></div>}
