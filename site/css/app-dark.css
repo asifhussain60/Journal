@@ -2854,3 +2854,84 @@ select.input-field {
   border-radius: var(--radius-sm);
   border: 1px solid rgba(255,255,255,.12);
 }
+
+/* ThinkingDots + StepProgress (Phase 3 / Phase 4 previews) */
+.thinking-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.thinking-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--lavender);
+  animation: thinking-bounce 1.2s ease-in-out infinite;
+}
+.thinking-dot:nth-child(2) { animation-delay: 0.15s; }
+.thinking-dot:nth-child(3) { animation-delay: 0.3s; }
+@keyframes thinking-bounce {
+  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+  30%           { opacity: 1;   transform: translateY(-4px); }
+}
+
+.step-progress {
+  display: flex;
+  gap: 0;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  counter-reset: step;
+}
+.step-progress-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex: 1;
+  min-width: 0;
+  position: relative;
+}
+.step-progress-item:not(:last-child)::after {
+  content: "";
+  flex: 1;
+  height: 2px;
+  background: rgba(255,255,255,.14);
+  margin: 0 0.5rem;
+}
+.step-progress-item.is-complete:not(:last-child)::after {
+  background: var(--lavender);
+}
+.step-progress-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  border-radius: 50%;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.18);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  flex-shrink: 0;
+}
+.step-progress-item.is-active .step-progress-dot {
+  background: var(--lavender);
+  color: #2b2240;
+  border-color: var(--lavender);
+  box-shadow: 0 0 0 4px rgba(198,166,255,.18);
+}
+.step-progress-item.is-complete .step-progress-dot {
+  background: rgba(198,166,255,.22);
+  color: var(--lavender);
+  border-color: var(--lavender);
+}
+.step-progress-label {
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.step-progress-item.is-active .step-progress-label { color: var(--text); font-weight: 500; }

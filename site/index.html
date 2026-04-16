@@ -362,6 +362,36 @@
       );
     }
 
+    function ThinkingDots({ className = '', label = 'Thinking' }) {
+      return (
+        <span className={['thinking-dots', className].filter(Boolean).join(' ')} role="status" aria-label={label}>
+          <span className="thinking-dot"></span>
+          <span className="thinking-dot"></span>
+          <span className="thinking-dot"></span>
+        </span>
+      );
+    }
+
+    function StepProgress({ steps = [], current = 0, className = '' }) {
+      return (
+        <ol className={['step-progress', className].filter(Boolean).join(' ')} aria-label="Progress">
+          {steps.map((step, i) => {
+            const state = i < current ? 'complete' : i === current ? 'active' : 'pending';
+            const label = typeof step === 'string' ? step : step.label;
+            const key = typeof step === 'string' ? i : (step.id || i);
+            return (
+              <li key={key} className={`step-progress-item is-${state}`} aria-current={i === current ? 'step' : undefined}>
+                <span className="step-progress-dot">
+                  {state === 'complete' ? <Icon name="fa-check" size="0.7em" /> : i + 1}
+                </span>
+                <span className="step-progress-label">{label}</span>
+              </li>
+            );
+          })}
+        </ol>
+      );
+    }
+
     // =================================================================
     // COMPONENTS
     // =================================================================
