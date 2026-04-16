@@ -267,6 +267,102 @@
     }
 
     // =================================================================
+    // DESIGN SYSTEM — MOLECULES
+    // =================================================================
+
+    const CARD_VARIANT_CLASS = {
+      flat:     'card-flat',
+      elevated: 'glass-card',
+      glass:    'glass-card',
+      module:   'glass-card module-card'
+    };
+
+    function Card({ variant = 'glass', as: Tag = 'div', className = '', children, ...rest }) {
+      const variantClass = CARD_VARIANT_CLASS[variant] || CARD_VARIANT_CLASS.glass;
+      return (
+        <Tag className={[variantClass, className].filter(Boolean).join(' ')} {...rest}>
+          {children}
+        </Tag>
+      );
+    }
+
+    const STATUS_CONFIG = {
+      pending:  { variant: 'warning', icon: 'fa-clock',                label: 'PENDING' },
+      drained:  { variant: 'info',    icon: 'fa-circle-check',         label: 'DRAINED' },
+      stuck:    { variant: 'error',   icon: 'fa-triangle-exclamation', label: 'STUCK' },
+      locked:   { variant: 'accent',  icon: 'fa-lock',                 label: 'LOCKED' },
+      active:   { variant: 'accent',  icon: 'fa-circle-dot',           label: 'ACTIVE' },
+      planned:  { variant: 'neutral', icon: 'fa-map-pin',              label: 'PLANNED' },
+      draft:    { variant: 'neutral', icon: 'fa-pencil',               label: 'DRAFT' },
+      complete: { variant: 'success', icon: 'fa-check',                label: 'COMPLETE' }
+    };
+
+    function StatusBadge({ status, label, size = 'md', className = '' }) {
+      const cfg = STATUS_CONFIG[status] || { variant: 'neutral', icon: 'fa-circle', label: status };
+      return <Badge variant={cfg.variant} icon={cfg.icon} size={size} className={className}>{label || cfg.label}</Badge>;
+    }
+
+    function EmptyState({ icon, title, description, action, className = '' }) {
+      return (
+        <div className={['empty-state', className].filter(Boolean).join(' ')} role="status">
+          {icon && <div className="empty-state-icon"><Icon name={icon} size="2.2em" /></div>}
+          {title && <h3 className="empty-state-title">{title}</h3>}
+          {description && <p className="empty-state-description">{description}</p>}
+          {action && <div className="empty-state-action">{action}</div>}
+        </div>
+      );
+    }
+
+    function SkeletonRow({ variant = 'queue-row', count = 3, className = '' }) {
+      return (
+        <div className={['skeleton', `skeleton-${variant}`, className].filter(Boolean).join(' ')} role="status" aria-live="polite" aria-label="Loading">
+          {Array.from({ length: count }, (_, i) => <div key={i} className="skeleton-row" aria-hidden="true"></div>)}
+        </div>
+      );
+    }
+
+    function Pill({ active, icon, children, className = '', onClick, as: Tag = 'button', ...rest }) {
+      const props = Tag === 'button' ? { type: 'button' } : {};
+      return (
+        <Tag {...props} className={['pill', active && 'is-active', className].filter(Boolean).join(' ')} onClick={onClick} {...rest}>
+          {icon && <Icon name={icon} />}
+          {children}
+        </Tag>
+      );
+    }
+
+    function Chip({ icon, onRemove, children, className = '', ...rest }) {
+      return (
+        <span className={['chip', className].filter(Boolean).join(' ')} {...rest}>
+          {icon && <Icon name={icon} />}
+          <span className="chip-label">{children}</span>
+          {onRemove && (
+            <button type="button" className="chip-remove" aria-label="Remove" onClick={onRemove}>
+              <Icon name="fa-xmark" />
+            </button>
+          )}
+        </span>
+      );
+    }
+
+    function MenuItem({ icon, label, shortcut, selected, onClick, className = '', ...rest }) {
+      return (
+        <button
+          type="button"
+          role="menuitem"
+          aria-selected={selected || undefined}
+          onClick={onClick}
+          className={['menu-item', selected && 'is-selected', className].filter(Boolean).join(' ')}
+          {...rest}
+        >
+          {icon && <Icon name={icon} />}
+          <span className="menu-item-label">{label}</span>
+          {shortcut && <kbd className="menu-item-shortcut">{shortcut}</kbd>}
+        </button>
+      );
+    }
+
+    // =================================================================
     // COMPONENTS
     // =================================================================
 
