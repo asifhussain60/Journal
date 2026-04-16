@@ -1,0 +1,25 @@
+# Cloudflare Workers — static-assets-only deployment of site/.
+#
+# Used by Cloudflare's unified Workers & Pages UI (Pages-classic is deprecated
+# for new accounts — all new projects go through Workers). With only an [assets]
+# block and no `main = "..."`, this deploys as a pure static site, equivalent
+# to what Pages did: serves site/** over the CDN, no server-side code.
+#
+# Custom domains (journal.kashkole.com, journal-dev.kashkole.com) are added
+# after first deploy via the project settings in the dashboard.
+
+name = "journal"
+compatibility_date = "2025-10-01"
+
+[assets]
+directory = "./site"
+# Treat 404s as SPA-style: fall back to index.html. Works for our itinerary
+# pages since they're top-level .html files, and for any future client-side
+# routing.
+not_found_handling = "single-page-application"
+
+# Per-branch deploy aliases for preview environments. Pages auto-created one
+# per branch; Workers need explicit env blocks. `develop` drives the preview
+# domain (journal-dev.kashkole.com).
+[env.preview]
+name = "journal-dev"
