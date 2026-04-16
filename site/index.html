@@ -1568,6 +1568,92 @@
       );
     }
 
+    function VoiceEntry({ trip }) {
+      const { show: toast } = useToast();
+      const [status, setStatus] = useState('idle'); // idle | recording | ready | saving
+      const [transcript, setTranscript] = useState('');
+      const [error, setError] = useState(null);
+      const recRef = useRef(null);
+      const finalRef = useRef('');
+      const SR = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition);
+
+      const start = () => {
+        if (!SR) { setError('not-supported'); return; }
+        setError(null); setTranscript(''); finalRef.current = '';
+        const rec = new SR();
+        rec.continuous = true; rec.interimResults = true; rec.lang = 'en-US';
+        rec.onresult = (e) => {
+          let interim = '';
+          for (let i = e.resultIndex; i < e.results.length; i += 1) {
+            const t = e.results[i][0].transcript;
+            if (e.results[i].isFinal) finalRef.current += t + ' ';
+            else interim += t;
+          }
+          setTranscript((finalRef.current + interim).trim());
+        };
+        rec.onerror = (ev) => { setError(ev.error === 'not-allowed' ? 'denied' : ev.error); setStatus('idle'); };
+        rec.onend = () => setStatus(s => s === 'recording' ? 'ready' : s);
+        try { rec.start(); recRef.current = rec; setStatus('recording'); }
+        catch (err) { setError(err.message); setStatus('idle'); }
+      };
+
+      const stop = () => { try { recRef.current && recRef.current.stop(); } catch {} };
+
+      const save = async () => {
+        const text = transcript.trim();
+        if (!text) { setError('Transcript is empty.'); return; }
+        setStatus('saving'); setError(null);
+        try {
+          const row = {
+            schemaVersion: '1',
+            id: `voice-${(crypto.randomUUID && crypto.randomUUID()) || Date.now()}`,
+            createdAt: new Date().toISOString(),
+            tripSlug: trip?.slug,
+            kind: 'voice', source: 'app', status: 'pending', memoryWorthy: false,
+            payload: { transcript: text },
+          };
+          await window.BabuAI.queuePost('voice-inbox', row);
+          toast('Voice entry saved', 'success');
+          window.dispatchEvent(new CustomEvent('queue:refresh'));
+          setTranscript(''); finalRef.current = ''; setStatus('idle');
+        } catch (err) {
+          setError(err.message || 'Save failed.'); setStatus('ready');
+        }
+      };
+
+      if (error === 'denied') {
+        return <EmptyState icon="fa-microphone-slash" title="Microphone access denied" description="Enable microphone in browser settings to record." />;
+      }
+      if (!SR) {
+        return <EmptyState icon="fa-microphone-slash" title="Voice capture not supported" description="Try Chrome or Safari to record voice entries." />;
+      }
+      return (
+        <Card variant="glass" style={{ padding: '1.5rem', display: 'grid', gap: '0.75rem' }}>
+          <Text as="h4" variant="serif" size="md" style={{ margin: 0 }}>Voice entry</Text>
+          <Text size="sm" color="muted">Transcript only — no audio is uploaded or saved.</Text>
+          {status === 'recording' && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Icon name="fa-microphone fa-beat" color="#BE185D" />
+              <Text size="sm" color="muted">Listening…</Text>
+            </div>
+          )}
+          <Textarea value={transcript} onChange={e => setTranscript(e.target.value)}
+            readOnly={status === 'recording' || status === 'saving'} rows={5}
+            placeholder="Transcript will appear here. Edit freely before saving." />
+          {error && error !== 'denied' && <Text color="error" size="sm">{error}</Text>}
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            {status === 'idle' && <Button variant="primary" icon="fa-microphone" onClick={start}>Start recording</Button>}
+            {status === 'recording' && <Button variant="secondary" icon="fa-stop" onClick={stop}>Stop</Button>}
+            {status === 'ready' && <>
+              <Button variant="primary" icon="fa-check" onClick={save}>Save</Button>
+              <Button variant="ghost" icon="fa-trash" onClick={() => { setTranscript(''); finalRef.current = ''; setError(null); setStatus('idle'); }}>Discard</Button>
+            </>}
+            {status === 'saving' && <Button variant="primary" loading>Saving…</Button>}
+          </div>
+        </Card>
+      );
+    }
+
     const TRIP_QUICK_ACTIONS = [
       { id: 'next',   label: "What's next today?" },
       { id: 'sumday', label: "Summarize today" },

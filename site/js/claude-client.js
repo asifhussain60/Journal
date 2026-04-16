@@ -95,6 +95,15 @@
       });
     },
 
+    async ingestItinerary(itineraryText) {
+      if (!itineraryText || !itineraryText.trim()) throw new Error("ingestItinerary: text required");
+      return getJSON("/api/ingest-itinerary", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ itineraryText }),
+      });
+    },
+
     async queuePost(name, row) {
       return getJSON(`/api/queue/${name}`, {
         method: "POST",
