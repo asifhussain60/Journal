@@ -88,31 +88,48 @@ journal/                          ← Server root (npx serve runs here)
 
 ## 3. NAVIGATION & MODULES
 
-### Nav Bar (3 tabs)
+### Nav Bar (4 tabs)
 | Tab | Icon | Route Key | Component |
 |-----|------|-----------|-----------|
-| Home | `fa-house` | `home` | `HomePage` |
-| Memoir | `fa-book-open` | `memoir` | `MemoirModule` |
-| DayOne Journal | `fa-feather-pointed` | `dayone` | `DayOneJournalModule` |
+| Dashboard | `fa-house` | `home` | `HomePage` |
+| Memoir | `fa-book-open` | `memoir` / `chapter` | `MemoirModule` / `ChapterReader` |
+| Trip | `fa-plane` | `trip` | `TripModule` (Phase 3) |
+| DayOne | `fa-feather-pointed` | `dayone` | `DayOneModule` |
 
 ### App Component Routing
 ```jsx
 function App() {
-  const [currentPage, setCurrentPage] = useState('home');
-  // Nav renders 3 buttons, page rendering:
-  // home → <HomePage onNavigate={setCurrentPage} />
-  // memoir → <MemoirModule />
-  // dayone → <DayOneJournalModule />
+  const [page, setPage] = useState('home');
+  const { trip: activeTrip, loading } = useActiveTrip();
+  // home    → <HomePage trips={trips} onNavigate={setPage} />
+  // memoir  → <MemoirModule onOpenChapter={openChapter} />
+  // trip    → <TripModule trip={activeTrip} loading={loading} />
+  // dayone  → <DayOneModule trips={trips} />
+  // chapter → <ChapterReader chapter={activeChapter} ... />
 }
 ```
 
 ### Home Page
 - **Active Trip Hero Banner** — large card at top, only visible when `manifest.json` has an active trip
   - Shows: couple name (script font), trip name, base hotel, vibe, countdown/live indicator, flights, next event
-  - Clicking opens `active-trip.html` in new browser tab
+  - Clicking navigates inside the SPA to the Trip tab via `onNavigate('trip')` (no full-page reload). The Phase 1 hard `window.location.href = activeTrip.itineraryPath` was removed in Phase 3.
   - Dynamic states: UPCOMING (countdown), LIVE NOW (day X of Y with green pulse), hidden when no active trip
 - **Stats row** — Total Words, Chapters Locked
 - **Module cards** — Memoir and DayOne Journal (clickable, navigate to respective modules)
+
+### Trip Module (Phase 3, sub-tabs: Overview, Tools, Queue)
+- **Overview** — `<TripOverview>` reads `useActiveTrip()` and renders the trip name, date range, live-day/countdown `<StatusBadge>`, travelers, base, occasion, flights, and highlights. Read-only.
+- **Tools** — `<TripTools>` hosts two zero-cost Tier 0 widgets:
+  - `<TipHelper>` — country `<Select>` populated from `/api/reference-data/currency`; on change, displays tipping range + currency + notes from `/api/reference-data/tipping`. No model call.
+  - `<PackingList>` — categorised checkboxes from `/api/reference-data/packing`; checked state persists via `useLocalStoragePrefs("packing-{slug}")`. Shows "X of Y packed".
+- **Queue** — `<QueuePanel>` fetches `GET /api/queue/pending`; tolerates 404 (Phase 4 endpoint) and renders an `<EmptyState>`. Listens for the `queue:refresh` window event so the CommandPalette command can trigger a refetch.
+- **FloatingChat** — `<FloatingChat trip={activeTrip} />` is mounted only on the Overview sub-tab.
+  - Collapsed: 56px circular bubble at bottom-right (inset 24px). Expanded: 420×620 panel.
+  - Conversation area uses `aria-live="polite"`; auto-growing textarea (max ~6rem); `<ThinkingDots>` while waiting on `/api/trip-qa`.
+  - Quick-action chips above the input: "What's next today?", "Summarize today", "Tip for this country" — click sends the chip text.
+  - Keys: Enter or Cmd/Ctrl-Enter sends; Shift-Enter newline; Esc collapses. New message while collapsed pulses the bubble (skipped under `prefers-reduced-motion`).
+  - Phase 3 is Q&A only — no edit-mode bubble, no DiffViewer (those land in Phase 6).
+  - Listens for the `floating-chat:focus` window event (CommandPalette → "Open chat" dispatches it).
 
 ### Memoir Module (sub-tabs: Chapters, Incidents, Quotes)
 - **Chapters tab**: Lists all 8 chapters with status badges (locked/draft/planned), word counts, readiness percentages
@@ -408,14 +425,18 @@ The React app is a thin edge client; every Anthropic API call goes through a loc
 | POST | `/api/voice-test` | Babu-memoir smoke test. Proves wiring + voice. |
 | POST | `/api/refine` | Voice DNA refinement. Body: `{ text, model?, max_tokens?, promptName? }`. When `promptName` is omitted, uses `reference/voice-fingerprint.md` (legacy path). When supplied, uses the named prompt from `server/src/prompts/`. |
 | POST | `/api/chat` | Generic passthrough. Body: `{ system?, messages, model?, max_tokens?, promptName? }`. When `promptName` is supplied, `prompt.system` wins over body `system`. |
+| POST | `/api/trip-qa` | **Phase 3.** Trip Q&A backed by `promptName: "trip-qa"` (pinned `claude-haiku-4-5-20251001`). Body: `{ message, tripContext }`. The active trip JSON is stringified into the user message head; replies are 1-3 sentences. Returns `{ ok, response, usage, model, promptName }`. Rate-limited and usage-logged. |
+| POST | `/api/trip-assistant` | **Phase 3 (staged for Phase 6).** Meta-router prompt for FloatingChat. Body: `{ message, tripContext, intent? }`. Same shape and middleware as `/api/trip-qa`; intent classification (`qa` / `edit` / `tool`) is reserved for Phase 6. |
+| GET | `/api/reference-data/:name` | **Phase 3, Tier 0.** Serves the JSON file at `server/src/reference-data/{name}.json`. Currently provides `tipping`, `currency`, `packing`. 404 on miss. **No model call** — does not contribute model rows to `usage.jsonl`. |
 
-Additional feature endpoints ship in later phases (`/api/trip-qa`, `/api/trip-assistant`, `/api/upload`, `/api/extract-receipt`, `/api/queue/:name`, `/api/ingest-itinerary`, `/api/trip-edit`, `/api/trip-edit/revert`, `/api/usage/summary`). See the execution plan §7.
+Additional feature endpoints ship in later phases (`/api/upload`, `/api/extract-receipt`, `/api/queue/:name`, `/api/ingest-itinerary`, `/api/trip-edit`, `/api/trip-edit/revert`, `/api/usage/summary`). See the execution plan §7.
 
 ### 10.2 Cross-cutting middleware (Phase 1)
 
 - **Usage logger** — every request appends one JSONL row to `server/logs/usage.jsonl` with `{ timestamp, endpoint, method, model, promptName, tokensIn, tokensOut, durationMs, statusCode, visionUsed }`. Non-model endpoints log `tokensIn=0, tokensOut=0, model=null`. File is gitignored.
 - **Rate limit** — 20 requests per 60 seconds, per IP, per endpoint path. `/health` is exempt. 21st request within the window returns HTTP 429 with `{ ok: false, error, endpoint, retryAfterSeconds }`.
-- **Prompt loader** — `server/src/prompts/index.js` exposes `hasPrompt(name)` and `loadPrompt(name)`. Each prompt module exports `{ name, system, description, ... }`. Phase 1 registers `example` only; feature prompts register in later phases.
+- **Prompt loader** — `server/src/prompts/index.js` exposes `hasPrompt(name)` and `loadPrompt(name)`. Each prompt module exports `{ name, system, description, model? }`. Phase 1 registered `example`; Phase 3 added `trip-qa` (Haiku-pinned via `prompt.model`) and `trip-assistant` (Sonnet meta-router).
+- **Reference data** (Phase 3) — `server/src/reference-data/` holds the Tier 0 JSON files served by `GET /api/reference-data/:name`. Names are validated against `^[a-z][a-z0-9-]*$` and resolved with a path-traversal guard.
 
 ### 10.3 Queue model (App → Cowork)
 

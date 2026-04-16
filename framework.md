@@ -309,6 +309,35 @@ Acceptance gates (all required to pass before tag):
 - Gate F — Home, Memoir → Chapters → ChapterReader (reader prefs persist), and DayOne Journal flows all work identically to Phase 1. Keyboard navigation reaches every interactive element.
 - Gate G — visual regression: before/after screenshots of Home, Memoir-chapters, and DayOne-editor show no layout shifts; cosmetic improvements only.
 
+**Phase 3 app shell + chat Q&A (complete when all acceptance gates pass under `tag phase-03-app-shell-and-chat-qa`):**
+
+App now ships a real Trip surface with FloatingChat Q&A and zero-cost Tier 0 tools.
+
+- **Nav** — fourth tab (`Trip`, between Memoir and DayOne). `ActiveTripHero` on the Dashboard now navigates inside the SPA (`setPage('trip')`) instead of hard-loading `itineraries/*.html`.
+- **TripModule** (`site/index.html`) — three sub-tabs (Overview / Tools / Queue), driven by `useActiveTrip()`. Renders an `<EmptyState>` if `manifest.json` has no active trip.
+- **TripOverview** — read-only itinerary card stack: trip name + date range + live-day/countdown `<StatusBadge>`, travelers, base, occasion, flights (`inbound` / `outbound`), and highlights. All atoms from Phase 2 (`Card`, `Text`, `Badge`, `StatusBadge`).
+- **FloatingChat** (`<FloatingChat trip={...} />`) — collapsed 56px bubble bottom-right; expanded 420×620 panel with header, conversation area (`aria-live="polite"`), auto-growing textarea, send button, and quick-action chips ("What's next today?", "Summarize today", "Tip for this country"). Cmd/Ctrl-Enter or Enter sends; Shift-Enter newline; Esc collapses. New message while collapsed pulses the bubble (skipped under `prefers-reduced-motion`). Q&A only — no edit mode (Phase 6).
+- **TripTools** (Tier 0, no token cost) — `TipHelper` (country `<Select>` driven by `/api/reference-data/currency`; renders tipping range + currency + notes from `/api/reference-data/tipping`); `PackingList` (categorised checkboxes from `/api/reference-data/packing`, persisted via `useLocalStoragePrefs("packing-{slug}")`, "X of Y packed" counter).
+- **QueuePanel** — fetches `GET /api/queue/pending`; tolerates 404 (Phase 4 endpoint) and renders an `<EmptyState>`. Listens for `queue:refresh` window event so the CommandPalette can trigger a refetch.
+- **CommandPalette** — Phase 3 commands registered: `Open chat` (focuses FloatingChat input via `floating-chat:focus` event), `Open active itinerary` (sets page to `trip`), `Refresh queues` (dispatches `queue:refresh`), `Copy today's date` (writes `todayISO()` to clipboard).
+- **Proxy** (`server/src/index.js`) — three new endpoints:
+  - `POST /api/trip-qa` → `promptName: "trip-qa"` (pinned `claude-haiku-4-5-20251001`); body `{ message, tripContext }`; returns `{ ok, response, usage }`.
+  - `POST /api/trip-assistant` → `promptName: "trip-assistant"` (Sonnet); body `{ message, tripContext, intent? }`; meta-router prompt staged for Phase 6.
+  - `GET /api/reference-data/:name` → serves `server/src/reference-data/{name}.json`; 404 on miss; no model call → no token cost.
+- **Reference data** at `server/src/reference-data/`: `tipping.json`, `currency.json`, `packing.json` (14 countries; ~50 packing items across Documents / Essentials / Toiletries / Electronics / Clothing).
+- **Browser client** (`site/js/claude-client.js`) — `BabuAI.tripQA`, `BabuAI.tripAssistant`, `BabuAI.referenceData(name)` wrappers.
+
+Acceptance gates (all required to pass before tag):
+
+- Gate A — four nav tabs; `TripModule`, `TripOverview`, `FloatingChat` defined.
+- Gate B — FloatingChat round-trip: bubble → panel → send → ThinkingDots → response; quick-action chips dispatch the chip text; Cmd-Enter sends; Esc collapses.
+- Gate C — Tier 0 verified: `TipHelper` and `PackingList` produce zero new model rows in `usage.jsonl` (the `/api/reference-data/:name` route never calls Anthropic).
+- Gate D — `ActiveTripHero` click stays in the SPA at `localhost:3000` (no `window.location.href`).
+- Gate E — CommandPalette registers ≥4 commands; "Open chat" focuses the chat input.
+- Gate F — `<script type="text/babel">` block stays under ~2,300 lines (relaxed from Phase 2's 2,100 cap given Phase 3 scope).
+- Gate G — Dashboard, Memoir → Chapters → ChapterReader, and DayOne flows all still work.
+- Gate H — `cd server && npm run validate && npm run harass` both pass; rate limits apply on the new endpoints.
+
 See `_workspace/ideas/app-cowork-execution-plan.md` for the full phase roadmap (Phases 1–9), UI canon, proxy endpoint inventory, and acceptance criteria.
 
 ---
