@@ -11,7 +11,8 @@
     "health": "curl -s http://localhost:3001/health | jq",
     "smoke": "curl -s -X POST http://localhost:3001/api/voice-test -H 'Content-Type: application/json' -d '{}' | jq",
     "validate": "node scripts/validate-schemas.mjs",
-    "harass": "node scripts/harass.mjs"
+    "harass": "node scripts/harass.mjs",
+    "test-throttle": "node scripts/test-throttle.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.30.0",

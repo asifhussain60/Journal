@@ -36,6 +36,7 @@ import { loadAnthropicKey } from "./keychain.js";
 import { makeRefineHandler } from "./refine.js";
 import { usageLogger } from "./middleware/usage-logger.js";
 import { buildRateLimiter } from "./middleware/rate-limit.js";
+import { throttleBudget } from "./middleware/throttle-budget.js";
 import { hasPrompt, loadPrompt } from "./prompts/index.js";
 import {
   TRIPS_DIR,
@@ -73,11 +74,14 @@ const app = express();
 app.use(cors({ origin: ALLOWED_ORIGIN, methods: ["GET", "POST"] }));
 app.use(express.json({ limit: "1mb" }));
 
-// Phase 1 middleware — order matters:
-//   1. usage-logger first, so every request (even 429s from rate-limit) is logged.
+// Phase 1 + 8 middleware — order matters:
+//   1. usage-logger first, so every request (even throttled/rate-limited) is logged.
 //   2. rate-limit second, so logger captures the 429 as well.
+//   3. throttle-budget last, after rate-limit and logging. Adds X-Budget-State
+//      header to every response; enforces soft/hard policies from Phase 8.
 app.use(usageLogger());
 app.use(buildRateLimiter());
+app.use(throttleBudget({ monthlyCAP: MONTHLY_CAP }));
 
 // --- Phase 4: schema validators + multer (upload) ----------------------------
 const SCHEMA_DIR = path.resolve(__dirname, "./schemas");
