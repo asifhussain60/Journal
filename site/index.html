@@ -17,16 +17,26 @@
 
   <!-- Design System — Dark Rose Theme -->
   <link rel="stylesheet" href="css/app-dark.css">
+
+  <!-- AI Voice Refine drawer (scoped styles, no collision with app-dark) -->
+  <link rel="stylesheet" href="css/ai-drawer.css">
 </head>
 <body>
 
   <div class="bg-mesh"></div>
   <div id="root"></div>
 
+  <!-- AI drawer mounts here (independent React root, does not touch main App tree) -->
+  <div id="ai-drawer-root"></div>
+
   <!-- Dependencies -->
   <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone@7.29.2/babel.min.js"></script>
+
+  <!-- AI voice refine: vanilla client + word-diff lib (loaded before the Babel component) -->
+  <script src="js/claude-client.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/diff@5.2.0/dist/diff.min.js"></script>
 
   <script type="text/babel">
     const { useState, useEffect, useRef, useCallback, useMemo } = React;
@@ -1291,6 +1301,9 @@
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(<App />);
   </script>
+
+  <!-- AI Voice Refine drawer (independent Babel script, isolated React root) -->
+  <script type="text/babel" src="js/voice-refiner.jsx"></script>
 
 </body>
 </html>

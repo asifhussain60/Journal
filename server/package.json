@@ -1,0 +1,24 @@
+{
+  "name": "babu-journal-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Babu Journal — local-only Claude API proxy. Keeps the Anthropic key off the browser and in macOS Keychain.",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "health": "curl -s http://localhost:3001/health | jq",
+    "smoke": "curl -s -X POST http://localhost:3001/api/voice-test -H 'Content-Type: application/json' -d '{}' | jq"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.30.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.0"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "author": "Asif Hussain",
+  "license": "UNLICENSED"
+}

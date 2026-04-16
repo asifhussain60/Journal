@@ -12,3 +12,16 @@ Thumbs.db
 *.swp
 *.swo
 *~
+
+# Python virtual environment
+.venv/
+
+# Node / server proxy
+server/node_modules/
+server/.logs/
+node_modules/
+
+# Environment files (API keys should live in macOS Keychain, not .env)
+.env
+.env.local
+*.env

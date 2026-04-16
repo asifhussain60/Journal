@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Auto-starts the Babu Journal proxy at user login.
+
+  BEFORE INSTALLING:
+    1. Replace {{REPO}} below with the absolute path to the Journal repo,
+       e.g. /Users/ahussain/Documents/PROJECTS/Journal
+    2. Copy the result to ~/Library/LaunchAgents/
+    3. Run: launchctl load -w ~/Library/LaunchAgents/com.asif.babu-journal-proxy.plist
+
+  The -l flag on bash ensures the login profile is read (picks up nvm, Homebrew node paths).
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.asif.babu-journal-proxy</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>-lc</string>
+    <string>cd {{REPO}}/server &amp;&amp; exec node src/index.js</string>
+  </array>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>KeepAlive</key>
+  <dict>
+    <key>SuccessfulExit</key>
+    <false/>
+  </dict>
+
+  <key>StandardOutPath</key>
+  <string>{{REPO}}/server/.logs/proxy.out.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>{{REPO}}/server/.logs/proxy.err.log</string>
+
+  <key>WorkingDirectory</key>
+  <string>{{REPO}}/server</string>
+
+  <key>ThrottleInterval</key>
+  <integer>10</integer>
+</dict>
+</plist>
