@@ -10,26 +10,37 @@
 //   POST /api/trip-qa                  — Phase 3: Haiku-backed trip Q&A
 //   POST /api/trip-assistant           — Phase 3: meta-router prompt for FloatingChat
 //   GET  /api/reference-data/:name     — Phase 3: Tier 0 JSON files (tipping/currency/packing)
+//   POST /api/upload                   — Phase 4: multipart receipt image → trips/{slug}/receipts/
+//   POST /api/extract-receipt          — Phase 4: Vision (macOS) first, Haiku fallback
+//   POST /api/queue/:name              — Phase 4: schema-validated append to trips/{slug}/{name}.json
+//   GET  /api/queue/:name              — Phase 4: read queue items
 //
 // CORS is locked to http://localhost:3000 (the `npx serve` dev port for site/).
-//
-// Phase 1 (§9 of _workspace/ideas/app-cowork-execution-plan.md) adds three
-// cross-cutting concerns without changing existing endpoint shapes:
-//   - usage-logger middleware (writes server/logs/usage.jsonl per request)
-//   - rate-limit middleware (20 req/min per IP per endpoint, /health exempt)
-//   - optional `promptName` body field on /api/refine and /api/chat (loader-backed)
 
 import express from "express";
 import cors from "cors";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { readFile } from "node:fs/promises";
+import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
+import multer from "multer";
+import Ajv from "ajv";
+import addFormats from "ajv-formats";
 import Anthropic from "@anthropic-ai/sdk";
 import { loadAnthropicKey } from "./keychain.js";
 import { makeRefineHandler } from "./refine.js";
 import { usageLogger } from "./middleware/usage-logger.js";
 import { buildRateLimiter } from "./middleware/rate-limit.js";
 import { hasPrompt, loadPrompt } from "./prompts/index.js";
+import {
+  TRIPS_DIR,
+  getActiveTripSlug,
+  sniffImageExt,
+  extToMediaType,
+  appendQueueRow,
+  readQueue,
+  macVisionOcr,
+} from "./receipts.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -54,6 +65,28 @@ app.use(express.json({ limit: "1mb" }));
 //   2. rate-limit second, so logger captures the 429 as well.
 app.use(usageLogger());
 app.use(buildRateLimiter());
+
+// --- Phase 4: schema validators + multer (upload) ----------------------------
+const SCHEMA_DIR = path.resolve(__dirname, "./schemas");
+const ajv = new Ajv({ strict: true, allErrors: true });
+addFormats(ajv);
+const QUEUE_VALIDATORS = new Map();
+for (const name of ["pending"]) {
+  const schema = JSON.parse(await readFile(path.join(SCHEMA_DIR, `${name}.schema.json`), "utf8"));
+  QUEUE_VALIDATORS.set(name, ajv.compile(schema));
+}
+
+const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_UPLOAD_BYTES },
+  fileFilter: (_req, file, cb) => {
+    if (!/^image\//.test(file.mimetype || "")) {
+      return cb(new Error("only image/* uploads are accepted"));
+    }
+    cb(null, true);
+  },
+});
 
 // --- Health ------------------------------------------------------------------
 app.get("/health", (_req, res) => {
@@ -266,6 +299,155 @@ app.get("/api/reference-data/:name", async (req, res) => {
     if (err.code === "ENOENT") {
       return res.status(404).json({ ok: false, error: `reference data "${name}" not found` });
     }
+    res.status(500).json({ ok: false, error: err?.message ?? String(err) });
+  }
+});
+
+// --- Phase 4: receipt pipeline ----------------------------------------------
+
+// POST /api/upload — multipart image upload. Sniffs MIME, writes to
+// trips/{activeSlug}/receipts/{uuid}.{ext}. Returns relative imagePath.
+app.post("/api/upload", (req, res, next) => {
+  upload.single("file")(req, res, async (err) => {
+    if (err) {
+      const status = err.code === "LIMIT_FILE_SIZE" ? 413 : 400;
+      return res.status(status).json({ ok: false, error: err.message });
+    }
+    if (!req.file) {
+      return res.status(400).json({ ok: false, error: "file field is required" });
+    }
+    const sniffedExt = sniffImageExt(req.file.buffer);
+    if (!sniffedExt) {
+      return res.status(400).json({ ok: false, error: "uploaded bytes are not a recognized image" });
+    }
+    try {
+      const slug = await getActiveTripSlug();
+      const id = randomUUID();
+      const receiptsDir = path.join(TRIPS_DIR, slug, "receipts");
+      await mkdir(receiptsDir, { recursive: true });
+      const absPath = path.join(receiptsDir, `${id}.${sniffedExt}`);
+      await writeFile(absPath, req.file.buffer);
+      const imagePath = `trips/${slug}/receipts/${id}.${sniffedExt}`;
+      res.json({ ok: true, id, imagePath, bytes: req.file.buffer.length, ext: sniffedExt });
+    } catch (e) {
+      res.status(500).json({ ok: false, error: e?.message ?? String(e) });
+    }
+  });
+});
+
+// POST /api/extract-receipt — { imagePath } → { extracted, visionUsed }.
+// Tries macOS Vision OCR first; falls back to Haiku vision when unavailable
+// or when Vision returned no text. res.locals.visionUsed is picked up by the
+// usage-logger so the JSONL row reflects which path ran.
+app.post("/api/extract-receipt", async (req, res) => {
+  const { imagePath } = req.body ?? {};
+  if (typeof imagePath !== "string" || !imagePath.length) {
+    return res.status(400).json({ ok: false, error: "imagePath is required" });
+  }
+  const rel = imagePath.replace(/^[./\\]+/, "");
+  if (!rel.startsWith("trips/")) {
+    return res.status(400).json({ ok: false, error: "imagePath must be under trips/" });
+  }
+  const absPath = path.resolve(TRIPS_DIR, rel.replace(/^trips\//, ""));
+  if (!absPath.startsWith(TRIPS_DIR + path.sep)) {
+    return res.status(400).json({ ok: false, error: "imagePath escapes trips/" });
+  }
+
+  req.body.promptName = "extract-receipt";
+  try {
+    const prompt = loadPrompt("extract-receipt");
+    const buf = await readFile(absPath);
+    const ext = sniffImageExt(buf);
+    if (!ext) return res.status(400).json({ ok: false, error: "file is not a recognized image" });
+
+    const ocrText = await macVisionOcr(absPath);
+    const visionUsed = typeof ocrText === "string" && ocrText.trim().length > 0;
+    res.locals.visionUsed = visionUsed;
+
+    const userContent = visionUsed
+      ? [
+          {
+            type: "text",
+            text: `OCR output (macOS Vision):\n\n${ocrText.trim()}\n\nReturn the JSON object now.`,
+          },
+        ]
+      : [
+          {
+            type: "image",
+            source: { type: "base64", media_type: extToMediaType(ext), data: buf.toString("base64") },
+          },
+          { type: "text", text: "Extract receipt fields from this image. Return the JSON object now." },
+        ];
+
+    const msg = await anthropic.messages.create({
+      model: prompt.model ?? DEFAULT_MODEL,
+      max_tokens: 600,
+      system: prompt.system,
+      messages: [{ role: "user", content: userContent }],
+    });
+    const raw = msg.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim();
+    let extracted = null;
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        extracted = JSON.parse(jsonMatch[0]);
+      } catch {
+        extracted = null;
+      }
+    }
+    res.json({
+      ok: true,
+      model: msg.model,
+      usage: msg.usage,
+      promptName: prompt.name,
+      visionUsed,
+      extracted,
+      rawText: extracted ? undefined : raw,
+    });
+  } catch (err) {
+    res.status(502).json({ ok: false, error: err?.message ?? String(err) });
+  }
+});
+
+// POST /api/queue/:name — schema-validated append to trips/{slug}/{name}.json.
+// GET  /api/queue/:name — read items; returns [] when file missing.
+const QUEUE_NAME_RE = /^[a-z][a-z0-9-]*$/;
+
+app.post("/api/queue/:name", async (req, res) => {
+  const { name } = req.params;
+  if (!QUEUE_NAME_RE.test(name) || !QUEUE_VALIDATORS.has(name)) {
+    return res.status(404).json({ ok: false, error: `unknown queue "${name}"` });
+  }
+  const row = req.body;
+  if (!row || typeof row !== "object" || Array.isArray(row)) {
+    return res.status(400).json({ ok: false, error: "request body must be a queue row object" });
+  }
+  if (row.schemaVersion !== "1") {
+    return res.status(400).json({ ok: false, error: 'schemaVersion must be "1"' });
+  }
+  const validate = QUEUE_VALIDATORS.get(name);
+  if (!validate(row)) {
+    return res.status(400).json({ ok: false, error: "schema validation failed", details: validate.errors });
+  }
+  try {
+    const slug = row.tripSlug || (await getActiveTripSlug());
+    const { count } = await appendQueueRow(slug, name, row);
+    res.json({ ok: true, id: row.id, count, tripSlug: slug });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err?.message ?? String(err) });
+  }
+});
+
+app.get("/api/queue/:name", async (req, res) => {
+  const { name } = req.params;
+  if (!QUEUE_NAME_RE.test(name) || !QUEUE_VALIDATORS.has(name)) {
+    return res.status(404).json({ ok: false, error: `unknown queue "${name}"` });
+  }
+  try {
+    const slug = await getActiveTripSlug();
+    const items = await readQueue(slug, name);
+    res.json({ ok: true, items, tripSlug: slug });
+  } catch (err) {
     res.status(500).json({ ok: false, error: err?.message ?? String(err) });
   }
 });
