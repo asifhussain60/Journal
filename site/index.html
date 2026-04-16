@@ -781,13 +781,13 @@
       const daysUntil = isBefore ? Math.ceil((start - today) / msPerDay) : 0;
       const currentDay = isLive ? Math.floor((today - start) / msPerDay) + 1 : 0;
 
-      const openTrip = () => { window.location.href = activeTrip.itineraryPath || 'itineraries/2026-04-ishrat-engagement.html'; };
+      const openTrip = () => { onNavigate && onNavigate('trip'); };
       return (
         <div
           className="trip-hero stagger-2"
           role="button"
           tabIndex={0}
-          aria-label={`Open itinerary for ${activeTrip.displayDate || 'the active trip'}`}
+          aria-label={`Open Trip module for ${activeTrip.displayDate || 'the active trip'}`}
           onClick={openTrip}
           onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openTrip(); } }}>
           
@@ -1246,8 +1246,88 @@
     }
 
     // Phase 3 sub-tab placeholders \u2014 expanded by commits (d)/(e)/(f)/(g).
+    function tripStatus(trip) {
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const start = new Date(trip.dates.start + 'T00:00:00');
+      const end = new Date(trip.dates.end + 'T23:59:59');
+      const msPerDay = 86400000;
+      if (today < start) {
+        const days = Math.ceil((start - today) / msPerDay);
+        return { status: 'upcoming', label: `T-${days} day${days === 1 ? '' : 's'}` };
+      }
+      if (today > end) return { status: 'complete', label: 'Trip complete' };
+      const day = Math.floor((today - start) / msPerDay) + 1;
+      return { status: 'active', label: `Day ${day} of ${trip.dates.days}` };
+    }
+
+    function FlightLine({ label, flight }) {
+      if (!flight) return null;
+      return (
+        <div className="trip-flight-row">
+          <Text as="span" variant="mono" size="sm" color="muted">{label}</Text>
+          <Text as="span" weight="600">{flight.flight} &middot; {flight.route}</Text>
+          <Text as="span" variant="mono" size="sm" color="muted">{flight.date} &middot; {flight.depart} \u2192 {flight.arrive}</Text>
+        </div>
+      );
+    }
+
     function TripOverview({ trip }) {
-      return <EmptyState icon="fa-map-location-dot" title="Overview coming next" description="Trip overview lands in commit (d)." />;
+      const { status, label } = useMemo(() => tripStatus(trip), [trip]);
+      const highlights = Array.isArray(trip.highlights) ? trip.highlights : [];
+      const travelers = Array.isArray(trip.travelers) ? trip.travelers : [];
+      return (
+        <div className="trip-overview" style={{ display: 'grid', gap: '1.5rem' }}>
+          <Card variant="glass" style={{ padding: '2rem' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'baseline', justifyContent: 'space-between' }}>
+              <div>
+                <Text as="h2" variant="serif" size="xl" style={{ marginBottom: '0.25rem' }}>{trip.name}</Text>
+                <Text variant="mono" size="sm" color="muted">
+                  {trip.dates.start} \u2192 {trip.dates.end} &middot; {trip.dates.days} days
+                </Text>
+              </div>
+              <StatusBadge status={status} label={label} />
+            </div>
+            {trip.occasion && <Text style={{ marginTop: '1rem' }}>{trip.occasion}</Text>}
+            {trip.base && (
+              <Text variant="mono" size="sm" color="muted" style={{ marginTop: '0.5rem' }}>
+                <Icon name="fa-hotel" /> {trip.base}
+              </Text>
+            )}
+            {travelers.length > 0 && (
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', flexWrap: 'wrap' }}>
+                {travelers.map(t => <Badge key={t} variant="accent" icon="fa-user">{t}</Badge>)}
+              </div>
+            )}
+          </Card>
+
+          {trip.flights && (
+            <Card variant="glass" style={{ padding: '1.75rem' }}>
+              <Text as="h3" variant="serif" size="lg" style={{ marginBottom: '1rem' }}>Flights</Text>
+              <div style={{ display: 'grid', gap: '0.75rem' }}>
+                <FlightLine label="OUTBOUND" flight={trip.flights.inbound} />
+                <FlightLine label="RETURN"   flight={trip.flights.outbound} />
+              </div>
+            </Card>
+          )}
+
+          {highlights.length > 0 && (
+            <Card variant="glass" style={{ padding: '1.75rem' }}>
+              <Text as="h3" variant="serif" size="lg" style={{ marginBottom: '1rem' }}>Highlights</Text>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: '0.75rem' }}>
+                {highlights.map((h, i) => (
+                  <li key={i} style={{ display: 'flex', gap: '0.75rem', alignItems: 'baseline' }}>
+                    <Text as="span" variant="mono" size="sm" color="muted" style={{ minWidth: '6.5rem' }}>{h.date}</Text>
+                    <div>
+                      <Text as="span" weight="600">{h.event}</Text>
+                      {h.venue && <Text as="div" variant="mono" size="sm" color="muted">{h.venue}</Text>}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
+        </div>
+      );
     }
     function TripTools({ trip }) {
       return <EmptyState icon="fa-toolbox" title="Tools coming soon" description="Tip helper and packing list land in commit (f)." />;
