@@ -1339,6 +1339,7 @@
     function QueuePanel({ trip }) {
       const [state, setState] = useState({ items: null, loading: true, error: null });
       const [tick, setTick] = useState(0);
+      const [openId, setOpenId] = useState(null);
       useEffect(() => {
         let cancelled = false;
         setState(s => ({ ...s, loading: true }));
@@ -1356,12 +1357,38 @@
       }
       return (
         <div style={{ display: 'grid', gap: '0.75rem' }}>
-          {state.items.map((it, i) => (
-            <Card key={it.id || i} variant="glass" style={{ padding: '1rem' }}>
-              <Text weight="600">{it.title || it.kind || 'Pending item'}</Text>
-              {it.note && <Text size="sm" color="muted">{it.note}</Text>}
-            </Card>
-          ))}
+          {state.items.map((it, i) => {
+            const p = it.payload || {};
+            const rowId = it.id || String(i);
+            const isOpen = openId === rowId;
+            const primary = p.merchant || it.title || (it.kind ? it.kind[0].toUpperCase() + it.kind.slice(1) : 'Pending item');
+            const amountStr = p.amount != null ? `${p.currency || ''} ${Number(p.amount).toFixed(2)}`.trim() : null;
+            return (
+              <Card key={rowId} variant="glass" style={{ padding: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.75rem', minWidth: 0 }}>
+                    {it.memoryWorthy && <Icon name="fa-star" color="var(--accent, #f4d49c)" />}
+                    <Text weight="600" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{primary}</Text>
+                    {amountStr && <Text variant="mono" size="sm" color="muted">{amountStr}</Text>}
+                    {p.date && <Text variant="mono" size="sm" color="muted">{p.date}</Text>}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <StatusBadge status={it.status || 'pending'} size="sm" />
+                    <IconButton icon={isOpen ? 'fa-chevron-up' : 'fa-chevron-down'} label={isOpen ? 'Hide details' : 'Show details'} onClick={() => setOpenId(o => o === rowId ? null : rowId)} />
+                  </div>
+                </div>
+                {isOpen && (
+                  <div style={{ marginTop: '0.75rem', display: 'grid', gap: '0.35rem' }}>
+                    {p.description && <Text size="sm">{p.description}</Text>}
+                    {p.category && <Text size="sm" color="muted">Category: {p.category}</Text>}
+                    {it.imagePath && <Text size="sm" variant="mono" color="muted">{it.imagePath}</Text>}
+                    <Text size="sm" variant="mono" color="muted">id: {it.id}</Text>
+                    {it.visionUsed !== undefined && <Text size="sm" variant="mono" color="muted">visionUsed: {String(it.visionUsed)}</Text>}
+                  </div>
+                )}
+              </Card>
+            );
+          })}
         </div>
       );
     }
