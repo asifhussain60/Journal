@@ -1406,7 +1406,33 @@
       );
     }
     function QueuePanel({ trip }) {
-      return <EmptyState icon="fa-inbox" title="Queue is empty" description="Captured receipts and voice notes will appear here." />;
+      const [state, setState] = useState({ items: null, loading: true, error: null });
+      const [tick, setTick] = useState(0);
+      useEffect(() => {
+        let cancelled = false;
+        setState(s => ({ ...s, loading: true }));
+        fetch('http://localhost:3001/api/queue/pending')
+          .then(r => r.ok ? r.json() : Promise.resolve({ ok: true, items: [] }))
+          .then(body => { if (!cancelled) setState({ items: Array.isArray(body.items) ? body.items : [], loading: false, error: null }); })
+          .catch(() => { if (!cancelled) setState({ items: [], loading: false, error: null }); });
+        function onRefresh() { setTick(t => t + 1); }
+        window.addEventListener('queue:refresh', onRefresh);
+        return () => { cancelled = true; window.removeEventListener('queue:refresh', onRefresh); };
+      }, [tick]);
+      if (state.loading) return <SkeletonRow variant="queue-row" count={3} />;
+      if (!state.items || state.items.length === 0) {
+        return <EmptyState icon="fa-inbox" title="Queue is empty" description="Captured receipts and voice notes will appear here." />;
+      }
+      return (
+        <div style={{ display: 'grid', gap: '0.75rem' }}>
+          {state.items.map((it, i) => (
+            <Card key={it.id || i} variant="glass" style={{ padding: '1rem' }}>
+              <Text weight="600">{it.title || it.kind || 'Pending item'}</Text>
+              {it.note && <Text size="sm" color="muted">{it.note}</Text>}
+            </Card>
+          ))}
+        </div>
+      );
     }
     const TRIP_QUICK_ACTIONS = [
       { id: 'next',   label: "What's next today?" },
@@ -2238,7 +2264,22 @@
       const [readProgress, setReadProgress] = useState(0);
       const { trip: activeTrip, loading: activeTripLoading, error: activeTripError } = useActiveTrip();
       const { open: paletteOpen, setOpen: setPaletteOpen } = useCommandPalette();
-      const commands = useMemo(() => [], []); // Phase 3 registers commands here
+      const toast = React.useContext(ToastContext);
+      const commands = useMemo(() => {
+        const copyDate = () => {
+          const iso = todayISO();
+          navigator.clipboard.writeText(iso).then(
+            () => toast && toast.show(`Copied ${iso}`, 'success'),
+            () => toast && toast.show('Copy failed', 'error')
+          );
+        };
+        return [
+          { id: 'open-chat',       label: 'Open chat',              icon: 'fa-comment-dots',     keywords: 'chat assistant trip qa', action: () => { setPage('trip'); window.dispatchEvent(new CustomEvent('floating-chat:focus')); } },
+          { id: 'open-itinerary',  label: 'Open active itinerary',  icon: 'fa-map-location-dot', keywords: 'trip overview',          action: () => { setPage('trip'); } },
+          { id: 'refresh-queues',  label: 'Refresh queues',         icon: 'fa-rotate',           keywords: 'queue refetch pending',  action: () => window.dispatchEvent(new CustomEvent('queue:refresh')) },
+          { id: 'copy-date',       label: "Copy today's date",      icon: 'fa-calendar-day',     keywords: 'date dayone today',      action: copyDate }
+        ];
+      }, [toast]);
 
       useEffect(() => { loadTrips().then(setTrips); }, []);
 
@@ -2256,13 +2297,13 @@
 
       return (
         <div>
-          <nav className="nav">
+          <nav className="nav" role="navigation" aria-label="Primary">
             <div className="nav-brand">Asif's Journal</div>
             <div className="nav-links">
-              <button className={`nav-link ${page === 'home' ? 'active' : ''}`} onClick={() => { setPage('home'); setActiveChapter(null); }}><Icon name="fa-house" /> <span>Dashboard</span></button>
-              <button className={`nav-link ${page === 'memoir' || page === 'chapter' ? 'active' : ''}`} onClick={() => { setPage('memoir'); setActiveChapter(null); }}><Icon name="fa-book-open" /> <span>Memoir</span></button>
-              <button className={`nav-link ${page === 'trip' ? 'active' : ''}`} onClick={() => { setPage('trip'); setActiveChapter(null); }}><Icon name="fa-plane" /> <span>Trip</span></button>
-              <button className={`nav-link ${page === 'dayone' ? 'active' : ''}`} onClick={() => { setPage('dayone'); setActiveChapter(null); }}><Icon name="fa-feather-pointed" /> <span>DayOne</span></button>
+              <button type="button" aria-current={page === 'home' ? 'page' : undefined} className={`nav-link ${page === 'home' ? 'active' : ''}`} onClick={() => { setPage('home'); setActiveChapter(null); }}><Icon name="fa-house" /> <span>Dashboard</span></button>
+              <button type="button" aria-current={page === 'memoir' || page === 'chapter' ? 'page' : undefined} className={`nav-link ${page === 'memoir' || page === 'chapter' ? 'active' : ''}`} onClick={() => { setPage('memoir'); setActiveChapter(null); }}><Icon name="fa-book-open" /> <span>Memoir</span></button>
+              <button type="button" aria-current={page === 'trip' ? 'page' : undefined} className={`nav-link ${page === 'trip' ? 'active' : ''}`} onClick={() => { setPage('trip'); setActiveChapter(null); }}><Icon name="fa-plane" /> <span>Trip</span></button>
+              <button type="button" aria-current={page === 'dayone' ? 'page' : undefined} className={`nav-link ${page === 'dayone' ? 'active' : ''}`} onClick={() => { setPage('dayone'); setActiveChapter(null); }}><Icon name="fa-feather-pointed" /> <span>DayOne</span></button>
             </div>
           </nav>
 
