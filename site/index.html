@@ -2578,6 +2578,42 @@
       );
     }
 
+    // BUDGET PILL (Phase 8)
+
+    function BudgetPill({ monthlyCAP = 50, onOpen }) {
+      const [state, setState] = useState({ loading: true, summary: null });
+      useEffect(() => {
+        let cancelled = false;
+        const load = () => fetch('http://localhost:3001/api/usage/summary')
+          .then(r => r.ok ? r.json() : null)
+          .then(body => { if (!cancelled && body && body.ok) setState({ loading: false, summary: body }); })
+          .catch(() => { if (!cancelled) setState({ loading: false, summary: null }); });
+        load();
+        const timer = setInterval(load, 30000);
+        const refresh = () => load();
+        ['queue:refresh', 'trip:edited', 'budget:refresh'].forEach(ev => window.addEventListener(ev, refresh));
+        return () => {
+          cancelled = true; clearInterval(timer);
+          ['queue:refresh', 'trip:edited', 'budget:refresh'].forEach(ev => window.removeEventListener(ev, refresh));
+        };
+      }, []);
+      const s = state.summary || {};
+      const spent = Number(s.spentThisMonth || 0);
+      const cap = Number(s.monthlyCAP || monthlyCAP);
+      const pct = cap > 0 ? (spent / cap) * 100 : 0;
+      const color = pct >= 90 ? 'var(--error)' : pct >= 75 ? 'var(--warning)' : 'var(--success)';
+      const label = state.loading ? '—' : `$${spent.toFixed(2)} / $${cap.toFixed(2)}`;
+      return (
+        <button type="button" className="budget-pill" onClick={onOpen}
+          aria-label={`Monthly budget: ${label} (${pct.toFixed(0)}%)`}
+          title={`Monthly spend: ${pct.toFixed(0)}% of $${cap.toFixed(2)}`}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.3rem 0.7rem', marginLeft: '0.75rem', borderRadius: '999px', background: 'var(--accent-soft)', border: `1px solid ${color}`, color: 'var(--text-primary, inherit)', fontFamily: 'var(--font-mono, monospace)', fontSize: '0.78rem', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+          <span style={{ width: '0.5rem', height: '0.5rem', borderRadius: '999px', background: color, boxShadow: `0 0 6px ${color}` }} />
+          <span>{label}</span>
+        </button>
+      );
+    }
+
     // MAIN APP
 
     function App() {
@@ -2585,6 +2621,7 @@
       const [trips, setTrips] = useState([]);
       const [activeChapter, setActiveChapter] = useState(null);
       const [readProgress, setReadProgress] = useState(0);
+      const [usageOpen, setUsageOpen] = useState(false);
       const { trip: activeTrip, loading: activeTripLoading, error: activeTripError } = useActiveTrip();
       const { open: paletteOpen, setOpen: setPaletteOpen } = useCommandPalette();
       const toast = React.useContext(ToastContext);
@@ -2630,6 +2667,7 @@
               <button type="button" aria-current={page === 'memoir' || page === 'chapter' ? 'page' : undefined} className={`nav-link ${page === 'memoir' || page === 'chapter' ? 'active' : ''}`} onClick={() => { setPage('memoir'); setActiveChapter(null); }}><Icon name="fa-book-open" /> <span>Memoir</span></button>
               <button type="button" aria-current={page === 'trip' ? 'page' : undefined} className={`nav-link ${page === 'trip' ? 'active' : ''}`} onClick={() => { setPage('trip'); setActiveChapter(null); }}><Icon name="fa-plane" /> <span>Trip</span></button>
               <button type="button" aria-current={page === 'dayone' ? 'page' : undefined} className={`nav-link ${page === 'dayone' ? 'active' : ''}`} onClick={() => { setPage('dayone'); setActiveChapter(null); }}><Icon name="fa-feather-pointed" /> <span>DayOne</span></button>
+              <BudgetPill onOpen={() => setUsageOpen(true)} />
             </div>
           </nav>
 
