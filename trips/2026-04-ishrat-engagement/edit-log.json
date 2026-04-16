@@ -1,0 +1,32 @@
+[
+  {
+    "schemaVersion": "1",
+    "id": "2911131c-6fd5-4d62-bef6-6a8910aaef4b",
+    "createdAt": "2026-04-16T20:28:37.018Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "Add a dummy test entry to Day 1's events list",
+    "patch": [
+      {
+        "op": "add",
+        "path": "/days/0/events/3",
+        "value": {
+          "time": "9:00 PM",
+          "event": "Test Entry (Dummy)",
+          "venue": "",
+          "tag": "TEST",
+          "notes": "This is a dummy entry added to confirm the editor is working. Safe to delete."
+        }
+      }
+    ],
+    "inversePatch": [
+      {
+        "op": "remove",
+        "path": "/days/0/events/3"
+      }
+    ],
+    "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-2911131c-6fd5-4d62-bef6-6a8910aaef4b.yaml",
+    "actor": "app",
+    "status": "applied"
+  }
+]

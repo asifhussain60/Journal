@@ -69,6 +69,38 @@ const __dirname = path.dirname(__filename);
 const REFERENCE_DATA_DIR = path.resolve(__dirname, "./reference-data");
 const REFERENCE_NAME_RE = /^[a-z][a-z0-9-]*$/;
 
+// Robust JSON extraction: strip markdown fences, scan for the first balanced
+// {...} block. Handles common model failure modes — fenced output, preamble
+// prose, trailing commentary — that a greedy regex trips over.
+function extractJsonObject(raw) {
+  if (typeof raw !== "string" || !raw.length) return null;
+  // Strip ```json ... ``` or ``` ... ``` fences.
+  let s = raw.replace(/```(?:json)?\s*([\s\S]*?)```/gi, "$1").trim();
+  const firstBrace = s.indexOf("{");
+  if (firstBrace < 0) return null;
+  // Scan balanced braces, respecting strings and escape chars.
+  let depth = 0, inStr = false, esc = false;
+  for (let i = firstBrace; i < s.length; i++) {
+    const ch = s[i];
+    if (esc) { esc = false; continue; }
+    if (inStr) {
+      if (ch === "\\") esc = true;
+      else if (ch === '"') inStr = false;
+      continue;
+    }
+    if (ch === '"') { inStr = true; continue; }
+    if (ch === "{") depth++;
+    else if (ch === "}") {
+      depth--;
+      if (depth === 0) {
+        const candidate = s.slice(firstBrace, i + 1);
+        try { return JSON.parse(candidate); } catch { return null; }
+      }
+    }
+  }
+  return null;
+}
+
 const PORT = Number(process.env.PORT ?? 3001);
 const DEFAULT_MODEL = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6";
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN ?? "http://localhost:3000";
@@ -443,15 +475,7 @@ app.post("/api/extract-receipt", async (req, res) => {
       messages: [{ role: "user", content: userContent }],
     });
     const raw = msg.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim();
-    let extracted = null;
-    const jsonMatch = raw.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      try {
-        extracted = JSON.parse(jsonMatch[0]);
-      } catch {
-        extracted = null;
-      }
-    }
+    const extracted = extractJsonObject(raw);
     res.json({
       ok: true,
       model: msg.model,
@@ -486,15 +510,7 @@ app.post("/api/ingest-itinerary", async (req, res) => {
       messages: [{ role: "user", content: itineraryText.trim() }],
     });
     const raw = msg.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim();
-    let extracted = null;
-    const jsonMatch = raw.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      try {
-        extracted = JSON.parse(jsonMatch[0]);
-      } catch {
-        extracted = null;
-      }
-    }
+    const extracted = extractJsonObject(raw);
     if (!extracted) {
       return res.json({
         ok: false,
@@ -598,18 +614,18 @@ app.post("/api/trip-edit", async (req, res) => {
       max_tokens: 2048,
       system: prompt.system,
       messages: [{ role: "user", content: userBlock }],
-      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }],
+      // Intentionally no web_search here: trip-edit must return a single JSON
+      // object. Tools encourage conversational preamble that breaks parsing.
     });
     const raw = msg.content.filter((b) => b.type === "text").map((b) => b.text).join("").trim();
-    let proposed = null;
-    const jsonMatch = raw.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      try { proposed = JSON.parse(jsonMatch[0]); } catch { proposed = null; }
-    }
+    const proposed = extractJsonObject(raw);
     if (!proposed) {
+      // Surface the raw text to the caller — the chat can show it so the user
+      // can see what the model actually said instead of a bare "parse failed".
+      const snippet = raw.length > 300 ? raw.slice(0, 300) + "…" : raw;
       return res.json({
         ok: false, model: msg.model, usage: msg.usage, promptName: prompt.name,
-        error: "model output did not parse as JSON", rawText: raw,
+        error: `model did not return JSON: "${snippet}"`, rawText: raw,
       });
     }
 

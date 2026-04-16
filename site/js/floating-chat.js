@@ -248,20 +248,27 @@
       // First call: dry run
       window.BabuAI.tripEdit(message, this.tripContext.slug, { dryRun: true })
         .then(proposal => {
-          // Remove thinking message
           const thinkingMsg = this.messagesContainer.querySelector('.fc-msg-thinking');
           if (thinkingMsg) thinkingMsg.remove();
 
-          // API returns { ok, intent, summary, patch, ... } or { ok: false, rawText }
           const summary = proposal.summary || proposal.rawText || JSON.stringify(proposal);
-          this.addMessage(summary, 'edit', false, () => {
-            this.applyEdit(message, proposal);
-          }, () => {
-            console.log('[CHAT:EDIT] Discarded', { message, summary });
-            this.addMessage('Edit discarded', 'system');
-          });
+          const patch = proposal.proposed && proposal.proposed.patch;
+          const isActionable = proposal.intent === 'edit' && Array.isArray(patch) && patch.length > 0;
 
-          console.log('[CHAT:EDIT] Proposal', { message, intent: proposal.intent, summary });
+          if (isActionable) {
+            this.addMessage(summary, 'edit', false, () => {
+              this.applyEdit(message, proposal);
+            }, () => {
+              console.log('[CHAT:EDIT] Discarded', { message, summary });
+              this.addMessage('Edit discarded', 'system');
+            });
+          } else {
+            // intent=qa or intent=unknown or no patch — just surface the
+            // clarification prose as a regular AI reply, no Apply button.
+            this.addMessage(summary, 'ai');
+          }
+
+          console.log('[CHAT:EDIT] Proposal', { message, intent: proposal.intent, summary, actionable: isActionable });
         })
         .catch(error => {
           // Remove thinking message
