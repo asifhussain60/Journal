@@ -338,6 +338,36 @@ Acceptance gates (all required to pass before tag):
 - Gate G — Dashboard, Memoir → Chapters → ChapterReader, and DayOne flows all still work.
 - Gate H — `cd server && npm run validate && npm run harass` both pass; rate limits apply on the new endpoints.
 
+**Phase 4 receipt pipeline (complete when all acceptance gates pass under `tag phase-04-receipt-pipeline`):**
+
+First narrow, in-flow AI feature: receipt capture → OCR extraction → review → approve → queue.
+
+- **TripModule sub-tabs** now read `Overview → Capture → Tools → Queue`. The Capture sub-tab is the single intake point for in-trip data; receipt capture is the first button it carries.
+- **CaptureModal** (`site/index.html`) — drives the flow: click-or-drop image picker (up to 5 MB, any `image/*`) → preview → `POST /api/upload` → `POST /api/extract-receipt` with `<StepProgress>` showing "Reading image / Extracting details / Review" → editable form (merchant, amount, currency, date, category, description) pre-filled from the extraction → `memoryWorthy` star toggle via `<IconButton>` → **Approve** posts a schema-valid `pending` row and fires `queue:refresh`. Failures surface the raw model output with a Retry button so the user can still edit manually.
+- **QueuePanel** now renders each pending row as a `<Card>`: merchant/title, amount + currency, date, memoryWorthy star, `<StatusBadge>`, expandable detail (description/category/imagePath/id/visionUsed). Empty state preserved. Drain is not an App concern.
+- **Proxy** (`server/src/index.js`) — four new endpoints:
+  - `POST /api/upload` → `multer` memory storage, 5 MB cap, **magic-number MIME sniff** (header alone is untrusted), writes to `trips/{activeSlug}/receipts/{uuid}.{ext}`; returns `{ ok, id, imagePath, bytes, ext }`.
+  - `POST /api/extract-receipt` → `{ imagePath }` → tries **macOS Vision** via a small `swift` CLI shim (`server/scripts/mac-vision-ocr.swift`); on empty/unavailable, falls back to **Haiku vision** with the base64 image. `res.locals.visionUsed` flows into `usage.jsonl`. Returns `{ ok, extracted, visionUsed, rawText? }` with the extracted JSON or the raw model text for the retry path.
+  - `POST /api/queue/:name` → ajv-validated append to `trips/{slug}/{name}.json` (atomic temp-rename); Phase 4 registers the `pending` schema.
+  - `GET /api/queue/:name` → reads the queue file; returns `{ ok, items, tripSlug }` with an empty array when the file is missing.
+- **Shared helpers** (`server/src/receipts.js`) — image sniffer, active trip slug resolver, atomic write, queue append/read, `macVisionOcr` with a cached `swift` probe.
+- **Prompt** — `extract-receipt` (Haiku; JSON-only; shared by Vision-then-text and direct-vision paths).
+- **Browser client** (`site/js/claude-client.js`) — `BabuAI.uploadReceipt`, `BabuAI.extractReceipt`, `BabuAI.queuePost`, `BabuAI.queueGet`.
+- **Schema contract** — `pending.schema.json` is the write contract: `schemaVersion: "1"`, `id`, `createdAt`, `kind: "receipt" | "voice" | "itinerary" | "note"`, `source: "app" | "cli" | "test"` (App uses `"app"`), `status: "pending"`, `memoryWorthy`, plus kind-specific `payload`. App only writes `pending`; Cowork drains.
+- **Compaction** — Phase 4 compacted the `<script type="text/babel">` block by ~150 lines (stale narrative comments, 14 banner triplets, multi-line JSX collapses) before adding the Capture sub-tab, CaptureModal, and expanded QueuePanel, keeping the block under 2,400 lines per Gate F.
+- **`trips/*/receipts/` and `trips/*/pending.json` remain gitignored** per Phase 1 policy — no receipts or queue rows land in git.
+
+Acceptance gates (all required to pass before tag):
+
+- Gate A — end-to-end capture (browser): pick → StepProgress → extraction → form → Approve → `pending.json` row present with `schemaVersion: "1"`, `kind: "receipt"`.
+- Gate B — `cd server && npm run validate` passes (pending rows conform to `pending.schema.json`).
+- Gate C — `visionUsed` appears in `usage.jsonl` after an `/api/extract-receipt` call (true when macOS Vision produced text; false on Haiku fallback).
+- Gate D — `POST /api/queue/pending` with a valid row returns `{ ok: true, id }`; `GET /api/queue/pending` echoes the row.
+- Gate E — `POST /api/upload` with a 6 MB file is rejected with HTTP 413 (`multer` `LIMIT_FILE_SIZE`).
+- Gate F — `<script type="text/babel">` block stays under 2,400 lines.
+- Gate G — `cd server && npm run harass` passes (rate limits on `/api/upload`, `/api/extract-receipt`, `/api/queue/pending`; smoke round-trip + self-cleanup).
+- Gate H — Dashboard, Memoir, DayOne, FloatingChat Q&A, TipHelper, PackingList all still work.
+
 See `_workspace/ideas/app-cowork-execution-plan.md` for the full phase roadmap (Phases 1–9), UI canon, proxy endpoint inventory, and acceptance criteria.
 
 ---

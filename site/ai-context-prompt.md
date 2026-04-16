@@ -33,7 +33,7 @@ A **creation and editing tool** for DayOne journal entries — NOT an archive vi
 ### Architecture
 - **React 18** via CDN (no build step, no Vite, no npm bundler)
 - **Babel standalone** for in-browser JSX transformation
-- **Single-file SPA**: everything lives in `site/index.html` (~1950 lines)
+- **Single-file SPA**: everything lives in `site/index.html` (`<script type="text/babel">` block ~2,300 lines after Phase 4; Gate F caps it at 2,400)
 - **External CSS**: design system split across 4 files
 - **No backend server** — served locally via `npx serve . -l 3000 --cors` from the `journal/` root directory
 - **Data layer**: JSON files fetched at runtime + inline JS constants
@@ -117,12 +117,18 @@ function App() {
 - **Stats row** — Total Words, Chapters Locked
 - **Module cards** — Memoir and DayOne Journal (clickable, navigate to respective modules)
 
-### Trip Module (Phase 3, sub-tabs: Overview, Tools, Queue)
+### Trip Module (Phase 4, sub-tabs: Overview, Capture, Tools, Queue)
 - **Overview** — `<TripOverview>` reads `useActiveTrip()` and renders the trip name, date range, live-day/countdown `<StatusBadge>`, travelers, base, occasion, flights, and highlights. Read-only.
+- **Capture** (Phase 4) — `<TripCapture>` is the in-flow intake tab. Today it carries one primary action, **Capture Receipt**, which opens `<CaptureModal>`:
+  - Click-or-drop image picker (`<input type="file" accept="image/*" capture="environment">` + drag-drop zone). 5 MB cap; MIME enforced by magic-number sniff server-side.
+  - Preview → `POST /api/upload` → `POST /api/extract-receipt` with a `<StepProgress steps={["Reading image","Extracting details","Review"]} />`.
+  - Review step: editable `<FormField>` + `<Input>` form (merchant, amount, currency, date, category, description) pre-filled from the extraction; `memoryWorthy` star via `<IconButton>`.
+  - **Approve** posts a schema-valid `pending` row via `BabuAI.queuePost('pending', row)` and dispatches `queue:refresh`. Failures surface the raw model output + a Retry button; the form is always editable so the user can salvage a bad extraction.
+  - Phase 5 will add **Voice Entry** and **Paste Itinerary** buttons to this sub-tab.
 - **Tools** — `<TripTools>` hosts two zero-cost Tier 0 widgets:
   - `<TipHelper>` — country `<Select>` populated from `/api/reference-data/currency`; on change, displays tipping range + currency + notes from `/api/reference-data/tipping`. No model call.
   - `<PackingList>` — categorised checkboxes from `/api/reference-data/packing`; checked state persists via `useLocalStoragePrefs("packing-{slug}")`. Shows "X of Y packed".
-- **Queue** — `<QueuePanel>` fetches `GET /api/queue/pending`; tolerates 404 (Phase 4 endpoint) and renders an `<EmptyState>`. Listens for the `queue:refresh` window event so the CommandPalette command can trigger a refetch.
+- **Queue** (Phase 4) — `<QueuePanel>` fetches `GET /api/queue/pending` and renders each row as a `<Card>` with merchant/title, amount + currency, date, memoryWorthy star, `<StatusBadge>`, and an expandable detail section (description/category/imagePath/id/visionUsed). Empty state preserved when the queue is empty. No delete/drain controls — drain is Cowork's job.
 - **FloatingChat** — `<FloatingChat trip={activeTrip} />` is mounted only on the Overview sub-tab.
   - Collapsed: 56px circular bubble at bottom-right (inset 24px). Expanded: 420×620 panel.
   - Conversation area uses `aria-live="polite"`; auto-growing textarea (max ~6rem); `<ThinkingDots>` while waiting on `/api/trip-qa`.
@@ -428,14 +434,19 @@ The React app is a thin edge client; every Anthropic API call goes through a loc
 | POST | `/api/trip-qa` | **Phase 3.** Trip Q&A backed by `promptName: "trip-qa"` (pinned `claude-haiku-4-5-20251001`). Body: `{ message, tripContext }`. The active trip JSON is stringified into the user message head; replies are 1-3 sentences. Returns `{ ok, response, usage, model, promptName }`. Rate-limited and usage-logged. |
 | POST | `/api/trip-assistant` | **Phase 3 (staged for Phase 6).** Meta-router prompt for FloatingChat. Body: `{ message, tripContext, intent? }`. Same shape and middleware as `/api/trip-qa`; intent classification (`qa` / `edit` / `tool`) is reserved for Phase 6. |
 | GET | `/api/reference-data/:name` | **Phase 3, Tier 0.** Serves the JSON file at `server/src/reference-data/{name}.json`. Currently provides `tipping`, `currency`, `packing`. 404 on miss. **No model call** — does not contribute model rows to `usage.jsonl`. |
+| POST | `/api/upload` | **Phase 4.** Multipart image upload (field: `file`). `multer` memory storage; 5 MB cap; image type verified by magic-number sniff (header alone is untrusted). Writes to `trips/{activeSlug}/receipts/{uuid}.{ext}` and returns `{ ok, id, imagePath, bytes, ext }`. Oversize returns HTTP 413. |
+| POST | `/api/extract-receipt` | **Phase 4.** Body: `{ imagePath }`. Tries macOS Vision first (via `server/scripts/mac-vision-ocr.swift`); on empty/unavailable, falls back to Haiku vision with the base64 image. Returns `{ ok, extracted, visionUsed, rawText?, usage, model, promptName }`. `visionUsed` flows into `usage.jsonl` via `res.locals.visionUsed`. Prompt: `extract-receipt`. |
+| POST | `/api/queue/:name` | **Phase 4.** Schema-validated append to `trips/{slug}/{name}.json` (atomic temp-rename). Requires the body to be a full queue row with `schemaVersion: "1"`. Returns `{ ok, id, count, tripSlug }`. 404 on unknown queue name. Phase 4 registers the `pending` queue. |
+| GET | `/api/queue/:name` | **Phase 4.** Reads `trips/{slug}/{name}.json`. Returns `{ ok, items, tripSlug }` with `items: []` when the file is missing. |
 
-Additional feature endpoints ship in later phases (`/api/upload`, `/api/extract-receipt`, `/api/queue/:name`, `/api/ingest-itinerary`, `/api/trip-edit`, `/api/trip-edit/revert`, `/api/usage/summary`). See the execution plan §7.
+Additional feature endpoints ship in later phases (`/api/ingest-itinerary`, `/api/trip-edit`, `/api/trip-edit/revert`, `/api/usage/summary`). See the execution plan §7.
 
 ### 10.2 Cross-cutting middleware (Phase 1)
 
 - **Usage logger** — every request appends one JSONL row to `server/logs/usage.jsonl` with `{ timestamp, endpoint, method, model, promptName, tokensIn, tokensOut, durationMs, statusCode, visionUsed }`. Non-model endpoints log `tokensIn=0, tokensOut=0, model=null`. File is gitignored.
 - **Rate limit** — 20 requests per 60 seconds, per IP, per endpoint path. `/health` is exempt. 21st request within the window returns HTTP 429 with `{ ok: false, error, endpoint, retryAfterSeconds }`.
-- **Prompt loader** — `server/src/prompts/index.js` exposes `hasPrompt(name)` and `loadPrompt(name)`. Each prompt module exports `{ name, system, description, model? }`. Phase 1 registered `example`; Phase 3 added `trip-qa` (Haiku-pinned via `prompt.model`) and `trip-assistant` (Sonnet meta-router).
+- **Prompt loader** — `server/src/prompts/index.js` exposes `hasPrompt(name)` and `loadPrompt(name)`. Each prompt module exports `{ name, system, description, model? }`. Phase 1 registered `example`; Phase 3 added `trip-qa` (Haiku-pinned via `prompt.model`) and `trip-assistant` (Sonnet meta-router); Phase 4 added `extract-receipt` (Haiku; JSON-only; used by both the Vision-then-text path and the direct-vision fallback).
+- **Receipt pipeline helpers** (Phase 4) — `server/src/receipts.js` exposes the active-trip slug resolver, magic-number image sniffer, atomic-append/read for trip queue files, and the `macVisionOcr(imagePath)` wrapper around `swift mac-vision-ocr.swift` with a cached availability probe. `server/scripts/mac-vision-ocr.swift` runs `VNRecognizeTextRequest` in `.accurate` mode and prints recognized lines to stdout.
 - **Reference data** (Phase 3) — `server/src/reference-data/` holds the Tier 0 JSON files served by `GET /api/reference-data/:name`. Names are validated against `^[a-z][a-z0-9-]*$` and resolved with a path-traversal guard.
 
 ### 10.3 Queue model (App → Cowork)
