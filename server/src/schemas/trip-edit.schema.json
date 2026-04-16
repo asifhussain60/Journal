@@ -1,0 +1,72 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://journal.local/schemas/trip-edit.schema.json",
+  "title": "Trip Edit Object",
+  "description": "Structured trip object as stored in trips/{slug}/trip.yaml. Phase 6 (§5.4) contract for /api/trip-edit.",
+  "type": "object",
+  "required": ["schemaVersion", "name", "slug", "dates"],
+  "additionalProperties": true,
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1",
+      "description": "Pinned to '1'."
+    },
+    "name": { "type": "string", "minLength": 1 },
+    "slug": { "type": "string", "minLength": 1, "pattern": "^[a-z0-9][a-z0-9-]*$" },
+    "status": { "type": "string", "enum": ["planning", "active", "completed", "archived"] },
+    "dates": {
+      "type": "object",
+      "required": ["start", "end"],
+      "additionalProperties": true,
+      "properties": {
+        "start": { "type": "string", "format": "date" },
+        "end":   { "type": "string", "format": "date" },
+        "days":  { "type": "integer", "minimum": 1 }
+      }
+    },
+    "travelers": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "flights": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "flight":  { "type": "string" },
+          "route":   { "type": "string" },
+          "date":    { "type": "string", "format": "date" },
+          "depart":  { "type": "string" },
+          "arrive":  { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "hotels": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name":     { "type": "string" },
+          "checkIn":  { "type": "string", "format": "date" },
+          "checkOut": { "type": "string", "format": "date" },
+          "location": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "highlights": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "date":  { "type": "string", "format": "date" },
+          "event": { "type": "string" },
+          "venue": { "type": "string" },
+          "start": { "type": "string" },
+          "end":   { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "notes": { "type": "string" }
+  }
+}

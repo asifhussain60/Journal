@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "1",
+  "name": "Ishrat's Engagement Party Trip",
+  "slug": "2026-04-ishrat-engagement",
+  "status": "planning",
+  "dates": { "start": "2026-04-20", "end": "2026-04-28", "days": 9 },
+  "travelers": ["Asif", "Ishrat"],
+  "flights": {
+    "inbound": {
+      "flight": "UA 147",
+      "route": "LHR → EWR",
+      "date": "2026-04-20",
+      "depart": "12:00 PM BST",
+      "arrive": "2:55 PM ET"
+    },
+    "outbound": {
+      "flight": "UA 16",
+      "route": "EWR → LHR",
+      "date": "2026-04-28",
+      "depart": "5:25 PM ET",
+      "arrive": "5:55 AM +1"
+    }
+  },
+  "hotels": [
+    { "name": "Home2 Suites", "checkIn": "2026-04-20", "checkOut": "2026-04-28", "location": "New Brunswick, NJ" }
+  ],
+  "highlights": [
+    { "date": "2026-04-22", "event": "Engagement party", "venue": "Fresh Meadows, Queens" }
+  ],
+  "notes": "Halal dining, mid-range budget."
+}

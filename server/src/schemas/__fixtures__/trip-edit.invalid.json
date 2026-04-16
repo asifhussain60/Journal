@@ -1,0 +1,6 @@
+{
+  "schemaVersion": "2",
+  "name": "Bad trip",
+  "slug": "Bad Slug",
+  "dates": { "start": "not-a-date", "end": "2026-04-28" }
+}
