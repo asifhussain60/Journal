@@ -18,6 +18,7 @@
 //   POST /api/trip-edit                — Phase 6: intent classify → structured diffs + JSON Patch
 //   POST /api/trip-edit/revert         — Phase 6: idempotent revert by edit-log id
 //   GET  /api/edit-log                 — Phase 6: read trips/{slug}/edit-log.json
+//   GET  /api/usage/summary            — Phase 8: monthly spend + per-endpoint breakdown
 //
 // CORS is locked to http://localhost:3000 (the `npx serve` dev port for site/).
 
@@ -51,6 +52,7 @@ import {
   readTripObj,
   readEditLog,
 } from "./trip-edit-ops.js";
+import { getUsageSummary } from "./usage-summary.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -60,6 +62,7 @@ const REFERENCE_NAME_RE = /^[a-z][a-z0-9-]*$/;
 const PORT = Number(process.env.PORT ?? 3001);
 const DEFAULT_MODEL = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6";
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN ?? "http://localhost:3000";
+const MONTHLY_CAP = Number(process.env.MONTHLY_CAP ?? 50);
 
 // --- Key load (fail fast if missing) ------------------------------------------
 const { key: ANTHROPIC_API_KEY, source: KEY_SOURCE } = loadAnthropicKey();
@@ -616,6 +619,19 @@ app.get("/api/edit-log", async (_req, res) => {
     const slug = await getActiveTripSlug();
     const items = await readEditLog(slug);
     res.json({ ok: true, items, tripSlug: slug });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err?.message ?? String(err) });
+  }
+});
+
+// --- Phase 8: usage summary --------------------------------------------------
+// GET /api/usage/summary — monthly spend derived from usage.jsonl + pricing
+// table. Feeds BudgetPill, UsageModal, and the throttle-budget middleware.
+app.get("/api/usage/summary", async (_req, res) => {
+  try {
+    const summary = await getUsageSummary({ monthlyCAP: MONTHLY_CAP });
+    res.set("X-Budget-State", summary.throttleState);
+    res.json(summary);
   } catch (err) {
     res.status(500).json({ ok: false, error: err?.message ?? String(err) });
   }
