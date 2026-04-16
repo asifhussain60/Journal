@@ -15,13 +15,29 @@
   <link href="https://fonts.cdnfonts.com/css/opendyslexic" rel="stylesheet">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F4D6;</text></svg>">
 
-  <!-- Design System — Dark Rose Theme -->
+  <!-- Design System canon — Lavender Romance (execution plan §6.2).
+       Load order matters:
+         1. base.css       — shared tokens, utility classes, dark defaults
+         2. app-dark.css   — existing component library (FloatingChat,
+                             CommandPalette, EmptyState, book bookshelf,
+                             capture modal, queue panel) — kept so Phase 4+
+                             components keep their styling
+         3. app.css        — lavender glass cards, nav pill, module/chapter/
+                             incident/quote cards; its own :root overrides
+                             base.css tokens to light lavender values
+         4. itinerary.css  — trip-specific layouts (flight-card, day-card,
+                             event, dining-card, notes-box, tag)
+         5. lavender-romance.css — final theme polish via [data-theme] -->
+  <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/app-dark.css">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/itinerary.css">
+  <link rel="stylesheet" href="css/themes/lavender-romance.css">
 
-  <!-- AI Voice Refine drawer (scoped styles, no collision with app-dark) -->
+  <!-- AI Voice Refine drawer (scoped styles, no collision with other sheets) -->
   <link rel="stylesheet" href="css/ai-drawer.css">
 </head>
-<body>
+<body data-theme="lavender-romance">
 
   <a href="#main-content" class="skip-link">Skip to main content</a>
   <div class="bg-mesh"></div>
@@ -1160,7 +1176,7 @@
           <h1 className="page-title">Trip</h1>
           <p className="page-subtitle">{trip.name} &middot; {trip.displayDate}</p>
 
-          <div className="journal-tabs" role="tablist" aria-label="Trip sections">
+          <div className="journal-tabs glass-pill-nav" role="tablist" aria-label="Trip sections">
             {TRIP_SUB_TABS.map(t => (
               <button
                 key={t.id}
@@ -1201,10 +1217,10 @@
     function FlightLine({ label, flight }) {
       if (!flight) return null;
       return (
-        <div className="trip-flight-row">
+        <div className="flight-card trip-flight-row">
           <Text as="span" variant="mono" size="sm" color="muted">{label}</Text>
           <Text as="span" weight="600">{flight.flight} &middot; {flight.route}</Text>
-          <Text as="span" variant="mono" size="sm" color="muted">{flight.date} &middot; {flight.depart} \u2192 {flight.arrive}</Text>
+          <Text as="span" variant="mono" size="sm" color="muted">{flight.date} &middot; {flight.depart} → {flight.arrive}</Text>
         </div>
       );
     }
@@ -1215,12 +1231,12 @@
       const travelers = Array.isArray(trip.travelers) ? trip.travelers : [];
       return (
         <div className="trip-overview" style={{ display: 'grid', gap: '1.5rem' }}>
-          <Card variant="glass" style={{ padding: '2rem' }}>
+          <Card variant="glass" className="trip-details-card" style={{ padding: '2rem' }}>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'baseline', justifyContent: 'space-between' }}>
               <div>
                 <Text as="h2" variant="serif" size="xl" style={{ marginBottom: '0.25rem' }}>{trip.name}</Text>
                 <Text variant="mono" size="sm" color="muted">
-                  {trip.dates.start} \u2192 {trip.dates.end} &middot; {trip.dates.days} days
+                  {trip.dates.start} → {trip.dates.end} &middot; {trip.dates.days} days
                 </Text>
               </div>
               <StatusBadge status={status} label={label} />
@@ -1233,13 +1249,13 @@
             )}
             {travelers.length > 0 && (
               <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', flexWrap: 'wrap' }}>
-                {travelers.map(t => <Badge key={t} variant="accent" icon="fa-user">{t}</Badge>)}
+                {travelers.map(t => <Badge key={t} variant="accent" icon="fa-user" className="traveler-badge">{t}</Badge>)}
               </div>
             )}
           </Card>
 
           {trip.flights && (
-            <Card variant="glass" style={{ padding: '1.75rem' }}>
+            <Card variant="glass" className="flights-card" style={{ padding: '1.75rem' }}>
               <Text as="h3" variant="serif" size="lg" style={{ marginBottom: '1rem' }}>Flights</Text>
               <div style={{ display: 'grid', gap: '0.75rem' }}>
                 <FlightLine label="OUTBOUND" flight={trip.flights.inbound} />
@@ -1249,11 +1265,11 @@
           )}
 
           {highlights.length > 0 && (
-            <Card variant="glass" style={{ padding: '1.75rem' }}>
+            <Card variant="glass" className="highlights-card" style={{ padding: '1.75rem' }}>
               <Text as="h3" variant="serif" size="lg" style={{ marginBottom: '1rem' }}>Highlights</Text>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: '0.75rem' }}>
                 {highlights.map((h, i) => (
-                  <li key={i} style={{ display: 'flex', gap: '0.75rem', alignItems: 'baseline' }}>
+                  <li key={i} className="highlight-item" style={{ display: 'flex', gap: '0.75rem', alignItems: 'baseline' }}>
                     <Text as="span" variant="mono" size="sm" color="muted" style={{ minWidth: '6.5rem' }}>{h.date}</Text>
                     <div>
                       <Text as="span" weight="600">{h.event}</Text>
@@ -1287,10 +1303,10 @@
       return (
         <Card variant="glass" style={{ padding: '1.75rem' }}>
           <Text as="h3" variant="serif" size="lg" style={{ marginBottom: '1rem' }}>Tip helper</Text>
-          {error && <Text color="muted" size="sm">Couldn\u2019t load tipping data ({String(error.message)}).</Text>}
+          {error && <Text color="muted" size="sm">Couldn’t load tipping data ({String(error.message)}).</Text>}
           <FormField label="Country">
             <Select value={country} onChange={e => setCountry(e.target.value)} disabled={!countries.length}>
-              <option value="">Choose a country\u2026</option>
+              <option value="">Choose a country…</option>
               {countries.map(c => <option key={c} value={c}>{c}</option>)}
             </Select>
           </FormField>
@@ -1328,7 +1344,7 @@
             <Text as="h3" variant="serif" size="lg">Packing list</Text>
             <Text variant="mono" size="sm" color="muted">{packedCount} of {totalCount} packed</Text>
           </div>
-          {error && <Text color="muted" size="sm">Couldn\u2019t load packing template ({String(error.message)}).</Text>}
+          {error && <Text color="muted" size="sm">Couldn’t load packing template ({String(error.message)}).</Text>}
           {!packingData && !error && <SkeletonRow variant="queue-row" count={3} />}
           {categories.map(cat => (
             <div key={cat.name} style={{ marginBottom: '1rem' }}>
