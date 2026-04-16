@@ -624,75 +624,231 @@ body::after{
   padding:0 1.5rem 1.5rem;
 }
 
-/* Event list — remove individual event borders, use subtle separator */
+/* ═══ EVENT CARDS — modern icon-column layout ═══ */
 .event-list{
   display:grid;
-  gap:.65rem;
-}
-.event{
-  display:grid;
-  grid-template-columns:80px minmax(0,1fr);
-  gap:1rem;
-  padding:.85rem 1rem;
-  border-radius:2px;
-  background:none;
-  border-bottom:1px solid rgba(255,255,255,.06);
-}
-.event:last-child{
-  border-bottom:none;
+  gap:.75rem;
 }
 
-/* Time badge — clean, no pill */
-.event-time{
+/* Card shell: icon | details grid, visible border + soft shadow at rest,
+   stronger lift + ring on hover. No color shift — just elevation. */
+.event{
+  display:grid;
+  grid-template-columns:64px minmax(0,1fr);
+  gap:1rem;
+  padding:1rem 1.1rem;
+  border-radius:14px;
+  background:linear-gradient(
+    180deg,
+    rgba(255,255,255,.035) 0%,
+    rgba(255,255,255,.015) 100%
+  );
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255,255,255,.04),
+    0 1px 2px rgba(0,0,0,.25),
+    0 8px 20px -14px rgba(0,0,0,.5);
+  transition:transform .22s cubic-bezier(.34,1.2,.64,1),
+             background-color .22s ease,
+             border-color .22s ease,
+             box-shadow .22s ease;
+}
+.event:hover{
+  transform:translateY(-2px);
+  background:linear-gradient(
+    180deg,
+    rgba(255,255,255,.055) 0%,
+    rgba(255,255,255,.025) 100%
+  );
+  border-color:rgba(255,255,255,.14);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255,255,255,.06),
+    0 2px 4px rgba(0,0,0,.28),
+    0 18px 36px -16px rgba(0,0,0,.55);
+}
+
+/* ─── Icon column ───────────────────────────────────────────────────── */
+.event-icon{
+  width:56px;
+  height:56px;
+  border-radius:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.35rem;
+  flex-shrink:0;
   align-self:start;
-  justify-self:start;
-  min-width:72px;
-  text-align:center;
-  padding:.4rem .5rem;
-  border-radius:2px;
-  background:rgba(255,176,204,.08);
-  color:var(--rose-2);
+  /* subtle inner highlight + grounded shadow for depth */
+  box-shadow:
+    inset 0 1px 0 0 rgba(255,255,255,.06),
+    0 2px 6px rgba(0,0,0,.18);
+  transition:transform .22s cubic-bezier(.34,1.56,.64,1);
+}
+.event:hover .event-icon{ transform:scale(1.04); }
+
+/* Per-category tint + icon color — each mirrors the matching .tag-* palette */
+.event-icon--travel      { background:rgba(198,166,255,.14); color:#d9c2ff; }
+.event-icon--dine        { background:rgba(255,176,204,.14); color:#ffc8d7; }
+.event-icon--rest        { background:rgba(255,255,255,.06); color:#e8dce4; }
+.event-icon--event       { background:rgba(244,212,156,.14); color:#f4d49c; }
+.event-icon--celebration {
+  background:linear-gradient(135deg, rgba(255,176,204,.20), rgba(244,212,156,.16));
+  color:#fff1d9;
+}
+.event-icon--default     { background:rgba(255,255,255,.05); color:#f0e4ec; }
+
+/* ─── Details column ────────────────────────────────────────────────── */
+.event-details{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:.35rem;
+}
+
+/* Top meta row: CATEGORY · TIME (small caps, muted) */
+.event-meta-top{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:.55rem;
+  color:var(--muted);
+  font-size:.7rem;
   font-weight:600;
-  font-size:.82rem;
-  letter-spacing:.02em;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+  line-height:1;
+  margin-bottom:.1rem;
 }
-.event-details strong{
-  display:block;
-  font-size:1.02rem;
-  margin-bottom:.25rem;
+.event-meta-top .event-time{
+  /* Collapse old badge styling when reused here — just inline text */
+  padding:0;
+  background:none;
+  min-width:0;
+  color:var(--rose-2);
+  font-size:inherit;
+  font-weight:inherit;
+  letter-spacing:inherit;
+}
+.event-meta-sep{
+  width:3px;
+  height:3px;
+  border-radius:50%;
+  background:currentColor;
+  opacity:.35;
+}
+
+/* Title — prominent, Inter for clarity */
+.event-title{
+  margin:0;
+  font-family:"Inter","SF Pro Display","Helvetica Neue",system-ui,sans-serif;
+  font-size:1.08rem;
+  font-weight:600;
+  line-height:1.25;
   color:#fff;
+  letter-spacing:-.005em;
 }
-/* Description hidden — events show title + address + tag only */
-.event-desc{
-  display:none;
+
+/* Rating — gold stars, bold number, muted review count */
+.event-rating{
+  display:inline-flex;
+  align-items:baseline;
+  gap:.4rem;
+  margin-top:.1rem;
+  font-size:.82rem;
+  color:#fff;
+  font-feature-settings:"tnum";
 }
+.event-rating-stars{
+  display:inline-flex;
+  gap:1px;
+  color:var(--gold, #f4d49c);
+  font-size:.78rem;
+  line-height:1;
+}
+.event-rating-num{
+  font-weight:600;
+  color:#fff;
+  font-family:"Inter","SF Pro Display",system-ui,sans-serif;
+}
+.event-rating-count{
+  color:var(--muted);
+  opacity:.7;
+  font-size:.78rem;
+}
+
+/* Contact block — address + phone rows, icon-prefixed */
+.event-contact{
+  display:flex;
+  flex-direction:column;
+  gap:.25rem;
+  margin-top:.15rem;
+}
+.event-contact > *{
+  display:inline-flex;
+  align-items:center;
+  gap:.5rem;
+  color:var(--muted);
+  font-size:.86rem;
+  line-height:1.4;
+  opacity:.85;
+}
+.event-contact > * > i,
+.event-contact > * > .fa-solid,
+.event-contact > * > .fa-regular{
+  width:14px;
+  text-align:center;
+  font-size:.82rem;
+  color:var(--rose-2);
+  opacity:.75;
+  flex-shrink:0;
+}
+.event-phone{
+  font-variant-numeric:tabular-nums;
+}
+.event-phone a,
+.event-website{
+  color:inherit;
+  text-decoration:none;
+  border-bottom:1px solid transparent;
+  transition:border-color .15s, color .15s;
+}
+.event-phone a:hover,
+.event-website:hover{
+  color:#fff;
+  border-bottom-color:rgba(255,255,255,.25);
+}
+
+/* Hidden in the new layout — notes surface only in detail drawers later */
+.event-desc, .event-tip{ display:none; }
+
+/* Legacy `.event-addr` (kept in static HTML fallback) — mirrors new contact style */
 .event-addr{
   color:var(--muted);
   line-height:1.5;
-  font-size:.88rem;
-  margin-top:.15rem;
+  font-size:.86rem;
   opacity:.7;
 }
-.event-tip{
-  display:none;
-}
 
-/* Tags — smaller, no border */
+/* ─── Tag pill (still rendered inside .event-meta-top) ───────────────── */
 .tag{
   display:inline-flex;
   align-items:center;
-  margin-top:.5rem;
-  padding:.28rem .55rem;
+  padding:.22rem .5rem;
   border-radius:var(--radius-xs);
-  font-size:.7rem;
-  letter-spacing:.08em;
+  font-size:.66rem;
+  letter-spacing:.12em;
   text-transform:uppercase;
+  font-weight:600;
+  line-height:1;
 }
-.tag-travel{background:rgba(198,166,255,.12); color:#ead7ff}
-.tag-dine{background:rgba(255,176,204,.12); color:#ffdce8}
-.tag-rest{background:rgba(255,255,255,.08); color:#f5ecf2}
-.tag-event{background:rgba(244,212,156,.12); color:#ffe7bb}
-.tag-celebration{background:linear-gradient(135deg, rgba(255,176,204,.15), rgba(244,212,156,.12)); color:#fff6db}
+.tag-travel      { background:rgba(198,166,255,.14); color:#ead7ff; }
+.tag-dine        { background:rgba(255,176,204,.14); color:#ffdce8; }
+.tag-rest        { background:rgba(255,255,255,.08); color:#f5ecf2; }
+.tag-event       { background:rgba(244,212,156,.14); color:#ffe7bb; }
+.tag-celebration {
+  background:linear-gradient(135deg, rgba(255,176,204,.18), rgba(244,212,156,.14));
+  color:#fff6db;
+}
 
 /* ═══ DAY MAPS ═══ */
 
@@ -1123,12 +1279,13 @@ body::after{
   .day-header{padding:1rem 1.15rem}
   .day-card.open .day-body{padding:0 1.15rem 1.15rem}
   .event{
-    grid-template-columns:1fr;
+    grid-template-columns:48px minmax(0,1fr);
+    gap:.75rem;
+    padding:.8rem .85rem;
   }
-  .event-time{
-    min-width:0;
-    justify-self:start;
-  }
+  .event-icon{ width:44px; height:44px; font-size:1.1rem; border-radius:12px; }
+  .event-title{ font-size:1rem; }
+  .event-meta-top{ gap:.4rem; }
   .budget-mobile-toggle{display:grid;place-items:center}
   .fab{
     left:.75rem;

@@ -1107,6 +1107,110 @@
         });
       }
 
+      // ─── Event card helpers ────────────────────────────────────────
+      // Map tag text → CSS modifier (travel|dine|rest|event|celebration|default).
+      function tagKey(tagText) {
+        var t = (tagText || '').toLowerCase();
+        if (/dine|dining|breakfast|lunch|dinner|dessert/.test(t)) return 'dine';
+        if (/travel|flight|drive|transfer/.test(t)) return 'travel';
+        if (/celebration|engagement|wedding/.test(t)) return 'celebration';
+        if (/event|meeting|appointment|tour/.test(t)) return 'event';
+        if (/rest|nature|market|shopping|spa|leisure|hotel/.test(t)) return 'rest';
+        return 'default';
+      }
+
+      // Pick a Font Awesome 6 glyph for the event based on tag + title hints.
+      function pickEventIcon(tagText, titleText) {
+        var tag = (tagText || '').toLowerCase();
+        var title = (titleText || '').toLowerCase();
+        if (/drive|uber|taxi|car rental|shuttle|transfer/.test(title)) return 'fa-car';
+        if (/flight|lands|depart|takeoff|airport|ua \d/i.test(title)) return 'fa-plane-up';
+        if (/breakfast|brunch|coffee|diner/.test(title + ' ' + tag)) return 'fa-mug-saucer';
+        if (/dessert|ice cream|cones|sweet/.test(title + ' ' + tag)) return 'fa-ice-cream';
+        if (/dine|dining|lunch|dinner|restaurant|fondue/.test(tag + ' ' + title)) return 'fa-utensils';
+        if (/spa|massage|relax/.test(title + ' ' + tag)) return 'fa-spa';
+        if (/meeting|advisor|consult|appointment/.test(title + ' ' + tag)) return 'fa-handshake';
+        if (/shopping|market|shalwar|mall|store/.test(title + ' ' + tag)) return 'fa-bag-shopping';
+        if (/engagement|celebration|party|wedding/.test(title + ' ' + tag)) return 'fa-champagne-glasses';
+        if (/hotel|check.?in|sleep|rest|night/.test(title + ' ' + tag)) return 'fa-bed';
+        if (/beach|shore|ocean|tulip|garden|park|nature|walk/.test(title + ' ' + tag)) return 'fa-tree';
+        if (/test/.test(tag)) return 'fa-flask';
+        if (/travel/.test(tag)) return 'fa-route';
+        return 'fa-location-dot';
+      }
+
+      // Render 5-star row with integer + half + empty stars.
+      function renderStars(rating) {
+        var r = parseFloat(rating);
+        if (!isFinite(r) || r <= 0) return '';
+        var full = Math.floor(r);
+        var frac = r - full;
+        var half = frac >= 0.25 && frac < 0.75 ? 1 : 0;
+        if (frac >= 0.75) { full += 1; }
+        var empty = 5 - full - half;
+        var out = '';
+        for (var i = 0; i < full;  i++) out += '<i class="fa-solid fa-star"></i>';
+        if (half)                      out += '<i class="fa-solid fa-star-half-stroke"></i>';
+        for (var j = 0; j < empty; j++) out += '<i class="fa-regular fa-star"></i>';
+        return out;
+      }
+
+      // Hyphenate a phone string into tel: URL (keeps what the user typed visible).
+      function telHref(phone) {
+        return 'tel:' + (phone || '').replace(/[^0-9+]/g, '');
+      }
+
+      function renderEventCard(ev) {
+        // Accept both `venue` (canonical yaml) and `address` (legacy static HTML).
+        var address = ev.address || ev.venue || '';
+        var key = tagKey(ev.tag);
+        var icon = pickEventIcon(ev.tag, ev.event);
+
+        var parts = [];
+        parts.push('<div class="event">');
+        parts.push('  <div class="event-icon event-icon--' + key + '">');
+        parts.push('    <i class="fa-solid ' + icon + '" aria-hidden="true"></i>');
+        parts.push('  </div>');
+        parts.push('  <div class="event-details">');
+
+        // Meta row: TAG · TIME
+        parts.push('    <div class="event-meta-top">');
+        if (ev.tag) parts.push('      <span class="tag tag-' + key + '">' + escHtml(ev.tag) + '</span>');
+        if (ev.tag && ev.time) parts.push('      <span class="event-meta-sep"></span>');
+        if (ev.time) parts.push('      <span class="event-time">' + escHtml(ev.time) + '</span>');
+        parts.push('    </div>');
+
+        // Title
+        parts.push('    <h4 class="event-title">' + escHtml(ev.event) + '</h4>');
+
+        // Rating row (only if present)
+        if (ev.rating) {
+          parts.push('    <div class="event-rating">');
+          parts.push('      <span class="event-rating-stars" aria-label="Rated ' + escHtml(String(ev.rating)) + ' out of 5">' + renderStars(ev.rating) + '</span>');
+          parts.push('      <span class="event-rating-num">' + escHtml(String(ev.rating)) + '</span>');
+          if (ev.reviews) parts.push('      <span class="event-rating-count">· ' + escHtml(String(ev.reviews)) + ' reviews</span>');
+          parts.push('    </div>');
+        }
+
+        // Contact block
+        var hasContact = address || ev.phone || ev.website;
+        if (hasContact) {
+          parts.push('    <div class="event-contact">');
+          if (address) parts.push('      <span class="event-addr"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>' + escHtml(address) + '</span>');
+          if (ev.phone) parts.push('      <span class="event-phone"><i class="fa-solid fa-phone" aria-hidden="true"></i><a href="' + telHref(ev.phone) + '">' + escHtml(ev.phone) + '</a></span>');
+          if (ev.website) parts.push('      <a class="event-website" href="' + escHtml(ev.website) + '" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>Website</a>');
+          parts.push('    </div>');
+        }
+
+        // Preserve tip in DOM (hidden) so Phase 6 edits can still target it.
+        if (ev.tip) parts.push('    <div class="event-tip">' + escHtml(ev.tip) + '</div>');
+        if (ev.desc) parts.push('    <div class="event-desc">' + escHtml(ev.desc) + '</div>');
+
+        parts.push('  </div>');
+        parts.push('</div>');
+        return parts.join('\n');
+      }
+
       function renderItinerary(trip) {
         console.log('[ITIN:RENDER]', trip.name, trip.days ? trip.days.length + ' days' : 'no days');
 
@@ -1134,41 +1238,7 @@
 
           if (day.events && day.events.length) {
             day.events.forEach(function(ev) {
-              html += '      <div class="event">';
-              if (ev.time) {
-                html += '        <div class="event-time">' + escHtml(ev.time) + '</div>';
-              }
-              html += '        <div class="event-details">';
-              html += '          <strong>' + escHtml(ev.event) + '</strong>';
-
-              if (ev.desc) {
-                html += '          <div class="event-desc">' + escHtml(ev.desc) + '</div>';
-              }
-              if (ev.address) {
-                html += '          <div class="event-addr">' + escHtml(ev.address) + '</div>';
-              }
-              if (ev.tag) {
-                var tagClass = 'tag';
-                if (ev.tag.toLowerCase().includes('dine') || ev.tag.toLowerCase().includes('dining') || ev.tag.toLowerCase().includes('breakfast') || ev.tag.toLowerCase().includes('dessert')) {
-                  tagClass = 'tag tag-dine';
-                } else if (ev.tag.toLowerCase().includes('travel')) {
-                  tagClass = 'tag tag-travel';
-                } else if (ev.tag.toLowerCase().includes('event')) {
-                  tagClass = 'tag tag-event';
-                } else if (ev.tag.toLowerCase().includes('rest') || ev.tag.toLowerCase().includes('nature') || ev.tag.toLowerCase().includes('market') || ev.tag.toLowerCase().includes('shopping')) {
-                  tagClass = 'tag tag-rest';
-                } else if (ev.tag.toLowerCase().includes('celebration')) {
-                  tagClass = 'tag tag-celebration';
-                }
-                html += '          <span class="' + tagClass + '">' + escHtml(ev.tag) + '</span>';
-              }
-
-              if (ev.tip) {
-                html += '          <div class="event-tip">' + escHtml(ev.tip) + '</div>';
-              }
-
-              html += '        </div>';
-              html += '      </div>';
+              html += renderEventCard(ev);
             });
           } else {
             html += '      <div class="event"><div class="event-details"><p class="event-desc" style="opacity:0.5">No events planned yet — use the Trip Assistant to add activities.</p></div></div>';
