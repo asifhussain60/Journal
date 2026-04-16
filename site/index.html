@@ -1182,6 +1182,82 @@
     }
 
     // =================================================================
+    // TRIP MODULE (Phase 3)
+    // =================================================================
+
+    const TRIP_SUB_TABS = [
+      { id: 'overview', label: 'Overview', icon: 'fa-map-location-dot' },
+      { id: 'tools',    label: 'Tools',    icon: 'fa-toolbox' },
+      { id: 'queue',    label: 'Queue',    icon: 'fa-inbox' }
+    ];
+
+    function TripModule({ trip, loading, error, initialSubTab = 'overview' }) {
+      const [subTab, setSubTab] = useState(initialSubTab);
+      useEffect(() => { setSubTab(initialSubTab); }, [initialSubTab]);
+
+      if (loading) {
+        return (
+          <div className="container fade-enter">
+            <h1 className="page-title">Trip</h1>
+            <SkeletonRow variant="queue-row" count={3} />
+          </div>
+        );
+      }
+      if (!trip) {
+        return (
+          <div className="container fade-enter">
+            <h1 className="page-title">Trip</h1>
+            <EmptyState
+              icon="fa-plane"
+              title="No active trip"
+              description="Set an active trip in manifest.json to get started."
+            />
+          </div>
+        );
+      }
+
+      return (
+        <div className="container fade-enter trip-module" data-trip-slug={trip.slug}>
+          <h1 className="page-title">Trip</h1>
+          <p className="page-subtitle">{trip.name} &middot; {trip.displayDate}</p>
+
+          <div className="journal-tabs" role="tablist" aria-label="Trip sections">
+            {TRIP_SUB_TABS.map(t => (
+              <button
+                key={t.id}
+                role="tab"
+                aria-selected={subTab === t.id}
+                tabIndex={subTab === t.id ? 0 : -1}
+                className={`journal-tab ${subTab === t.id ? 'active' : ''}`}
+                onClick={() => setSubTab(t.id)}
+              >
+                <Icon name={t.icon} /> {t.label}
+              </button>
+            ))}
+          </div>
+
+          {subTab === 'overview' && <TripOverview trip={trip} />}
+          {subTab === 'tools'    && <TripTools    trip={trip} />}
+          {subTab === 'queue'    && <QueuePanel   trip={trip} />}
+
+          {subTab === 'overview' && <FloatingChat trip={trip} />}
+        </div>
+      );
+    }
+
+    // Phase 3 sub-tab placeholders \u2014 expanded by commits (d)/(e)/(f)/(g).
+    function TripOverview({ trip }) {
+      return <EmptyState icon="fa-map-location-dot" title="Overview coming next" description="Trip overview lands in commit (d)." />;
+    }
+    function TripTools({ trip }) {
+      return <EmptyState icon="fa-toolbox" title="Tools coming soon" description="Tip helper and packing list land in commit (f)." />;
+    }
+    function QueuePanel({ trip }) {
+      return <EmptyState icon="fa-inbox" title="Queue is empty" description="Captured receipts and voice notes will appear here." />;
+    }
+    function FloatingChat({ trip }) { return null; } // expanded in commit (e)
+
+    // =================================================================
     // CHAPTER SECTIONS DATA
     // =================================================================
 
@@ -1891,6 +1967,7 @@
       const [trips, setTrips] = useState([]);
       const [activeChapter, setActiveChapter] = useState(null);
       const [readProgress, setReadProgress] = useState(0);
+      const { trip: activeTrip, loading: activeTripLoading, error: activeTripError } = useActiveTrip();
       const { open: paletteOpen, setOpen: setPaletteOpen } = useCommandPalette();
       const commands = useMemo(() => [], []); // Phase 3 registers commands here
 
@@ -1915,6 +1992,7 @@
             <div className="nav-links">
               <button className={`nav-link ${page === 'home' ? 'active' : ''}`} onClick={() => { setPage('home'); setActiveChapter(null); }}><Icon name="fa-house" /> <span>Dashboard</span></button>
               <button className={`nav-link ${page === 'memoir' || page === 'chapter' ? 'active' : ''}`} onClick={() => { setPage('memoir'); setActiveChapter(null); }}><Icon name="fa-book-open" /> <span>Memoir</span></button>
+              <button className={`nav-link ${page === 'trip' ? 'active' : ''}`} onClick={() => { setPage('trip'); setActiveChapter(null); }}><Icon name="fa-plane" /> <span>Trip</span></button>
               <button className={`nav-link ${page === 'dayone' ? 'active' : ''}`} onClick={() => { setPage('dayone'); setActiveChapter(null); }}><Icon name="fa-feather-pointed" /> <span>DayOne</span></button>
             </div>
           </nav>
@@ -1922,6 +2000,7 @@
           <main id="main-content" className="page">
             {page === 'home' && <HomePage trips={trips} onNavigate={setPage} />}
             {page === 'memoir' && <MemoirModule onOpenChapter={openChapter} />}
+            {page === 'trip' && <TripModule trip={activeTrip} loading={activeTripLoading} error={activeTripError} />}
             {page === 'dayone' && <DayOneModule trips={trips} />}
             {page === 'chapter' && activeChapter && (
               <ChapterReader
