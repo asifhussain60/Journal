@@ -242,6 +242,41 @@
   animation: fc-msg-slide-in 0.3s ease;
 }
 
+/* Rendered markdown inside AI bubbles */
+.fc-rendered p {
+  margin: 0 0 0.5rem 0;
+}
+.fc-rendered p:last-child {
+  margin-bottom: 0;
+}
+.fc-rendered ul,
+.fc-rendered ol {
+  margin: 0.4rem 0 0.5rem 0;
+  padding-left: 1.25rem;
+}
+.fc-rendered li {
+  margin-bottom: 0.25rem;
+  line-height: 1.5;
+}
+.fc-rendered li:last-child {
+  margin-bottom: 0;
+}
+.fc-rendered strong {
+  color: rgba(220, 200, 255, 0.95);
+  font-weight: 600;
+}
+.fc-rendered em {
+  font-style: italic;
+  color: rgba(220, 200, 255, 0.8);
+}
+.fc-rendered code {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.8rem;
+}
+
 /* Thinking indicator */
 .fc-msg-thinking {
   align-self: flex-start;

@@ -1096,11 +1096,26 @@
       var SLUG = '2026-04-ishrat-engagement';
       var API_BASE = 'http://localhost:3001';
 
+      // Track live Leaflet instances keyed by container id, so we can destroy
+      // cleanly before re-rendering (otherwise Leaflet leaks handlers).
+      window.__leafletMaps = window.__leafletMaps || {};
+
+      function destroyAllMaps() {
+        Object.keys(window.__leafletMaps).forEach(function(id) {
+          try { window.__leafletMaps[id].remove(); } catch (_) {}
+          delete window.__leafletMaps[id];
+        });
+      }
+
       function renderItinerary(trip) {
         console.log('[ITIN:RENDER]', trip.name, trip.days ? trip.days.length + ' days' : 'no days');
 
         var timeline = document.querySelector('.timeline');
         if (!timeline || !trip.days || !trip.days.length) return;
+
+        // Destroy any existing maps before swapping DOM — Leaflet holds refs
+        // to detached containers otherwise.
+        destroyAllMaps();
 
         // Build new HTML for all day cards
         var html = '';
@@ -1160,6 +1175,7 @@
           }
 
           html += '    </div>'; // .event-list
+          html += '    <div class="day-map" id="map' + day.day + '"></div>';
           html += '  </div>'; // .day-body
           html += '</div>'; // .day-card
         });
@@ -1169,6 +1185,22 @@
         // Auto-open day 1
         var firstCard = timeline.querySelector('.day-card');
         if (firstCard) firstCard.classList.add('open');
+
+        // Entrance animation: stagger each card slightly for a smooth SPA feel.
+        timeline.querySelectorAll('.day-card').forEach(function(el, i) {
+          el.classList.add('fc-enter');
+          el.style.animationDelay = (i * 40) + 'ms';
+          el.addEventListener('animationend', function() {
+            el.classList.remove('fc-enter');
+            el.style.animationDelay = '';
+          }, { once: true });
+        });
+
+        // Initialize map for every currently-open day card. Collapsed maps are
+        // lazy-initialized on first open by toggleCard().
+        timeline.querySelectorAll('.day-card.open .day-map').forEach(function(el) {
+          if (el.id && !el._leaflet_id) initMap(el.id);
+        });
       }
 
       function formatDayDate(dateStr) {
@@ -1186,24 +1218,29 @@
         return d.innerHTML;
       }
 
-      // Fetch and render on load
-      document.addEventListener('DOMContentLoaded', function() {
+      // Fetch + render. Exposed so the FloatingChat apply handler can
+      // re-render the page in place (SPA-style) instead of forcing a reload.
+      function refreshItinerary() {
         console.log('[ITIN:LOAD]', 'Fetching trip data for', SLUG);
-        fetch(API_BASE + '/api/trip/' + SLUG + '/full')
+        return fetch(API_BASE + '/api/trip/' + SLUG + '/full')
           .then(function(r) { return r.json(); })
           .then(function(data) {
             if (data.ok && data.trip) {
               renderItinerary(data.trip);
-              // Store for chat widget access
               window.__tripData = data.trip;
-            } else {
-              console.log('[ITIN:ERR]', 'API returned', data.error || 'no trip data');
+              return data.trip;
             }
+            console.log('[ITIN:ERR]', 'API returned', data.error || 'no trip data');
+            return null;
           })
           .catch(function(err) {
             console.log('[ITIN:ERR]', 'Fetch failed, keeping static HTML', err.message);
+            return null;
           });
-      });
+      }
+      window.__refreshItinerary = refreshItinerary;
+
+      document.addEventListener('DOMContentLoaded', refreshItinerary);
     })();
   </script>
 
@@ -1297,6 +1334,10 @@
     function initMap(id) {
       var stops = dayStops[id];
       if (!stops) return;
+      // Guard against container that was removed between schedule + call.
+      var el = document.getElementById(id);
+      if (!el) return;
+      if (el._leaflet_id) return;
       var map = L.map(id, { scrollWheelZoom: false, attributionControl: true });
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap'
@@ -1308,6 +1349,8 @@
       });
       L.polyline(bounds, { color: '#9B72CF', weight: 2, dashArray: '6,8', opacity: 0.6 }).addTo(map);
       map.fitBounds(bounds, { padding: [30, 30] });
+      // Track so renderItinerary() can destroy before re-rendering.
+      (window.__leafletMaps = window.__leafletMaps || {})[id] = map;
     }
 
     // Compact To-Do Toggle
@@ -1316,9 +1359,8 @@
       check.classList.toggle('done');
     }
 
-    // Open first day by default
-    document.querySelector('.day-card').classList.add('open');
-    setTimeout(function(){ initMap('map1'); }, 200);
+    // Initial open-card + map bootstrap is handled by refreshItinerary()
+    // after the trip fetch resolves. Do not race the fetch here.
 
     // Journal Logic
     let journalData = [];

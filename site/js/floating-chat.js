@@ -276,26 +276,30 @@
     },
 
     applyEdit(message, proposal) {
-      // Show thinking
       this.addMessage('', 'thinking');
 
       window.BabuAI.tripEdit(message, this.tripContext.slug, { dryRun: false })
-        .then(() => {
-          // Remove thinking message
+        .then((result) => {
           const thinkingMsg = this.messagesContainer.querySelector('.fc-msg-thinking');
           if (thinkingMsg) thinkingMsg.remove();
 
-          // Show success
-          this.addMessage('Edit applied! Reloading...', 'system');
-          console.log('[CHAT:EDIT] Applied', { message, proposal });
+          console.log('[CHAT:EDIT] Applied', { message, proposal, result });
 
-          // Reload page after brief delay
-          setTimeout(() => {
-            window.location.reload();
-          }, 800);
+          // SPA refresh — re-fetch trip + re-render timeline in place.
+          // No page reload: the chat stays open and the user sees the edit
+          // animate into the itinerary.
+          if (typeof window.__refreshItinerary === 'function') {
+            window.__refreshItinerary()
+              .then(() => this.addMessage('Edit applied.', 'system'))
+              .catch((err) => {
+                console.log('[CHAT:ERR] refresh failed', err);
+                this.addMessage('Edit applied (refresh failed — reload manually).', 'system');
+              });
+          } else {
+            this.addMessage('Edit applied.', 'system');
+          }
         })
         .catch(error => {
-          // Remove thinking message
           const thinkingMsg = this.messagesContainer.querySelector('.fc-msg-thinking');
           if (thinkingMsg) thinkingMsg.remove();
 
@@ -314,13 +318,13 @@
         msgDiv.className = 'fc-msg-user';
         msgDiv.textContent = content;
       } else if (type === 'ai') {
-        msgDiv.className = 'fc-msg-ai';
-        msgDiv.textContent = content;
+        msgDiv.className = 'fc-msg-ai fc-rendered';
+        msgDiv.innerHTML = this.renderMarkdown(content);
       } else if (type === 'edit') {
         msgDiv.className = 'fc-msg-edit';
         msgDiv.innerHTML = `
           <div class="fc-edit-label">Edit Proposal</div>
-          <div class="fc-edit-summary">${this.escapeHtml(content)}</div>
+          <div class="fc-edit-summary fc-rendered">${this.renderMarkdown(content)}</div>
           <div class="fc-edit-actions">
             <button class="fc-btn-apply" data-action="apply">Apply</button>
             <button class="fc-btn-discard" data-action="discard">Discard</button>
@@ -359,6 +363,89 @@
         "'": '&#039;'
       };
       return str.replace(/[&<>"']/g, m => map[m]);
+    },
+
+    /**
+     * Lightweight markdown → HTML for chat bubbles.
+     * Supports: **bold**, *italic*, `code`, bullet lists (- or •),
+     * numbered lists, and paragraph breaks.
+     */
+    renderMarkdown(text) {
+      if (typeof text !== 'string') text = JSON.stringify(text, null, 2);
+
+      // Escape HTML first
+      let html = this.escapeHtml(text);
+
+      // Bold: **text**
+      html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+      // Italic: *text* (but not inside bold)
+      html = html.replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '<em>$1</em>');
+
+      // Inline code: `text`
+      html = html.replace(/`(.+?)`/g, '<code>$1</code>');
+
+      // Split into lines for block-level processing
+      const lines = html.split('\n');
+      const blocks = [];
+      let currentList = null;
+      let currentListType = null;
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+
+        // Bullet list item: - or • or *
+        const bulletMatch = line.match(/^[-•]\s+(.+)/);
+        // Numbered list item: 1. or 1)
+        const numMatch = line.match(/^\d+[.)]\s+(.+)/);
+
+        if (bulletMatch) {
+          if (currentListType !== 'ul') {
+            if (currentList) blocks.push(currentList);
+            currentList = { type: 'ul', items: [] };
+            currentListType = 'ul';
+          }
+          currentList.items.push(bulletMatch[1]);
+        } else if (numMatch) {
+          if (currentListType !== 'ol') {
+            if (currentList) blocks.push(currentList);
+            currentList = { type: 'ol', items: [] };
+            currentListType = 'ol';
+          }
+          currentList.items.push(numMatch[1]);
+        } else {
+          if (currentList) {
+            blocks.push(currentList);
+            currentList = null;
+            currentListType = null;
+          }
+          if (line === '') {
+            blocks.push({ type: 'break' });
+          } else {
+            // Merge consecutive text lines into a paragraph
+            const lastBlock = blocks[blocks.length - 1];
+            if (lastBlock && lastBlock.type === 'p') {
+              lastBlock.text += ' ' + line;
+            } else {
+              blocks.push({ type: 'p', text: line });
+            }
+          }
+        }
+      }
+      if (currentList) blocks.push(currentList);
+
+      // Render blocks to HTML
+      return blocks.map(block => {
+        if (block.type === 'p') return `<p>${block.text}</p>`;
+        if (block.type === 'break') return '';
+        if (block.type === 'ul') {
+          return '<ul>' + block.items.map(i => `<li>${i}</li>`).join('') + '</ul>';
+        }
+        if (block.type === 'ol') {
+          return '<ol>' + block.items.map(i => `<li>${i}</li>`).join('') + '</ol>';
+        }
+        return '';
+      }).join('');
     }
   };
 

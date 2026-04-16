@@ -275,12 +275,22 @@ app.post("/api/trip-qa", async (req, res) => {
       : "No active trip context is available.\n\n";
     const msg = await anthropic.messages.create({
       model: prompt.model ?? DEFAULT_MODEL,
-      max_tokens: 600,
+      max_tokens: 1024,
       system: prompt.system,
       messages: [{ role: "user", content: `${ctxBlock}Question: ${message.trim()}` }],
+      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }],
     });
-    const response = msg.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim();
-    res.json({ ok: true, model: msg.model, usage: msg.usage, promptName: prompt.name, response });
+    // Extract text from all content blocks (web search results are interleaved)
+    const response = msg.content
+      .filter((b) => b.type === "text")
+      .map((b) => b.text)
+      .join("")
+      .trim();
+    // Collect citations from web search results if present
+    const citations = msg.content
+      .filter((b) => b.type === "web_search_tool_result")
+      .flatMap((b) => (b.content || []).filter((c) => c.url).map((c) => ({ title: c.title, url: c.url })));
+    res.json({ ok: true, model: msg.model, usage: msg.usage, promptName: prompt.name, response, ...(citations.length ? { citations } : {}) });
   } catch (err) {
     res.status(502).json({ ok: false, error: err?.message ?? String(err) });
   }
@@ -303,11 +313,16 @@ app.post("/api/trip-assistant", async (req, res) => {
     const intentHint = intent ? `Caller-suggested intent: ${intent}\n` : "";
     const msg = await anthropic.messages.create({
       model: DEFAULT_MODEL,
-      max_tokens: 600,
+      max_tokens: 1024,
       system: prompt.system,
       messages: [{ role: "user", content: `${ctxBlock}${intentHint}Message: ${message.trim()}` }],
+      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }],
     });
-    const response = msg.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim();
+    const response = msg.content
+      .filter((b) => b.type === "text")
+      .map((b) => b.text)
+      .join("")
+      .trim();
     res.json({
       ok: true,
       model: msg.model,
@@ -580,11 +595,12 @@ app.post("/api/trip-edit", async (req, res) => {
     const userBlock = `${ctxBlock}Caller keyword hint: ${tier0 ? "edit" : "none"}\nMessage: ${message.trim()}`;
     const msg = await anthropic.messages.create({
       model: prompt.model ?? DEFAULT_MODEL,
-      max_tokens: 1400,
+      max_tokens: 2048,
       system: prompt.system,
       messages: [{ role: "user", content: userBlock }],
+      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }],
     });
-    const raw = msg.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim();
+    const raw = msg.content.filter((b) => b.type === "text").map((b) => b.text).join("").trim();
     let proposed = null;
     const jsonMatch = raw.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
