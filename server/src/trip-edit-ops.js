@@ -9,6 +9,7 @@ import { readFile, writeFile, mkdir, rename, access } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 import fastJsonPatch from "fast-json-patch";
+import yaml from "js-yaml";
 import { TRIPS_DIR } from "./receipts.js";
 import { validateTrip } from "./validators/trip-edit-rules.js";
 
@@ -75,68 +76,13 @@ export function serializeTripObj(obj) {
   );
 }
 
-/**
- * Best-effort YAML loader. If the file starts with '{' or JSON-looking body
- * under the front-matter fence, we parse as JSON. Otherwise we defer to a
- * naïve key:value parser that covers the happy path for read-modify-write.
- */
 function parseYamlLoose(raw) {
   const body = raw.replace(/^---[\s\S]*?\n(?=[^#])/m, "").replace(/^#.*$/gm, "").trim();
-  if (!body.length) return {};
   if (body.startsWith("{")) {
-    try { return JSON.parse(body); } catch { /* fall through */ }
+    try { return JSON.parse(body); } catch { /* fall through to YAML parse */ }
   }
-  return naiveYamlParse(raw);
-}
-
-function naiveYamlParse(raw) {
-  // Extremely small surface — we only use this to echo existing trip.yaml
-  // round-trip when the file still has its pre-Phase-6 hand-authored shape.
-  // The real canonical serializer (serializeTripObj) writes JSON-in-YAML.
-  const lines = raw.split("\n");
-  const out = {};
-  const stack = [{ indent: -1, node: out }];
-  for (const rawLine of lines) {
-    if (!rawLine.trim() || /^\s*#/.test(rawLine) || /^---/.test(rawLine)) continue;
-    const indent = rawLine.match(/^\s*/)[0].length;
-    const line = rawLine.trim();
-    while (stack.length > 1 && stack[stack.length - 1].indent >= indent) stack.pop();
-    const parent = stack[stack.length - 1].node;
-    const listMatch = line.match(/^-\s*(.*)$/);
-    if (listMatch) {
-      const key = Array.isArray(parent) ? null : Object.keys(parent).pop();
-      const target = Array.isArray(parent) ? parent : parent[key];
-      if (!Array.isArray(target)) continue;
-      const v = listMatch[1];
-      if (!v.length || /:$/.test(v)) {
-        const child = {};
-        target.push(child);
-        stack.push({ indent, node: child });
-      } else {
-        target.push(stripYamlScalar(v));
-      }
-      continue;
-    }
-    const kvMatch = line.match(/^([A-Za-z0-9_-]+)\s*:\s*(.*)$/);
-    if (!kvMatch) continue;
-    const [, key, rawVal] = kvMatch;
-    if (!rawVal.length) {
-      const child = line.endsWith(":") ? {} : [];
-      parent[key] = child;
-      stack.push({ indent, node: child });
-    } else {
-      parent[key] = stripYamlScalar(rawVal);
-    }
-  }
-  return out;
-}
-
-function stripYamlScalar(v) {
-  const trimmed = v.trim();
-  if (/^['"].*['"]$/.test(trimmed)) return trimmed.slice(1, -1);
-  if (/^\d+$/.test(trimmed)) return Number(trimmed);
-  if (/^true|false$/.test(trimmed)) return trimmed === "true";
-  return trimmed;
+  const parsed = yaml.load(raw, { schema: yaml.JSON_SCHEMA });
+  return parsed && typeof parsed === "object" ? parsed : {};
 }
 
 /**
