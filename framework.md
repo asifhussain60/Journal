@@ -270,6 +270,45 @@ The App writes scratch queues; Cowork drains them. Any ambiguity resolves in fav
 - Rate-limit middleware (20 req/min per IP per endpoint; `/health` exempt).
 - `.gitignore` entries per plan §5.10.
 
+**Phase 2 design-system canon (complete when all acceptance gates pass under `tag phase-02-design-system-canon`):**
+
+Component inventory (all live in the single `<script type="text/babel">` block in `site/index.html`):
+
+- **Atoms** — `Icon`, `Button` (variants: primary | secondary | ghost | destructive; sizes: sm | md | lg; `loading` state disables + spins), `IconButton` (icon-only, aria-label required), `Badge` (variants: success | warning | error | info | neutral | accent), `Text` (tag-polymorphic typography with variant/size/weight/align/color), `Input` / `Textarea` / `Select` / `Checkbox` / `RadioGroup` (thin wrappers over `.input-field`).
+- **Molecules** — `FormField` (label + helper + error + auto-id + aria-describedby around a single child input), `Card` (variants: flat | elevated | glass | module — maps to existing CSS classes, does NOT delete `.glass-card` / `.module-card` / `.entry-card` / `.incident-card` / `.quote-card`), `StatusBadge` (status → variant + icon + label), `EmptyState`, `SkeletonRow` (variants: itinerary-day | queue-row | chat-message | entry-card | chapter-line; fast 480ms pulse; respects reduced-motion), `Pill`, `Chip` (dismissible), `MenuItem`, `ThinkingDots`, `StepProgress`.
+- **Organisms** — `Modal` (React portal, backdrop click + Esc to close, focus trap, body-scroll lock, focus restore on unmount), `ConfirmDialog` (wraps Modal; destructive variant uses warning icon + destructive button), `ToastProvider` + `useToast()` (context-based, `aria-live="polite"`, `success | warning | error | info`, exposed globally via `window.__appToast` so `voice-refiner.jsx`'s isolated React root uses the same single implementation), `CommandPalette` (Cmd-K / Ctrl-K; fuzzy filter; empty shell in Phase 2 — commands registered in Phase 3).
+- **State hooks** — `useFetch(url, options?) → { data, loading, error, refetch }`, `useLocalStoragePrefs(key, defaults) → [prefs, setPrefs]`, `useActiveTrip() → { trip, loading, error }`, `useCommandPalette() → { open, setOpen }`, `useToast() → { show, dismiss }`.
+
+Token additions (`site/css/sample_lavender.css` top-level `:root` — theme-agnostic so they apply under `app-dark.css` too):
+
+- State: `--state-success`, `--state-warning`, `--state-error`, `--state-info`.
+- Radius scale: `--radius-sm` (8), `--radius-md` (12), `--radius-lg` (16), `--radius-xl` (20), `--radius-pill` (9999).
+- Space scale: `--space-1` (4) through `--space-8` (64).
+- Motion: `--motion-fast` (150ms ease-out), `--motion-normal` (250ms ease-out), `--motion-slow` (400ms cubic-bezier).
+- Focus: `--focus-ring: 0 0 0 3px rgba(150,110,180,0.35)`.
+- Shadow: `--shadow-card-hover`, `--shadow-float`.
+
+Global `prefers-reduced-motion` block caps every animation and transition at 0.01ms and disables smooth scroll; every new molecule inherits this behavior. Global `:focus-visible` default uses `--focus-ring`.
+
+A11y baseline:
+
+- Skip-to-main link (`<a class="skip-link" href="#main-content">`) appears visible-on-focus at top of `<body>`; `<main>` carries `id="main-content"`.
+- Every `IconButton` and every icon-only interactive element (TOC toggle, notes toggle, bookmark, note-card-remove, resume-dismiss, note-type chip) has an explicit `aria-label`. Toggles also carry `aria-expanded` / `aria-pressed`.
+- Cards that were `<div onClick>` (HomePage module cards, DayOne trip / entry cards, book-spine-card, trip-hero) became `role="button" tabIndex={0}` with matching `onKeyDown` handlers so Enter / Space activate.
+- Every user-facing input, textarea, and select in the SPA is now wrapped in `<FormField label="…">`, which renders a real `<label htmlFor>` with auto-generated id and wires `aria-describedby` for helper / error text.
+- `formatDate(iso)` is the canonical display formatter; `todayISO()` is the canonical "YYYY-MM-DD for today" helper — inline `new Date().toISOString().split('T')[0]` has been eliminated from `site/index.html`.
+- Single toast implementation: `grep -rn "function showToast\|function useToast\|const useToast" site/` returns exactly one match (the shared `useToast` in `index.html`). `voice-refiner.jsx` calls `window.__appToast.show(msg, variant)` instead of owning its own toast hook.
+
+Acceptance gates (all required to pass before tag):
+
+- Gate A — component inventory (grep): atoms 4+, molecules 7, organisms 4, hooks 4.
+- Gate B — legacy cleanup: one toast implementation, zero inline `toISOString().split` in `index.html`, Card call-sites routed through `<Card variant="…">`.
+- Gate C — a11y: `aria-label` count substantially higher than the pre-Phase-2 baseline of 1; skip link present; `<label|htmlFor|<FormField>` count > 15 (was 5).
+- Gate D — `prefers-reduced-motion` block present in `sample_lavender.css`.
+- Gate E — `<script type="text/babel">` block in `site/index.html` stays under ~2,100 lines.
+- Gate F — Home, Memoir → Chapters → ChapterReader (reader prefs persist), and DayOne Journal flows all work identically to Phase 1. Keyboard navigation reaches every interactive element.
+- Gate G — visual regression: before/after screenshots of Home, Memoir-chapters, and DayOne-editor show no layout shifts; cosmetic improvements only.
+
 See `_workspace/ideas/app-cowork-execution-plan.md` for the full phase roadmap (Phases 1–9), UI canon, proxy endpoint inventory, and acceptance criteria.
 
 ---

@@ -248,7 +248,7 @@ The app uses a light lavender theme (`body.theme-lavender`). All colors are defi
 
 ### DayOne Integration
 - Entries are created/edited in this app, then **manually copied** to DayOne via clipboard
-- `copyToClipboard(text)` function + toast notification on success
+- `DayOnePreview` uses `useToast()` + `navigator.clipboard.writeText(...)` directly; the standalone `copyToClipboard(text)` utility was removed in Phase 2 in favor of context-driven toasts
 - DayOne Preview component shows formatted preview with journal name, tags, mood badge
 - DayOne CLI path: `/Applications/Day One.app/Contents/MacOS/dayone` (for future automation)
 - Journal names use **curly apostrophes** (Unicode U+2019): `Ishrat\u2019s Visits`
@@ -306,18 +306,75 @@ Asif's journal voice is: first-person, present-tense feeling with past-tense nar
 
 ## 8. COMPONENT REFERENCE
 
+### 8.1 Feature Components (module-level)
+
 | Component | Purpose | Key Props/State |
 |-----------|---------|-----------------|
-| `App` | Root, nav, routing | `currentPage` state |
-| `HomePage` | Dashboard + hero banner | `activeTrip` from manifest fetch, `onNavigate` |
-| `ActiveTripHero` | Trip countdown/live banner | `trip` object from manifest |
-| `MemoirModule` | Chapters/incidents/quotes | `subTab` state |
-| `DayOneJournalModule` | Entry browser/editor/creator | `subTab` state |
-| `JournalTripsBrowser` | Trip card grid + entry expansion | `selectedTrip`, `viewMode` |
-| `EntryEditor` | Edit existing entries | `selectedTrip`, `selectedEntry` |
-| `NewEntryCreator` | Create new entries | Form state for mood, trip, text |
-| `DayOnePreview` | Formatted DayOne entry preview | `entry`, `selectedJournal`, `tags` |
-| `Icon` | Font Awesome icon wrapper | `name`, `size` |
+| `App` | Root (wrapped in `<ToastProvider>`), nav, routing, Cmd-K palette | `page`, `activeChapter`, `readProgress`, `paletteOpen` |
+| `HomePage` | Dashboard + hero banner | `trips`, `onNavigate` |
+| `ActiveTripHero` | Trip countdown/live banner (keyboard-activatable) | `trips`, `onNavigate` |
+| `MemoirModule` | Chapters / incidents / quotes | `tab`, `searchQuery` |
+| `DayOneModule` | Entry browser / editor / new entry | `subTab`, `selectedTrip`, `selectedEntry`, new-entry form state |
+| `DayOnePreview` | Formatted DayOne entry preview (copy-to-clipboard uses `useToast`) | `entry`, `selectedJournal` |
+| `ChapterReader` | Memoir chapter reader with TOC, notes, bookmarks | Reader prefs via `useLocalStoragePrefs('reader', …)`; notes, bookmarks |
+| `ScrollToTop` | Floating scroll-to-top with progress ring | `progress` |
+
+### 8.2 Design-System Atoms (Phase 2)
+
+Defined at the top of the `<script type="text/babel">` block in `site/index.html`.
+
+| Atom | Purpose | Notable props |
+|------|---------|---------------|
+| `Icon` | Font Awesome wrapper | `name`, `size`, `color` |
+| `Button` | Primary / secondary / ghost / destructive, loading state | `variant`, `size` (sm/md/lg), `loading`, `icon`, `iconRight`, `disabled` |
+| `IconButton` | Icon-only button (requires `label` for aria-label) | `icon`, `label`, `variant`, `size` |
+| `Badge` | Pure visual tag | `variant` (success/warning/error/info/neutral/accent), `size`, `icon` |
+| `Text` | Polymorphic typography | `as`, `variant` (sans/serif/mono/script), `size`, `weight`, `align`, `color` |
+| `Input`, `Textarea`, `Select` | Thin wrappers around `.input-field` CSS | Pass-through props |
+| `Checkbox`, `RadioGroup` | Form atoms | `label` / `options` |
+
+### 8.3 Design-System Molecules (Phase 2)
+
+| Molecule | Purpose |
+|----------|---------|
+| `FormField` | `<label htmlFor>` + helper + error around a single input; auto-id, aria-describedby, `required` propagation |
+| `Card` | Variants `flat` / `elevated` / `glass` / `module` — maps to existing `.glass-card` / `.module-card` classes; accepts extra `className` to preserve specifics like `.entry-card` / `.incident-card` / `.quote-card` |
+| `StatusBadge` | Maps a status token (pending / drained / stuck / locked / active / planned / draft / complete) → `Badge` variant + icon + label |
+| `EmptyState` | Standard empty view (icon, title, description, action) |
+| `SkeletonRow` | Variants: itinerary-day / queue-row / chat-message / entry-card / chapter-line; 480ms pulse; respects reduced-motion |
+| `Pill` | Togglable rounded button (`active` prop) |
+| `Chip` | Dismissible tag (`onRemove` renders an `x` button) |
+| `MenuItem` | Reusable list-item button used by `CommandPalette` |
+| `ThinkingDots` | Animated loading dots for AI responses (used in Phase 3 FloatingChat) |
+| `StepProgress` | Multi-step progress indicator (used in Phase 4 receipt pipeline) |
+
+### 8.4 Design-System Organisms (Phase 2)
+
+| Organism | Purpose |
+|----------|---------|
+| `Modal` | React portal, backdrop click to close, Esc to close, focus trap, body-scroll lock, focus restore on unmount. Sizes: sm / md / lg / xl |
+| `ConfirmDialog` | Wraps `Modal`; `destructive` flag switches confirm button to destructive variant + warning icon. Replaces `window.confirm()` and silent deletes |
+| `ToastProvider` | Context provider with `aria-live="polite"` container. `variant`: success / warning / error / info. Also exposes `window.__appToast.show(msg, variant)` so the independent `voice-refiner.jsx` React root uses the same single implementation |
+| `CommandPalette` | Cmd-K / Ctrl-K shell. Fuzzy filter, arrow-key navigation, Enter to run, Esc to close. Phase 2 ships with an empty command list — Phase 3 registers commands |
+
+### 8.5 State Hooks (Phase 2)
+
+| Hook | Returns | Notes |
+|------|---------|-------|
+| `useFetch(url, options?)` | `{ data, loading, error, refetch }` | Auto-JSON-parses `application/json` responses; tracks a `tick` for refetch |
+| `useLocalStoragePrefs(key, defaults)` | `[prefs, setPrefs]` | Rehydrates on mount, persists on every change. Used in `ChapterReader` to replace the 5 separate `rp_*` `useEffect` hooks (`fontScale`, `fontFamily`, `readingTheme`, `lineSpacing`, `contentWidth`) with a single `reader` key |
+| `useActiveTrip()` | `{ trip, loading, error }` | Wraps `fetch('data/manifest.json')` and returns `manifest.active` (or null) |
+| `useCommandPalette()` | `{ open, setOpen }` | Binds global Cmd-K / Ctrl-K |
+| `useToast()` | `{ show, dismiss }` | Must be used inside `<ToastProvider>`; throws otherwise |
+
+### 8.6 Design Tokens (Phase 2)
+
+Added to `site/css/sample_lavender.css` under a top-level `:root` (theme-agnostic) alongside a global `prefers-reduced-motion` block and a `:focus-visible` default using `--focus-ring`. See [framework.md § App vs Cowork › Phase 2 design-system canon](../framework.md) for the full list (`--state-*`, `--radius-*`, `--space-*`, `--motion-*`, `--focus-ring`, `--shadow-card-hover`, `--shadow-float`).
+
+### 8.7 Utilities
+
+- `formatDate(iso)` — `YYYY-MM-DD` → `"Apr 20, 2026"`.
+- `todayISO()` — today in `YYYY-MM-DD`. Use this instead of inline `new Date().toISOString().split('T')[0]`.
 
 ---
 
