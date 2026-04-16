@@ -2935,3 +2935,72 @@ select.input-field {
   text-overflow: ellipsis;
 }
 .step-progress-item.is-active .step-progress-label { color: var(--text); font-weight: 500; }
+
+/* ═══════════════════════════════════════════════════
+   PHASE 2 — ORGANISMS: Modal, ConfirmDialog
+   ═══════════════════════════════════════════════════ */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 10, 30, 0.72);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: modal-fade var(--motion-fast) both;
+}
+@keyframes modal-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.modal {
+  background: linear-gradient(145deg, #352a52 0%, #2b2240 100%);
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: var(--radius-xl);
+  color: var(--text);
+  width: 100%;
+  max-height: 90vh;
+  overflow: auto;
+  box-shadow: var(--shadow-float);
+  animation: modal-rise var(--motion-normal) both;
+  outline: none;
+}
+@keyframes modal-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.modal-size-sm { max-width: 420px; }
+.modal-size-md { max-width: 560px; }
+.modal-size-lg { max-width: 760px; }
+.modal-size-xl { max-width: 960px; }
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+}
+.modal-title {
+  font-family: var(--font-serif);
+  font-size: 1.4rem;
+  color: var(--text);
+  margin: 0;
+}
+.modal-body { padding: 1.5rem; }
+
+.confirm-dialog-description {
+  font-family: var(--font-sans);
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  margin-bottom: 1.5rem;
+}
+.confirm-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
