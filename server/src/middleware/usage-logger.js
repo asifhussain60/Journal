@@ -88,6 +88,15 @@ export function usageLogger() {
       } catch (err) {
         process.stderr.write(`[usage-logger] append failed: ${err.message}\n`);
       }
+
+      // Phase 9 Stage B: best-effort shadow-write to ops.db.usage. No-op when
+      // SHADOW_WRITE_ENABLED is false; errors never break the request.
+      try {
+        const { shadow } = await import("../middleware/shadow-write.js");
+        shadow("usage", row);
+      } catch {
+        // Shadow import failures are logged by shadow-write itself.
+      }
     });
 
     next();

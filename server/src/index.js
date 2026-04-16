@@ -62,6 +62,7 @@ import {
   replayDeadLetterEntry,
   deleteDeadLetterEntry,
 } from "./dead-letter.js";
+import { shadow } from "./middleware/shadow-write.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -516,6 +517,7 @@ app.post("/api/queue/:name", async (req, res) => {
   try {
     const slug = row.tripSlug || (await getActiveTripSlug());
     const { count } = await appendQueueRow(slug, name, row);
+    shadow(`queue-${name}`, { ...row, tripSlug: slug });
     res.json({ ok: true, id: row.id, count, tripSlug: slug });
   } catch (err) {
     res.status(500).json({ ok: false, error: err?.message ?? String(err) });
@@ -600,8 +602,10 @@ app.post("/api/trip-edit", async (req, res) => {
       const slug = tripContext?.slug || (await getActiveTripSlug());
       const applied = await applyTripEdit(slug, { intent: proposed.summary || message.trim(), patch: response.proposed.patch });
       if (!applied.ok) {
+        shadow("edit-log", { id: applied.id || `fail-${Date.now()}`, tripSlug: slug, intent: response.intent, userMessage: message, proposedDiff: response.proposed, status: "failed", error: applied.error });
         return res.json({ ...response, applied: false, applyError: applied.error, applyErrors: applied.errors });
       }
+      shadow("edit-log", { id: applied.id, tripSlug: slug, intent: response.intent, userMessage: message, proposedDiff: response.proposed, appliedPatch: response.proposed.patch, status: "applied", snapshotId: applied.snapshotId });
       return res.json({ ...response, applied: true, editId: applied.id });
     } catch (err) {
       return res.json({ ...response, applied: false, applyError: err?.message ?? String(err) });
@@ -620,6 +624,7 @@ app.post("/api/trip-edit/revert", async (req, res) => {
     const slug = req.body?.tripSlug || (await getActiveTripSlug());
     const result = await revertTripEdit(slug, patchId);
     if (!result.ok) return res.status(400).json({ ok: false, error: result.error, errors: result.errors });
+    shadow("edit-log", { id: result.id || `rev-${Date.now()}`, tripSlug: slug, intent: "revert", userMessage: `revert ${patchId}`, appliedPatch: result.inversePatch, status: "reverted" });
     return res.json({ ok: true, tripSlug: slug, ...result });
   } catch (err) {
     res.status(500).json({ ok: false, error: err?.message ?? String(err) });
