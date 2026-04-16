@@ -12,12 +12,14 @@
     "smoke": "curl -s -X POST http://localhost:3001/api/voice-test -H 'Content-Type: application/json' -d '{}' | jq",
     "validate": "node scripts/validate-schemas.mjs",
     "harass": "node scripts/harass.mjs",
-    "test-throttle": "node scripts/test-throttle.mjs"
+    "test-throttle": "node scripts/test-throttle.mjs",
+    "migrate": "node scripts/migrate-schema.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.30.0",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
+    "better-sqlite3": "^11.10.0",
     "cors": "^2.8.5",
     "express": "^4.21.0",
     "express-rate-limit": "^7.4.1",
