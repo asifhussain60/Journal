@@ -37,6 +37,8 @@ const TARGETS = [
   { path: "/api/extract-receipt", method: "POST", body: {} },  // 400 fast (imagePath missing)
   { path: "/api/upload", method: "POST", body: {} },           // 400 fast (no multipart)
   { path: "/api/ingest-itinerary", method: "POST", body: {} }, // 400 fast (itineraryText missing)
+  { path: "/api/trip-edit", method: "POST", body: {} },         // 400 fast (message missing)
+  { path: "/api/trip-edit/revert", method: "POST", body: {} },  // 400 fast (patchId missing)
 ];
 
 function fail(message) {
