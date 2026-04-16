@@ -3027,3 +3027,69 @@ select.input-field {
   justify-content: flex-end;
   gap: 0.75rem;
 }
+
+/* ═══════════════════════════════════════════════════
+   PHASE 2 — COMMAND PALETTE
+   ═══════════════════════════════════════════════════ */
+
+.command-palette-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 10, 30, 0.72);
+  backdrop-filter: blur(8px);
+  z-index: 1200;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 12vh 1.5rem 2rem;
+  animation: modal-fade var(--motion-fast) both;
+}
+.command-palette {
+  width: 100%;
+  max-width: 600px;
+  background: linear-gradient(145deg, #352a52 0%, #2b2240 100%);
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-float);
+  overflow: hidden;
+  animation: modal-rise var(--motion-normal) both;
+}
+.command-palette-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+  color: var(--text-muted);
+}
+.command-palette-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 1.1rem;
+}
+.command-palette-input::placeholder { color: var(--text-muted); }
+.command-palette-input-row kbd {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  background: rgba(255,255,255,.08);
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255,255,255,.12);
+}
+.command-palette-list {
+  max-height: 50vh;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+.command-palette-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+}

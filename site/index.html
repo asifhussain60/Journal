@@ -534,6 +534,192 @@
     }
 
     // =================================================================
+    // DESIGN SYSTEM — STATE HOOKS
+    // =================================================================
+
+    function useFetch(url, options) {
+      const [state, setState] = useState({ data: null, loading: true, error: null });
+      const [tick, setTick] = useState(0);
+      useEffect(() => {
+        if (!url) { setState({ data: null, loading: false, error: null }); return; }
+        let cancelled = false;
+        setState(s => ({ ...s, loading: true, error: null }));
+        fetch(url, options)
+          .then(r => {
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            const ct = r.headers.get('content-type') || '';
+            return ct.includes('application/json') ? r.json() : r.text();
+          })
+          .then(data => { if (!cancelled) setState({ data, loading: false, error: null }); })
+          .catch(error => { if (!cancelled) setState({ data: null, loading: false, error }); });
+        return () => { cancelled = true; };
+      }, [url, tick]);
+      const refetch = useCallback(() => setTick(t => t + 1), []);
+      return { ...state, refetch };
+    }
+
+    function useLocalStoragePrefs(key, defaults) {
+      const [prefs, setPrefs] = useState(() => {
+        try {
+          const raw = localStorage.getItem(key);
+          if (raw) return { ...defaults, ...JSON.parse(raw) };
+        } catch (e) {}
+        return defaults;
+      });
+      useEffect(() => {
+        try { localStorage.setItem(key, JSON.stringify(prefs)); } catch (e) {}
+      }, [key, prefs]);
+      return [prefs, setPrefs];
+    }
+
+    function useActiveTrip() {
+      const [state, setState] = useState({ trip: null, loading: true, error: null });
+      useEffect(() => {
+        let cancelled = false;
+        fetch('data/manifest.json')
+          .then(r => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
+          .then(manifest => {
+            if (!cancelled) setState({ trip: manifest.active || null, loading: false, error: null });
+          })
+          .catch(() => {
+            if (!cancelled) setState({ trip: null, loading: false, error: null });
+          });
+        return () => { cancelled = true; };
+      }, []);
+      return state;
+    }
+
+    // =================================================================
+    // DESIGN SYSTEM — COMMAND PALETTE
+    // =================================================================
+
+    function CommandPalette({ open, onClose, commands = [] }) {
+      const [query, setQuery] = useState('');
+      const [activeIdx, setActiveIdx] = useState(0);
+      const inputRef = useRef(null);
+      const containerRef = useRef(null);
+
+      const filtered = useMemo(() => {
+        if (!query) return commands;
+        const q = query.toLowerCase();
+        return commands.filter(c => {
+          const hay = `${c.label || ''} ${c.keywords || ''}`.toLowerCase();
+          return hay.includes(q);
+        });
+      }, [query, commands]);
+
+      useEffect(() => { setActiveIdx(0); }, [query]);
+
+      useEffect(() => {
+        if (open) {
+          setQuery('');
+          const t = setTimeout(() => { if (inputRef.current) inputRef.current.focus(); }, 0);
+          return () => clearTimeout(t);
+        }
+      }, [open]);
+
+      useEffect(() => {
+        if (!open) return;
+        const previouslyFocused = document.activeElement;
+        function onKey(e) {
+          if (e.key === 'Escape') { e.stopPropagation(); onClose && onClose(); }
+        }
+        document.addEventListener('keydown', onKey);
+        return () => {
+          document.removeEventListener('keydown', onKey);
+          if (previouslyFocused && typeof previouslyFocused.focus === 'function') {
+            previouslyFocused.focus();
+          }
+        };
+      }, [open, onClose]);
+
+      function handleKeyDown(e) {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          setActiveIdx(i => Math.min(Math.max(filtered.length - 1, 0), i + 1));
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          setActiveIdx(i => Math.max(0, i - 1));
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          const cmd = filtered[activeIdx];
+          if (cmd && cmd.action) { cmd.action(); onClose && onClose(); }
+        } else if (e.key === 'Tab') {
+          const focusables = containerRef.current ? containerRef.current.querySelectorAll(FOCUSABLE_SELECTOR) : [];
+          if (focusables.length <= 1) { e.preventDefault(); }
+        }
+      }
+
+      function handleBackdrop(e) {
+        if (e.target === e.currentTarget) onClose && onClose();
+      }
+
+      if (!open) return null;
+
+      return ReactDOM.createPortal(
+        <div className="command-palette-overlay" onClick={handleBackdrop} role="presentation">
+          <div
+            ref={containerRef}
+            className="command-palette"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Command palette"
+          >
+            <div className="command-palette-input-row">
+              <Icon name="fa-magnifying-glass" />
+              <input
+                ref={inputRef}
+                className="command-palette-input"
+                type="text"
+                placeholder="Type a command..."
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                onKeyDown={handleKeyDown}
+                aria-label="Command search"
+                aria-autocomplete="list"
+                aria-controls="command-palette-list"
+              />
+              <kbd>Esc</kbd>
+            </div>
+            <div id="command-palette-list" className="command-palette-list" role="listbox">
+              {filtered.length === 0 ? (
+                <div className="command-palette-empty">
+                  {commands.length === 0 ? 'No commands registered yet' : 'No matches'}
+                </div>
+              ) : filtered.map((cmd, i) => (
+                <MenuItem
+                  key={cmd.id || i}
+                  icon={cmd.icon}
+                  label={cmd.label}
+                  shortcut={cmd.shortcut}
+                  selected={i === activeIdx}
+                  onMouseEnter={() => setActiveIdx(i)}
+                  onClick={() => { cmd.action && cmd.action(); onClose && onClose(); }}
+                />
+              ))}
+            </div>
+          </div>
+        </div>,
+        document.body
+      );
+    }
+
+    function useCommandPalette() {
+      const [open, setOpen] = useState(false);
+      useEffect(() => {
+        function onKey(e) {
+          if ((e.metaKey || e.ctrlKey) && e.key && e.key.toLowerCase() === 'k') {
+            e.preventDefault();
+            setOpen(prev => !prev);
+          }
+        }
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+      }, []);
+      return { open, setOpen };
+    }
+
+    // =================================================================
     // COMPONENTS
     // =================================================================
 
@@ -992,21 +1178,23 @@
       const [content, setContent] = useState(null);
       const [loading, setLoading] = useState(true);
       const [scrollProgress, setScrollProgress] = useState(0);
-      const [fontScale, setFontScale] = useState(() => {
-        try { const v = parseFloat(localStorage.getItem('rp_fontScale')); return isNaN(v) ? 1 : v; } catch(e) { return 1; }
+      const [readerPrefs, setReaderPrefs] = useLocalStoragePrefs('reader', {
+        fontScale: 1,
+        fontFamily: 'lato',
+        readingTheme: 'dark',
+        lineSpacing: 1.85,
+        contentWidth: 'medium'
       });
-      const [fontFamily, setFontFamily] = useState(() => {
-        try { const v = localStorage.getItem('rp_fontFamily'); return (v && v !== 'garamond') ? v : 'lato'; } catch(e) { return 'lato'; }
-      });
-      const [readingTheme, setReadingTheme] = useState(() => {
-        try { return localStorage.getItem('rp_readingTheme') || 'dark'; } catch(e) { return 'dark'; }
-      });
-      const [lineSpacing, setLineSpacing] = useState(() => {
-        try { const v = parseFloat(localStorage.getItem('rp_lineSpacing')); return isNaN(v) ? 1.85 : v; } catch(e) { return 1.85; }
-      });
-      const [contentWidth, setContentWidth] = useState(() => {
-        try { return localStorage.getItem('rp_contentWidth') || 'medium'; } catch(e) { return 'medium'; }
-      });
+      const { fontScale, fontFamily, readingTheme, lineSpacing, contentWidth } = readerPrefs;
+      const setPref = (k) => (u) => setReaderPrefs(p => ({
+        ...p,
+        [k]: typeof u === 'function' ? u(p[k]) : u
+      }));
+      const setFontScale    = setPref('fontScale');
+      const setFontFamily   = setPref('fontFamily');
+      const setReadingTheme = setPref('readingTheme');
+      const setLineSpacing  = setPref('lineSpacing');
+      const setContentWidth = setPref('contentWidth');
       const [controlsOpen, setControlsOpen] = useState(false);
       const [activeSection, setActiveSection] = useState(0);
       const [tocOpen, setTocOpen] = useState(true);
@@ -1060,12 +1248,7 @@
         try { localStorage.setItem('bm_' + chapter.id, JSON.stringify(bookmarks)); } catch(e) {}
       }, [bookmarks, chapter.id]);
 
-      // Persist reader preferences
-      useEffect(() => { try { localStorage.setItem('rp_fontScale', fontScale); } catch(e) {} }, [fontScale]);
-      useEffect(() => { try { localStorage.setItem('rp_fontFamily', fontFamily); } catch(e) {} }, [fontFamily]);
-      useEffect(() => { try { localStorage.setItem('rp_readingTheme', readingTheme); } catch(e) {} }, [readingTheme]);
-      useEffect(() => { try { localStorage.setItem('rp_lineSpacing', lineSpacing); } catch(e) {} }, [lineSpacing]);
-      useEffect(() => { try { localStorage.setItem('rp_contentWidth', contentWidth); } catch(e) {} }, [contentWidth]);
+      // Reader preferences are persisted by useLocalStoragePrefs('reader', ...) above.
 
       // Auto-collapse sidebars in wide mode, re-expand in narrow/medium
       useEffect(() => {
@@ -1651,6 +1834,8 @@
       const [trips, setTrips] = useState([]);
       const [activeChapter, setActiveChapter] = useState(null);
       const [readProgress, setReadProgress] = useState(0);
+      const { open: paletteOpen, setOpen: setPaletteOpen } = useCommandPalette();
+      const commands = useMemo(() => [], []); // Phase 3 registers commands here
 
       useEffect(() => { loadTrips().then(setTrips); }, []);
 
@@ -1691,6 +1876,7 @@
             )}
             <ScrollToTop progress={page === 'chapter' ? readProgress : null} />
           </main>
+          <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} commands={commands} />
         </div>
       );
     }
