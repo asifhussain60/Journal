@@ -193,6 +193,80 @@
     }
 
     // =================================================================
+    // DESIGN SYSTEM — FORM ATOMS + FormField
+    // =================================================================
+
+    function Input({ className = '', ...rest }) {
+      return <input className={['input-field', className].filter(Boolean).join(' ')} {...rest} />;
+    }
+
+    function Textarea({ className = '', ...rest }) {
+      return <textarea className={['input-field', className].filter(Boolean).join(' ')} {...rest} />;
+    }
+
+    function Select({ className = '', children, ...rest }) {
+      return <select className={['input-field', className].filter(Boolean).join(' ')} {...rest}>{children}</select>;
+    }
+
+    function Checkbox({ label, className = '', id, ...rest }) {
+      const autoId = React.useId();
+      const checkboxId = id || autoId;
+      return (
+        <label htmlFor={checkboxId} className={['form-checkbox', className].filter(Boolean).join(' ')}>
+          <input type="checkbox" id={checkboxId} {...rest} />
+          {label && <span className="form-checkbox-label">{label}</span>}
+        </label>
+      );
+    }
+
+    function RadioGroup({ name, value, onChange, options = [], className = '', ariaLabel }) {
+      return (
+        <div role="radiogroup" aria-label={ariaLabel} className={['form-radio-group', className].filter(Boolean).join(' ')}>
+          {options.map(opt => (
+            <label key={opt.value} className="form-radio">
+              <input
+                type="radio"
+                name={name}
+                value={opt.value}
+                checked={value === opt.value}
+                onChange={e => onChange && onChange(e.target.value)}
+              />
+              <span className="form-radio-label">{opt.label}</span>
+            </label>
+          ))}
+        </div>
+      );
+    }
+
+    function FormField({ label, helper, error, required, children, className = '', ...rest }) {
+      const autoId = React.useId();
+      const helperId = helper ? `${autoId}-help` : null;
+      const errorId = error ? `${autoId}-err` : null;
+      const describedBy = [helperId, errorId].filter(Boolean).join(' ') || undefined;
+      const child = React.Children.only(children);
+      const input = React.cloneElement(child, {
+        id: child.props.id || autoId,
+        'aria-describedby': describedBy,
+        'aria-invalid': error ? true : undefined,
+        'aria-required': required || undefined,
+        required: required || child.props.required
+      });
+      return (
+        <div className={['form-field', error && 'has-error', className].filter(Boolean).join(' ')} {...rest}>
+          {label && (
+            <label htmlFor={child.props.id || autoId} className="form-field-label">
+              {label}
+              {required && <span className="form-field-required" aria-hidden="true"> *</span>}
+            </label>
+          )}
+          {input}
+          {helper && !error && <span id={helperId} className="form-field-helper">{helper}</span>}
+          {error && <span id={errorId} className="form-field-error" role="alert">{error}</span>}
+        </div>
+      );
+    }
+
+    // =================================================================
     // COMPONENTS
     // =================================================================
 
