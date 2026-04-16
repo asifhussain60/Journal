@@ -12,8 +12,9 @@
 //   GET  /api/reference-data/:name     — Phase 3: Tier 0 JSON files (tipping/currency/packing)
 //   POST /api/upload                   — Phase 4: multipart receipt image → trips/{slug}/receipts/
 //   POST /api/extract-receipt          — Phase 4: Vision (macOS) first, Haiku fallback
-//   POST /api/queue/:name              — Phase 4: schema-validated append to trips/{slug}/{name}.json
-//   GET  /api/queue/:name              — Phase 4: read queue items
+//   POST /api/ingest-itinerary         — Phase 5: Haiku parse of pasted itinerary → skeleton JSON
+//   POST /api/queue/:name              — Phase 4+5: pending | voice-inbox | itinerary-inbox
+//   GET  /api/queue/:name              — Phase 4+5: read queue items
 //
 // CORS is locked to http://localhost:3000 (the `npx serve` dev port for site/).
 
@@ -70,10 +71,18 @@ app.use(buildRateLimiter());
 const SCHEMA_DIR = path.resolve(__dirname, "./schemas");
 const ajv = new Ajv({ strict: true, allErrors: true });
 addFormats(ajv);
+// All app-writable queues share the pending.schema.json shape; kind + payload
+// differ per queue. voice-inbox, itinerary-inbox, and pending all validate
+// against the same schema, which already enforces the kind enum.
 const QUEUE_VALIDATORS = new Map();
-for (const name of ["pending"]) {
-  const schema = JSON.parse(await readFile(path.join(SCHEMA_DIR, `${name}.schema.json`), "utf8"));
-  QUEUE_VALIDATORS.set(name, ajv.compile(schema));
+{
+  const pendingSchema = JSON.parse(
+    await readFile(path.join(SCHEMA_DIR, "pending.schema.json"), "utf8")
+  );
+  const pendingValidator = ajv.compile(pendingSchema);
+  for (const name of ["pending", "voice-inbox", "itinerary-inbox"]) {
+    QUEUE_VALIDATORS.set(name, pendingValidator);
+  }
 }
 
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
@@ -403,6 +412,57 @@ app.post("/api/extract-receipt", async (req, res) => {
       visionUsed,
       extracted,
       rawText: extracted ? undefined : raw,
+    });
+  } catch (err) {
+    res.status(502).json({ ok: false, error: err?.message ?? String(err) });
+  }
+});
+
+// --- Phase 5: itinerary paste parse (Haiku) ---------------------------------
+// Body: { itineraryText }
+//   - Returns { ok, extracted: { flights, hotels, highlights, dates } }.
+//   - On JSON-parse failure, returns ok:false with a reason (keeps the UI happy
+//     path deterministic — one specific error the user can act on).
+app.post("/api/ingest-itinerary", async (req, res) => {
+  const { itineraryText } = req.body ?? {};
+  if (typeof itineraryText !== "string" || itineraryText.trim().length === 0) {
+    return res.status(400).json({ ok: false, error: "itineraryText (non-empty string) is required" });
+  }
+  req.body.promptName = "ingest-itinerary";
+  try {
+    const prompt = loadPrompt("ingest-itinerary");
+    const msg = await anthropic.messages.create({
+      model: prompt.model ?? DEFAULT_MODEL,
+      max_tokens: 1200,
+      system: prompt.system,
+      messages: [{ role: "user", content: itineraryText.trim() }],
+    });
+    const raw = msg.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim();
+    let extracted = null;
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        extracted = JSON.parse(jsonMatch[0]);
+      } catch {
+        extracted = null;
+      }
+    }
+    if (!extracted) {
+      return res.json({
+        ok: false,
+        model: msg.model,
+        usage: msg.usage,
+        promptName: prompt.name,
+        error: "structure ambiguous — model output did not parse as JSON",
+        rawText: raw,
+      });
+    }
+    res.json({
+      ok: true,
+      model: msg.model,
+      usage: msg.usage,
+      promptName: prompt.name,
+      extracted,
     });
   } catch (err) {
     res.status(502).json({ ok: false, error: err?.message ?? String(err) });

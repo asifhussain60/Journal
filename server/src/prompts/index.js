@@ -14,6 +14,7 @@ import examplePrompt from "./example.js";
 import tripQaPrompt from "./trip-qa.js";
 import tripAssistantPrompt from "./trip-assistant.js";
 import extractReceiptPrompt from "./extract-receipt.js";
+import ingestItineraryPrompt from "./ingest-itinerary.js";
 
 /**
  * Registry of all prompts known at startup time. Extend by importing the new
@@ -25,6 +26,7 @@ const REGISTRY = Object.freeze({
   [tripQaPrompt.name]: tripQaPrompt,
   [tripAssistantPrompt.name]: tripAssistantPrompt,
   [extractReceiptPrompt.name]: extractReceiptPrompt,
+  [ingestItineraryPrompt.name]: ingestItineraryPrompt,
 });
 
 /**

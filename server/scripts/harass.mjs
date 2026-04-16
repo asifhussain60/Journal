@@ -36,6 +36,7 @@ const TARGETS = [
   { path: "/api/queue/pending", method: "POST", body: {} },    // 400 fast (schemaVersion missing)
   { path: "/api/extract-receipt", method: "POST", body: {} },  // 400 fast (imagePath missing)
   { path: "/api/upload", method: "POST", body: {} },           // 400 fast (no multipart)
+  { path: "/api/ingest-itinerary", method: "POST", body: {} }, // 400 fast (itineraryText missing)
 ];
 
 function fail(message) {
