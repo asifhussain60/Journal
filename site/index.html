@@ -1330,7 +1330,80 @@
       );
     }
     function TripTools({ trip }) {
-      return <EmptyState icon="fa-toolbox" title="Tools coming soon" description="Tip helper and packing list land in commit (f)." />;
+      return (
+        <div style={{ display: 'grid', gap: '1.5rem', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
+          <TipHelper trip={trip} />
+          <PackingList trip={trip} />
+        </div>
+      );
+    }
+
+    function TipHelper({ trip }) {
+      const { data: currencyMap, error: currencyErr } = useFetch('http://localhost:3001/api/reference-data/currency');
+      const { data: tippingMap, error: tippingErr } = useFetch('http://localhost:3001/api/reference-data/tipping');
+      const [country, setCountry] = useState(trip?.country || '');
+      const countries = currencyMap ? Object.keys(currencyMap).sort() : [];
+      const tip = tippingMap ? tippingMap[country] : null;
+      const currency = currencyMap ? currencyMap[country] : null;
+      const error = currencyErr || tippingErr;
+      return (
+        <Card variant="glass" style={{ padding: '1.75rem' }}>
+          <Text as="h3" variant="serif" size="lg" style={{ marginBottom: '1rem' }}>Tip helper</Text>
+          {error && <Text color="muted" size="sm">Couldn\u2019t load tipping data ({String(error.message)}).</Text>}
+          <FormField label="Country">
+            <Select value={country} onChange={e => setCountry(e.target.value)} disabled={!countries.length}>
+              <option value="">Choose a country\u2026</option>
+              {countries.map(c => <option key={c} value={c}>{c}</option>)}
+            </Select>
+          </FormField>
+          {tip && currency && (
+            <div style={{ marginTop: '1rem', display: 'grid', gap: '0.6rem' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.75rem' }}>
+                <Text as="span" variant="serif" size="xl">{tip.range}</Text>
+                <Badge variant={tip.expected ? 'accent' : 'neutral'} icon={tip.expected ? 'fa-circle-check' : 'fa-circle-info'}>
+                  {tip.expected ? 'Expected' : 'Optional'}
+                </Badge>
+              </div>
+              <Text variant="mono" size="sm" color="muted">{currency.code} ({currency.symbol}) &middot; {currency.name}</Text>
+              <Text size="sm">{tip.notes}</Text>
+            </div>
+          )}
+          {country && !tip && currencyMap && tippingMap && (
+            <Text color="muted" size="sm" style={{ marginTop: '0.75rem' }}>No tipping notes for {country}.</Text>
+          )}
+        </Card>
+      );
+    }
+
+    function PackingList({ trip }) {
+      const slug = trip?.slug || 'default';
+      const { data: packingData, error } = useFetch('http://localhost:3001/api/reference-data/packing');
+      const [checked, setChecked] = useLocalStoragePrefs(`packing-${slug}`, {});
+      const categories = (packingData && Array.isArray(packingData.categories)) ? packingData.categories : [];
+      const allItems = useMemo(() => categories.flatMap(c => c.items), [categories]);
+      const totalCount = allItems.length;
+      const packedCount = allItems.filter(i => checked[i]).length;
+      const toggle = (item) => setChecked(c => ({ ...c, [item]: !c[item] }));
+      return (
+        <Card variant="glass" style={{ padding: '1.75rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '1rem', gap: '1rem', flexWrap: 'wrap' }}>
+            <Text as="h3" variant="serif" size="lg">Packing list</Text>
+            <Text variant="mono" size="sm" color="muted">{packedCount} of {totalCount} packed</Text>
+          </div>
+          {error && <Text color="muted" size="sm">Couldn\u2019t load packing template ({String(error.message)}).</Text>}
+          {!packingData && !error && <SkeletonRow variant="queue-row" count={3} />}
+          {categories.map(cat => (
+            <div key={cat.name} style={{ marginBottom: '1rem' }}>
+              <Text as="h4" variant="mono" size="sm" color="muted" style={{ textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>{cat.name}</Text>
+              <div style={{ display: 'grid', gap: '0.35rem' }}>
+                {cat.items.map(item => (
+                  <Checkbox key={item} label={item} checked={!!checked[item]} onChange={() => toggle(item)} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </Card>
+      );
     }
     function QueuePanel({ trip }) {
       return <EmptyState icon="fa-inbox" title="Queue is empty" description="Captured receipts and voice notes will appear here." />;
