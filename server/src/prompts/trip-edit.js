@@ -36,6 +36,8 @@ export default Object.freeze({
     "Rules:",
     "- Return JSON ONLY. No prose, no markdown fences, no preamble, no trailing commentary.",
     "- Your entire response must be a single JSON object starting with { and ending with }.",
+    "- Emit STRICT JSON: use null (never undefined) for missing/absent values. All keys and string values must be double-quoted. No trailing commas. No comments.",
+    "- When a diff represents adding a brand-new field, set \"old\": null (NOT undefined).",
     "- Never invent dates or times the user did not state.",
     "- Never touch fields outside the trip object.",
     "- For intent=qa or intent=unknown, set diffs: [] and patch: [].",

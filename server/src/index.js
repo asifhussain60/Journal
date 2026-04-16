@@ -70,9 +70,42 @@ const __dirname = path.dirname(__filename);
 const REFERENCE_DATA_DIR = path.resolve(__dirname, "./reference-data");
 const REFERENCE_NAME_RE = /^[a-z][a-z0-9-]*$/;
 
+// Replace bare `undefined` tokens (outside string literals) with `null`.
+// Models occasionally emit JS-literal syntax instead of strict JSON — e.g.
+// `"old": undefined` when describing a field that didn't previously exist.
+// JSON.parse rejects that, even though the rest of the payload is well-formed.
+function sanitizeLooseJson(s) {
+  let out = "";
+  let inStr = false, esc = false;
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (esc) { esc = false; out += ch; continue; }
+    if (inStr) {
+      if (ch === "\\") esc = true;
+      else if (ch === '"') inStr = false;
+      out += ch;
+      continue;
+    }
+    if (ch === '"') { inStr = true; out += ch; continue; }
+    // Match bare `undefined` not part of a larger identifier.
+    if (
+      ch === "u" &&
+      s.slice(i, i + 9) === "undefined" &&
+      !/[\w$]/.test(s[i + 9] || "")
+    ) {
+      out += "null";
+      i += 8; // for-loop's ++ covers the 9th char
+      continue;
+    }
+    out += ch;
+  }
+  return out;
+}
+
 // Robust JSON extraction: strip markdown fences, scan for the first balanced
 // {...} block. Handles common model failure modes — fenced output, preamble
-// prose, trailing commentary — that a greedy regex trips over.
+// prose, trailing commentary — that a greedy regex trips over. On strict
+// JSON.parse failure, retries once with `undefined` → `null` sanitization.
 function extractJsonObject(raw) {
   if (typeof raw !== "string" || !raw.length) return null;
   // Strip ```json ... ``` or ``` ... ``` fences.
@@ -95,7 +128,11 @@ function extractJsonObject(raw) {
       depth--;
       if (depth === 0) {
         const candidate = s.slice(firstBrace, i + 1);
-        try { return JSON.parse(candidate); } catch { return null; }
+        try { return JSON.parse(candidate); }
+        catch {
+          try { return JSON.parse(sanitizeLooseJson(candidate)); }
+          catch { return null; }
+        }
       }
     }
   }
