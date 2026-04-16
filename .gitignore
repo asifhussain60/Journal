@@ -41,3 +41,7 @@ trips/*/voice-inbox/
 trips/*/voice-inbox.json
 trips/*/itinerary-inbox.json
 trips/*/snapshots/
+
+
+# Wrangler local cache (regenerated per invocation)
+.wrangler/
