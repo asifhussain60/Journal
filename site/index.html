@@ -1410,35 +1410,31 @@
       const toast = React.useContext(ToastContext);
       useEffect(() => {
         let cancelled = false;
-        fetch('http://localhost:3001/api/dead-letter')
-          .then(r => r.ok ? r.json() : null)
+        fetch('http://localhost:3001/api/dead-letter').then(r => r.ok ? r.json() : null)
           .then(body => { if (!cancelled) setState({ items: body && Array.isArray(body.items) ? body.items : [], loading: false }); })
           .catch(() => { if (!cancelled) setState({ items: [], loading: false }); });
         return () => { cancelled = true; };
       }, [tick]);
-      async function act(url, payload, success, failure) {
+      const act = async (url, payload, success, failure) => {
         try {
           const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
           const body = await r.json().catch(() => ({}));
           if (r.ok && body.ok) { toast && toast.show(success, 'success'); onChange(); }
-          else { toast && toast.show(body.error || failure, 'error'); }
+          else toast && toast.show(body.error || failure, 'error');
         } catch { toast && toast.show(failure, 'error'); }
-      }
+      };
       if (state.loading || !state.items || state.items.length === 0) return null;
+      const headerStyle = { display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0, width: '100%', justifyContent: 'space-between' };
       return (
         <Card variant="glass" style={{ padding: '0.85rem', marginBottom: '1rem', borderColor: 'var(--error)' }}>
-          <button type="button" onClick={() => setExpanded(e => !e)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0, width: '100%', justifyContent: 'space-between' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Icon name="fa-triangle-exclamation" color="var(--error)" />
-              <Text weight="600">Stuck — {state.items.length} item{state.items.length === 1 ? '' : 's'}</Text>
-            </span>
+          <button type="button" onClick={() => setExpanded(e => !e)} style={headerStyle}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Icon name="fa-triangle-exclamation" color="var(--error)" /><Text weight="600">Stuck — {state.items.length} item{state.items.length === 1 ? '' : 's'}</Text></span>
             <Icon name={expanded ? 'fa-chevron-up' : 'fa-chevron-down'} />
           </button>
           {expanded && (
             <div style={{ marginTop: '0.75rem', display: 'grid', gap: '0.6rem' }}>
               {state.items.map(it => {
-                const r = it.row || {};
-                const dl = r.deadLetter || {};
+                const dl = (it.row && it.row.deadLetter) || {};
                 return (
                   <Card key={`${it.queueName}:${it.id}`} variant="glass" style={{ padding: '0.7rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '0.75rem', flexWrap: 'wrap' }}>
@@ -2646,38 +2642,33 @@
 
     // BUDGET PILL + USAGE MODAL (Phase 8)
 
+    const budgetColor = pct => pct >= 90 ? 'var(--error)' : pct >= 75 ? 'var(--warning)' : 'var(--success)';
+    const fetchSummary = () => fetch('http://localhost:3001/api/usage/summary').then(r => r.ok ? r.json() : null).catch(() => null);
+
     function BudgetAdvisor({ s }) {
+      const [details, setDetails] = useState(false);
       const cap = Number(s.monthlyCAP || 50);
       const spent = Number(s.spentThisMonth || 0);
       const days = Math.max(1, new Date().getDate());
       const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
       const daily = spent / days;
       const projected = daily * daysInMonth;
-      const throttleHits = Number(s.throttleHitsThisMonth || 0);
-      let advice;
-      if (throttleHits > 0) {
-        const z = Math.ceil((projected * 1.5) / 10) * 10;
-        advice = `You've been throttled ${throttleHits} time${throttleHits === 1 ? '' : 's'} this month. Consider raising the cap to $${z} to avoid interruptions.`;
-      } else if (projected < cap * 0.4) {
-        const y = Math.round((projected * 2) / 5) * 5 || 5;
-        advice = `Your cap of $${cap} is generous. Based on your usage ($${projected.toFixed(2)}/mo projected), you could safely lower to $${y}.`;
-      } else {
-        advice = `Your cap fits your usage well. No change needed.`;
-      }
-      const [details, setDetails] = useState(false);
+      const hits = Number(s.throttleHitsThisMonth || 0);
+      const advice = hits > 0
+        ? `You've been throttled ${hits} time${hits === 1 ? '' : 's'} this month. Consider raising the cap to $${Math.ceil((projected * 1.5) / 10) * 10} to avoid interruptions.`
+        : projected < cap * 0.4
+          ? `Your cap of $${cap} is generous. Based on your usage ($${projected.toFixed(2)}/mo projected), you could safely lower to $${Math.round((projected * 2) / 5) * 5 || 5}.`
+          : `Your cap fits your usage well. No change needed.`;
+      const monoMuted = { fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-muted, #aaa)' };
       return (
         <Card variant="glass" style={{ padding: '0.85rem', marginTop: '1rem' }}>
           <Text weight="600" size="sm">Budget Advisor</Text>
           <Text size="sm" color="muted" style={{ marginTop: '0.3rem' }}>{advice}</Text>
-          <button type="button" onClick={() => setDetails(d => !d)} style={{ marginTop: '0.4rem', background: 'none', border: 'none', color: 'var(--accent)', fontSize: '0.75rem', cursor: 'pointer', padding: 0 }}>
-            {details ? 'Hide details' : 'Show details'}
-          </button>
+          <button type="button" onClick={() => setDetails(d => !d)} style={{ marginTop: '0.4rem', background: 'none', border: 'none', color: 'var(--accent)', fontSize: '0.75rem', cursor: 'pointer', padding: 0 }}>{details ? 'Hide details' : 'Show details'}</button>
           {details && (
-            <div style={{ marginTop: '0.5rem', display: 'grid', gap: '0.2rem', fontSize: '0.75rem', fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-muted, #aaa)' }}>
-              <span>daily avg: ${daily.toFixed(3)}</span>
-              <span>day {days} of {daysInMonth}</span>
-              <span>projected month-end: ${projected.toFixed(2)}</span>
-              <span>throttle hits this month: {throttleHits}</span>
+            <div style={{ marginTop: '0.5rem', display: 'grid', gap: '0.2rem', fontSize: '0.75rem', ...monoMuted }}>
+              <span>daily avg: ${daily.toFixed(3)}</span><span>day {days} of {daysInMonth}</span>
+              <span>projected month-end: ${projected.toFixed(2)}</span><span>throttle hits this month: {hits}</span>
             </div>
           )}
         </Card>
@@ -2689,37 +2680,28 @@
       const [tab, setTab] = useState('summary');
       useEffect(() => {
         let cancelled = false;
-        fetch('http://localhost:3001/api/usage/summary')
-          .then(r => r.ok ? r.json() : null)
-          .then(body => { if (!cancelled) setState({ loading: false, summary: body && body.ok ? body : null }); })
-          .catch(() => { if (!cancelled) setState({ loading: false, summary: null }); });
+        fetchSummary().then(body => { if (!cancelled) setState({ loading: false, summary: body && body.ok ? body : null }); });
         return () => { cancelled = true; };
       }, []);
       const s = state.summary || { spentThisMonth: 0, monthlyCAP: 50, percentageUsed: 0, throttleState: 'normal', byEndpoint: [] };
       const pct = Math.max(0, Math.min(100, Number(s.percentageUsed || 0)));
-      const color = pct >= 90 ? 'var(--error)' : pct >= 75 ? 'var(--warning)' : 'var(--success)';
+      const color = budgetColor(pct);
+      const td = { padding: '0.4rem 0.5rem' };
+      const mono = { fontFamily: 'var(--font-mono, monospace)', fontSize: '0.78rem' };
+      const muted = { color: 'var(--text-muted, #aaa)' };
       return (
-        <Modal onClose={onClose} size="lg" ariaLabel="Monthly budget details"
-          title={`Monthly Budget — $${Number(s.spentThisMonth || 0).toFixed(2)} / $${Number(s.monthlyCAP || 50).toFixed(2)} (${pct.toFixed(0)}%)`}>
+        <Modal onClose={onClose} size="lg" ariaLabel="Monthly budget details" title={`Monthly Budget — $${Number(s.spentThisMonth || 0).toFixed(2)} / $${Number(s.monthlyCAP || 50).toFixed(2)} (${pct.toFixed(0)}%)`}>
           <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
-            {['summary', 'breakdown'].map(t => (
-              <button key={t} type="button" onClick={() => setTab(t)} className={`journal-tab ${tab === t ? 'active' : ''}`}>
-                {t[0].toUpperCase() + t.slice(1)}
-              </button>
-            ))}
+            {['summary', 'breakdown'].map(t => <button key={t} type="button" onClick={() => setTab(t)} className={`journal-tab ${tab === t ? 'active' : ''}`}>{t[0].toUpperCase() + t.slice(1)}</button>)}
           </div>
           {state.loading && <SkeletonRow variant="queue-row" count={3} />}
           {!state.loading && tab === 'summary' && (
             <div>
               <div style={{ position: 'relative', height: '1rem', background: 'var(--accent-soft)', borderRadius: '999px', overflow: 'hidden' }}>
                 <div style={{ position: 'absolute', inset: 0, width: `${pct}%`, background: color, transition: 'width 200ms' }} />
-                {[75, 90].map(th => (
-                  <div key={th} style={{ position: 'absolute', top: 0, bottom: 0, left: `${th}%`, width: '1px', background: 'var(--text-muted, #777)', opacity: 0.6 }} aria-hidden />
-                ))}
+                {[75, 90].map(th => <div key={th} style={{ position: 'absolute', top: 0, bottom: 0, left: `${th}%`, width: '1px', background: 'var(--text-muted, #777)', opacity: 0.6 }} aria-hidden />)}
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.25rem', fontSize: '0.7rem', fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-muted, #aaa)' }}>
-                <span>0</span><span>75%</span><span>90%</span><span>100%</span>
-              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.25rem', fontSize: '0.7rem', ...mono, ...muted }}><span>0</span><span>75%</span><span>90%</span><span>100%</span></div>
               <Text size="sm" color="muted" style={{ marginTop: '0.75rem' }}>
                 Throttle state: <strong style={{ color }}>{s.throttleState || 'normal'}</strong>.
                 {s.throttleState === 'soft' && ' Edit intents are throttled to clarify-only until usage drops below 75%.'}
@@ -2731,33 +2713,23 @@
           {!state.loading && tab === 'breakdown' && (
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-                <thead><tr style={{ textAlign: 'left', color: 'var(--text-muted, #aaa)' }}>
-                  <th style={{ padding: '0.4rem 0.5rem' }}>Endpoint</th>
-                  <th style={{ padding: '0.4rem 0.5rem' }}>Calls</th>
-                  <th style={{ padding: '0.4rem 0.5rem' }}>Avg Cost</th>
-                  <th style={{ padding: '0.4rem 0.5rem' }}>Total %</th>
-                  <th style={{ padding: '0.4rem 0.5rem' }}>Last Call</th>
-                </tr></thead>
+                <thead><tr style={{ textAlign: 'left', ...muted }}>{['Endpoint','Calls','Avg Cost','Total %','Last Call'].map(h => <th key={h} style={td}>{h}</th>)}</tr></thead>
                 <tbody>
                   {(s.byEndpoint || []).map(row => (
                     <tr key={row.endpoint} style={{ borderTop: '1px solid var(--border, #333)' }}>
-                      <td style={{ padding: '0.4rem 0.5rem', fontFamily: 'var(--font-mono, monospace)', fontSize: '0.78rem' }}>{row.endpoint}</td>
-                      <td style={{ padding: '0.4rem 0.5rem' }}>{row.calls}</td>
-                      <td style={{ padding: '0.4rem 0.5rem', fontFamily: 'var(--font-mono, monospace)' }}>${Number(row.avgCost || 0).toFixed(3)}</td>
-                      <td style={{ padding: '0.4rem 0.5rem' }}>{Number(row.percentOfMonth || 0).toFixed(1)}%</td>
-                      <td style={{ padding: '0.4rem 0.5rem', color: 'var(--text-muted, #aaa)', fontSize: '0.78rem' }}>{row.lastCallAt ? new Date(row.lastCallAt).toLocaleString() : '—'}</td>
+                      <td style={{ ...td, ...mono }}>{row.endpoint}</td>
+                      <td style={td}>{row.calls}</td>
+                      <td style={{ ...td, fontFamily: mono.fontFamily }}>${Number(row.avgCost || 0).toFixed(3)}</td>
+                      <td style={td}>{Number(row.percentOfMonth || 0).toFixed(1)}%</td>
+                      <td style={{ ...td, ...muted, fontSize: '0.78rem' }}>{row.lastCallAt ? new Date(row.lastCallAt).toLocaleString() : '—'}</td>
                     </tr>
                   ))}
-                  {(!s.byEndpoint || s.byEndpoint.length === 0) && (
-                    <tr><td colSpan={5} style={{ padding: '0.75rem', textAlign: 'center', color: 'var(--text-muted, #aaa)' }}>No usage recorded this month.</td></tr>
-                  )}
+                  {(!s.byEndpoint || s.byEndpoint.length === 0) && <tr><td colSpan={5} style={{ padding: '0.75rem', textAlign: 'center', ...muted }}>No usage recorded this month.</td></tr>}
                 </tbody>
               </table>
             </div>
           )}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
-            <Button variant="primary" onClick={onClose}>Done</Button>
-          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}><Button variant="primary" onClick={onClose}>Done</Button></div>
         </Modal>
       );
     }
@@ -2766,32 +2738,23 @@
       const [state, setState] = useState({ loading: true, summary: null });
       useEffect(() => {
         let cancelled = false;
-        const load = () => fetch('http://localhost:3001/api/usage/summary')
-          .then(r => r.ok ? r.json() : null)
-          .then(body => { if (!cancelled && body && body.ok) setState({ loading: false, summary: body }); })
-          .catch(() => { if (!cancelled) setState({ loading: false, summary: null }); });
+        const load = () => fetchSummary().then(body => { if (!cancelled) setState({ loading: false, summary: body && body.ok ? body : null }); });
         load();
         const timer = setInterval(load, 30000);
-        const refresh = () => load();
-        ['queue:refresh', 'trip:edited', 'budget:refresh'].forEach(ev => window.addEventListener(ev, refresh));
-        return () => {
-          cancelled = true; clearInterval(timer);
-          ['queue:refresh', 'trip:edited', 'budget:refresh'].forEach(ev => window.removeEventListener(ev, refresh));
-        };
+        const evs = ['queue:refresh', 'trip:edited', 'budget:refresh'];
+        evs.forEach(ev => window.addEventListener(ev, load));
+        return () => { cancelled = true; clearInterval(timer); evs.forEach(ev => window.removeEventListener(ev, load)); };
       }, []);
       const s = state.summary || {};
-      const spent = Number(s.spentThisMonth || 0);
       const cap = Number(s.monthlyCAP || monthlyCAP);
+      const spent = Number(s.spentThisMonth || 0);
       const pct = cap > 0 ? (spent / cap) * 100 : 0;
-      const color = pct >= 90 ? 'var(--error)' : pct >= 75 ? 'var(--warning)' : 'var(--success)';
-      const label = state.loading ? '—' : `$${spent.toFixed(2)} / $${cap.toFixed(2)}`;
+      const color = budgetColor(pct);
+      const label = state.loading || !state.summary ? '—' : `$${spent.toFixed(2)} / $${cap.toFixed(2)}`;
       return (
-        <button type="button" className="budget-pill" onClick={onOpen}
-          aria-label={`Monthly budget: ${label} (${pct.toFixed(0)}%)`}
-          title={`Monthly spend: ${pct.toFixed(0)}% of $${cap.toFixed(2)}`}
+        <button type="button" className="budget-pill" onClick={onOpen} aria-label={`Monthly budget: ${label} (${pct.toFixed(0)}%)`} title={`Monthly spend: ${pct.toFixed(0)}% of $${cap.toFixed(2)}`}
           style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.3rem 0.7rem', marginLeft: '0.75rem', borderRadius: '999px', background: 'var(--accent-soft)', border: `1px solid ${color}`, color: 'var(--text-primary, inherit)', fontFamily: 'var(--font-mono, monospace)', fontSize: '0.78rem', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-          <span style={{ width: '0.5rem', height: '0.5rem', borderRadius: '999px', background: color, boxShadow: `0 0 6px ${color}` }} />
-          <span>{label}</span>
+          <span style={{ width: '0.5rem', height: '0.5rem', borderRadius: '999px', background: color, boxShadow: `0 0 6px ${color}` }} /><span>{label}</span>
         </button>
       );
     }
