@@ -1128,6 +1128,11 @@
     function TripModule({ trip, loading, error, initialSubTab = 'overview' }) {
       const [subTab, setSubTab] = useState(initialSubTab);
       useEffect(() => { setSubTab(initialSubTab); }, [initialSubTab]);
+      useEffect(() => {
+        function onSet(e) { if (e.detail && TRIP_SUB_TABS.some(t => t.id === e.detail)) setSubTab(e.detail); }
+        window.addEventListener('trip:set-subtab', onSet);
+        return () => window.removeEventListener('trip:set-subtab', onSet);
+      }, []);
 
       if (loading) {
         return (
@@ -1399,15 +1404,17 @@
     const CAPTURE_STEPS = ['Reading image', 'Extracting details', 'Review'];
 
     function TripCapture({ trip }) {
-      const [modalOpen, setModalOpen] = useState(false);
+      const [receiptOpen, setReceiptOpen] = useState(false);
       return (
         <div style={{ display: 'grid', gap: '1rem' }}>
           <Card variant="glass" style={{ padding: '1.75rem' }}>
-            <Text as="h3" variant="serif" size="lg" style={{ marginBottom: '0.5rem' }}>Capture</Text>
-            <Text size="sm" color="muted" style={{ marginBottom: '1.25rem' }}>Drop a receipt photo; we'll extract the details and queue it for review.</Text>
-            <Button variant="primary" icon="fa-receipt" onClick={() => setModalOpen(true)}>Capture Receipt</Button>
+            <Text as="h4" variant="serif" size="md" style={{ margin: 0, marginBottom: '0.25rem' }}>Receipt</Text>
+            <Text size="sm" color="muted" style={{ marginBottom: '1rem' }}>Drop a receipt photo; we'll extract the details and queue it for review.</Text>
+            <Button variant="primary" icon="fa-receipt" onClick={() => setReceiptOpen(true)}>Capture receipt</Button>
           </Card>
-          {modalOpen && <CaptureModal trip={trip} onClose={() => setModalOpen(false)} />}
+          <VoiceEntry trip={trip} />
+          <ItineraryPaste trip={trip} />
+          {receiptOpen && <CaptureModal trip={trip} onClose={() => setReceiptOpen(false)} />}
         </div>
       );
     }
@@ -2508,9 +2515,12 @@
             () => toast && toast.show('Copy failed', 'error')
           );
         };
+        const gotoCapture = () => { setPage('trip'); window.dispatchEvent(new CustomEvent('trip:set-subtab', { detail: 'capture' })); };
         return [
           { id: 'open-chat',       label: 'Open chat',              icon: 'fa-comment-dots',     keywords: 'chat assistant trip qa', action: () => { setPage('trip'); window.dispatchEvent(new CustomEvent('floating-chat:focus')); } },
           { id: 'open-itinerary',  label: 'Open active itinerary',  icon: 'fa-map-location-dot', keywords: 'trip overview',          action: () => { setPage('trip'); } },
+          { id: 'voice-entry',     label: 'New voice entry',        icon: 'fa-microphone',       keywords: 'voice record speech',    action: gotoCapture },
+          { id: 'paste-itinerary', label: 'Paste itinerary',        icon: 'fa-paste',            keywords: 'itinerary paste agenda', action: gotoCapture },
           { id: 'refresh-queues',  label: 'Refresh queues',         icon: 'fa-rotate',           keywords: 'queue refetch pending',  action: () => window.dispatchEvent(new CustomEvent('queue:refresh')) },
           { id: 'copy-date',       label: "Copy today's date",      icon: 'fa-calendar-day',     keywords: 'date dayone today',      action: copyDate }
         ];
