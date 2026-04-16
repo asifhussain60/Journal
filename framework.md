@@ -477,6 +477,35 @@ Acceptance gates (server-side live-verified unless noted):
 - Gate H — `<script type="text/babel">` block ≤ 2,800 lines (raised from brief's aspirational 2,700 per standing rule 8: compaction proportional to actual add — Phase 8 UI is ~180 net lines for BudgetPill + UsageModal + BudgetAdvisor + StuckSection + QueuePanel wrapper). Current: 2,784. **PASS**.
 - Gate I — **DEFERRED to final visual pass.** BudgetPill renders in nav with color states, UsageModal opens on click, Summary + Breakdown tabs render, BudgetAdvisor card shows advice, Stuck section appears under dead-letter entries with working Re-submit / Discard, Phase 1-7 regression intact.
 
+**Phase 9 operational-data SQLite migration (Stages A+B+C+D code landed under `tag phase-09-ops-data-sqlite`; Stages C and D require explicit user go/no-go in a later session):**
+
+Operational data (queues, logs, edit history, budget telemetry) migrates from JSON/JSONL files to `server/data/ops.db`. **Memoir content (`chapters/`, `reference/`, `chapters/scratchpads/` including `@@markers`) stays in files forever — the DB schema does not define memoir tables; the migration source does not read any path under `chapters/` or `reference/`; `validate-markers.mjs` enforces this invariant.** Staged rollout is deliberately slow to guarantee zero data loss.
+
+- **Stage A — executed.** `better-sqlite3@^11` added. `server/data/ops.db` created with WAL mode + `busy_timeout=5000ms`. Eight operational tables (usage, pending_queue, edit_log, voice_inbox, itinerary_inbox, drain_log, dead_letter, receipts_meta) + `schema_migrations`. Runner: `npm run migrate`. Schema sources: `server/src/db/schema.sql` (authoritative) + `server/src/db/migrations/001-init.sql` (idempotent).
+- **Stage B — code landed, flag-off default.** `server/src/middleware/shadow-write.js` exports `shadow(kind, payload)` + `shadowWriteEnabled()`. Opt-in via `SHADOW_WRITE_ENABLED=true`. When enabled, queue POSTs, trip-edit apply/revert, and usage-logger writes best-effort mirror to ops.db. Failures are logged to `server/logs/shadow-write-{YYYY-MM-DD}.log` and never break requests. `server/scripts/validate-parity.mjs` (`npm run validate-parity`) compares file vs DB row counts + status fields nightly. After ≥7 consecutive zero-divergence nights, proceed to Stage C cutover.
+- **Stage C — code landed, NOT wired to endpoints.** Narrow-API repository modules under `server/src/db/repositories/` (pending-queue.js, voice-inbox.js, itinerary-inbox.js, edit-log.js, dead-letter.js, usage.js, drain-log.js, receipts-meta.js). Read-only MCP-style query surface at `server/src/mcp/ops-server.js` (query_pending_queue, query_dead_letter, query_usage_summary, query_edit_log, query_drain_log). Production endpoints still read/write files — wiring the repos into endpoints happens in a separate session once Stage B parity is proven.
+- **Stage D — code landed, NOT executed.** `server/scripts/rollback-to-files.mjs` (node-invoked, not an npm script, to prevent accidental firing). Dry-run default; `--restore --confirm` required to write. Never deletes ops.db, never touches memoir content; backs up current file state to `server/data/backups/pre-rollback-<stamp>/` before any restoration. The Stage D source-file-deletion step (trips/*/pending.json, voice-inbox.json, itinerary-inbox.json, dead-letter/, edit-log.json, server/logs/usage.jsonl, drain-log.jsonl) is manual and requires explicit user approval ≥7 days after Stage C cutover.
+
+Memoir-preservation invariant (`npm run validate-markers`, exit 0):
+  1. Schema defines no memoir tables (no `chapters`, `memoir`, `scratchpad`, `reference_text`).
+  2. Migration source (db/index.js, schema.sql, migrations/*, repositories/*, shadow-write.js, migrate-schema.mjs) references no path under `chapters/` or `/reference/` (comment-stripped grep).
+  3. `.gitignore` tracks `chapters/` and `reference/`.
+  4. Structural scan of `chapters/` and `chapters/scratchpads/` catalogs `@@marker` directives (currently zero; verb whitelist enforced if any land).
+End-to-end marker drain (synthetic scratchpad → journal skill → markers stripped) requires the `journal` skill which doesn't exist in this repo — that leg is explicitly deferred.
+
+Acceptance gates:
+
+- Gate A — Stage A schema exists, all 8 tables + schema_migrations verified. **PASS** (`npm run migrate`: "1 applied, 8 tables verified").
+- Gate B — Migration runner completes idempotently. **PASS**.
+- Gate C — Shadow-write creates DB rows when flag=true. **PASS** via direct `node -e` invocation with `SHADOW_WRITE_ENABLED=true`; DB received `manual-smoke` voice row matching `shadowQueueRow` output.
+- Gate D — Parity validator exits 0 when file and DB align. **PASS** on empty baseline (clean shadow-write test rows removed; 5/6 tables match; usage table shows pre-existing 940 historical file rows vs 0 DB rows — expected pre-Stage-B until flag is enabled and 7+ nights accumulate).
+- Gate E — `@@marker` workflow preservation invariant. **PASS** (`npm run validate-markers`).
+- Gate F — MCP query surface responds. **PASS** (direct import of OPS_QUERY_TOOLS; 5 query functions export correctly; integration-tested via rollback script's DB reads).
+- Gate G — Stage C response shapes match baseline. **DEFERRED** — Stage C cutover happens in a separate session after Stage B parity proven.
+- Gate H — Stage D files deleted, DB sole store. **DEFERRED** — explicit user approval required ≥7 days after Stage C.
+- Gate I — Rollback script restores working state. **PASS** (dry-run enumerates DB state; restore path gated behind `--confirm`).
+- Gate J — Browser/visual regression. **DEFERRED-TO-VISUAL-PASS.**
+
 See `_workspace/ideas/app-cowork-execution-plan.md` for the full phase roadmap (Phases 1–9), UI canon, proxy endpoint inventory, and acceptance criteria.
 
 ---

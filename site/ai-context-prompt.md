@@ -478,6 +478,19 @@ The App writes scratch queues under `trips/{slug}/`. Cowork (Claude Code in term
 
 `cd server && npm run harass` fires 21 requests at each non-health endpoint and asserts the 21st returns HTTP 429. Run against a live proxy (`npm run start` in a separate terminal). Prints `harass OK` on success.
 
+## 11b. OPERATIONAL DATA → SQLITE (PHASE 9)
+
+Operational data is migrating from files to `server/data/ops.db` in four staged steps. **Memoir content (`chapters/`, `reference/`, `chapters/scratchpads/` with `@@markers`) stays in files forever — the DB has no memoir tables and the migration source references no memoir paths. `npm run validate-markers` enforces this invariant.**
+
+| Stage | Status | What it is |
+|---|---|---|
+| A | **executed** | `server/data/ops.db` + 8 operational tables (usage, pending_queue, edit_log, voice_inbox, itinerary_inbox, drain_log, dead_letter, receipts_meta) + schema_migrations. WAL + busy_timeout=5000ms. `npm run migrate`. |
+| B | **code landed, flag-off default** | `server/src/middleware/shadow-write.js` + `shadow()` calls wired into queue POSTs, trip-edit apply/revert, usage-logger. Opt-in via `SHADOW_WRITE_ENABLED=true`. `npm run validate-parity` for nightly diffs; ≥7 zero-divergence nights required before Stage C. |
+| C | **code landed, NOT wired** | `server/src/db/repositories/*.js` narrow-API modules + `server/src/mcp/ops-server.js` read-only query surface. Endpoints still read/write files. Wiring happens in a separate session. |
+| D | **code landed, NOT executed** | `server/scripts/rollback-to-files.mjs` (node-invoked, not npm). Never touches memoir content; never deletes ops.db. Source-file deletion is manual, ≥7 days after Stage C stability is proven. |
+
+MCP-style query surface (`server/src/mcp/ops-server.js`): `query_pending_queue`, `query_dead_letter`, `query_usage_summary`, `query_edit_log`, `query_drain_log`. Read-only. Cowork-side consumers (catch-up, memory-promotion, queue-health) will import these directly until an MCP transport wraps them.
+
 ## 11a. BUDGET + THROTTLE (PHASE 8)
 
 Budget surfacing and enforcement sit on top of the Phase 1 `usage-logger`. The full surface:
