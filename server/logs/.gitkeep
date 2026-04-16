@@ -1,0 +1,2 @@
+# Keep the logs/ directory in the tree even though usage.jsonl and drain-log.jsonl
+# are gitignored. Phase 1 creates the dir; later phases write here.
