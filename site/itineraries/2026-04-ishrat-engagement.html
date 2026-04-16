@@ -7,7 +7,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F4D6;</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Nunito+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Great+Vibes&family=Dancing+Script:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Nunito+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Great+Vibes&family=Dancing+Script:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 
   <!-- Journal Design System — Dark Rose Theme -->
@@ -39,7 +39,7 @@
   </nav>
 
   <!-- HERO -->
-  <section class="hero itn-section">
+  <section class="hero">
     <!-- Floating decorative particles -->
     <div class="hero-particles">
       <span class="particle p1">&hearts;</span>
@@ -70,13 +70,8 @@
     <p class="hero-dates">April 20th &ndash; 28th, 2026</p>
 
     <div class="hero-cta-row">
-      <a href="#timeline" class="hero-cta">
-        <span>View Itinerary</span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </a>
+      <span class="hero-countdown">5 days to go</span>
     </div>
-
-    <div class="hero-line"></div>
   </section>
 
   <div class="page-wrapper">
@@ -913,7 +908,7 @@
           <div class="budget-stat-label">Budgeted (Apr)</div>
         </div>
         <div class="budget-stat">
-          <div class="budget-stat-value">$1,598</div>
+          <div class="budget-stat-value">$1,957</div>
           <div class="budget-stat-label">Spent</div>
         </div>
         <div class="budget-stat full-width">
@@ -991,6 +986,24 @@
         </div>
       </div>
 
+      <!-- Shopping -->
+      <div class="budget-cat">
+        <div class="budget-cat-header" onclick="toggleBudgetCat(this)">
+          <span class="budget-cat-icon">🛍</span>
+          <span class="budget-cat-name">Shopping</span>
+          <span class="budget-cat-total">$358.50</span>
+          <span class="budget-cat-chevron">&#9660;</span>
+        </div>
+        <div class="budget-cat-body">
+          <div class="budget-txn">
+            <span class="budget-txn-date">Mar 23</span>
+            <span class="budget-txn-payee">BE Store</span>
+            <span class="budget-txn-amount">$358.50</span>
+            <span class="budget-txn-card">PREMIER</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Travel Insurance -->
       <div class="budget-cat">
         <div class="budget-cat-header" onclick="toggleBudgetCat(this)">
@@ -1012,7 +1025,7 @@
     </div>
 
     <div class="budget-panel-footer">
-      Synced from <span>YNAB</span> &bull; April 15, 2026
+      Synced from <span>YNAB</span> &bull; April 15, 2026 &bull; 7:58 PM
     </div>
   </aside>
 
