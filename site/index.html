@@ -1365,6 +1365,180 @@
         </div>
       );
     }
+    const CAPTURE_CURRENCIES = ['USD','GBP','EUR','CAD','AUD','AED','PKR','INR','JPY','TRY'];
+    const CAPTURE_CATEGORIES = ['Food','Transport','Lodging','Shopping','Entertainment','Health','Other'];
+    const CAPTURE_STEPS = ['Reading image', 'Extracting details', 'Review'];
+
+    function TripCapture({ trip }) {
+      const [modalOpen, setModalOpen] = useState(false);
+      return (
+        <div style={{ display: 'grid', gap: '1rem' }}>
+          <Card variant="glass" style={{ padding: '1.75rem' }}>
+            <Text as="h3" variant="serif" size="lg" style={{ marginBottom: '0.5rem' }}>Capture</Text>
+            <Text size="sm" color="muted" style={{ marginBottom: '1.25rem' }}>Drop a receipt photo; we'll extract the details and queue it for review.</Text>
+            <Button variant="primary" icon="fa-receipt" onClick={() => setModalOpen(true)}>Capture Receipt</Button>
+          </Card>
+          {modalOpen && <CaptureModal trip={trip} onClose={() => setModalOpen(false)} />}
+        </div>
+      );
+    }
+
+    function CaptureModal({ trip, onClose }) {
+      const { show: toast } = useToast();
+      const [file, setFile] = useState(null);
+      const [previewUrl, setPreviewUrl] = useState(null);
+      const [step, setStep] = useState(0); // 0=pick, 1=upload, 2=extract, 3=review
+      const [error, setError] = useState(null);
+      const [rawText, setRawText] = useState(null);
+      const [uploaded, setUploaded] = useState(null); // { imagePath, id, visionUsed }
+      const [form, setForm] = useState({ merchant: '', amount: '', currency: trip?.currency || 'USD', date: todayISO(), category: 'Food', description: '' });
+      const [memoryWorthy, setMemoryWorthy] = useState(false);
+      const [dragOver, setDragOver] = useState(false);
+      const [submitting, setSubmitting] = useState(false);
+
+      useEffect(() => () => { if (previewUrl) URL.revokeObjectURL(previewUrl); }, [previewUrl]);
+
+      const onPick = (f) => {
+        if (!f) return;
+        if (!/^image\//.test(f.type)) { setError('Please choose an image file.'); return; }
+        if (f.size > 5 * 1024 * 1024) { setError('File too large (max 5 MB).'); return; }
+        setError(null); setRawText(null);
+        setFile(f);
+        setPreviewUrl(URL.createObjectURL(f));
+      };
+
+      const runPipeline = useCallback(async () => {
+        if (!file) return;
+        setError(null); setStep(1);
+        try {
+          const up = await window.BabuAI.uploadReceipt(file);
+          setUploaded(up); setStep(2);
+          const ex = await window.BabuAI.extractReceipt(up.imagePath);
+          if (ex.extracted) {
+            setForm(prev => ({
+              merchant:    ex.extracted.merchant    ?? prev.merchant,
+              amount:      ex.extracted.amount != null ? String(ex.extracted.amount) : prev.amount,
+              currency:    ex.extracted.currency    ?? prev.currency,
+              date:        ex.extracted.date        ?? prev.date,
+              category:    ex.extracted.category    ?? prev.category,
+              description: ex.extracted.description ?? prev.description,
+            }));
+          } else {
+            setRawText(ex.rawText || '(empty response)');
+          }
+          setUploaded(u => ({ ...u, visionUsed: ex.visionUsed }));
+          setStep(3);
+        } catch (err) {
+          setError(err.message || 'Extraction failed. You can retry or edit manually.');
+          setStep(3);
+        }
+      }, [file]);
+
+      useEffect(() => { if (file && step === 0) runPipeline(); }, [file, step, runPipeline]);
+
+      const approve = async () => {
+        if (!uploaded) return;
+        setSubmitting(true); setError(null);
+        const amountNum = Number(form.amount);
+        try {
+          const row = {
+            schemaVersion: '1',
+            id: `receipt-${uploaded.id}`,
+            createdAt: new Date().toISOString(),
+            tripSlug: trip?.slug,
+            kind: 'receipt',
+            source: 'app',
+            status: 'pending',
+            memoryWorthy,
+            imagePath: uploaded.imagePath,
+            visionUsed: Boolean(uploaded.visionUsed),
+            payload: {
+              merchant: form.merchant.trim() || null,
+              amount: Number.isFinite(amountNum) ? amountNum : null,
+              currency: form.currency || null,
+              date: form.date || null,
+              category: form.category || null,
+              description: form.description.trim() || null,
+            },
+          };
+          await window.BabuAI.queuePost('pending', row);
+          toast('Receipt queued', 'success');
+          window.dispatchEvent(new CustomEvent('queue:refresh'));
+          onClose();
+        } catch (err) {
+          setError(err.message || 'Queue write failed.');
+        } finally {
+          setSubmitting(false);
+        }
+      };
+
+      const onDrop = (e) => { e.preventDefault(); setDragOver(false); onPick(e.dataTransfer.files && e.dataTransfer.files[0]); };
+
+      return (
+        <Modal title="Capture receipt" onClose={onClose} size="md">
+          {step === 0 && !file && (
+            <div>
+              <label
+                className={`capture-drop ${dragOver ? 'is-over' : ''}`}
+                onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={onDrop}
+                style={{ display: 'grid', placeItems: 'center', padding: '2rem', border: '2px dashed var(--border, #555)', borderRadius: '0.75rem', cursor: 'pointer', gap: '0.5rem' }}>
+                <Icon name="fa-image" size="2em" />
+                <Text size="sm">Click or drop an image here</Text>
+                <Text size="sm" color="muted">JPG, PNG, HEIC, WebP · up to 5 MB</Text>
+                <input type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={e => onPick(e.target.files && e.target.files[0])} />
+              </label>
+              {error && <Text color="error" size="sm" style={{ marginTop: '0.75rem' }}>{error}</Text>}
+            </div>
+          )}
+          {file && (
+            <div style={{ display: 'grid', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 180px) 1fr', gap: '1rem', alignItems: 'start' }}>
+                {previewUrl && <img src={previewUrl} alt="Receipt preview" style={{ width: '100%', borderRadius: '0.5rem' }} />}
+                <div style={{ display: 'grid', gap: '0.5rem' }}>
+                  <StepProgress steps={CAPTURE_STEPS} current={Math.max(0, step - 1)} />
+                  {uploaded?.visionUsed !== undefined && <Badge variant="neutral" icon={uploaded.visionUsed ? 'fa-eye' : 'fa-wand-magic-sparkles'}>{uploaded.visionUsed ? 'macOS Vision OCR' : 'Haiku vision'}</Badge>}
+                  {error && <Text color="error" size="sm">{error}</Text>}
+                  {rawText && <Text size="sm" color="muted" style={{ whiteSpace: 'pre-wrap' }}>Model output (raw):{"\n"}{rawText}</Text>}
+                </div>
+              </div>
+              {step >= 3 && (
+                <div style={{ display: 'grid', gap: '0.75rem' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                    <FormField label="Merchant"><Input value={form.merchant} onChange={e => setForm({ ...form, merchant: e.target.value })} /></FormField>
+                    <FormField label="Amount"><Input type="number" step="0.01" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} /></FormField>
+                    <FormField label="Currency">
+                      <Select value={form.currency} onChange={e => setForm({ ...form, currency: e.target.value })}>
+                        {CAPTURE_CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
+                      </Select>
+                    </FormField>
+                    <FormField label="Date"><Input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} /></FormField>
+                    <FormField label="Category">
+                      <Select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
+                        {CAPTURE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                      </Select>
+                    </FormField>
+                  </div>
+                  <FormField label="Description"><Input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} /></FormField>
+                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                    <IconButton icon={memoryWorthy ? 'fa-star' : 'fa-star'} label={memoryWorthy ? 'Unmark memory-worthy' : 'Mark memory-worthy'}
+                      onClick={() => setMemoryWorthy(m => !m)}
+                      variant={memoryWorthy ? 'primary' : 'ghost'} />
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      {error && <Button variant="secondary" icon="fa-rotate" onClick={() => runPipeline()}>Retry</Button>}
+                      <Button variant="secondary" onClick={onClose}>Cancel</Button>
+                      <Button variant="primary" icon="fa-check" loading={submitting} onClick={approve}>Approve</Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </Modal>
+      );
+    }
+
     const TRIP_QUICK_ACTIONS = [
       { id: 'next',   label: "What's next today?" },
       { id: 'sumday', label: "Summarize today" },

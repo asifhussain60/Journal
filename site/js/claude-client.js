@@ -72,5 +72,39 @@
       if (!name || !/^[a-z][a-z0-9-]*$/.test(name)) throw new Error("referenceData: invalid name");
       return getJSON(`/api/reference-data/${name}`);
     },
+
+    async uploadReceipt(file) {
+      if (!(file instanceof File || file instanceof Blob)) throw new Error("uploadReceipt: File required");
+      const form = new FormData();
+      form.append("file", file);
+      const r = await fetch(BASE + "/api/upload", { method: "POST", body: form });
+      const body = await r.json().catch(() => ({ ok: false, error: "non-JSON response" }));
+      if (!r.ok || body.ok === false) {
+        const err = new Error(body.error || `HTTP ${r.status}`);
+        err.status = r.status; err.body = body; throw err;
+      }
+      return body;
+    },
+
+    async extractReceipt(imagePath) {
+      if (!imagePath) throw new Error("extractReceipt: imagePath required");
+      return getJSON("/api/extract-receipt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imagePath }),
+      });
+    },
+
+    async queuePost(name, row) {
+      return getJSON(`/api/queue/${name}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(row),
+      });
+    },
+
+    async queueGet(name) {
+      return getJSON(`/api/queue/${name}`);
+    },
   };
 })();
