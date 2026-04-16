@@ -421,6 +421,29 @@ Acceptance gates (all required to pass before tag):
 - Gate H — `cd server && npm run harass` passes, including `/api/trip-edit` and `/api/trip-edit/revert`.
 - Gate I — **DEFERRED to final visual pass.** Covers lavender theme rendering, FloatingChat edit lifecycle (dryRun → apply → revert), Edits sub-tab, regression on all prior modules.
 
+**Phase 7 Cowork synthesis layer (complete when all acceptance gates pass under `tag phase-07-cowork-synthesis`):**
+
+Six preview-only orchestrators land under `skills-staging/` as Claude Code skills (`<name>/skill.md`, frontmatter + description + body). None write to canonical state (memoir, YNAB, git, trip.yaml); Phase 8 drains do. All accept `--dry-run` (default), `--slug <slug>`, and emit markdown preview plus optional structured output.
+
+- **`catch-up`** — End-of-day synthesis. Stitches `trips/{slug}/journal/day-NN.md` + `pending.json` + `voice-inbox.json` + `itinerary-inbox.json` + `trip.yaml` into a five-section preview (day cursor → today's log → captures → memoir seeds → next-day planning). Flags: `--scope today|yesterday|all`, `--skip-voice`, `--skip-receipts`, `--skip-itinerary`.
+- **`voice-to-prose`** — Voice-inbox synthesis with voice DNA. Reads `trips/{slug}/voice-inbox.json` (single JSON array per Phase 5 contract) + `reference/voice-fingerprint.md` + per-trip `voice-guide.md`. Classifies each row (`memoir-seed` / `memory-worthy` / `throwaway` / `needs-more`) and emits candidate prose for `memoir-seed` / `needs-more`. Voice-DNA check enforces no em dashes, no travel-blogger phrasing, no therapy language, no invented detail — failed candidates tagged `FAILED-DNA` and withheld. Flags: `--entries <ids>`, `--classify-only`, `--target trip|memoir`.
+- **`memory-promotion`** — Routes `memoryWorthy: true` rows from `pending.json` + `voice-inbox.json` to exactly one of: `memoir chapter`, `reference/incident-bank.md`, `reference/quotes-library.txt`, `food-photo`, or `drop`. Chapter selection consults `reference/chapter-status.md` + `reference/thematic-arc.md`; `reference/temporal-guardrail.md` and `reference/locked-paragraphs.md` are respected. Flags: `--query` (backlog inspector), `--kind`, `--threshold low|med|high`.
+- **`queue-triage`** — Cross-queue preflight. Classifies every row with priority (`high`/`med`/`low`), effort (`quick`/`complex`/`blocked`), destination-class (`memoir`/`ynab`/`git`/`itinerary-replace`/`drop`). Emits counts table, suggested processing order, skip list, stuck/dead-letter section. Phase 8 `daily-drain` will call `queue-triage --auto` as preflight. Flags: `--auto`, `--min-priority`, `--kinds`.
+- **`queue-health`** — Read-only aggregator. Emits JSON (per-trip `queues` + `deadLetter` + `buckets` + `health`; rollup totals) and text summary. Health color rules: green (clean), yellow (aged rows OR dead-letter <24h OR totalPending > 25), red (any stuck OR dead-letter >24h OR oldestPendingAgeHours > 72). Feeds Phase 8 drain preflight and Home dashboard card. Flags: `--format json|text|both`, `--max-age-days`.
+- **`food-photo`** — Pairs food receipts with memoir food memories. Signal matrix: temporal overlap (±24h), merchant match, geo match (via `trip.yaml` day location), dish match (payload items ∩ memoir text), trip-slug match. Searches `trips/{slug}/memoir-extracts.md`, `chapters/*.md`, `reference/incident-bank.md`. Respects `locked-paragraphs.md` and `@@markers` boundaries — suggestions stay at footnote/caption level, never inline edits. Flags: `--scope trip|memoir|both`, `--min-confidence`, `--entries`, `--photo-only`.
+
+Supporting artifacts (local, untracked per workspace policy): `_workspace/orchestrators-readme.md` (catalog + chaining diagram), `_workspace/test-fixtures/` (receipt, voice-inbox array, itinerary-inbox fixtures), `_workspace/handoffs/phase-07-acceptance-gates.md` (manual test runbook).
+
+Acceptance gates (all required to pass before tag; `DEFERRED-TO-VISUAL-PASS` means manual invocation in a Claude Code session — see `_workspace/handoffs/phase-07-acceptance-gates.md`):
+
+- Gate A — All six orchestrators invoke without error under `--dry-run`. `DEFERRED-TO-VISUAL-PASS`.
+- Gate B — `queue-triage --dry-run` reads all three live queue shapes correctly. `DEFERRED-TO-VISUAL-PASS`.
+- Gate C — `voice-to-prose --dry-run` applies voice DNA; em-dash / travel-blogger / therapy-language content is withheld as `FAILED-DNA`. `DEFERRED-TO-VISUAL-PASS`.
+- Gate D — `memory-promotion --query` and `--dry-run` emit backlog + routing plan respectively. `DEFERRED-TO-VISUAL-PASS`.
+- Gate E — `queue-health --format both` returns the documented JSON shape plus text summary with correct health color. `DEFERRED-TO-VISUAL-PASS`.
+- Gate F — `food-photo --dry-run` emits signal matrix and candidate memoir passage (or documents no match). `DEFERRED-TO-VISUAL-PASS`.
+- Gate G — **Phase 1–6 regression live-server smoke:** receipt approve writes `pending.json`; voice capture appends to `voice-inbox.json` (JSON array length +1); itinerary paste writes `itinerary-inbox.json`; `/api/trip-edit` dryRun + apply + revert work; `/health` ok; `<script>` block still ≤ 2,600 lines. `DEFERRED-TO-VISUAL-PASS`.
+
 See `_workspace/ideas/app-cowork-execution-plan.md` for the full phase roadmap (Phases 1–9), UI canon, proxy endpoint inventory, and acceptance criteria.
 
 ---

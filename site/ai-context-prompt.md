@@ -477,3 +477,20 @@ The App writes scratch queues under `trips/{slug}/`. Cowork (Claude Code in term
 ### 10.5 Harassment check
 
 `cd server && npm run harass` fires 21 requests at each non-health endpoint and asserts the 21st returns HTTP 429. Run against a live proxy (`npm run start` in a separate terminal). Prints `harass OK` on success.
+
+## 11. COWORK ORCHESTRATORS (PHASE 7)
+
+Six preview-only Claude Code skills under `skills-staging/`. Each is `<name>/skill.md` (frontmatter + description + body). None write to canonical state; Phase 8 drains own the writes. Each accepts `--dry-run` (default) and `--slug <slug>`.
+
+| Skill | Reads | Purpose |
+|---|---|---|
+| `catch-up` | trip-log day-NN.md, all queues, trip.yaml | End-of-day synthesis preview (5-section markdown) |
+| `voice-to-prose` | voice-inbox.json (single JSON array), voice-fingerprint + per-trip voice-guide | Classifies voice rows; emits DNA-checked prose candidates |
+| `memory-promotion` | pending.json + voice-inbox.json (memoryWorthy), chapter-status, incident-bank, quotes-library | Routes memoryWorthy rows to memoir / reference / food-photo / drop |
+| `queue-triage` | all queues + dead-letter | Classifies priority/effort/destination-class; emits processing order |
+| `queue-health` | all queues + receipts/snapshots buckets | JSON + text summary, green/yellow/red health; feeds Phase 8 drain preflight + dashboard card |
+| `food-photo` | pending.json receipts + receipts/, memoir-extracts + chapters + incident-bank | Pairs food receipts with memoir food memories; emits cross-link/merge suggestions |
+
+Voice-inbox shape is a **single JSON array** (Phase 5 contract). Orchestrators reject legacy `voice-inbox/*.jsonl` assumptions.
+
+Workspace artifacts for Phase 7 (local, untracked): `_workspace/orchestrators-readme.md`, `_workspace/test-fixtures/`, `_workspace/handoffs/phase-07-acceptance-gates.md`.
