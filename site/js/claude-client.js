@@ -50,22 +50,39 @@
       });
     },
 
-    async tripQA(message, tripContext) {
+    async tripQA(message, tripSlugOrContext) {
       if (!message || !message.trim()) throw new Error("tripQA: message is required");
+      const body = { message };
+      if (typeof tripSlugOrContext === 'string') {
+        body.tripSlug = tripSlugOrContext;
+      } else if (tripSlugOrContext) {
+        body.tripSlug = tripSlugOrContext.slug || null;
+      }
       return getJSON("/api/trip-qa", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, tripContext: tripContext ?? null }),
+        body: JSON.stringify(body),
       });
     },
 
-    async tripAssistant(message, tripContext, intent) {
+    async tripAssistant(message, tripSlugOrContext, intent) {
       if (!message || !message.trim()) throw new Error("tripAssistant: message is required");
+      const body = { message, intent: intent ?? null };
+      if (typeof tripSlugOrContext === 'string') {
+        body.tripSlug = tripSlugOrContext;
+      } else if (tripSlugOrContext) {
+        body.tripSlug = tripSlugOrContext.slug || null;
+      }
       return getJSON("/api/trip-assistant", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, tripContext: tripContext ?? null, intent: intent ?? null }),
+        body: JSON.stringify(body),
       });
+    },
+
+    async tripFull(slug) {
+      if (!slug) throw new Error("tripFull: slug is required");
+      return getJSON(`/api/trip/${slug}/full`);
     },
 
     async referenceData(name) {
@@ -104,12 +121,18 @@
       });
     },
 
-    async tripEdit(message, tripContext, opts = {}) {
+    async tripEdit(message, tripSlugOrContext, opts = {}) {
       if (!message || !message.trim()) throw new Error("tripEdit: message required");
+      const body = { message, dryRun: opts.dryRun !== false };
+      if (typeof tripSlugOrContext === 'string') {
+        body.tripSlug = tripSlugOrContext;
+      } else if (tripSlugOrContext) {
+        body.tripSlug = tripSlugOrContext.slug || null;
+      }
       return getJSON("/api/trip-edit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, tripContext: tripContext ?? null, dryRun: opts.dryRun !== false }),
+        body: JSON.stringify(body),
       });
     },
 

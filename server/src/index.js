@@ -250,17 +250,25 @@ app.post("/api/chat", async (req, res) => {
 });
 
 // --- Trip Q&A (Haiku) --------------------------------------------------------
-// Body: { message, tripContext }
-//   - tripContext is the active trip JSON (may be null). Stringified into the
+// Body: { message, tripSlug?, tripContext? }
+//   - tripSlug: optional slug to read full trip.yaml server-side
+//   - tripContext: fallback trip JSON (may be null). Stringified into the
 //     head of the user message so the prompt's instructions stay deterministic.
 //   - Pinned to claude-haiku-4-5-20251001 via prompt.model; caller may not override.
 app.post("/api/trip-qa", async (req, res) => {
-  const { message, tripContext } = req.body ?? {};
+  const { message, tripSlug, tripContext: clientCtx } = req.body ?? {};
   if (typeof message !== "string" || message.trim().length === 0) {
     return res.status(400).json({ ok: false, error: "message (non-empty string) is required" });
   }
   req.body.promptName = "trip-qa"; // ensure usage-logger captures it
   try {
+    let tripContext;
+    try {
+      const slug = tripSlug || clientCtx?.slug || (await getActiveTripSlug());
+      tripContext = await readTripObj(slug);
+    } catch (e) {
+      tripContext = clientCtx || null;
+    }
     const prompt = loadPrompt("trip-qa");
     const ctxBlock = tripContext
       ? `Active trip context (JSON):\n\`\`\`json\n${JSON.stringify(tripContext, null, 2)}\n\`\`\`\n\n`
@@ -548,7 +556,7 @@ app.get("/api/queue/:name", async (req, res) => {
 const EDIT_KEYWORDS_RE = /\b(edit|change|move|add|remove|update|modify|set|delete|rename)\b/i;
 
 app.post("/api/trip-edit", async (req, res) => {
-  const { message, dryRun, tripContext } = req.body ?? {};
+  const { message, dryRun, tripSlug, tripContext: clientCtx } = req.body ?? {};
   if (typeof message !== "string" || message.trim().length === 0) {
     return res.status(400).json({ ok: false, error: "message (non-empty string) is required" });
   }
@@ -556,6 +564,15 @@ app.post("/api/trip-edit", async (req, res) => {
 
   const tier0 = EDIT_KEYWORDS_RE.test(message);
   try {
+    let tripContext;
+    let slug;
+    try {
+      slug = tripSlug || clientCtx?.slug || (await getActiveTripSlug());
+      tripContext = await readTripObj(slug);
+    } catch (e) {
+      slug = tripSlug || clientCtx?.slug;
+      tripContext = clientCtx || null;
+    }
     const prompt = loadPrompt("trip-edit");
     const ctxBlock = tripContext
       ? `Active trip (JSON):\n\`\`\`json\n${JSON.stringify(tripContext, null, 2)}\n\`\`\`\n\n`
@@ -599,7 +616,6 @@ app.post("/api/trip-edit", async (req, res) => {
     }
 
     try {
-      const slug = tripContext?.slug || (await getActiveTripSlug());
       const applied = await applyTripEdit(slug, { intent: proposed.summary || message.trim(), patch: response.proposed.patch });
       if (!applied.ok) {
         shadow("edit-log", { id: applied.id || `fail-${Date.now()}`, tripSlug: slug, intent: response.intent, userMessage: message, proposedDiff: response.proposed, status: "failed", error: applied.error });
@@ -637,6 +653,20 @@ app.get("/api/edit-log", async (_req, res) => {
     const items = await readEditLog(slug);
     res.json({ ok: true, items, tripSlug: slug });
   } catch (err) {
+    res.status(500).json({ ok: false, error: err?.message ?? String(err) });
+  }
+});
+
+app.get("/api/trip/:slug/full", async (req, res) => {
+  const { slug } = req.params;
+  if (!slug || !/^[a-z0-9-]+$/.test(slug)) {
+    return res.status(400).json({ ok: false, error: "invalid slug" });
+  }
+  try {
+    const trip = await readTripObj(slug);
+    res.json({ ok: true, trip });
+  } catch (err) {
+    if (err.code === "ENOENT") return res.status(404).json({ ok: false, error: "trip not found" });
     res.status(500).json({ ok: false, error: err?.message ?? String(err) });
   }
 });

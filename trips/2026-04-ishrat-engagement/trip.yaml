@@ -72,8 +72,284 @@ dayone:
     - new-jersey
     - 2026
 
+# Day-by-Day Itinerary
+days:
+  - day: 1
+    date: 2026-04-20
+    title: Welcome Home
+    notes: "Arrival day. Jet lag recovery meal."
+    events:
+      - time: "2:55 PM"
+        event: "UA 147 lands at EWR"
+        venue: "Newark Liberty International Airport, Terminal C, Newark, NJ 07114"
+        tag: TRAVEL
+        notes: "Allow 30–45 min for customs & baggage. Meet at arrivals ~3:30–3:45 PM."
+      - time: "~4:00 PM"
+        event: "Drive to Home2 Suites, New Brunswick"
+        venue: "3 Jersey Ave, New Brunswick, NJ 08901"
+        tag: TRAVEL
+        notes: "~40 min via NJ Turnpike. Arrive ~4:40 PM. Check in, shower, decompress."
+      - time: "6:30 PM"
+        event: "Dinner at Mithaas"
+        venue: "1655 Oak Tree Rd, Edison, NJ 08820"
+        tag: DINING
+        notes: "South Asian sweets & dining (~10 min from hotel). She'll be on London time—midnight by 7 PM ET. Warm meal, then early night."
+
+  - day: 2
+    date: 2026-04-21
+    title: "Settle In & Planning"
+    notes: "Jet lag management day. Breakfast early, main advisor meeting, light meals."
+    events:
+      - time: "7:30 AM"
+        event: "Breakfast at Skylark Diner"
+        venue: "17 Wooding Ave, Edison, NJ 08817"
+        tag: DINING
+        notes: "Famous NJ diner featured on Diners, Drive-Ins & Dives (~12 min). Scratch kitchen, cage-free eggs, craft pancakes. Jet lag will have you both up early."
+      - time: "11:00 AM"
+        event: "Lunch at Baithakh"
+        venue: "1980 NJ-27, North Brunswick, NJ 08902"
+        tag: DINING
+        notes: "Pakistani grill (~5 min) — opens 11 AM. Hearty lunch before the advisor meeting."
+      - time: "2:00 PM"
+        event: "Financial Advisor Meeting"
+        venue: ""
+        tag: APPOINTMENT
+        notes: "Afternoon appointment (~1 hour). She'll be alert by this time."
+      - time: "6:30 PM"
+        event: "Dinner at The Pho House"
+        venue: "Wick Plaza, 1199 Amboy Ave, Edison, NJ 08837"
+        tag: DINING
+        notes: "Vietnamese pho and rice plates (~15 min) — light and perfect for evening."
+      - time: "7:30 PM"
+        event: "Dessert at Crispy Cones"
+        venue: "Wick Plaza, 1199 Amboy Ave, Edison, NJ 08837"
+        tag: DINING
+        notes: "Walk over in the same plaza for Shark Tank-famous rotisserie dough cones with soft serve. Open till 11 PM."
+
+  - day: 3
+    date: 2026-04-22
+    title: "Stephanie & Movie Premiere"
+    notes: "Day with Stephanie. 'Michael' IMAX screening."
+    events:
+      - time: "7:30 AM"
+        event: "Breakfast at Somerset Diner"
+        venue: "1045 Easton Ave, Somerset, NJ 08873"
+        tag: DINING
+        notes: "Classic 24-hour NJ diner (~15 min) — famous breakfast platters, fresh-made everything. Stephanie lunch at noon, so keep it light."
+      - time: "12:00 PM"
+        event: "Light Lunch with Stephanie"
+        venue: "N-Thai Palace, 1020 Route 18, East Brunswick, NJ 08816"
+        tag: DINING
+        notes: "Keep it light (~10 min) — share a soup and appetizer. Korean BBQ dinner at 4:30 PM, then movie at 7."
+      - time: "4:30 PM"
+        event: "Early Date Night Dinner"
+        venue: "Prime No. 7, 517 US-1, Iselin, NJ 08830"
+        tag: DINING
+        notes: "Prime No. 7 — Halal all-you-can-eat Korean BBQ. Eat early so you're ready for the 7 PM movie."
+      - time: "7:00 PM"
+        event: "\"Michael\" IMAX Screening"
+        venue: "AMC Brunswick Square 13, 755 NJ-18, East Brunswick, NJ 08816"
+        tag: ENTERTAINMENT
+        notes: "Starring Jaafar Jackson, directed by Antoine Fuqua. Runtime ~2.5 hrs. Out by ~9:30 PM. Book on Fandango. Perfect post-dinner date night."
+
+  - day: 4
+    date: 2026-04-23
+    title: "Shalwar Kameez Shopping"
+    notes: "Men's traditional Pakistani outfit shopping marathon."
+    events:
+      - time: "7:30 AM"
+        event: "Breakfast at Edison Diner"
+        venue: "101 US Highway 1, Edison, NJ 08817"
+        tag: DINING
+        notes: "Fresh-from-scratch breakfast (~12 min) — homemade bread, hearty omelettes, great portions. Fuel up before the shopping marathon."
+      - time: "9:30 AM"
+        event: "Men's Shalwar Kameez Shopping"
+        venue: ""
+        tag: SHOPPING
+        notes: "Finding the perfect Pakistani-style outfit for the engagement party. Hit the local boutiques."
+      - time: "10:00 AM"
+        event: "Rangreza"
+        venue: "137 NJ-27, Edison, NJ 08820"
+        tag: SHOPPING
+        notes: "Premier Pakistani boutique (~15 min) — men's shalwar kameez, kurtas, waistcoats. ☎ (732) 762-5425"
+      - time: "11:30 AM"
+        event: "East Avenue"
+        venue: "1647 NJ-27, North Brunswick, NJ 08902"
+        tag: SHOPPING
+        notes: "Multi-brand boutique since 2019 (~5 min) — carries MTJ, Gul Ahmed, Asim Jofa, and more. Great for comparing styles."
+      - time: "12:00 PM"
+        event: "J. Junaid Jamshed"
+        venue: "2421 US Hwy 1 S, North Brunswick, NJ 08902"
+        tag: SHOPPING
+        notes: "Flagship Pakistani brand (~5 min) — premium men's shalwar kameez, kurtas, waistcoats. ☎ (732) 940-6000. Start early — leave time for alterations and matching accessories."
+      - time: "12:30 PM"
+        event: "Quick Bite at Amin's"
+        venue: "3861 Bergenline Ave, Union City, NJ 07087"
+        tag: DINING
+        notes: "Halal Chinese — keep it light, noodle soup or a small plate. Tabaq dinner is the main event tonight."
+      - time: "7:00 PM"
+        event: "Dinner at Tabaq"
+        venue: "1625 Oak Tree Rd, Edison, NJ 08820"
+        tag: DINING
+        notes: "Pakistani & Chinese halal (~15 min) — great vegetarian (Palak Paneer, Chana Masala) and meat (tandoori, biryani). Big parking lot."
+
+  - day: 5
+    date: 2026-04-24
+    title: "The Engagement Party"
+    notes: "The main event. Full day of preparation and celebration."
+    events:
+      - time: "7:30 AM"
+        event: "Breakfast at Omega Diner"
+        venue: "1337 US-1, North Brunswick, NJ 08902"
+        tag: DINING
+        notes: "Classic American diner (~5 min) — light eggs, toast, tea. Keep it easy; the engagement party tonight will be a heavy dinner."
+      - time: "10:00 AM"
+        event: "Final Preparations"
+        venue: ""
+        tag: PREPARATION
+        notes: "Hair and nails appointment (~2–3 hours). Final outfit check, steam dress, pack essentials."
+      - time: "2:00 PM"
+        event: "Get Ready & Load the Car"
+        venue: ""
+        tag: PREPARATION
+        notes: "Get dressed, final touch-ups, fill gas, load car. Be road-ready by 3:15 PM."
+      - time: "3:30 PM"
+        event: "Drive to Fresh Meadows, Queens"
+        venue: "183-10 Horace Harding Expy, NY 11365"
+        tag: TRAVEL
+        notes: "ETA ~4:45–5:15 PM via Holland Tunnel → LIE. Friday evening traffic adds 20–30 min. Leave by 3:30 PM sharp—no later."
+      - time: "~5:30 PM"
+        event: "The Celebration"
+        venue: "183-10 Horace Harding Expy, Fresh Meadows, NY 11365"
+        tag: ENGAGEMENT_HIGHLIGHT
+        notes: "An unforgettable evening of family, love, and new beginnings."
+
+  - day: 6
+    date: 2026-04-25
+    title: "Tulips & Farm Market"
+    notes: "Post-party recovery. Nature and outdoor leisure."
+    events:
+      - time: "8:00 AM"
+        event: "Breakfast at Perkins"
+        venue: "286 Route 18, East Brunswick, NJ 08816"
+        tag: DINING
+        notes: "Post-party recovery breakfast (~10 min) — bakery-fresh muffins, hearty plates, and strong coffee. Opens 8 AM, perfect for sleeping in a bit after the party."
+      - time: "1:00 PM"
+        event: "Drive to Holland Ridge Farms"
+        venue: ""
+        tag: TRAVEL
+        notes: "Head south to Cream Ridge, NJ (~40 min). New Jersey's premier tulip destination — peak bloom in late April."
+      - time: "1:45 PM"
+        event: "Holland Ridge Farms — Tulip Fields"
+        venue: "2 Savannah Rd, Cream Ridge, NJ 08514"
+        tag: NATURE
+        notes: "Millions of tulips across rolling fields. U-pick flowers, stunning photo ops, and a relaxed walk through the colours. Allow ~2 hours to soak it in. Buy tickets online in advance at hollandridgefarms.com — late April weekends sell out. Wear comfortable shoes (fields can be soft)."
+      - time: "~3:45 PM"
+        event: "Eastmont Orchards Farm Market"
+        venue: "223 Route 537, Colts Neck, NJ 07722"
+        tag: NATURE
+        notes: "Quick stop on the way back (~10 min from Holland Ridge). Fresh local produce, baked goods, honey, and seasonal treats. A lovely farm-stand experience."
+      - time: "6:30 PM"
+        event: "Dinner at Delhi Garden"
+        venue: "1677 Oak Tree Rd, Edison, NJ 08820"
+        tag: DINING
+        notes: "Indian & Pakistani (~10 min) — relaxed meal close to home to debrief about the party."
+
+  - day: 7
+    date: 2026-04-26
+    title: "Delaware Day Trip"
+    notes: "Extended day trip to Brandywine Valley, gardens, and tax-free shopping."
+    events:
+      - time: "7:30 AM"
+        event: "Breakfast at Milltown Diner"
+        venue: "30 N Main St, Milltown, NJ 08850"
+        tag: DINING
+        notes: "Beloved local gem (~10 min) — famous omelettes, generous portions, very affordable. Quick fuel-up before the long drive to Brandywine Valley."
+      - time: "10:30 AM"
+        event: "Longwood Gardens"
+        venue: "1001 Longwood Rd, Kennett Square, PA 19348"
+        tag: NATURE
+        notes: "One of the world's great botanical gardens — 1,077 acres of spring blooms, fountains, conservatories, and scenic walking paths. Absolutely stunning in late April. Book timed-entry tickets at longwoodgardens.org. Opens 10 AM Sundays. Allow ~2 hours. Wear comfortable walking shoes."
+      - time: "12:45 PM"
+        event: "Scenic Brandywine Valley Drive"
+        venue: ""
+        tag: SCENIC_DRIVE
+        notes: "Wind through the Brandywine Valley on Route 52 & Creek Road — rolling hills, historic estates, stone bridges, and creek-side views. One of the prettiest drives in the Mid-Atlantic. ~30 min to Christiana."
+      - time: "1:15 PM"
+        event: "Christiana Mall"
+        venue: "132 Christiana Mall, Newark, DE 19702"
+        tag: SHOPPING
+        notes: "Delaware's premier mall — tax-free shopping! Nordstrom, Apple, Coach, Michael Kors, H&M, and 130+ stores. Grab lunch at the food court or sit-down restaurants inside. Tax-free shopping saves 6–7% on everything. Plan ~2.5 hours here. Mall closes at 6 PM on Sundays."
+      - time: "4:00 PM"
+        event: "Brandywine Creek State Park"
+        venue: "41 Adams Dam Rd, Wilmington, DE 19807"
+        tag: NATURE
+        notes: "A quick scenic walk along Brandywine Creek (~15 min north of mall) — gentle trails, creek views, and a beautiful stone-arch bridge. Perfect stretch after the mall. The Indian Springs Trail (1.2 mi loop) is flat and pretty — ideal for a 30–40 min stroll."
+      - time: "4:45 PM"
+        event: "Drive to Red Bank, NJ"
+        venue: ""
+        tag: TRAVEL
+        notes: "Head back east via I-95 & NJ Turnpike (~1 hr 30 min). Arrive with time to stroll charming downtown Red Bank before dinner."
+      - time: "7:00 PM"
+        event: "Dinner at The Melting Pot"
+        venue: "2 Bridge Ave, Red Bank, NJ 07701"
+        tag: DINING
+        notes: "Fondue date night — cheese, entrées, and chocolate fondue. The perfect end to a big day out. Book ahead at meltingpot.com or (732) 475-9222. Red Bank is on the way home from Delaware, so the route works."
+
+  - day: 8
+    date: 2026-04-27
+    title: "Spa Day & Farewell"
+    notes: "Relaxation and early packing before departure."
+    events:
+      - time: "7:30 AM"
+        event: "Breakfast at IHOP"
+        venue: "1431 US Route 1, North Brunswick, NJ 08902"
+        tag: DINING
+        notes: "Opens 6 AM — quick pancakes and coffee (~5 min) before packing. Start organizing luggage when you get back."
+      - time: "9:30 AM"
+        event: "Drive to Ocean Place Resort & Spa"
+        venue: "1 Ocean Blvd, Long Branch, NJ 07740"
+        tag: TRAVEL
+        notes: "~40 min south. Arrive ~10:10 AM."
+      - time: "10:30 AM"
+        event: "Ocean Place Spa — Full Day"
+        venue: "1 Ocean Blvd, Long Branch, NJ 07740"
+        tag: SPA
+        notes: "Oceanfront spa with indoor pool, sauna, steam room, and treatment rooms. Couples massage available. Ocean views from the deck. Book ahead at oceanplace.com or call (732) 571-4000. Plan to leave by ~4:00 PM."
+      - time: "6:30 PM"
+        event: "Farewell Dinner at Baba Grill"
+        venue: "379 George St, New Brunswick, NJ 08901"
+        tag: DINING
+        notes: "Middle Eastern halal. Easy drive back from the Shore (~25 min to home)."
+
+  - day: 9
+    date: 2026-04-28
+    title: "Until We Meet Again"
+    notes: "Final day. Departure back to London."
+    events:
+      - time: "8:00 AM"
+        event: "Farewell Breakfast at Colonial Diner"
+        venue: "560 State Rt 18, East Brunswick, NJ 08816"
+        tag: DINING
+        notes: "Classic NJ diner since 1959 (~10 min) — last breakfast together before the flight. Famous omelettes and comfort food."
+      - time: "12:00 PM"
+        event: "Final Packing & Check Out"
+        venue: ""
+        tag: PREPARATION
+        notes: "Double-check luggage, confirm online check-in, and say goodbye to Home2 Suites."
+      - time: "2:00 PM"
+        event: "Drive to EWR"
+        venue: "Newark Liberty International Airport, Terminal C, Newark, NJ 07114"
+        tag: TRAVEL
+        notes: "~40 min to Terminal C (United hub). Arrive ~2:40 PM — 2 hrs 45 min before departure for international check-in."
+      - time: "5:25 PM"
+        event: "Flight UA 16 Departs"
+        venue: "Newark Liberty International Airport, Terminal C, Newark, NJ 07114"
+        tag: DEPARTURE
+        notes: "Arrives in LHR at 5:55 AM (+1 day). Seat 33D, Boeing 767-300. Check in online 24 hours before (by Mon 5:25 PM)."
+
 # Tracking
 created: 2026-04-14
-last_updated: 2026-04-14
+last_updated: 2026-04-16
 photo_count: 0
 journal_entries: 9

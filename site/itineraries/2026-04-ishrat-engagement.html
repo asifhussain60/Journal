@@ -13,6 +13,9 @@
   <!-- Journal Design System — Dark Rose Theme -->
   <link rel="stylesheet" href="../css/itinerary-dark.css">
 
+  <!-- Floating Chat Widget -->
+  <link rel="stylesheet" href="../css/floating-chat.css">
+
   <!-- Font Awesome for nav icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
 
@@ -1040,6 +1043,9 @@
     <div class="heart-row">&hearts; &hearts; &hearts;</div>
   </footer>
 
+  <!-- Floating Chat Widget Root -->
+  <div id="floating-chat-root"></div>
+
   <!-- JOURNAL FAB & MODAL -->
   <button class="fab" onclick="openJournal()">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
@@ -1072,6 +1078,134 @@
       </div>
     </div>
   </div>
+
+  <!-- BabuAI client + Trip Context + Floating Chat -->
+  <script src="../js/claude-client.js"></script>
+  <script>
+    window.__tripContext = {
+      slug: '2026-04-ishrat-engagement',
+      name: "Ishrat's Engagement Party Trip",
+      dates: { start: '2026-04-20', end: '2026-04-28', days: 9 }
+    };
+  </script>
+  <script src="../js/floating-chat.js"></script>
+
+  <!-- Data-Driven Itinerary Renderer — Fetches trip data and re-renders timeline -->
+  <script>
+    (function() {
+      var SLUG = '2026-04-ishrat-engagement';
+      var API_BASE = 'http://localhost:3001';
+
+      function renderItinerary(trip) {
+        console.log('[ITIN:RENDER]', trip.name, trip.days ? trip.days.length + ' days' : 'no days');
+
+        var timeline = document.querySelector('.timeline');
+        if (!timeline || !trip.days || !trip.days.length) return;
+
+        // Build new HTML for all day cards
+        var html = '';
+        trip.days.forEach(function(day) {
+          var isOpen = day.day === 1 ? ' open' : '';
+          html += '<div class="day-card' + isOpen + '" onclick="toggleCard(this)">';
+          html += '  <div class="day-header">';
+          html += '    <div class="day-info">';
+          html += '      <span class="day-label">Day ' + day.day + ' &bullet; ' + formatDayDate(day.date) + '</span>';
+          html += '      <h3 class="day-title">' + escHtml(day.title) + '</h3>';
+          html += '    </div>';
+          html += '    <div class="day-toggle">&#9660;</div>';
+          html += '  </div>';
+          html += '  <div class="day-body">';
+          html += '    <div class="event-list">';
+
+          if (day.events && day.events.length) {
+            day.events.forEach(function(ev) {
+              html += '      <div class="event">';
+              if (ev.time) {
+                html += '        <div class="event-time">' + escHtml(ev.time) + '</div>';
+              }
+              html += '        <div class="event-details">';
+              html += '          <strong>' + escHtml(ev.event) + '</strong>';
+
+              if (ev.desc) {
+                html += '          <div class="event-desc">' + escHtml(ev.desc) + '</div>';
+              }
+              if (ev.address) {
+                html += '          <div class="event-addr">' + escHtml(ev.address) + '</div>';
+              }
+              if (ev.tag) {
+                var tagClass = 'tag';
+                if (ev.tag.toLowerCase().includes('dine') || ev.tag.toLowerCase().includes('dining') || ev.tag.toLowerCase().includes('breakfast') || ev.tag.toLowerCase().includes('dessert')) {
+                  tagClass = 'tag tag-dine';
+                } else if (ev.tag.toLowerCase().includes('travel')) {
+                  tagClass = 'tag tag-travel';
+                } else if (ev.tag.toLowerCase().includes('event')) {
+                  tagClass = 'tag tag-event';
+                } else if (ev.tag.toLowerCase().includes('rest') || ev.tag.toLowerCase().includes('nature') || ev.tag.toLowerCase().includes('market') || ev.tag.toLowerCase().includes('shopping')) {
+                  tagClass = 'tag tag-rest';
+                } else if (ev.tag.toLowerCase().includes('celebration')) {
+                  tagClass = 'tag tag-celebration';
+                }
+                html += '          <span class="' + tagClass + '">' + escHtml(ev.tag) + '</span>';
+              }
+
+              if (ev.tip) {
+                html += '          <div class="event-tip">' + escHtml(ev.tip) + '</div>';
+              }
+
+              html += '        </div>';
+              html += '      </div>';
+            });
+          } else {
+            html += '      <div class="event"><div class="event-details"><p class="event-desc" style="opacity:0.5">No events planned yet — use the Trip Assistant to add activities.</p></div></div>';
+          }
+
+          html += '    </div>'; // .event-list
+          html += '  </div>'; // .day-body
+          html += '</div>'; // .day-card
+        });
+
+        timeline.innerHTML = html;
+
+        // Auto-open day 1
+        var firstCard = timeline.querySelector('.day-card');
+        if (firstCard) firstCard.classList.add('open');
+      }
+
+      function formatDayDate(dateStr) {
+        if (!dateStr) return '';
+        var d = new Date(dateStr + 'T12:00:00');
+        var days = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
+        var months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+        return days[d.getDay()] + ', ' + months[d.getMonth()] + ' ' + d.getDate();
+      }
+
+      function escHtml(s) {
+        if (!s) return '';
+        var d = document.createElement('div');
+        d.textContent = s;
+        return d.innerHTML;
+      }
+
+      // Fetch and render on load
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log('[ITIN:LOAD]', 'Fetching trip data for', SLUG);
+        fetch(API_BASE + '/api/trip/' + SLUG + '/full')
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (data.ok && data.trip) {
+              renderItinerary(data.trip);
+              // Store for chat widget access
+              window.__tripData = data.trip;
+            } else {
+              console.log('[ITIN:ERR]', 'API returned', data.error || 'no trip data');
+            }
+          })
+          .catch(function(err) {
+            console.log('[ITIN:ERR]', 'Fetch failed, keeping static HTML', err.message);
+          });
+      });
+    })();
+  </script>
 
   <script>
     // Accordion Toggle for Timeline
