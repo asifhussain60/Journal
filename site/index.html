@@ -1138,7 +1138,8 @@
       { id: 'overview', label: 'Overview', icon: 'fa-map-location-dot' },
       { id: 'capture',  label: 'Capture',  icon: 'fa-camera-retro' },
       { id: 'tools',    label: 'Tools',    icon: 'fa-toolbox' },
-      { id: 'queue',    label: 'Queue',    icon: 'fa-inbox' }
+      { id: 'queue',    label: 'Queue',    icon: 'fa-inbox' },
+      { id: 'edits',    label: 'Edits',    icon: 'fa-clock-rotate-left' }
     ];
 
     function TripModule({ trip, loading, error, initialSubTab = 'overview' }) {
@@ -1195,6 +1196,7 @@
           {subTab === 'capture'  && <TripCapture  trip={trip} />}
           {subTab === 'tools'    && <TripTools    trip={trip} />}
           {subTab === 'queue'    && <QueuePanel   trip={trip} />}
+          {subTab === 'edits'    && <EditsPanel   trip={trip} />}
           {subTab === 'overview' && <FloatingChat trip={trip} />}
         </div>
       );
@@ -1359,6 +1361,49 @@
         </Card>
       );
     }
+    function EditsPanel({ trip }) {
+      const [state, setState] = useState({ items: null, loading: true, error: null });
+      const [tick, setTick] = useState(0);
+      useEffect(() => {
+        let cancelled = false;
+        setState(s => ({ ...s, loading: true }));
+        window.BabuAI.editLogGet()
+          .then(body => { if (!cancelled) setState({ items: body.items || [], loading: false, error: null }); })
+          .catch(err => { if (!cancelled) setState({ items: [], loading: false, error: err.message }); });
+        return () => { cancelled = true; };
+      }, [tick]);
+      useEffect(() => {
+        const refresh = () => setTick(t => t + 1);
+        window.addEventListener('trip:edited', refresh);
+        return () => window.removeEventListener('trip:edited', refresh);
+      }, []);
+      const revert = async (id) => {
+        try { await window.BabuAI.tripEditRevert(id, trip?.slug); setTick(t => t + 1); }
+        catch (err) { setState(s => ({ ...s, error: err.message })); }
+      };
+      if (state.loading) return <SkeletonRow variant="queue-row" count={3} />;
+      if (state.error) return <EmptyState icon="fa-triangle-exclamation" title="Edit log unavailable" description={state.error} />;
+      if (!state.items.length) return <EmptyState icon="fa-clock-rotate-left" title="No edits yet" description="FloatingChat edits to trip.yaml will appear here with Apply / Revert provenance." />;
+      return (
+        <div style={{ display: 'grid', gap: '0.75rem' }}>
+          {[...state.items].reverse().map(row => (
+            <Card key={row.id} variant="flat" style={{ padding: '0.85rem 1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '1rem', flexWrap: 'wrap' }}>
+                <div style={{ minWidth: 0 }}>
+                  <Text as="div" size="sm" weight="semibold" style={{ margin: 0 }}>{row.intent}</Text>
+                  <Text as="div" variant="mono" size="sm" color="muted" style={{ margin: 0 }}>{new Date(row.createdAt).toLocaleString()} · {row.actor}</Text>
+                </div>
+                <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                  <StatusBadge status={row.status === 'applied' ? 'active' : row.status === 'reverted' ? 'drained' : 'stuck'} label={row.status.toUpperCase()} />
+                  {row.status === 'applied' && <Button variant="ghost" size="sm" icon="fa-rotate-left" onClick={() => revert(row.id)}>Revert</Button>}
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      );
+    }
+
     function QueuePanel({ trip }) {
       const [state, setState] = useState({ items: null, loading: true, error: null });
       const [tick, setTick] = useState(0);
