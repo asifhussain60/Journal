@@ -1,0 +1,70 @@
+{
+  "categories": [
+    {
+      "name": "Documents",
+      "items": [
+        "Passport",
+        "Visa / ESTA / eTA",
+        "Driving licence",
+        "Travel insurance card",
+        "Booking confirmations (printed)",
+        "Boarding passes",
+        "Emergency contact list",
+        "Local currency"
+      ]
+    },
+    {
+      "name": "Essentials",
+      "items": [
+        "Wallet & cards",
+        "Phone",
+        "House keys",
+        "Glasses / contact lenses",
+        "Prescription medication",
+        "Mask & hand sanitiser",
+        "Reusable water bottle",
+        "Day bag / backpack"
+      ]
+    },
+    {
+      "name": "Toiletries",
+      "items": [
+        "Toothbrush & toothpaste",
+        "Deodorant",
+        "Shampoo & conditioner",
+        "Soap / body wash",
+        "Razor",
+        "Skincare routine",
+        "Sunscreen",
+        "Lip balm",
+        "Hairbrush / comb"
+      ]
+    },
+    {
+      "name": "Electronics",
+      "items": [
+        "Phone charger",
+        "Laptop & charger",
+        "Power bank",
+        "Universal adapter",
+        "Headphones",
+        "Camera & SD cards",
+        "E-reader / Kindle"
+      ]
+    },
+    {
+      "name": "Clothing",
+      "items": [
+        "Underwear (1 per day + 1 spare)",
+        "Socks",
+        "T-shirts / tops",
+        "Trousers / jeans",
+        "Jumper or fleece",
+        "Outerwear (jacket / raincoat)",
+        "Sleepwear",
+        "Comfortable walking shoes",
+        "Smart outfit (occasion-dependent)"
+      ]
+    }
+  ]
+}

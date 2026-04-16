@@ -1,0 +1,16 @@
+{
+  "USA":      { "code": "USD", "symbol": "$",   "name": "US Dollar" },
+  "UK":       { "code": "GBP", "symbol": "\u00a3", "name": "Pound Sterling" },
+  "Canada":   { "code": "CAD", "symbol": "C$",  "name": "Canadian Dollar" },
+  "France":   { "code": "EUR", "symbol": "\u20ac", "name": "Euro" },
+  "Italy":    { "code": "EUR", "symbol": "\u20ac", "name": "Euro" },
+  "Spain":    { "code": "EUR", "symbol": "\u20ac", "name": "Euro" },
+  "Germany":  { "code": "EUR", "symbol": "\u20ac", "name": "Euro" },
+  "Greece":   { "code": "EUR", "symbol": "\u20ac", "name": "Euro" },
+  "Japan":    { "code": "JPY", "symbol": "\u00a5", "name": "Japanese Yen" },
+  "Pakistan": { "code": "PKR", "symbol": "Rs",  "name": "Pakistani Rupee" },
+  "UAE":      { "code": "AED", "symbol": "AED", "name": "UAE Dirham" },
+  "Turkey":   { "code": "TRY", "symbol": "\u20ba", "name": "Turkish Lira" },
+  "Thailand": { "code": "THB", "symbol": "\u0e3f", "name": "Thai Baht" },
+  "Mexico":   { "code": "MXN", "symbol": "$",   "name": "Mexican Peso" }
+}

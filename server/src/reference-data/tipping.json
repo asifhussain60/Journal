@@ -1,0 +1,100 @@
+{
+  "USA": {
+    "country": "United States",
+    "range": "15-20%",
+    "expected": true,
+    "currency": "USD",
+    "notes": "Tipping is expected in restaurants, taxis, and for personal services. 18% is standard for sit-down meals; 20% for excellent service. Bartenders: $1-2/drink. Hotel housekeeping: $2-5/night."
+  },
+  "UK": {
+    "country": "United Kingdom",
+    "range": "10-12.5%",
+    "expected": false,
+    "currency": "GBP",
+    "notes": "Service charge often added automatically (12.5%). If not, 10% is appreciated in restaurants. Pubs: tipping not customary unless table service. Taxis: round up the fare."
+  },
+  "Canada": {
+    "country": "Canada",
+    "range": "15-20%",
+    "expected": true,
+    "currency": "CAD",
+    "notes": "Similar to the USA. 15% is standard, 18-20% for good service. Hairdressers and spa staff: 15-20%. Hotel staff: $2-5 CAD per service."
+  },
+  "France": {
+    "country": "France",
+    "range": "5-10%",
+    "expected": false,
+    "currency": "EUR",
+    "notes": "Service is included by law (\"service compris\"). Leaving 5-10% extra for good service is appreciated but never expected. Round up taxi fares."
+  },
+  "Italy": {
+    "country": "Italy",
+    "range": "5-10%",
+    "expected": false,
+    "currency": "EUR",
+    "notes": "A \"coperto\" cover charge is common (€1-3 per person). Tipping is not expected; rounding up or leaving a few euros for excellent service is enough."
+  },
+  "Spain": {
+    "country": "Spain",
+    "range": "5-10%",
+    "expected": false,
+    "currency": "EUR",
+    "notes": "Tipping is modest. Leave small change at cafés, 5-10% in restaurants for good service. Not expected at tapas bars."
+  },
+  "Germany": {
+    "country": "Germany",
+    "range": "5-10%",
+    "expected": true,
+    "currency": "EUR",
+    "notes": "Round up the bill or add 5-10%. Tell the server the total amount including tip when paying — don't leave money on the table."
+  },
+  "Japan": {
+    "country": "Japan",
+    "range": "0%",
+    "expected": false,
+    "currency": "JPY",
+    "notes": "Tipping is not customary and can be considered rude. Excellent service is the standard. High-end ryokans accept gratuities only when given discreetly in an envelope."
+  },
+  "Pakistan": {
+    "country": "Pakistan",
+    "range": "5-10%",
+    "expected": true,
+    "currency": "PKR",
+    "notes": "Tipping (\"baksheesh\") is appreciated. Rs 100-200 for a meal at mid-range restaurants; round up taxis. Hotel porters: Rs 50-100 per bag."
+  },
+  "UAE": {
+    "country": "United Arab Emirates",
+    "range": "10-15%",
+    "expected": true,
+    "currency": "AED",
+    "notes": "Service charge (10%) often added but rarely reaches staff. Add 10-15% in cash for good service. Valet, porters, drivers: AED 5-10 each."
+  },
+  "Turkey": {
+    "country": "Turkey",
+    "range": "10-15%",
+    "expected": true,
+    "currency": "TRY",
+    "notes": "10% is standard in restaurants, 15% for excellent service. Tip in cash where possible. Round up taxi fares; tip hotel porters 20-50 TRY per bag."
+  },
+  "Thailand": {
+    "country": "Thailand",
+    "range": "10%",
+    "expected": false,
+    "currency": "THB",
+    "notes": "Not traditionally expected but increasingly common in tourist areas. 10% in restaurants without service charge. Round up taxis. Hotel porters: 20-50 THB per bag."
+  },
+  "Mexico": {
+    "country": "Mexico",
+    "range": "10-20%",
+    "expected": true,
+    "currency": "MXN",
+    "notes": "15% is standard in restaurants. Bartenders: 10-20 MXN per drink. Hotel housekeeping: 20-50 MXN per night. Tour guides expect a tip at the end."
+  },
+  "Greece": {
+    "country": "Greece",
+    "range": "5-10%",
+    "expected": false,
+    "currency": "EUR",
+    "notes": "Service charge is sometimes included; if not, 5-10% is generous. Round up taxis. Café staff: leaving small change is enough."
+  }
+}
