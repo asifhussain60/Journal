@@ -15,6 +15,9 @@
 //   POST /api/ingest-itinerary         — Phase 5: Haiku parse of pasted itinerary → skeleton JSON
 //   POST /api/queue/:name              — Phase 4+5: pending | voice-inbox | itinerary-inbox
 //   GET  /api/queue/:name              — Phase 4+5: read queue items
+//   POST /api/trip-edit                — Phase 6: intent classify → structured diffs + JSON Patch
+//   POST /api/trip-edit/revert         — Phase 6: idempotent revert by edit-log id
+//   GET  /api/edit-log                 — Phase 6: read trips/{slug}/edit-log.json
 //
 // CORS is locked to http://localhost:3000 (the `npx serve` dev port for site/).
 
@@ -42,6 +45,12 @@ import {
   readQueue,
   macVisionOcr,
 } from "./receipts.js";
+import {
+  applyTripEdit,
+  revertTripEdit,
+  readTripObj,
+  readEditLog,
+} from "./trip-edit-ops.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -506,6 +515,106 @@ app.get("/api/queue/:name", async (req, res) => {
   try {
     const slug = await getActiveTripSlug();
     const items = await readQueue(slug, name);
+    res.json({ ok: true, items, tripSlug: slug });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err?.message ?? String(err) });
+  }
+});
+
+// --- Phase 6: bounded itinerary editing -------------------------------------
+//
+// Intent classification rule:
+//   1. Tier 0 keyword match on edit verbs ("edit", "change", "move", "add",
+//      "remove", "update", "modify", "set", "delete"). Match → intent=edit.
+//   2. Otherwise fallback to the Sonnet trip-edit prompt which classifies
+//      itself. The model returns { intent, summary, diffs, patch }.
+const EDIT_KEYWORDS_RE = /\b(edit|change|move|add|remove|update|modify|set|delete|rename)\b/i;
+
+app.post("/api/trip-edit", async (req, res) => {
+  const { message, dryRun, tripContext } = req.body ?? {};
+  if (typeof message !== "string" || message.trim().length === 0) {
+    return res.status(400).json({ ok: false, error: "message (non-empty string) is required" });
+  }
+  req.body.promptName = "trip-edit";
+
+  const tier0 = EDIT_KEYWORDS_RE.test(message);
+  try {
+    const prompt = loadPrompt("trip-edit");
+    const ctxBlock = tripContext
+      ? `Active trip (JSON):\n\`\`\`json\n${JSON.stringify(tripContext, null, 2)}\n\`\`\`\n\n`
+      : "No active trip context is available.\n\n";
+    const userBlock = `${ctxBlock}Caller keyword hint: ${tier0 ? "edit" : "none"}\nMessage: ${message.trim()}`;
+    const msg = await anthropic.messages.create({
+      model: prompt.model ?? DEFAULT_MODEL,
+      max_tokens: 1400,
+      system: prompt.system,
+      messages: [{ role: "user", content: userBlock }],
+    });
+    const raw = msg.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim();
+    let proposed = null;
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try { proposed = JSON.parse(jsonMatch[0]); } catch { proposed = null; }
+    }
+    if (!proposed) {
+      return res.json({
+        ok: false, model: msg.model, usage: msg.usage, promptName: prompt.name,
+        error: "model output did not parse as JSON", rawText: raw,
+      });
+    }
+
+    const intent = proposed.intent || (tier0 ? "edit" : "unknown");
+    const response = {
+      ok: true,
+      model: msg.model,
+      usage: msg.usage,
+      promptName: prompt.name,
+      intent,
+      summary: proposed.summary ?? null,
+      proposed: {
+        diffs: Array.isArray(proposed.diffs) ? proposed.diffs : [],
+        patch: Array.isArray(proposed.patch) ? proposed.patch : [],
+      },
+    };
+
+    if (dryRun || intent !== "edit" || !response.proposed.patch.length) {
+      return res.json(response);
+    }
+
+    try {
+      const slug = tripContext?.slug || (await getActiveTripSlug());
+      const applied = await applyTripEdit(slug, { intent: proposed.summary || message.trim(), patch: response.proposed.patch });
+      if (!applied.ok) {
+        return res.json({ ...response, applied: false, applyError: applied.error, applyErrors: applied.errors });
+      }
+      return res.json({ ...response, applied: true, editId: applied.id });
+    } catch (err) {
+      return res.json({ ...response, applied: false, applyError: err?.message ?? String(err) });
+    }
+  } catch (err) {
+    res.status(502).json({ ok: false, error: err?.message ?? String(err) });
+  }
+});
+
+app.post("/api/trip-edit/revert", async (req, res) => {
+  const { patchId } = req.body ?? {};
+  if (typeof patchId !== "string" || !patchId.length) {
+    return res.status(400).json({ ok: false, error: "patchId is required" });
+  }
+  try {
+    const slug = req.body?.tripSlug || (await getActiveTripSlug());
+    const result = await revertTripEdit(slug, patchId);
+    if (!result.ok) return res.status(400).json({ ok: false, error: result.error, errors: result.errors });
+    return res.json({ ok: true, tripSlug: slug, ...result });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err?.message ?? String(err) });
+  }
+});
+
+app.get("/api/edit-log", async (_req, res) => {
+  try {
+    const slug = await getActiveTripSlug();
+    const items = await readEditLog(slug);
     res.json({ ok: true, items, tripSlug: slug });
   } catch (err) {
     res.status(500).json({ ok: false, error: err?.message ?? String(err) });
