@@ -104,6 +104,28 @@
       });
     },
 
+    async tripEdit(message, tripContext, opts = {}) {
+      if (!message || !message.trim()) throw new Error("tripEdit: message required");
+      return getJSON("/api/trip-edit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message, tripContext: tripContext ?? null, dryRun: opts.dryRun !== false }),
+      });
+    },
+
+    async tripEditRevert(patchId, tripSlug) {
+      if (!patchId) throw new Error("tripEditRevert: patchId required");
+      return getJSON("/api/trip-edit/revert", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ patchId, tripSlug: tripSlug ?? null }),
+      });
+    },
+
+    async editLogGet() {
+      return getJSON("/api/edit-log");
+    },
+
     async queuePost(name, row) {
       return getJSON(`/api/queue/${name}`, {
         method: "POST",

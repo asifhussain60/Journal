@@ -1786,6 +1786,23 @@
       { id: 'tip',    label: "Tip for this country" }
     ];
 
+    function DiffViewer({ diffs = [] }) {
+      if (!diffs.length) return <Text size="sm" color="muted" style={{ margin: 0 }}>No changes.</Text>;
+      return (
+        <Card variant="flat" className="diff-viewer" style={{ padding: '0.6rem 0.75rem', maxHeight: 150, overflowY: 'auto' }}>
+          {diffs.map((d, i) => (
+            <div key={i} style={{ fontFamily: 'var(--font-mono)', fontSize: '0.78rem', marginBottom: i === diffs.length - 1 ? 0 : '0.45rem' }}>
+              <Text size="sm" weight="semibold" style={{ margin: 0, fontFamily: 'var(--font-mono)' }}>{d.field}</Text>
+              <div style={{ color: 'var(--rose, #C48A9A)', textDecoration: 'line-through' }}>− {String(d.old ?? '')}</div>
+              <div style={{ color: 'var(--success, #10B981)' }}>+ {String(d.new ?? '')}</div>
+            </div>
+          ))}
+        </Card>
+      );
+    }
+
+    const EDIT_KEYWORDS_RE = /\b(edit|change|move|add|remove|update|modify|set|delete|rename)\b/i;
+
     function FloatingChat({ trip }) {
       const [open, setOpen] = useState(false);
       const [draft, setDraft] = useState('');
@@ -1819,9 +1836,21 @@
         setDraft('');
         if (inputRef.current) { inputRef.current.style.height = 'auto'; }
         setPending(true);
+        const looksLikeEdit = EDIT_KEYWORDS_RE.test(trimmed);
         try {
-          const r = await window.BabuAI.tripQA(trimmed, trip || null);
-          setMessages(m => [...m, { role: 'assistant', text: r.response || '(empty response)' }]);
+          if (looksLikeEdit) {
+            const r = await window.BabuAI.tripEdit(trimmed, trip || null, { dryRun: true });
+            if (r.intent === 'edit' && r.proposed && r.proposed.diffs?.length) {
+              setMessages(m => [...m, { role: 'proposed', text: r.summary || trimmed, diffs: r.proposed.diffs, patch: r.proposed.patch, last: trimmed }]);
+            } else {
+              // Model re-routed as qa/unknown — fall back to trip-qa for a useful reply.
+              const q = await window.BabuAI.tripQA(trimmed, trip || null);
+              setMessages(m => [...m, { role: 'assistant', text: q.response || r.summary || '(empty response)' }]);
+            }
+          } else {
+            const q = await window.BabuAI.tripQA(trimmed, trip || null);
+            setMessages(m => [...m, { role: 'assistant', text: q.response || '(empty response)' }]);
+          }
           if (!open) setPulse(true);
         } catch (err) {
           setMessages(m => [...m, { role: 'error', text: err.message || 'Request failed', last: trimmed }]);
@@ -1829,6 +1858,39 @@
           setPending(false);
         }
       }, [draft, pending, trip, open]);
+
+      const applyProposal = useCallback(async (idx, msg) => {
+        setPending(true);
+        try {
+          const r = await window.BabuAI.tripEdit(msg.last || msg.text, trip || null, { dryRun: false });
+          if (r.applied) {
+            setMessages(m => m.map((x, i) => i === idx ? { ...x, role: 'applied', editId: r.editId } : x));
+            window.dispatchEvent(new CustomEvent('trip:edited', { detail: { editId: r.editId } }));
+          } else {
+            setMessages(m => m.map((x, i) => i === idx ? { ...x, role: 'edit-error', applyError: r.applyError || r.error || 'apply failed' } : x));
+          }
+        } catch (err) {
+          setMessages(m => m.map((x, i) => i === idx ? { ...x, role: 'edit-error', applyError: err.message } : x));
+        } finally {
+          setPending(false);
+        }
+      }, [trip]);
+
+      const revertProposal = useCallback(async (idx, msg) => {
+        if (!msg.editId) return;
+        setPending(true);
+        try {
+          await window.BabuAI.tripEditRevert(msg.editId, trip?.slug);
+          setMessages(m => m.map((x, i) => i === idx ? { ...x, role: 'reverted' } : x));
+          window.dispatchEvent(new CustomEvent('trip:edited', { detail: { reverted: msg.editId } }));
+        } catch (err) {
+          setMessages(m => m.map((x, i) => i === idx ? { ...x, role: 'edit-error', applyError: err.message } : x));
+        } finally {
+          setPending(false);
+        }
+      }, [trip]);
+
+      const discardProposal = (idx) => setMessages(m => m.map((x, i) => i === idx ? { ...x, role: 'discarded' } : x));
 
       useEffect(() => { if (!pulse) return; const t = setTimeout(() => setPulse(false), 2800); return () => clearTimeout(t); }, [pulse]);
 
@@ -1866,9 +1928,36 @@
                 )}
                 {messages.map((m, i) => (
                   <div key={i} className={`floating-chat-msg ${m.role}`}>
-                    {m.text}
+                    {m.role === 'proposed' && (
+                      <>
+                        <Text size="sm" style={{ margin: 0, marginBottom: '0.4rem' }}><Icon name="fa-wand-magic-sparkles" /> {m.text}</Text>
+                        <DiffViewer diffs={m.diffs} />
+                        <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.5rem' }}>
+                          <Button variant="primary" size="sm" icon="fa-check" loading={pending} onClick={() => applyProposal(i, m)}>Apply</Button>
+                          <Button variant="ghost" size="sm" icon="fa-xmark" onClick={() => discardProposal(i)}>Discard</Button>
+                        </div>
+                      </>
+                    )}
+                    {m.role === 'applied' && (
+                      <>
+                        <Text size="sm" style={{ margin: 0 }}><Icon name="fa-check" /> Applied</Text>
+                        <Button variant="ghost" size="sm" icon="fa-rotate-left" onClick={() => revertProposal(i, m)}>Revert</Button>
+                      </>
+                    )}
+                    {m.role === 'reverted' && <Text size="sm" style={{ margin: 0 }}><Icon name="fa-rotate-left" /> Reverted</Text>}
+                    {m.role === 'discarded' && <Text size="sm" color="muted" style={{ margin: 0 }}>Discarded.</Text>}
+                    {m.role === 'edit-error' && (
+                      <>
+                        <Text size="sm" color="error" style={{ margin: 0 }}>{m.applyError || 'Edit failed.'}</Text>
+                        <Button variant="secondary" size="sm" icon="fa-rotate" onClick={() => { setMessages(prev => prev.filter((_, j) => j !== i)); send(m.last); }}>Retry</Button>
+                      </>
+                    )}
+                    {(m.role === 'user' || m.role === 'assistant' || m.role === 'system') && m.text}
                     {m.role === 'error' && (
-                      <Button variant="secondary" size="sm" icon="fa-rotate" onClick={() => { setMessages(prev => prev.slice(0, -1)); send(m.last); }}>Retry</Button>
+                      <>
+                        {m.text}
+                        <Button variant="secondary" size="sm" icon="fa-rotate" onClick={() => { setMessages(prev => prev.slice(0, -1)); send(m.last); }}>Retry</Button>
+                      </>
                     )}
                   </div>
                 ))}
