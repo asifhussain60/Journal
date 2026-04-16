@@ -478,6 +478,25 @@ The App writes scratch queues under `trips/{slug}/`. Cowork (Claude Code in term
 
 `cd server && npm run harass` fires 21 requests at each non-health endpoint and asserts the 21st returns HTTP 429. Run against a live proxy (`npm run start` in a separate terminal). Prints `harass OK` on success.
 
+## 11a. BUDGET + THROTTLE (PHASE 8)
+
+Budget surfacing and enforcement sit on top of the Phase 1 `usage-logger`. The full surface:
+
+| Piece | Path | Purpose |
+|---|---|---|
+| `<BudgetPill>` | `site/index.html` nav | `$X.XX / $MONTHLY_CAP` pill with green/amber/rose states. Fetches `/api/usage/summary` on mount + every 30s + on `queue:refresh` / `trip:edited` / `budget:refresh` events. |
+| `<UsageModal>` | `site/index.html` | Summary tab (progress bar with 75/90 threshold markers, throttle-state line), Breakdown tab (endpoint table), BudgetAdvisor card (advice + expandable details). |
+| `<StuckSection>` | `site/index.html` QueuePanel | Dead-letter entries with Re-submit / Discard per entry. |
+| `GET /api/usage/summary` | `server/src/usage-summary.js` | Reads `server/logs/usage.jsonl`, computes cost with embedded PRICING table (Sonnet/Opus/Haiku 4.x rates, Sonnet fallback for unknown). Returns `{ ok, spentThisMonth, monthlyCAP, percentageUsed, throttleState, throttleHitsThisMonth, byEndpoint[] }`. Monthly cap from `process.env.MONTHLY_CAP` (default 50). |
+| `GET /api/dead-letter` | server | Lists `trips/{slug}/dead-letter/*/ *.json` for the active trip. |
+| `POST /api/queue/:name/replay` | server | Moves dead-letter entry back to origin queue. Strips `deadLetter` sidecar, resets `status: "pending"`, deletes the dead-letter file. Idempotent on id. |
+| `POST /api/dead-letter/discard` | server | Unlinks a dead-letter file; idempotent on ENOENT. |
+| `throttle-budget` middleware | `server/src/middleware/throttle-budget.js` | Runs after `usage-logger` + `rate-limit`. Sets `X-Budget-State: normal\|soft\|hard` on every response. Soft downgrades edit intents to clarify-only. Hard returns 429 for edit + expensive endpoints; essentials (health, summary, tier-0, GET queues, GET edit-log, POST queues) always pass. |
+| `daily-drain` skill | `skills-staging/daily-drain/skill.md` | Cowork drain orchestrator. Preflights on queue-health + usage-auditor before running per-queue drains. |
+| `usage-auditor` skill | `skills-staging/usage-auditor/skill.md` | Read-only audit of `usage.jsonl` with `--forecast` projection + cap recommendation. |
+
+Queue POSTs (captures) are intentionally not hard-throttled — losing a capture is worse than $0.01 of overspend. Synthesis is gated Cowork-side by `daily-drain` under budget pressure.
+
 ## 11. COWORK ORCHESTRATORS (PHASE 7)
 
 Six preview-only Claude Code skills under `skills-staging/`. Each is `<name>/skill.md` (frontmatter + description + body). None write to canonical state; Phase 8 drains own the writes. Each accepts `--dry-run` (default) and `--slug <slug>`.

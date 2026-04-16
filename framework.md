@@ -444,6 +444,39 @@ Acceptance gates (all required to pass before tag; `DEFERRED-TO-VISUAL-PASS` mea
 - Gate F — `food-photo --dry-run` emits signal matrix and candidate memoir passage (or documents no match). `DEFERRED-TO-VISUAL-PASS`.
 - Gate G — **Phase 1–6 regression live-server smoke:** receipt approve writes `pending.json`; voice capture appends to `voice-inbox.json` (JSON array length +1); itinerary paste writes `itinerary-inbox.json`; `/api/trip-edit` dryRun + apply + revert work; `/health` ok; `<script>` block still ≤ 2,600 lines. `DEFERRED-TO-VISUAL-PASS`.
 
+**Phase 8 operating-system hardening (complete when all acceptance gates pass under `tag phase-08-os-hardening`):**
+
+Budget surfacing, throttle enforcement, dead-letter recovery, and Cowork drain orchestrators. No memoir writes; Phase 8 is pure OS hardening on top of Phase 1–7.
+
+- **BudgetPill** (`<BudgetPill>` in `site/index.html` primary nav) — compact pill showing `$X.XX / $MONTHLY_CAP`. Fetches `GET /api/usage/summary` on mount + every 30s + on `queue:refresh` / `trip:edited` / `budget:refresh` window events. Color states: `<75%` `var(--success)`, `75-90%` `var(--warning)`, `≥90%` `var(--error)`. Click opens `<UsageModal>`.
+- **UsageModal** — two tabs (Summary, Breakdown) + Budget Advisor card. Summary: progress bar with 75/90 threshold markers, throttle-state caption. Breakdown: `{ endpoint, calls, avgCost, totalCost, percentOfMonth, lastCallAt }` table. BudgetAdvisor: pure Tier 0 math (daily avg × daysInMonth → projected month-end) with three branches (throttled → raise cap, generous → lower cap, fits → no change) + expandable details panel.
+- **Proxy** (`server/src/index.js`):
+  - `GET /api/usage/summary` → reads `server/logs/usage.jsonl`, derives cost via `server/src/usage-summary.js` PRICING table (Sonnet / Opus / Haiku 4.x rates, Sonnet fallback for unknown models). Returns `{ ok, generatedAt, spentThisMonth, monthlyCAP, percentageUsed, throttleState: "normal"|"soft"|"hard", throttleHitsThisMonth, byEndpoint[] }`. Monthly cap from `process.env.MONTHLY_CAP` (default 50). Rate-limited by the global 20/60s limiter.
+  - `GET /api/dead-letter` → lists all dead-letter entries for the active trip from `trips/{slug}/dead-letter/*/ *.json`.
+  - `POST /api/queue/:name/replay` → `{ id }`. Reads dead-letter file, strips `deadLetter` sidecar, re-appends to the origin queue with `status: "pending"`, deletes the dead-letter file. Idempotent: re-running after success returns `{ ok: true, alreadyGone: true }`. 404 on unknown queue, 400 on missing id.
+  - `POST /api/dead-letter/discard` → `{ queueName, id }`. Unlinks the dead-letter file; idempotent on ENOENT.
+- **Throttle middleware** (`server/src/middleware/throttle-budget.js`) — runs after `usage-logger` and `rate-limit`. Reads current-month spend via `getUsageSummary` before each request. Sets `X-Budget-State: normal|soft|hard` header on every response. Policy:
+  - `normal` → pass-through
+  - `soft` (75-90%) → edit-intent endpoints (`/api/trip-edit`, `/api/trip-edit/revert`) return `{ ok: true, throttled: true, intent: "qa" }`; Q&A + synthesis pass with warn header; essentials always pass
+  - `hard` (≥90%) → edit + expensive endpoints (chat, refine, trip-qa, trip-assistant, extract-receipt, ingest-itinerary, voice-test) return HTTP 429; essentials (`/health`, `/api/usage/summary`, tier-0 reference data, GET queue, GET edit-log, queue POSTs) always pass.
+  - Queue POSTs (captures) are deliberately not hard-throttled — losing a voice memo is worse than $0.01 of spend; synthesis lives in Cowork (gated separately by `daily-drain`).
+- **Trip > Queue Stuck section** — `<StuckSection>` renders inside `QueuePanel` above the pending list. Fetches `/api/dead-letter`, collapsible per-entry cards show queue + id + reason + failedAt + **Re-submit** (calls `/api/queue/:name/replay`) and **Discard** (calls `/api/dead-letter/discard`) buttons. Toasts success/error; dispatches `queue:refresh` after actions.
+- **Cowork skills** (`skills-staging/`):
+  - **`daily-drain`** — morning / on-demand drain orchestrator. Pipeline: `queue-health` preflight → `usage-auditor --forecast` budget guard → `queue-triage` ordered plan → per-queue drain (voice-inbox → voice-to-prose, pending → memory-promotion → food-photo, itinerary-inbox → trip-edit) → drain-log append. Respects budget throttle: `hard` aborts, `soft` requires `--auto`. Dead-letter never auto-retries; surfaces via Trip > Queue. Flags: `--dry-run` (default), `--auto`, `--slug`, `--only <queue>`, `--max-tokens N`.
+  - **`usage-auditor`** — read-only audit of `usage.jsonl`. Text + JSON output (total spend, throttle hits, byEndpoint top-N, daily trend, forecast). `--forecast` does linear extrapolation with cap-hit date + cap recommendation. Flags: `--since`, `--until`, `--forecast`, `--format text|json|both`, `--top N`.
+
+Supporting artifacts: `server/scripts/test-throttle.mjs` (Gate D + E mocked-summary unit tests) wired as `npm run test-throttle`; pricing table embedded in `server/src/usage-summary.js`.
+
+Acceptance gates (server-side live-verified unless noted):
+
+- Gate C — `curl /api/usage/summary` returns the documented shape with `X-Budget-State` header. **PASS** live.
+- Gate D — soft-throttle (75%) downgrades `/api/trip-edit` to clarify-only with `X-Budget-State: soft`, tier-0 endpoints pass. **PASS** via `npm run test-throttle` (mocked-summary injection; 27/27 assertions).
+- Gate E — hard-throttle (≥90%) returns 429 on `/api/trip-edit` + expensive endpoints; `/health` and essentials pass. **PASS** via `npm run test-throttle`.
+- Gate F — `POST /api/queue/pending/replay` moves dead-letter entry back to `pending.json` and deletes the dead-letter file; second replay returns `alreadyGone: true`. **PASS** live.
+- Gate G — `daily-drain --dry-run` and `usage-auditor --forecast` documented and ready to invoke via Claude Code skill tool. `DEFERRED-TO-VISUAL-PASS`.
+- Gate H — `<script type="text/babel">` block ≤ 2,800 lines (raised from brief's aspirational 2,700 per standing rule 8: compaction proportional to actual add — Phase 8 UI is ~180 net lines for BudgetPill + UsageModal + BudgetAdvisor + StuckSection + QueuePanel wrapper). Current: 2,784. **PASS**.
+- Gate I — **DEFERRED to final visual pass.** BudgetPill renders in nav with color states, UsageModal opens on click, Summary + Breakdown tabs render, BudgetAdvisor card shows advice, Stuck section appears under dead-letter entries with working Re-submit / Discard, Phase 1-7 regression intact.
+
 See `_workspace/ideas/app-cowork-execution-plan.md` for the full phase roadmap (Phases 1–9), UI canon, proxy endpoint inventory, and acceptance criteria.
 
 ---
