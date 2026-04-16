@@ -15,50 +15,30 @@
   <link href="https://fonts.cdnfonts.com/css/opendyslexic" rel="stylesheet">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F4D6;</text></svg>">
 
-  <!-- Design System canon — Lavender Romance (execution plan §6.2).
-       Load order matters:
-         1. base.css       — shared tokens, utility classes, dark defaults
-         2. app-dark.css   — existing component library (FloatingChat,
-                             CommandPalette, EmptyState, book bookshelf,
-                             capture modal, queue panel) — kept so Phase 4+
-                             components keep their styling
-         3. app.css        — lavender glass cards, nav pill, module/chapter/
-                             incident/quote cards; its own :root overrides
-                             base.css tokens to light lavender values
-         4. itinerary.css  — trip-specific layouts (flight-card, day-card,
-                             event, dining-card, notes-box, tag)
-         5. lavender-romance.css — final theme polish via [data-theme] -->
+  <!-- Design System — All CSS files -->
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/app-dark.css">
   <link rel="stylesheet" href="css/app.css">
   <link rel="stylesheet" href="css/itinerary.css">
   <link rel="stylesheet" href="css/themes/lavender-romance.css">
-
-  <!-- AI Voice Refine drawer (scoped styles, no collision with other sheets) -->
   <link rel="stylesheet" href="css/ai-drawer.css">
 </head>
-<body data-theme="lavender-romance">
+<body>
 
-  <a href="#main-content" class="skip-link">Skip to main content</a>
   <div class="bg-mesh"></div>
   <div id="root"></div>
-
-  <!-- AI drawer mounts here (independent React root, does not touch main App tree) -->
-  <div id="ai-drawer-root"></div>
 
   <!-- Dependencies -->
   <script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone@7.29.2/babel.min.js"></script>
 
-  <!-- AI voice refine: vanilla client + word-diff lib (loaded before the Babel component) -->
-  <script src="js/claude-client.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/diff@5.2.0/dist/diff.min.js"></script>
-
   <script type="text/babel">
     const { useState, useEffect, useRef, useCallback, useMemo } = React;
 
+    // =================================================================
     // DATA LAYER
+    // =================================================================
 
     const MOODS = ['romantic', 'adventure', 'cultural', 'relaxed', 'celebration', 'bittersweet', 'anticipation', 'reflective', 'spiritual', 'playful'];
 
@@ -79,8 +59,10 @@
 
     // Load trip data from manifest.json + per-trip entry files
     async function loadTrips() {
+      console.log('[API:REQ]', 'data/manifest.json');
       const res = await fetch('data/manifest.json');
       const manifest = await res.json();
+      console.log('[API:RES]', 'data/manifest.json', res.status);
       const allTrips = [];
 
       if (manifest.active) {
@@ -89,7 +71,7 @@
         try {
           const r = await fetch(`data/entries/${trip.slug}.json`);
           if (r.ok) entries = await r.json();
-        } catch (e) {}
+        } catch (e) { console.error('[API:ERR]', `data/entries/${trip.slug}.json`, e); }
         allTrips.push({ ...trip, entries });
       }
 
@@ -98,10 +80,11 @@
         try {
           const r = await fetch(`data/entries/${trip.slug}.json`);
           if (r.ok) entries = await r.json();
-        } catch (e) {}
+        } catch (e) { console.error('[API:ERR]', `data/entries/${trip.slug}.json`, e); }
         allTrips.push({ ...trip, entries });
       }
 
+      console.log('[DATA]', 'trips loaded', allTrips.length);
       return allTrips;
     }
 
@@ -135,627 +118,58 @@
       { title: 'Standing in the rain outside the mosque at 3am', chapter: '04', status: 'BANKED' },
     ];
 
+    // =================================================================
     // UTILITIES
+    // =================================================================
 
     function Icon({ name, size = '1em', color = 'inherit' }) {
       return <i className={`fa-solid ${name}`} style={{ fontSize: size, color }}></i>;
+    }
+
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => showToast('Copied to DayOne clipboard'));
     }
 
     function formatDate(iso) {
       return new Date(iso + 'T12:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
     }
 
-    function todayISO() {
-      return new Date().toISOString().slice(0, 10);
-    }
-
-    // DESIGN SYSTEM — ATOMS
-
-    function Button({ variant = 'primary', size = 'md', loading = false, disabled, icon, iconRight, children, className = '', type = 'button', ...rest }) {
-      const cls = ['btn', `btn-${variant}`, `btn-size-${size}`, loading && 'is-loading', className].filter(Boolean).join(' ');
-      return (
-        <button type={type} className={cls} disabled={disabled || loading} aria-busy={loading || undefined} {...rest}>
-          {loading && <Icon name="fa-circle-notch fa-spin" />}
-          {!loading && icon && <Icon name={icon} />}
-          {children != null && <span className="btn-label">{children}</span>}
-          {!loading && iconRight && <Icon name={iconRight} />}
-        </button>
-      );
-    }
-
-    function IconButton({ icon, label, variant = 'ghost', size = 'md', className = '', ...rest }) {
-      const cls = ['icon-btn', `icon-btn-${variant}`, `icon-btn-size-${size}`, className].filter(Boolean).join(' ');
-      return (
-        <button type="button" className={cls} aria-label={label} title={label} {...rest}>
-          <Icon name={icon} />
-        </button>
-      );
-    }
-
-    function Badge({ variant = 'neutral', size = 'md', icon, children, className = '', ...rest }) {
-      const cls = ['badge', `badge-${variant}`, `badge-size-${size}`, className].filter(Boolean).join(' ');
-      return (
-        <span className={cls} {...rest}>
-          {icon && <Icon name={icon} />}
-          {children}
-        </span>
-      );
-    }
-
-    function Text({ as: Tag = 'p', variant = 'sans', size, weight, align, color, className = '', children, ...rest }) {
-      const cls = [
-        'text',
-        `text-${variant}`,
-        size && `text-size-${size}`,
-        weight && `text-weight-${weight}`,
-        align && `text-align-${align}`,
-        color && `text-color-${color}`,
-        className
-      ].filter(Boolean).join(' ');
-      return <Tag className={cls} {...rest}>{children}</Tag>;
-    }
-
-    // DESIGN SYSTEM — FORM ATOMS + FormField
-
-    function Input({ className = '', ...rest }) {
-      return <input className={['input-field', className].filter(Boolean).join(' ')} {...rest} />;
-    }
-
-    function Textarea({ className = '', ...rest }) {
-      return <textarea className={['input-field', className].filter(Boolean).join(' ')} {...rest} />;
-    }
-
-    function Select({ className = '', children, ...rest }) {
-      return <select className={['input-field', className].filter(Boolean).join(' ')} {...rest}>{children}</select>;
-    }
-
-    function Checkbox({ label, className = '', id, ...rest }) {
-      const autoId = React.useId();
-      const checkboxId = id || autoId;
-      return (
-        <label htmlFor={checkboxId} className={['form-checkbox', className].filter(Boolean).join(' ')}>
-          <input type="checkbox" id={checkboxId} {...rest} />
-          {label && <span className="form-checkbox-label">{label}</span>}
-        </label>
-      );
-    }
-
-    function RadioGroup({ name, value, onChange, options = [], className = '', ariaLabel }) {
-      return (
-        <div role="radiogroup" aria-label={ariaLabel} className={['form-radio-group', className].filter(Boolean).join(' ')}>
-          {options.map(opt => (
-            <label key={opt.value} className="form-radio">
-              <input
-                type="radio"
-                name={name}
-                value={opt.value}
-                checked={value === opt.value}
-                onChange={e => onChange && onChange(e.target.value)}
-              />
-              <span className="form-radio-label">{opt.label}</span>
-            </label>
-          ))}
-        </div>
-      );
-    }
-
-    function FormField({ label, helper, error, required, children, className = '', ...rest }) {
-      const autoId = React.useId();
-      const helperId = helper ? `${autoId}-help` : null;
-      const errorId = error ? `${autoId}-err` : null;
-      const describedBy = [helperId, errorId].filter(Boolean).join(' ') || undefined;
-      const child = React.Children.only(children);
-      const input = React.cloneElement(child, {
-        id: child.props.id || autoId,
-        'aria-describedby': describedBy,
-        'aria-invalid': error ? true : undefined,
-        'aria-required': required || undefined,
-        required: required || child.props.required
-      });
-      return (
-        <div className={['form-field', error && 'has-error', className].filter(Boolean).join(' ')} {...rest}>
-          {label && (
-            <label htmlFor={child.props.id || autoId} className="form-field-label">
-              {label}
-              {required && <span className="form-field-required" aria-hidden="true"> *</span>}
-            </label>
-          )}
-          {input}
-          {helper && !error && <span id={helperId} className="form-field-helper">{helper}</span>}
-          {error && <span id={errorId} className="form-field-error" role="alert">{error}</span>}
-        </div>
-      );
-    }
-
-    // DESIGN SYSTEM — MOLECULES
-
-    const CARD_VARIANT_CLASS = {
-      flat:     'card-flat',
-      elevated: 'glass-card',
-      glass:    'glass-card',
-      module:   'glass-card module-card'
-    };
-
-    function Card({ variant = 'glass', as: Tag = 'div', className = '', children, ...rest }) {
-      const variantClass = CARD_VARIANT_CLASS[variant] || CARD_VARIANT_CLASS.glass;
-      return (
-        <Tag className={[variantClass, className].filter(Boolean).join(' ')} {...rest}>
-          {children}
-        </Tag>
-      );
-    }
-
-    const STATUS_CONFIG = {
-      pending:  { variant: 'warning', icon: 'fa-clock',                label: 'PENDING' },
-      drained:  { variant: 'info',    icon: 'fa-circle-check',         label: 'DRAINED' },
-      stuck:    { variant: 'error',   icon: 'fa-triangle-exclamation', label: 'STUCK' },
-      locked:   { variant: 'accent',  icon: 'fa-lock',                 label: 'LOCKED' },
-      active:   { variant: 'accent',  icon: 'fa-circle-dot',           label: 'ACTIVE' },
-      planned:  { variant: 'neutral', icon: 'fa-map-pin',              label: 'PLANNED' },
-      draft:    { variant: 'neutral', icon: 'fa-pencil',               label: 'DRAFT' },
-      complete: { variant: 'success', icon: 'fa-check',                label: 'COMPLETE' }
-    };
-
-    function StatusBadge({ status, label, size = 'md', className = '' }) {
-      const cfg = STATUS_CONFIG[status] || { variant: 'neutral', icon: 'fa-circle', label: status };
-      return <Badge variant={cfg.variant} icon={cfg.icon} size={size} className={className}>{label || cfg.label}</Badge>;
-    }
-
-    function EmptyState({ icon, title, description, action, className = '' }) {
-      return (
-        <div className={['empty-state', className].filter(Boolean).join(' ')} role="status">
-          {icon && <div className="empty-state-icon"><Icon name={icon} size="2.2em" /></div>}
-          {title && <h3 className="empty-state-title">{title}</h3>}
-          {description && <p className="empty-state-description">{description}</p>}
-          {action && <div className="empty-state-action">{action}</div>}
-        </div>
-      );
-    }
-
-    function SkeletonRow({ variant = 'queue-row', count = 3, className = '' }) {
-      return (
-        <div className={['skeleton', `skeleton-${variant}`, className].filter(Boolean).join(' ')} role="status" aria-live="polite" aria-label="Loading">
-          {Array.from({ length: count }, (_, i) => <div key={i} className="skeleton-row" aria-hidden="true"></div>)}
-        </div>
-      );
-    }
-
-    function Pill({ active, icon, children, className = '', onClick, as: Tag = 'button', ...rest }) {
-      const props = Tag === 'button' ? { type: 'button' } : {};
-      return (
-        <Tag {...props} className={['pill', active && 'is-active', className].filter(Boolean).join(' ')} onClick={onClick} {...rest}>
-          {icon && <Icon name={icon} />}
-          {children}
-        </Tag>
-      );
-    }
-
-    function Chip({ icon, onRemove, children, className = '', ...rest }) {
-      return (
-        <span className={['chip', className].filter(Boolean).join(' ')} {...rest}>
-          {icon && <Icon name={icon} />}
-          <span className="chip-label">{children}</span>
-          {onRemove && (
-            <button type="button" className="chip-remove" aria-label="Remove" onClick={onRemove}>
-              <Icon name="fa-xmark" />
-            </button>
-          )}
-        </span>
-      );
-    }
-
-    function MenuItem({ icon, label, shortcut, selected, onClick, className = '', ...rest }) {
-      return (
-        <button
-          type="button"
-          role="menuitem"
-          aria-selected={selected || undefined}
-          onClick={onClick}
-          className={['menu-item', selected && 'is-selected', className].filter(Boolean).join(' ')}
-          {...rest}
-        >
-          {icon && <Icon name={icon} />}
-          <span className="menu-item-label">{label}</span>
-          {shortcut && <kbd className="menu-item-shortcut">{shortcut}</kbd>}
-        </button>
-      );
-    }
-
-    function ThinkingDots({ className = '', label = 'Thinking' }) {
-      return (
-        <span className={['thinking-dots', className].filter(Boolean).join(' ')} role="status" aria-label={label}>
-          <span className="thinking-dot"></span>
-          <span className="thinking-dot"></span>
-          <span className="thinking-dot"></span>
-        </span>
-      );
-    }
-
-    function StepProgress({ steps = [], current = 0, className = '' }) {
-      return (
-        <ol className={['step-progress', className].filter(Boolean).join(' ')} aria-label="Progress">
-          {steps.map((step, i) => {
-            const state = i < current ? 'complete' : i === current ? 'active' : 'pending';
-            const label = typeof step === 'string' ? step : step.label;
-            const key = typeof step === 'string' ? i : (step.id || i);
-            return (
-              <li key={key} className={`step-progress-item is-${state}`} aria-current={i === current ? 'step' : undefined}>
-                <span className="step-progress-dot">
-                  {state === 'complete' ? <Icon name="fa-check" size="0.7em" /> : i + 1}
-                </span>
-                <span className="step-progress-label">{label}</span>
-              </li>
-            );
-          })}
-        </ol>
-      );
-    }
-
-    // DESIGN SYSTEM — ORGANISMS
-
-    const FOCUSABLE_SELECTOR = 'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
-
-    function Modal({ title, onClose, size = 'md', children, className = '', ariaLabel }) {
-      const containerRef = useRef(null);
-
-      useEffect(() => {
-        const previouslyFocused = document.activeElement;
-        const container = containerRef.current;
-        if (container) {
-          const items = container.querySelectorAll(FOCUSABLE_SELECTOR);
-          if (items.length) items[0].focus();
-          else container.focus();
-        }
-
-        function onKeyDown(e) {
-          if (e.key === 'Escape') {
-            e.stopPropagation();
-            onClose && onClose();
-            return;
-          }
-          if (e.key !== 'Tab' || !container) return;
-          const items = container.querySelectorAll(FOCUSABLE_SELECTOR);
-          if (!items.length) return;
-          const first = items[0];
-          const last = items[items.length - 1];
-          if (e.shiftKey && document.activeElement === first) {
-            e.preventDefault();
-            last.focus();
-          } else if (!e.shiftKey && document.activeElement === last) {
-            e.preventDefault();
-            first.focus();
-          }
-        }
-
-        document.addEventListener('keydown', onKeyDown);
-        const prevOverflow = document.body.style.overflow;
-        document.body.style.overflow = 'hidden';
-
-        return () => {
-          document.removeEventListener('keydown', onKeyDown);
-          document.body.style.overflow = prevOverflow;
-          if (previouslyFocused && typeof previouslyFocused.focus === 'function') {
-            previouslyFocused.focus();
-          }
-        };
-      }, [onClose]);
-
-      function handleBackdrop(e) {
-        if (e.target === e.currentTarget) onClose && onClose();
-      }
-
-      return ReactDOM.createPortal(
-        <div className="modal-overlay" onClick={handleBackdrop} role="presentation">
-          <div
-            ref={containerRef}
-            className={['modal', `modal-size-${size}`, className].filter(Boolean).join(' ')}
-            role="dialog"
-            aria-modal="true"
-            aria-label={ariaLabel || title || 'Dialog'}
-            tabIndex={-1}
-          >
-            {title && (
-              <header className="modal-header">
-                <h2 className="modal-title">{title}</h2>
-                <IconButton icon="fa-xmark" label="Close dialog" onClick={onClose} />
-              </header>
-            )}
-            <div className="modal-body">{children}</div>
-          </div>
-        </div>,
-        document.body
-      );
-    }
-
-    function ConfirmDialog({ title = 'Are you sure?', description, destructive = false, confirmLabel = 'Confirm', cancelLabel = 'Cancel', onConfirm, onCancel }) {
-      return (
-        <Modal title={title} onClose={onCancel} size="sm">
-          {description && <p className="confirm-dialog-description">{description}</p>}
-          <div className="confirm-dialog-actions">
-            <Button variant="secondary" onClick={onCancel}>{cancelLabel}</Button>
-            <Button
-              variant={destructive ? 'destructive' : 'primary'}
-              onClick={onConfirm}
-              icon={destructive ? 'fa-triangle-exclamation' : undefined}
-            >
-              {confirmLabel}
-            </Button>
-          </div>
-        </Modal>
-      );
-    }
-
-    const ToastContext = React.createContext(null);
-
-    const TOAST_ICONS = {
-      success: 'fa-circle-check',
-      error:   'fa-triangle-exclamation',
-      warning: 'fa-triangle-exclamation',
-      info:    'fa-circle-info'
-    };
-
-    function ToastProvider({ children }) {
-      const [toasts, setToasts] = useState([]);
-
-      const show = useCallback((message, variant = 'info', duration = 3000) => {
-        const id = Date.now() + Math.random();
-        setToasts(prev => [...prev, { id, message, variant }]);
-        if (duration > 0) {
-          setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), duration);
-        }
-        return id;
-      }, []);
-
-      const dismiss = useCallback((id) => {
-        setToasts(prev => prev.filter(t => t.id !== id));
-      }, []);
-
-      useEffect(() => {
-        window.__appToast = { show, dismiss };
-        return () => {
-          if (window.__appToast && window.__appToast.show === show) {
-            delete window.__appToast;
-          }
-        };
-      }, [show, dismiss]);
-
-      const value = useMemo(() => ({ show, dismiss }), [show, dismiss]);
-
-      return (
-        <ToastContext.Provider value={value}>
-          {children}
-          <div className="toast-container" role="region" aria-live="polite" aria-label="Notifications">
-            {toasts.map(t => (
-              <div key={t.id} className={`toast toast-${t.variant}`} role="status" onClick={() => dismiss(t.id)}>
-                <Icon name={TOAST_ICONS[t.variant] || TOAST_ICONS.info} />
-                <span className="toast-message">{t.message}</span>
-              </div>
-            ))}
-          </div>
-        </ToastContext.Provider>
-      );
-    }
-
-    function useToast() {
-      const ctx = React.useContext(ToastContext);
-      if (!ctx) throw new Error('useToast must be used within <ToastProvider>');
-      return ctx;
-    }
-
-    // DESIGN SYSTEM — STATE HOOKS
-
-    function useFetch(url, options) {
-      const [state, setState] = useState({ data: null, loading: true, error: null });
-      const [tick, setTick] = useState(0);
-      useEffect(() => {
-        if (!url) { setState({ data: null, loading: false, error: null }); return; }
-        let cancelled = false;
-        setState(s => ({ ...s, loading: true, error: null }));
-        fetch(url, options)
-          .then(r => {
-            if (!r.ok) throw new Error(`HTTP ${r.status}`);
-            const ct = r.headers.get('content-type') || '';
-            return ct.includes('application/json') ? r.json() : r.text();
-          })
-          .then(data => { if (!cancelled) setState({ data, loading: false, error: null }); })
-          .catch(error => { if (!cancelled) setState({ data: null, loading: false, error }); });
-        return () => { cancelled = true; };
-      }, [url, tick]);
-      const refetch = useCallback(() => setTick(t => t + 1), []);
-      return { ...state, refetch };
-    }
-
-    function useLocalStoragePrefs(key, defaults) {
-      const [prefs, setPrefs] = useState(() => {
-        try {
-          const raw = localStorage.getItem(key);
-          if (raw) return { ...defaults, ...JSON.parse(raw) };
-        } catch (e) {}
-        return defaults;
-      });
-      useEffect(() => {
-        try { localStorage.setItem(key, JSON.stringify(prefs)); } catch (e) {}
-      }, [key, prefs]);
-      return [prefs, setPrefs];
-    }
-
-    function useActiveTrip() {
-      const [state, setState] = useState({ trip: null, loading: true, error: null });
-      useEffect(() => {
-        let cancelled = false;
-        fetch('data/manifest.json')
-          .then(r => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
-          .then(manifest => {
-            if (!cancelled) setState({ trip: manifest.active || null, loading: false, error: null });
-          })
-          .catch(() => {
-            if (!cancelled) setState({ trip: null, loading: false, error: null });
-          });
-        return () => { cancelled = true; };
-      }, []);
-      return state;
-    }
-
-    // DESIGN SYSTEM — COMMAND PALETTE
-
-    function CommandPalette({ open, onClose, commands = [] }) {
-      const [query, setQuery] = useState('');
-      const [activeIdx, setActiveIdx] = useState(0);
-      const inputRef = useRef(null);
-      const containerRef = useRef(null);
-
-      const filtered = useMemo(() => {
-        if (!query) return commands;
-        const q = query.toLowerCase();
-        return commands.filter(c => {
-          const hay = `${c.label || ''} ${c.keywords || ''}`.toLowerCase();
-          return hay.includes(q);
-        });
-      }, [query, commands]);
-
-      useEffect(() => { setActiveIdx(0); }, [query]);
-
-      useEffect(() => {
-        if (open) {
-          setQuery('');
-          const t = setTimeout(() => { if (inputRef.current) inputRef.current.focus(); }, 0);
-          return () => clearTimeout(t);
-        }
-      }, [open]);
-
-      useEffect(() => {
-        if (!open) return;
-        const previouslyFocused = document.activeElement;
-        function onKey(e) {
-          if (e.key === 'Escape') { e.stopPropagation(); onClose && onClose(); }
-        }
-        document.addEventListener('keydown', onKey);
-        return () => {
-          document.removeEventListener('keydown', onKey);
-          if (previouslyFocused && typeof previouslyFocused.focus === 'function') {
-            previouslyFocused.focus();
-          }
-        };
-      }, [open, onClose]);
-
-      function handleKeyDown(e) {
-        if (e.key === 'ArrowDown') {
-          e.preventDefault();
-          setActiveIdx(i => Math.min(Math.max(filtered.length - 1, 0), i + 1));
-        } else if (e.key === 'ArrowUp') {
-          e.preventDefault();
-          setActiveIdx(i => Math.max(0, i - 1));
-        } else if (e.key === 'Enter') {
-          e.preventDefault();
-          const cmd = filtered[activeIdx];
-          if (cmd && cmd.action) { cmd.action(); onClose && onClose(); }
-        } else if (e.key === 'Tab') {
-          const focusables = containerRef.current ? containerRef.current.querySelectorAll(FOCUSABLE_SELECTOR) : [];
-          if (focusables.length <= 1) { e.preventDefault(); }
-        }
-      }
-
-      function handleBackdrop(e) {
-        if (e.target === e.currentTarget) onClose && onClose();
-      }
-
-      if (!open) return null;
-
-      return ReactDOM.createPortal(
-        <div className="command-palette-overlay" onClick={handleBackdrop} role="presentation">
-          <div
-            ref={containerRef}
-            className="command-palette"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Command palette"
-          >
-            <div className="command-palette-input-row">
-              <label htmlFor="command-palette-search" className="visually-hidden">Command search</label>
-              <Icon name="fa-magnifying-glass" />
-              <input
-                id="command-palette-search"
-                ref={inputRef}
-                className="command-palette-input"
-                type="text"
-                placeholder="Type a command..."
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                onKeyDown={handleKeyDown}
-                aria-label="Command search"
-                aria-autocomplete="list"
-                aria-controls="command-palette-list"
-              />
-              <kbd>Esc</kbd>
-            </div>
-            <div id="command-palette-list" className="command-palette-list" role="listbox">
-              {filtered.length === 0 ? (
-                <div className="command-palette-empty">
-                  {commands.length === 0 ? 'No commands registered yet' : 'No matches'}
-                </div>
-              ) : filtered.map((cmd, i) => (
-                <MenuItem
-                  key={cmd.id || i}
-                  icon={cmd.icon}
-                  label={cmd.label}
-                  shortcut={cmd.shortcut}
-                  selected={i === activeIdx}
-                  onMouseEnter={() => setActiveIdx(i)}
-                  onClick={() => { cmd.action && cmd.action(); onClose && onClose(); }}
-                />
-              ))}
-            </div>
-          </div>
-        </div>,
-        document.body
-      );
-    }
-
-    function useCommandPalette() {
-      const [open, setOpen] = useState(false);
-      useEffect(() => {
-        function onKey(e) {
-          if ((e.metaKey || e.ctrlKey) && e.key && e.key.toLowerCase() === 'k') {
-            e.preventDefault();
-            setOpen(prev => !prev);
-          }
-        }
-        window.addEventListener('keydown', onKey);
-        return () => window.removeEventListener('keydown', onKey);
-      }, []);
-      return { open, setOpen };
-    }
-
+    // =================================================================
     // COMPONENTS
+    // =================================================================
 
+    // --- DayOne Code Preview ---
     function DayOnePreview({ entry, selectedJournal }) {
-      const { show: toast } = useToast();
       const md = `# ${entry.location} \u2014 ${formatDate(entry.date)}\n\n**Mood:** ${entry.mood}\n**Journal:** ${selectedJournal || entry.journal}\n**Tags:** ${entry.tags.join(', ')}\n\n${entry.text}\n\n*[Refined with Voice DNA]*`;
 
-      function copyMd() {
-        navigator.clipboard.writeText(md).then(
-          () => toast('Copied to DayOne clipboard', 'success'),
-          () => toast('Copy failed', 'error')
-        );
-      }
-
       return (
-        <Card variant="glass" className="fade-enter stagger-2" style={{ padding: '2rem' }}>
+        <div className="glass-card fade-enter stagger-2" style={{ padding: '2rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 600 }}>
             <span><Icon name="fa-markdown" color="var(--accent)" /> Markdown Export</span>
           </div>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', lineHeight: '1.7', color: 'var(--text-main)', whiteSpace: 'pre-wrap', marginBottom: '1.5rem' }}>
             {md}
           </div>
-          <Button variant="primary" icon="fa-copy" style={{ width: '100%' }} onClick={copyMd}>
-            Copy for DayOne
-          </Button>
-        </Card>
+          <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => copyToClipboard(md)}>
+            <Icon name="fa-copy" /> Copy for DayOne
+          </button>
+        </div>
       );
     }
 
+    // --- Active Trip Hero ---
     function ActiveTripHero({ trips, onNavigate }) {
       const today = new Date(); today.setHours(0, 0, 0, 0);
+
+      // Find active (in-progress) or next upcoming trip
       const activeTrip = trips.find(trip => {
         const start = new Date(trip.dates.start + 'T00:00:00');
         const end = new Date(trip.dates.end + 'T23:59:59');
@@ -775,15 +189,8 @@
       const daysUntil = isBefore ? Math.ceil((start - today) / msPerDay) : 0;
       const currentDay = isLive ? Math.floor((today - start) / msPerDay) + 1 : 0;
 
-      const openTrip = () => { onNavigate && onNavigate('trip'); };
       return (
-        <div
-          className="trip-hero stagger-2"
-          role="button"
-          tabIndex={0}
-          aria-label={`Open Trip module for ${activeTrip.displayDate || 'the active trip'}`}
-          onClick={openTrip}
-          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openTrip(); } }}>
+        <div className="trip-hero stagger-2" onClick={() => window.location.href = activeTrip.itineraryPath || 'itineraries/2026-04-ishrat-engagement.html'}>
           
           <div className="hero-overline">Asif & Ishrat</div>
           <div className="hero-names">Asif & Ishrat</div>
@@ -801,6 +208,7 @@
       );
     }
 
+    // --- Home Dashboard ---
     function HomePage({ trips, onNavigate }) {
       const totalWords = CHAPTERS.reduce((sum, ch) => sum + (ch.words || 0), 0);
       const chaptersLocked = CHAPTERS.filter(c => c.status === 'locked').length;
@@ -813,25 +221,26 @@
           <ActiveTripHero trips={trips} onNavigate={onNavigate} />
 
           <div className="grid-cards stagger-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))' }}>
-            <Card variant="module" role="button" tabIndex={0} onClick={() => onNavigate('memoir')} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onNavigate('memoir'); } }} aria-label="Open Memoir module">
+            <div className="glass-card module-card" onClick={() => onNavigate('memoir')}>
               <div className="module-card-header">
                 <div className="module-icon"><Icon name="fa-book-open" size="1.8em" /></div>
                 <h3 className="module-title">Memoir</h3>
               </div>
               <p className="module-description">"What I Wish Babu Taught Me" &mdash; Manage your chapters, incidents, and quotes in a structured, elegant format.</p>
-            </Card>
-            <Card variant="module" role="button" tabIndex={0} onClick={() => onNavigate('dayone')} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onNavigate('dayone'); } }} aria-label="Open DayOne Journal module">
+            </div>
+            <div className="glass-card module-card" onClick={() => onNavigate('dayone')}>
               <div className="module-card-header">
                 <div className="module-icon"><Icon name="fa-feather-pointed" size="1.8em" /></div>
                 <h3 className="module-title">DayOne Journal</h3>
               </div>
               <p className="module-description">Draft daily logs, tag locations, and apply your <em>Voice DNA</em> before seamlessly exporting directly to DayOne.</p>
-            </Card>
+            </div>
           </div>
         </div>
       );
     }
 
+    // --- Memoir Module ---
     function MemoirModule({ onOpenChapter }) {
       const [tab, setTab] = useState('chapters');
       const [searchQuery, setSearchQuery] = useState('');
@@ -876,23 +285,26 @@
                         const isClickable = !!ch.file;
                         const isPlanned = ch.status === 'planned';
                         return (
-                          <div key={ch.id}
+                          <div
+                            key={ch.id}
                             className={`book-spine-card ${isPlanned ? 'has-lock planned' : ''} ${isClickable ? 'clickable' : ''} ${ch.status === 'active' ? 'active-chapter' : ''}`}
                             style={{ backgroundColor: meta.bg, borderLeftColor: meta.border }}
-                            role={isClickable ? 'button' : undefined}
-                            tabIndex={isClickable ? 0 : undefined}
-                            aria-label={isClickable ? `Open Chapter ${ch.num}: ${ch.title}` : `Chapter ${ch.num}: ${ch.title} (${ch.status})`}
-                            aria-disabled={!isClickable || undefined}
                             onClick={() => isClickable && onOpenChapter && onOpenChapter(ch)}
-                            onKeyDown={e => { if (isClickable && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onOpenChapter && onOpenChapter(ch); } }}>
+                          >
                             <div className="book-binding-top"></div>
                             <div className="book-body">
                               <span className="book-chapter-label">Chapter {ch.num}</span>
-                              <div className="book-cover-icon"><Icon name={meta.icon} size="4.4em" /></div>
+                              <div className="book-cover-icon">
+                                <Icon name={meta.icon} size="4.4em" />
+                              </div>
                               <h3 className="book-title">{ch.title}</h3>
                               <p className="book-subtitle">{ch.subtitle}</p>
                             </div>
-                            {isPlanned && <div className="book-lock-emboss"><Icon name="fa-lock" size="3.5em" /></div>}
+                            {isPlanned && (
+                              <div className="book-lock-emboss">
+                                <Icon name="fa-lock" size="3.5em" />
+                              </div>
+                            )}
                             <div className="book-binding-bottom"></div>
                             <div className="book-pages-edge"></div>
                           </div>
@@ -909,36 +321,40 @@
           {tab === 'incidents' && (
             <div className="grid-cards stagger-1">
               {INCIDENTS_SAMPLE.map((inc, i) => (
-                <Card key={i} variant="glass" className="incident-card">
+                <div key={i} className="glass-card incident-card">
                   <h3 className="incident-title">{inc.title}</h3>
                   <div className="incident-meta">
-                    <Text as="span" variant="mono" size="sm" color="muted">
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                       <Icon name="fa-bookmark" /> Ch {inc.chapter}
-                    </Text>
+                    </span>
                     <span className={`badge ${inc.status === 'PLACED' ? 'badge-locked' : inc.status === 'BANKED' ? 'badge-active' : 'badge-planned'}`}>
                       {inc.status}
                     </span>
                   </div>
-                </Card>
+                </div>
               ))}
             </div>
           )}
 
           {tab === 'quotes' && (
             <div className="stagger-1">
-              <FormField label="Search quotes">
-                <Input placeholder="Search quotes..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} style={{ maxWidth: '400px' }} />
-              </FormField>
+              <input
+                className="input-field"
+                placeholder="Search quotes..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{ marginBottom: '1.5rem', maxWidth: '400px' }}
+              />
               <div className="grid-cards">
                 {filteredQuotes.map((q, i) => (
-                  <Card key={i} variant="glass" className="quote-card">
+                  <div key={i} className="glass-card quote-card">
                     <div className="quote-icon">&ldquo;</div>
                     <p className="quote-text">{q.text}</p>
                     <div className="quote-author">
                       <span>&mdash; {q.source}</span>
                       <span className="badge badge-active">Ch {q.chapter}</span>
                     </div>
-                  </Card>
+                  </div>
                 ))}
               </div>
             </div>
@@ -947,35 +363,37 @@
       );
     }
 
+    // --- DayOne Journal Module ---
     function DayOneModule({ trips }) {
       const [subTab, setSubTab] = useState('browser');
       const [selectedTrip, setSelectedTrip] = useState(null);
       const [selectedEntry, setSelectedEntry] = useState(null);
+
+      // New Entry state
       const [newMood, setNewMood] = useState('romantic');
       const [newJournal, setNewJournal] = useState('Ishrat\u2019s Trips');
       const [newSummary, setNewSummary] = useState('');
       const [newText, setNewText] = useState('');
 
+      // Entry detail / editor view
       if (selectedEntry) {
         return (
           <div className="container fade-enter">
-            <Button variant="secondary" icon="fa-arrow-left" onClick={() => setSelectedEntry(null)} style={{ marginBottom: '2rem' }}>
-              Back
-            </Button>
+            <button className="btn btn-secondary" onClick={() => setSelectedEntry(null)} style={{ marginBottom: '2rem' }}>
+              <Icon name="fa-arrow-left" /> Back
+            </button>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
               <DayOnePreview entry={selectedEntry} selectedJournal={selectedEntry.journal} />
-              <Card variant="glass" style={{ padding: '2.5rem' }}>
-                <Text as="h2" variant="serif" size="xl" style={{ marginBottom: '0.5rem' }}>{selectedEntry.summary}</Text>
-                <Text variant="mono" size="sm" color="muted" style={{ marginBottom: '1.5rem' }}>
+              <div className="glass-card" style={{ padding: '2.5rem' }}>
+                <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '2rem', marginBottom: '0.5rem' }}>{selectedEntry.summary}</h2>
+                <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: '0.85rem' }}>
                   {selectedEntry.date} &middot; {selectedEntry.location} &middot; {selectedEntry.mood}
-                </Text>
-                <FormField label="Entry text">
-                  <Textarea defaultValue={selectedEntry.text} />
-                </FormField>
-                <Button variant="primary" icon="fa-wand-magic-sparkles" style={{ marginTop: '1.5rem', width: '100%' }}>
-                  Refine with Voice DNA
-                </Button>
-              </Card>
+                </p>
+                <textarea className="input-field" defaultValue={selectedEntry.text} />
+                <button className="btn btn-primary" style={{ marginTop: '1.5rem', width: '100%' }}>
+                  <Icon name="fa-wand-magic-sparkles" /> Refine with Voice DNA
+                </button>
+              </div>
             </div>
           </div>
         );
@@ -998,37 +416,39 @@
             </button>
           </div>
 
+          {/* --- Browser: Trip List --- */}
           {subTab === 'browser' && !selectedTrip && (
             <div className="grid-cards stagger-1">
               {trips.map(trip => (
-                <Card key={trip.id} variant="module" role="button" tabIndex={0} aria-label={`Open trip ${trip.location}`} onClick={() => setSelectedTrip(trip)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedTrip(trip); } }}>
+                <div key={trip.id} className="glass-card module-card" onClick={() => setSelectedTrip(trip)}>
                   <div className="module-icon" style={{ background: 'linear-gradient(135deg, rgba(244,114,182,0.2), rgba(139,92,246,0.2))' }}>
                     <Icon name="fa-plane-departure" />
                   </div>
-                  <Text as="h2" variant="serif" className="module-title" style={{ fontSize: '1.8rem' }}>{trip.location}</Text>
+                  <h2 className="module-title" style={{ fontSize: '1.8rem' }}>{trip.location}</h2>
                   <p className="module-description">{trip.displayDate} &middot; {trip.country} &middot; {trip.entries.length} entries</p>
                   <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', flexWrap: 'wrap' }}>
                     {trip.tags.map(tag => <span key={tag} className="badge badge-active">{tag}</span>)}
                   </div>
-                </Card>
+                </div>
               ))}
             </div>
           )}
 
+          {/* --- Browser: Trip Entries --- */}
           {subTab === 'browser' && selectedTrip && (
             <div>
-              <Button variant="secondary" icon="fa-arrow-left" onClick={() => setSelectedTrip(null)} style={{ marginBottom: '1.5rem' }}>
-                All Trips
-              </Button>
-              <Text as="h2" variant="serif" size="xl" style={{ marginBottom: '0.25rem' }}>{selectedTrip.location}</Text>
-              <Text variant="mono" size="sm" color="muted" style={{ marginBottom: '1.5rem' }}>
+              <button className="btn btn-secondary" onClick={() => setSelectedTrip(null)} style={{ marginBottom: '1.5rem' }}>
+                <Icon name="fa-arrow-left" /> All Trips
+              </button>
+              <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '2rem', marginBottom: '0.25rem' }}>{selectedTrip.location}</h2>
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
                 {selectedTrip.displayDate} &middot; {selectedTrip.country} &middot; {selectedTrip.entries.length} entries
-              </Text>
+              </p>
               <div className="grid-cards stagger-1">
                 {selectedTrip.entries.map((entry, idx) => {
                   const color = MOOD_COLORS[entry.mood] || MOOD_COLORS.reflective;
                   return (
-                    <Card key={entry.uuid} variant="glass" className="entry-card" role="button" tabIndex={0} aria-label={`Open entry ${entry.summary}`} onClick={() => setSelectedEntry(entry)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedEntry(entry); } }} style={{ animationDelay: `${idx * 0.06}s` }}>
+                    <div key={entry.uuid} className="glass-card entry-card" onClick={() => setSelectedEntry(entry)} style={{ animationDelay: `${idx * 0.06}s` }}>
                       <div className="entry-header">
                         <span className="entry-date">Day {idx + 1} &middot; {entry.date}</span>
                         <span className="entry-mood" style={{ background: color.bg, color: color.text }}>
@@ -1037,42 +457,40 @@
                       </div>
                       <h3 className="entry-title">{entry.summary}</h3>
                       <p className="entry-preview">{entry.text}</p>
-                    </Card>
+                    </div>
                   );
                 })}
               </div>
             </div>
           )}
 
+          {/* --- Editor Tab --- */}
           {subTab === 'editor' && (
             <div className="stagger-1">
-              <Card variant="glass" style={{ padding: '2rem', maxWidth: '600px' }}>
-                <Text as="h3" variant="serif" size="lg" style={{ marginBottom: '1.5rem' }}>Select a trip and entry to edit</Text>
-                <FormField label="Trip">
-                  <Select onChange={e => { const trip = trips.find(t => t.id === e.target.value); setSelectedTrip(trip || null); setSelectedEntry(null); }}>
-                    <option value="">Choose trip...</option>
-                    {trips.map(t => <option key={t.id} value={t.id}>{t.location} &mdash; {t.displayDate}</option>)}
-                  </Select>
-                </FormField>
+              <div className="glass-card" style={{ padding: '2rem', maxWidth: '600px' }}>
+                <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.3rem', marginBottom: '1.5rem' }}>Select a trip and entry to edit</h3>
+                <select className="input-field" style={{ marginBottom: '1rem' }} onChange={e => { const trip = trips.find(t => t.id === e.target.value); setSelectedTrip(trip || null); setSelectedEntry(null); }}>
+                  <option value="">Choose trip...</option>
+                  {trips.map(t => <option key={t.id} value={t.id}>{t.location} &mdash; {t.displayDate}</option>)}
+                </select>
                 {selectedTrip && (
-                  <FormField label="Entry">
-                    <Select onChange={e => { const entry = selectedTrip.entries.find(en => en.uuid === e.target.value); if (entry) setSelectedEntry(entry); }}>
-                      <option value="">Choose entry...</option>
-                      {selectedTrip.entries.map(en => <option key={en.uuid} value={en.uuid}>{en.date} &mdash; {en.summary}</option>)}
-                    </Select>
-                  </FormField>
+                  <select className="input-field" onChange={e => { const entry = selectedTrip.entries.find(en => en.uuid === e.target.value); if (entry) setSelectedEntry(entry); }}>
+                    <option value="">Choose entry...</option>
+                    {selectedTrip.entries.map(en => <option key={en.uuid} value={en.uuid}>{en.date} &mdash; {en.summary}</option>)}
+                  </select>
                 )}
-              </Card>
+              </div>
             </div>
           )}
 
+          {/* --- New Entry Tab --- */}
           {subTab === 'new' && (
             <div className="stagger-1">
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                 <DayOnePreview
                   entry={{
                     location: 'New Entry',
-                    date: todayISO(),
+                    date: new Date().toISOString().split('T')[0],
                     mood: newMood,
                     text: newText || 'Your entry will appear here...',
                     tags: [newMood, 'ishrat'],
@@ -1081,990 +499,47 @@
                   selectedJournal={newJournal}
                 />
 
-                <Card variant="glass" style={{ padding: '2.5rem' }}>
-                  <Text as="h3" variant="serif" size="xl" style={{ marginBottom: '1.5rem' }}>New Entry</Text>
+                <div className="glass-card" style={{ padding: '2.5rem' }}>
+                  <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.5rem', marginBottom: '1.5rem' }}>New Entry</h3>
 
-                  <FormField label="Mood">
-                    <div className="mood-chips" role="radiogroup" aria-label="Mood">
-                      {MOODS.map(mood => {
-                        const color = MOOD_COLORS[mood] || MOOD_COLORS.reflective;
-                        const isSelected = newMood === mood;
-                        return (
-                          <button key={mood} type="button" role="radio" aria-checked={isSelected} aria-label={`Mood: ${mood}`}
-                            className={`mood-chip ${isSelected ? 'selected' : ''}`}
-                            onClick={() => setNewMood(mood)}
-                            style={{ background: color.bg, borderColor: isSelected ? color.text : 'transparent' }}>
-                            <Icon name={color.icon} size="0.9em" />
-                            <span style={{ color: color.text }}>{mood}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </FormField>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    <FormField label="Journal">
-                      <Select value={newJournal} onChange={e => setNewJournal(e.target.value)}>
-                        {JOURNALS.map(j => <option key={j} value={j}>{j}</option>)}
-                      </Select>
-                    </FormField>
-                    <FormField label="Date">
-                      <Input type="date" defaultValue={todayISO()} />
-                    </FormField>
+                  <label style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Mood</label>
+                  <div className="mood-chips" style={{ marginBottom: '1.5rem' }}>
+                    {MOODS.map(mood => {
+                      const color = MOOD_COLORS[mood] || MOOD_COLORS.reflective;
+                      return (
+                        <div key={mood} className={`mood-chip ${newMood === mood ? 'selected' : ''}`} onClick={() => setNewMood(mood)}
+                          style={{ background: color.bg, borderColor: newMood === mood ? color.text : 'transparent' }}>
+                          <Icon name={color.icon} size="0.9em" />
+                          <span style={{ color: color.text }}>{mood}</span>
+                        </div>
+                      );
+                    })}
                   </div>
 
-                  <FormField label="Summary">
-                    <Input placeholder="One line that captures the moment" value={newSummary} onChange={e => setNewSummary(e.target.value)} />
-                  </FormField>
-                  <FormField label="Entry">
-                    <Textarea placeholder="Let the moment breathe on the page..." value={newText} onChange={e => setNewText(e.target.value)} />
-                  </FormField>
-
-                  <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
-                    <Button variant="primary" icon="fa-wand-magic-sparkles">Refine with Voice DNA</Button>
-                    <Button variant="secondary" icon="fa-save">Save Draft</Button>
-                  </div>
-                </Card>
-              </div>
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    // TRIP MODULE (Phase 3)
-
-    const TRIP_SUB_TABS = [
-      { id: 'overview', label: 'Overview', icon: 'fa-map-location-dot' },
-      { id: 'capture',  label: 'Capture',  icon: 'fa-camera-retro' },
-      { id: 'tools',    label: 'Tools',    icon: 'fa-toolbox' },
-      { id: 'queue',    label: 'Queue',    icon: 'fa-inbox' },
-      { id: 'edits',    label: 'Edits',    icon: 'fa-clock-rotate-left' }
-    ];
-
-    function TripModule({ trip, loading, error, initialSubTab = 'overview' }) {
-      const [subTab, setSubTab] = useState(initialSubTab);
-      useEffect(() => { setSubTab(initialSubTab); }, [initialSubTab]);
-      useEffect(() => {
-        function onSet(e) { if (e.detail && TRIP_SUB_TABS.some(t => t.id === e.detail)) setSubTab(e.detail); }
-        window.addEventListener('trip:set-subtab', onSet);
-        return () => window.removeEventListener('trip:set-subtab', onSet);
-      }, []);
-
-      if (loading) {
-        return (
-          <div className="container fade-enter">
-            <h1 className="page-title">Trip</h1>
-            <SkeletonRow variant="queue-row" count={3} />
-          </div>
-        );
-      }
-      if (!trip) {
-        return (
-          <div className="container fade-enter">
-            <h1 className="page-title">Trip</h1>
-            <EmptyState
-              icon="fa-plane"
-              title="No active trip"
-              description="Set an active trip in manifest.json to get started."
-            />
-          </div>
-        );
-      }
-
-      return (
-        <div className="container fade-enter trip-module" data-trip-slug={trip.slug}>
-          <h1 className="page-title">Trip</h1>
-          <p className="page-subtitle">{trip.name} &middot; {trip.displayDate}</p>
-
-          <div className="journal-tabs glass-pill-nav" role="tablist" aria-label="Trip sections">
-            {TRIP_SUB_TABS.map(t => (
-              <button
-                key={t.id}
-                role="tab"
-                aria-selected={subTab === t.id}
-                tabIndex={subTab === t.id ? 0 : -1}
-                className={`journal-tab ${subTab === t.id ? 'active' : ''}`}
-                onClick={() => setSubTab(t.id)}
-              >
-                <Icon name={t.icon} /> {t.label}
-              </button>
-            ))}
-          </div>
-
-          {subTab === 'overview' && <TripOverview trip={trip} />}
-          {subTab === 'capture'  && <TripCapture  trip={trip} />}
-          {subTab === 'tools'    && <TripTools    trip={trip} />}
-          {subTab === 'queue'    && <QueuePanel   trip={trip} />}
-          {subTab === 'edits'    && <EditsPanel   trip={trip} />}
-          {subTab === 'overview' && <FloatingChat trip={trip} />}
-        </div>
-      );
-    }
-
-    function tripStatus(trip) {
-      const today = new Date(); today.setHours(0, 0, 0, 0);
-      const start = new Date(trip.dates.start + 'T00:00:00');
-      const end = new Date(trip.dates.end + 'T23:59:59');
-      const msPerDay = 86400000;
-      if (today < start) {
-        const days = Math.ceil((start - today) / msPerDay);
-        return { status: 'upcoming', label: `T-${days} day${days === 1 ? '' : 's'}` };
-      }
-      if (today > end) return { status: 'complete', label: 'Trip complete' };
-      const day = Math.floor((today - start) / msPerDay) + 1;
-      return { status: 'active', label: `Day ${day} of ${trip.dates.days}` };
-    }
-
-    function FlightLine({ label, flight }) {
-      if (!flight) return null;
-      return (
-        <div className="flight-card trip-flight-row">
-          <Text as="span" variant="mono" size="sm" color="muted">{label}</Text>
-          <Text as="span" weight="600">{flight.flight} &middot; {flight.route}</Text>
-          <Text as="span" variant="mono" size="sm" color="muted">{flight.date} &middot; {flight.depart} → {flight.arrive}</Text>
-        </div>
-      );
-    }
-
-    function TripOverview({ trip }) {
-      const { status, label } = useMemo(() => tripStatus(trip), [trip]);
-      const highlights = Array.isArray(trip.highlights) ? trip.highlights : [];
-      const travelers = Array.isArray(trip.travelers) ? trip.travelers : [];
-      return (
-        <div className="trip-overview" style={{ display: 'grid', gap: '1.5rem' }}>
-          <Card variant="glass" className="trip-details-card" style={{ padding: '2rem' }}>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'baseline', justifyContent: 'space-between' }}>
-              <div>
-                <Text as="h2" variant="serif" size="xl" style={{ marginBottom: '0.25rem' }}>{trip.name}</Text>
-                <Text variant="mono" size="sm" color="muted">
-                  {trip.dates.start} → {trip.dates.end} &middot; {trip.dates.days} days
-                </Text>
-              </div>
-              <StatusBadge status={status} label={label} />
-            </div>
-            {trip.occasion && <Text style={{ marginTop: '1rem' }}>{trip.occasion}</Text>}
-            {trip.base && (
-              <Text variant="mono" size="sm" color="muted" style={{ marginTop: '0.5rem' }}>
-                <Icon name="fa-hotel" /> {trip.base}
-              </Text>
-            )}
-            {travelers.length > 0 && (
-              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', flexWrap: 'wrap' }}>
-                {travelers.map(t => <Badge key={t} variant="accent" icon="fa-user" className="traveler-badge">{t}</Badge>)}
-              </div>
-            )}
-          </Card>
-
-          {trip.flights && (
-            <Card variant="glass" className="flights-card" style={{ padding: '1.75rem' }}>
-              <Text as="h3" variant="serif" size="lg" style={{ marginBottom: '1rem' }}>Flights</Text>
-              <div style={{ display: 'grid', gap: '0.75rem' }}>
-                <FlightLine label="OUTBOUND" flight={trip.flights.inbound} />
-                <FlightLine label="RETURN"   flight={trip.flights.outbound} />
-              </div>
-            </Card>
-          )}
-
-          {highlights.length > 0 && (
-            <Card variant="glass" className="highlights-card" style={{ padding: '1.75rem' }}>
-              <Text as="h3" variant="serif" size="lg" style={{ marginBottom: '1rem' }}>Highlights</Text>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: '0.75rem' }}>
-                {highlights.map((h, i) => (
-                  <li key={i} className="highlight-item" style={{ display: 'flex', gap: '0.75rem', alignItems: 'baseline' }}>
-                    <Text as="span" variant="mono" size="sm" color="muted" style={{ minWidth: '6.5rem' }}>{h.date}</Text>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                     <div>
-                      <Text as="span" weight="600">{h.event}</Text>
-                      {h.venue && <Text as="div" variant="mono" size="sm" color="muted">{h.venue}</Text>}
+                      <label style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Journal</label>
+                      <select className="input-field" value={newJournal} onChange={e => setNewJournal(e.target.value)}>
+                        {JOURNALS.map(j => <option key={j} value={j}>{j}</option>)}
+                      </select>
                     </div>
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          )}
-        </div>
-      );
-    }
-    function TripTools({ trip }) {
-      return (
-        <div style={{ display: 'grid', gap: '1.5rem', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
-          <TipHelper trip={trip} />
-          <PackingList trip={trip} />
-        </div>
-      );
-    }
-
-    function TipHelper({ trip }) {
-      const { data: currencyMap, error: currencyErr } = useFetch('http://localhost:3001/api/reference-data/currency');
-      const { data: tippingMap, error: tippingErr } = useFetch('http://localhost:3001/api/reference-data/tipping');
-      const [country, setCountry] = useState(trip?.country || '');
-      const countries = currencyMap ? Object.keys(currencyMap).sort() : [];
-      const tip = tippingMap ? tippingMap[country] : null;
-      const currency = currencyMap ? currencyMap[country] : null;
-      const error = currencyErr || tippingErr;
-      return (
-        <Card variant="glass" style={{ padding: '1.75rem' }}>
-          <Text as="h3" variant="serif" size="lg" style={{ marginBottom: '1rem' }}>Tip helper</Text>
-          {error && <Text color="muted" size="sm">Couldn’t load tipping data ({String(error.message)}).</Text>}
-          <FormField label="Country">
-            <Select value={country} onChange={e => setCountry(e.target.value)} disabled={!countries.length}>
-              <option value="">Choose a country…</option>
-              {countries.map(c => <option key={c} value={c}>{c}</option>)}
-            </Select>
-          </FormField>
-          {tip && currency && (
-            <div style={{ marginTop: '1rem', display: 'grid', gap: '0.6rem' }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.75rem' }}>
-                <Text as="span" variant="serif" size="xl">{tip.range}</Text>
-                <Badge variant={tip.expected ? 'accent' : 'neutral'} icon={tip.expected ? 'fa-circle-check' : 'fa-circle-info'}>
-                  {tip.expected ? 'Expected' : 'Optional'}
-                </Badge>
-              </div>
-              <Text variant="mono" size="sm" color="muted">{currency.code} ({currency.symbol}) &middot; {currency.name}</Text>
-              <Text size="sm">{tip.notes}</Text>
-            </div>
-          )}
-          {country && !tip && currencyMap && tippingMap && (
-            <Text color="muted" size="sm" style={{ marginTop: '0.75rem' }}>No tipping notes for {country}.</Text>
-          )}
-        </Card>
-      );
-    }
-
-    function PackingList({ trip }) {
-      const slug = trip?.slug || 'default';
-      const { data: packingData, error } = useFetch('http://localhost:3001/api/reference-data/packing');
-      const [checked, setChecked] = useLocalStoragePrefs(`packing-${slug}`, {});
-      const categories = (packingData && Array.isArray(packingData.categories)) ? packingData.categories : [];
-      const allItems = useMemo(() => categories.flatMap(c => c.items), [categories]);
-      const totalCount = allItems.length;
-      const packedCount = allItems.filter(i => checked[i]).length;
-      const toggle = (item) => setChecked(c => ({ ...c, [item]: !c[item] }));
-      return (
-        <Card variant="glass" style={{ padding: '1.75rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '1rem', gap: '1rem', flexWrap: 'wrap' }}>
-            <Text as="h3" variant="serif" size="lg">Packing list</Text>
-            <Text variant="mono" size="sm" color="muted">{packedCount} of {totalCount} packed</Text>
-          </div>
-          {error && <Text color="muted" size="sm">Couldn’t load packing template ({String(error.message)}).</Text>}
-          {!packingData && !error && <SkeletonRow variant="queue-row" count={3} />}
-          {categories.map(cat => (
-            <div key={cat.name} style={{ marginBottom: '1rem' }}>
-              <Text as="h4" variant="mono" size="sm" color="muted" style={{ textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>{cat.name}</Text>
-              <div style={{ display: 'grid', gap: '0.35rem' }}>
-                {cat.items.map(item => (
-                  <Checkbox key={item} label={item} checked={!!checked[item]} onChange={() => toggle(item)} />
-                ))}
-              </div>
-            </div>
-          ))}
-        </Card>
-      );
-    }
-    function EditsPanel({ trip }) {
-      const [state, setState] = useState({ items: null, loading: true, error: null });
-      const [tick, setTick] = useState(0);
-      useEffect(() => {
-        let cancelled = false;
-        setState(s => ({ ...s, loading: true }));
-        window.BabuAI.editLogGet()
-          .then(body => { if (!cancelled) setState({ items: body.items || [], loading: false, error: null }); })
-          .catch(err => { if (!cancelled) setState({ items: [], loading: false, error: err.message }); });
-        return () => { cancelled = true; };
-      }, [tick]);
-      useEffect(() => {
-        const refresh = () => setTick(t => t + 1);
-        window.addEventListener('trip:edited', refresh);
-        return () => window.removeEventListener('trip:edited', refresh);
-      }, []);
-      const revert = async (id) => {
-        try { await window.BabuAI.tripEditRevert(id, trip?.slug); setTick(t => t + 1); }
-        catch (err) { setState(s => ({ ...s, error: err.message })); }
-      };
-      if (state.loading) return <SkeletonRow variant="queue-row" count={3} />;
-      if (state.error) return <EmptyState icon="fa-triangle-exclamation" title="Edit log unavailable" description={state.error} />;
-      if (!state.items.length) return <EmptyState icon="fa-clock-rotate-left" title="No edits yet" description="FloatingChat edits to trip.yaml will appear here with Apply / Revert provenance." />;
-      return (
-        <div style={{ display: 'grid', gap: '0.75rem' }}>
-          {[...state.items].reverse().map(row => (
-            <Card key={row.id} variant="flat" style={{ padding: '0.85rem 1rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '1rem', flexWrap: 'wrap' }}>
-                <div style={{ minWidth: 0 }}>
-                  <Text as="div" size="sm" weight="semibold" style={{ margin: 0 }}>{row.intent}</Text>
-                  <Text as="div" variant="mono" size="sm" color="muted" style={{ margin: 0 }}>{new Date(row.createdAt).toLocaleString()} · {row.actor}</Text>
-                </div>
-                <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
-                  <StatusBadge status={row.status === 'applied' ? 'active' : row.status === 'reverted' ? 'drained' : 'stuck'} label={row.status.toUpperCase()} />
-                  {row.status === 'applied' && <Button variant="ghost" size="sm" icon="fa-rotate-left" onClick={() => revert(row.id)}>Revert</Button>}
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-      );
-    }
-
-    function StuckSection({ tick, onChange }) {
-      const [state, setState] = useState({ items: null, loading: true });
-      const [expanded, setExpanded] = useState(true);
-      const toast = React.useContext(ToastContext);
-      useEffect(() => {
-        let cancelled = false;
-        fetch('http://localhost:3001/api/dead-letter').then(r => r.ok ? r.json() : null)
-          .then(body => { if (!cancelled) setState({ items: body && Array.isArray(body.items) ? body.items : [], loading: false }); })
-          .catch(() => { if (!cancelled) setState({ items: [], loading: false }); });
-        return () => { cancelled = true; };
-      }, [tick]);
-      const act = async (url, payload, success, failure) => {
-        try {
-          const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-          const body = await r.json().catch(() => ({}));
-          if (r.ok && body.ok) { toast && toast.show(success, 'success'); onChange(); }
-          else toast && toast.show(body.error || failure, 'error');
-        } catch { toast && toast.show(failure, 'error'); }
-      };
-      if (state.loading || !state.items || state.items.length === 0) return null;
-      const headerStyle = { display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0, width: '100%', justifyContent: 'space-between' };
-      return (
-        <Card variant="glass" style={{ padding: '0.85rem', marginBottom: '1rem', borderColor: 'var(--error)' }}>
-          <button type="button" onClick={() => setExpanded(e => !e)} style={headerStyle}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Icon name="fa-triangle-exclamation" color="var(--error)" /><Text weight="600">Stuck — {state.items.length} item{state.items.length === 1 ? '' : 's'}</Text></span>
-            <Icon name={expanded ? 'fa-chevron-up' : 'fa-chevron-down'} />
-          </button>
-          {expanded && (
-            <div style={{ marginTop: '0.75rem', display: 'grid', gap: '0.6rem' }}>
-              {state.items.map(it => {
-                const dl = (it.row && it.row.deadLetter) || {};
-                return (
-                  <Card key={`${it.queueName}:${it.id}`} variant="glass" style={{ padding: '0.7rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '0.75rem', flexWrap: 'wrap' }}>
-                      <div>
-                        <Text weight="600" size="sm">{it.queueName} · <span style={{ fontFamily: 'var(--font-mono, monospace)' }}>{it.id}</span></Text>
-                        {dl.reason && <Text size="sm" color="muted">{dl.reason}</Text>}
-                        {dl.failedAt && <Text size="sm" color="muted" variant="mono">failed {new Date(dl.failedAt).toLocaleString()}</Text>}
-                      </div>
-                      <div style={{ display: 'flex', gap: '0.4rem' }}>
-                        <Button variant="primary" size="sm" onClick={() => act(`http://localhost:3001/api/queue/${it.queueName}/replay`, { id: it.id }, 'Re-submitted', 'Replay failed')}>Re-submit</Button>
-                        <Button variant="secondary" size="sm" onClick={() => act('http://localhost:3001/api/dead-letter/discard', { queueName: it.queueName, id: it.id }, 'Discarded', 'Discard failed')}>Discard</Button>
-                      </div>
-                    </div>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
-        </Card>
-      );
-    }
-
-    function QueuePanel({ trip }) {
-      const [state, setState] = useState({ items: null, loading: true, error: null });
-      const [tick, setTick] = useState(0);
-      const [openId, setOpenId] = useState(null);
-      useEffect(() => {
-        let cancelled = false;
-        setState(s => ({ ...s, loading: true }));
-        fetch('http://localhost:3001/api/queue/pending')
-          .then(r => r.ok ? r.json() : Promise.resolve({ ok: true, items: [] }))
-          .then(body => { if (!cancelled) setState({ items: Array.isArray(body.items) ? body.items : [], loading: false, error: null }); })
-          .catch(() => { if (!cancelled) setState({ items: [], loading: false, error: null }); });
-        function onRefresh() { setTick(t => t + 1); }
-        window.addEventListener('queue:refresh', onRefresh);
-        return () => { cancelled = true; window.removeEventListener('queue:refresh', onRefresh); };
-      }, [tick]);
-      const refresh = () => { setTick(t => t + 1); window.dispatchEvent(new CustomEvent('queue:refresh')); };
-      if (state.loading) return <SkeletonRow variant="queue-row" count={3} />;
-      if (!state.items || state.items.length === 0) {
-        return (
-          <div>
-            <StuckSection tick={tick} onChange={refresh} />
-            <EmptyState icon="fa-inbox" title="Queue is empty" description="Captured receipts and voice notes will appear here." />
-          </div>
-        );
-      }
-      return (
-        <div>
-          <StuckSection tick={tick} onChange={refresh} />
-          <div style={{ display: 'grid', gap: '0.75rem' }}>
-            {state.items.map((it, i) => {
-              const p = it.payload || {};
-              const rowId = it.id || String(i);
-              const isOpen = openId === rowId;
-              const primary = p.merchant || it.title || (it.kind ? it.kind[0].toUpperCase() + it.kind.slice(1) : 'Pending item');
-              const amountStr = p.amount != null ? `${p.currency || ''} ${Number(p.amount).toFixed(2)}`.trim() : null;
-              return (
-                <Card key={rowId} variant="glass" style={{ padding: '1rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.75rem', minWidth: 0 }}>
-                      {it.memoryWorthy && <Icon name="fa-star" color="var(--accent, #f4d49c)" />}
-                      <Text weight="600" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{primary}</Text>
-                      {amountStr && <Text variant="mono" size="sm" color="muted">{amountStr}</Text>}
-                      {p.date && <Text variant="mono" size="sm" color="muted">{p.date}</Text>}
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <StatusBadge status={it.status || 'pending'} size="sm" />
-                      <IconButton icon={isOpen ? 'fa-chevron-up' : 'fa-chevron-down'} label={isOpen ? 'Hide details' : 'Show details'} onClick={() => setOpenId(o => o === rowId ? null : rowId)} />
+                    <div>
+                      <label style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Date</label>
+                      <input className="input-field" type="date" defaultValue={new Date().toISOString().split('T')[0]} />
                     </div>
                   </div>
-                  {isOpen && (
-                    <div style={{ marginTop: '0.75rem', display: 'grid', gap: '0.35rem' }}>
-                      {p.description && <Text size="sm">{p.description}</Text>}
-                      {p.category && <Text size="sm" color="muted">Category: {p.category}</Text>}
-                      {it.imagePath && <Text size="sm" variant="mono" color="muted">{it.imagePath}</Text>}
-                      <Text size="sm" variant="mono" color="muted">id: {it.id}</Text>
-                      {it.visionUsed !== undefined && <Text size="sm" variant="mono" color="muted">visionUsed: {String(it.visionUsed)}</Text>}
-                    </div>
-                  )}
-                </Card>
-              );
-            })}
-          </div>
-        </div>
-      );
-    }
-    const CAPTURE_CURRENCIES = ['USD','GBP','EUR','CAD','AUD','AED','PKR','INR','JPY','TRY'];
-    const CAPTURE_CATEGORIES = ['Food','Transport','Lodging','Shopping','Entertainment','Health','Other'];
-    const CAPTURE_STEPS = ['Reading image', 'Extracting details', 'Review'];
 
-    function TripCapture({ trip }) {
-      const [receiptOpen, setReceiptOpen] = useState(false);
-      return (
-        <div style={{ display: 'grid', gap: '1rem' }}>
-          <Card variant="glass" style={{ padding: '1.75rem' }}>
-            <Text as="h4" variant="serif" size="md" style={{ margin: 0, marginBottom: '0.25rem' }}>Receipt</Text>
-            <Text size="sm" color="muted" style={{ marginBottom: '1rem' }}>Drop a receipt photo; we'll extract the details and queue it for review.</Text>
-            <Button variant="primary" icon="fa-receipt" onClick={() => setReceiptOpen(true)}>Capture receipt</Button>
-          </Card>
-          <VoiceEntry trip={trip} />
-          <ItineraryPaste trip={trip} />
-          {receiptOpen && <CaptureModal trip={trip} onClose={() => setReceiptOpen(false)} />}
-        </div>
-      );
-    }
+                  <label style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Summary</label>
+                  <input className="input-field" placeholder="One line that captures the moment" value={newSummary} onChange={e => setNewSummary(e.target.value)} style={{ marginBottom: '1rem' }} />
 
-    function CaptureModal({ trip, onClose }) {
-      const { show: toast } = useToast();
-      const [file, setFile] = useState(null);
-      const [previewUrl, setPreviewUrl] = useState(null);
-      const [step, setStep] = useState(0); // 0=pick, 1=upload, 2=extract, 3=review
-      const [error, setError] = useState(null);
-      const [rawText, setRawText] = useState(null);
-      const [uploaded, setUploaded] = useState(null); // { imagePath, id, visionUsed }
-      const [form, setForm] = useState({ merchant: '', amount: '', currency: trip?.currency || 'USD', date: todayISO(), category: 'Food', description: '' });
-      const [memoryWorthy, setMemoryWorthy] = useState(false);
-      const [dragOver, setDragOver] = useState(false);
-      const [submitting, setSubmitting] = useState(false);
+                  <label style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>Entry</label>
+                  <textarea className="input-field" placeholder="Let the moment breathe on the page..." value={newText} onChange={e => setNewText(e.target.value)} />
 
-      useEffect(() => () => { if (previewUrl) URL.revokeObjectURL(previewUrl); }, [previewUrl]);
-
-      const onPick = (f) => {
-        if (!f) return;
-        if (!/^image\//.test(f.type)) { setError('Please choose an image file.'); return; }
-        if (f.size > 5 * 1024 * 1024) { setError('File too large (max 5 MB).'); return; }
-        setError(null); setRawText(null);
-        setFile(f);
-        setPreviewUrl(URL.createObjectURL(f));
-      };
-
-      const runPipeline = useCallback(async () => {
-        if (!file) return;
-        setError(null); setStep(1);
-        try {
-          const up = await window.BabuAI.uploadReceipt(file);
-          setUploaded(up); setStep(2);
-          const ex = await window.BabuAI.extractReceipt(up.imagePath);
-          if (ex.extracted) {
-            setForm(prev => ({
-              merchant:    ex.extracted.merchant    ?? prev.merchant,
-              amount:      ex.extracted.amount != null ? String(ex.extracted.amount) : prev.amount,
-              currency:    ex.extracted.currency    ?? prev.currency,
-              date:        ex.extracted.date        ?? prev.date,
-              category:    ex.extracted.category    ?? prev.category,
-              description: ex.extracted.description ?? prev.description,
-            }));
-          } else {
-            setRawText(ex.rawText || '(empty response)');
-          }
-          setUploaded(u => ({ ...u, visionUsed: ex.visionUsed }));
-          setStep(3);
-        } catch (err) {
-          setError(err.message || 'Extraction failed. You can retry or edit manually.');
-          setStep(3);
-        }
-      }, [file]);
-
-      useEffect(() => { if (file && step === 0) runPipeline(); }, [file, step, runPipeline]);
-
-      const approve = async () => {
-        if (!uploaded) return;
-        setSubmitting(true); setError(null);
-        const amountNum = Number(form.amount);
-        try {
-          const row = {
-            schemaVersion: '1',
-            id: `receipt-${uploaded.id}`,
-            createdAt: new Date().toISOString(),
-            tripSlug: trip?.slug,
-            kind: 'receipt',
-            source: 'app',
-            status: 'pending',
-            memoryWorthy,
-            imagePath: uploaded.imagePath,
-            visionUsed: Boolean(uploaded.visionUsed),
-            payload: {
-              merchant: form.merchant.trim() || null,
-              amount: Number.isFinite(amountNum) ? amountNum : null,
-              currency: form.currency || null,
-              date: form.date || null,
-              category: form.category || null,
-              description: form.description.trim() || null,
-            },
-          };
-          await window.BabuAI.queuePost('pending', row);
-          toast('Receipt queued', 'success');
-          window.dispatchEvent(new CustomEvent('queue:refresh'));
-          onClose();
-        } catch (err) {
-          setError(err.message || 'Queue write failed.');
-        } finally {
-          setSubmitting(false);
-        }
-      };
-
-      const onDrop = (e) => { e.preventDefault(); setDragOver(false); onPick(e.dataTransfer.files && e.dataTransfer.files[0]); };
-
-      return (
-        <Modal title="Capture receipt" onClose={onClose} size="md">
-          {step === 0 && !file && (
-            <div>
-              <label
-                className={`capture-drop ${dragOver ? 'is-over' : ''}`}
-                onDragOver={e => { e.preventDefault(); setDragOver(true); }}
-                onDragLeave={() => setDragOver(false)}
-                onDrop={onDrop}
-                style={{ display: 'grid', placeItems: 'center', padding: '2rem', border: '2px dashed var(--border, #555)', borderRadius: '0.75rem', cursor: 'pointer', gap: '0.5rem' }}>
-                <Icon name="fa-image" size="2em" />
-                <Text size="sm">Click or drop an image here</Text>
-                <Text size="sm" color="muted">JPG, PNG, HEIC, WebP · up to 5 MB</Text>
-                <input type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={e => onPick(e.target.files && e.target.files[0])} />
-              </label>
-              {error && <Text color="error" size="sm" style={{ marginTop: '0.75rem' }}>{error}</Text>}
-            </div>
-          )}
-          {file && (
-            <div style={{ display: 'grid', gap: '1rem' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 180px) 1fr', gap: '1rem', alignItems: 'start' }}>
-                {previewUrl && <img src={previewUrl} alt="Receipt preview" style={{ width: '100%', borderRadius: '0.5rem' }} />}
-                <div style={{ display: 'grid', gap: '0.5rem' }}>
-                  <StepProgress steps={CAPTURE_STEPS} current={Math.max(0, step - 1)} />
-                  {uploaded?.visionUsed !== undefined && <Badge variant="neutral" icon={uploaded.visionUsed ? 'fa-eye' : 'fa-wand-magic-sparkles'}>{uploaded.visionUsed ? 'macOS Vision OCR' : 'Haiku vision'}</Badge>}
-                  {error && <Text color="error" size="sm">{error}</Text>}
-                  {rawText && <Text size="sm" color="muted" style={{ whiteSpace: 'pre-wrap' }}>Model output (raw):{"\n"}{rawText}</Text>}
-                </div>
-              </div>
-              {step >= 3 && (
-                <div style={{ display: 'grid', gap: '0.75rem' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                    <FormField label="Merchant"><Input value={form.merchant} onChange={e => setForm({ ...form, merchant: e.target.value })} /></FormField>
-                    <FormField label="Amount"><Input type="number" step="0.01" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} /></FormField>
-                    <FormField label="Currency">
-                      <Select value={form.currency} onChange={e => setForm({ ...form, currency: e.target.value })}>
-                        {CAPTURE_CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
-                      </Select>
-                    </FormField>
-                    <FormField label="Date"><Input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} /></FormField>
-                    <FormField label="Category">
-                      <Select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
-                        {CAPTURE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                      </Select>
-                    </FormField>
-                  </div>
-                  <FormField label="Description"><Input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} /></FormField>
-                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-                    <IconButton icon={memoryWorthy ? 'fa-star' : 'fa-star'} label={memoryWorthy ? 'Unmark memory-worthy' : 'Mark memory-worthy'}
-                      onClick={() => setMemoryWorthy(m => !m)}
-                      variant={memoryWorthy ? 'primary' : 'ghost'} />
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      {error && <Button variant="secondary" icon="fa-rotate" onClick={() => runPipeline()}>Retry</Button>}
-                      <Button variant="secondary" onClick={onClose}>Cancel</Button>
-                      <Button variant="primary" icon="fa-check" loading={submitting} onClick={approve}>Approve</Button>
-                    </div>
+                  <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+                    <button className="btn btn-primary"><Icon name="fa-wand-magic-sparkles" /> Refine with Voice DNA</button>
+                    <button className="btn btn-secondary"><Icon name="fa-save" /> Save Draft</button>
                   </div>
                 </div>
-              )}
-            </div>
-          )}
-        </Modal>
-      );
-    }
-
-    function VoiceEntry({ trip }) {
-      const { show: toast } = useToast();
-      const [status, setStatus] = useState('idle'); // idle | recording | ready | saving
-      const [transcript, setTranscript] = useState('');
-      const [error, setError] = useState(null);
-      const recRef = useRef(null);
-      const finalRef = useRef('');
-      const SR = typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition);
-
-      const start = () => {
-        if (!SR) { setError('not-supported'); return; }
-        setError(null); setTranscript(''); finalRef.current = '';
-        const rec = new SR();
-        rec.continuous = true; rec.interimResults = true; rec.lang = 'en-US';
-        rec.onresult = (e) => {
-          let interim = '';
-          for (let i = e.resultIndex; i < e.results.length; i += 1) {
-            const t = e.results[i][0].transcript;
-            if (e.results[i].isFinal) finalRef.current += t + ' ';
-            else interim += t;
-          }
-          setTranscript((finalRef.current + interim).trim());
-        };
-        rec.onerror = (ev) => { setError(ev.error === 'not-allowed' ? 'denied' : ev.error); setStatus('idle'); };
-        rec.onend = () => setStatus(s => s === 'recording' ? 'ready' : s);
-        try { rec.start(); recRef.current = rec; setStatus('recording'); }
-        catch (err) { setError(err.message); setStatus('idle'); }
-      };
-
-      const stop = () => { try { recRef.current && recRef.current.stop(); } catch {} };
-
-      const save = async () => {
-        const text = transcript.trim();
-        if (!text) { setError('Transcript is empty.'); return; }
-        setStatus('saving'); setError(null);
-        try {
-          const row = {
-            schemaVersion: '1',
-            id: `voice-${(crypto.randomUUID && crypto.randomUUID()) || Date.now()}`,
-            createdAt: new Date().toISOString(),
-            tripSlug: trip?.slug,
-            kind: 'voice', source: 'app', status: 'pending', memoryWorthy: false,
-            payload: { transcript: text },
-          };
-          await window.BabuAI.queuePost('voice-inbox', row);
-          toast('Voice entry saved', 'success');
-          window.dispatchEvent(new CustomEvent('queue:refresh'));
-          setTranscript(''); finalRef.current = ''; setStatus('idle');
-        } catch (err) {
-          setError(err.message || 'Save failed.'); setStatus('ready');
-        }
-      };
-
-      if (error === 'denied') {
-        return <EmptyState icon="fa-microphone-slash" title="Microphone access denied" description="Enable microphone in browser settings to record." />;
-      }
-      if (!SR) {
-        return <EmptyState icon="fa-microphone-slash" title="Voice capture not supported" description="Try Chrome or Safari to record voice entries." />;
-      }
-      return (
-        <Card variant="glass" style={{ padding: '1.5rem', display: 'grid', gap: '0.75rem' }}>
-          <Text as="h4" variant="serif" size="md" style={{ margin: 0 }}>Voice entry</Text>
-          <Text size="sm" color="muted">Transcript only — no audio is uploaded or saved.</Text>
-          {status === 'recording' && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Icon name="fa-microphone fa-beat" color="#BE185D" />
-              <Text size="sm" color="muted">Listening…</Text>
-            </div>
-          )}
-          <Textarea value={transcript} onChange={e => setTranscript(e.target.value)}
-            readOnly={status === 'recording' || status === 'saving'} rows={5}
-            placeholder="Transcript will appear here. Edit freely before saving." />
-          {error && error !== 'denied' && <Text color="error" size="sm">{error}</Text>}
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-            {status === 'idle' && <Button variant="primary" icon="fa-microphone" onClick={start}>Start recording</Button>}
-            {status === 'recording' && <Button variant="secondary" icon="fa-stop" onClick={stop}>Stop</Button>}
-            {status === 'ready' && <>
-              <Button variant="primary" icon="fa-check" onClick={save}>Save</Button>
-              <Button variant="ghost" icon="fa-trash" onClick={() => { setTranscript(''); finalRef.current = ''; setError(null); setStatus('idle'); }}>Discard</Button>
-            </>}
-            {status === 'saving' && <Button variant="primary" loading>Saving…</Button>}
-          </div>
-        </Card>
-      );
-    }
-
-    function ItineraryPaste({ trip }) {
-      const { show: toast } = useToast();
-      const [open, setOpen] = useState(false);
-      const [text, setText] = useState('');
-      const [ext, setExt] = useState(null);
-      const [parsing, setParsing] = useState(false);
-      const [submitting, setSubmitting] = useState(false);
-      const [error, setError] = useState(null);
-
-      const close = () => {
-        setText(''); setExt(null); setError(null);
-        setParsing(false); setSubmitting(false); setOpen(false);
-      };
-
-      const parse = async () => {
-        if (text.trim().length < 20) { setError('Paste at least 20 characters.'); return; }
-        setParsing(true); setError(null); setExt(null);
-        try {
-          const r = await window.BabuAI.ingestItinerary(text.trim());
-          setExt(r.extracted);
-        } catch (err) {
-          setError((err.body && err.body.error) || err.message || 'Parse failed.');
-        } finally {
-          setParsing(false);
-        }
-      };
-
-      const accept = async () => {
-        if (!ext) return;
-        setSubmitting(true); setError(null);
-        try {
-          await window.BabuAI.queuePost('itinerary-inbox', {
-            schemaVersion: '1',
-            id: `itinerary-${(crypto.randomUUID && crypto.randomUUID()) || Date.now()}`,
-            createdAt: new Date().toISOString(),
-            tripSlug: trip?.slug,
-            kind: 'itinerary', source: 'app', status: 'pending', memoryWorthy: false,
-            payload: { extracted: ext, original: text.trim() },
-          });
-          toast('Itinerary accepted', 'success');
-          window.dispatchEvent(new CustomEvent('queue:refresh'));
-          close();
-        } catch (err) {
-          setError(err.message || 'Save failed.');
-        } finally {
-          setSubmitting(false);
-        }
-      };
-
-      const empty = ext && !ext.flights?.length && !ext.hotels?.length && !ext.highlights?.length;
-      return (
-        <>
-          <Card variant="glass" style={{ padding: '1.75rem' }}>
-            <Text as="h4" variant="serif" size="md" style={{ margin: 0, marginBottom: '0.25rem' }}>Paste itinerary</Text>
-            <Text size="sm" color="muted" style={{ marginBottom: '1rem' }}>Drop a confirmation email or agenda; we'll extract flights, hotels, and highlights.</Text>
-            <Button variant="primary" icon="fa-paste" onClick={() => setOpen(true)}>Paste itinerary</Button>
-          </Card>
-          {open && (
-            <Modal title="Paste itinerary" onClose={close} size="lg">
-              <div style={{ display: 'grid', gap: '0.75rem' }}>
-                <Textarea rows={8} placeholder="Paste confirmation email, agenda, notes…"
-                  value={text} onChange={e => setText(e.target.value)} />
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  <Button variant="secondary" icon="fa-wand-magic-sparkles" loading={parsing}
-                    onClick={parse} disabled={!text.trim() || parsing}>Parse</Button>
-                  {ext && !empty && <Button variant="primary" icon="fa-check" loading={submitting} onClick={accept}>Accept</Button>}
-                  <Button variant="ghost" onClick={close}>Cancel</Button>
-                </div>
-                {error && <Text color="error" size="sm">{error}</Text>}
-                {parsing && <SkeletonRow variant="queue-row" count={3} />}
-                {ext && !parsing && (
-                  <div style={{ display: 'grid', gap: '0.5rem' }}>
-                    {(ext.dates?.start || ext.dates?.end) && (
-                      <Badge variant="neutral" icon="fa-calendar">{ext.dates?.start || '?'} → {ext.dates?.end || '?'}</Badge>
-                    )}
-                    {ext.flights?.length > 0 && (
-                      <Card variant="flat" style={{ padding: '0.75rem' }}>
-                        <Text size="sm" weight="semibold" style={{ margin: 0, marginBottom: '0.25rem' }}><Icon name="fa-plane" /> Flights</Text>
-                        {ext.flights.map((f, i) => <Text key={i} size="sm" style={{ margin: 0 }}>{f.airline ? f.airline + ' · ' : ''}{f.departure || '?'} → {f.arrival || '?'}{f.date ? ' · ' + f.date : ''}</Text>)}
-                      </Card>
-                    )}
-                    {ext.hotels?.length > 0 && (
-                      <Card variant="flat" style={{ padding: '0.75rem' }}>
-                        <Text size="sm" weight="semibold" style={{ margin: 0, marginBottom: '0.25rem' }}><Icon name="fa-hotel" /> Hotels</Text>
-                        {ext.hotels.map((h, i) => <Text key={i} size="sm" style={{ margin: 0 }}>{h.name || '(unnamed)'}{h.location ? ' · ' + h.location : ''}{h.dates ? ' · ' + h.dates : ''}</Text>)}
-                      </Card>
-                    )}
-                    {ext.highlights?.length > 0 && (
-                      <Card variant="flat" style={{ padding: '0.75rem' }}>
-                        <Text size="sm" weight="semibold" style={{ margin: 0, marginBottom: '0.25rem' }}><Icon name="fa-star" /> Highlights</Text>
-                        {ext.highlights.map((h, i) => <Text key={i} size="sm" style={{ margin: 0 }}>{h.date || '?'}{h.time ? ' ' + h.time : ''} — {h.description || '(no description)'}</Text>)}
-                      </Card>
-                    )}
-                    {empty && <Text size="sm" color="muted">No structured rows extracted. Edit the paste and try again.</Text>}
-                  </div>
-                )}
-              </div>
-            </Modal>
-          )}
-        </>
-      );
-    }
-
-    const TRIP_QUICK_ACTIONS = [
-      { id: 'next',   label: "What's next today?" },
-      { id: 'sumday', label: "Summarize today" },
-      { id: 'tip',    label: "Tip for this country" }
-    ];
-
-    function DiffViewer({ diffs = [] }) {
-      if (!diffs.length) return <Text size="sm" color="muted" style={{ margin: 0 }}>No changes.</Text>;
-      return (
-        <Card variant="flat" className="diff-viewer" style={{ padding: '0.6rem 0.75rem', maxHeight: 150, overflowY: 'auto' }}>
-          {diffs.map((d, i) => (
-            <div key={i} style={{ fontFamily: 'var(--font-mono)', fontSize: '0.78rem', marginBottom: i === diffs.length - 1 ? 0 : '0.45rem' }}>
-              <Text size="sm" weight="semibold" style={{ margin: 0, fontFamily: 'var(--font-mono)' }}>{d.field}</Text>
-              <div style={{ color: 'var(--rose, #C48A9A)', textDecoration: 'line-through' }}>− {String(d.old ?? '')}</div>
-              <div style={{ color: 'var(--success, #10B981)' }}>+ {String(d.new ?? '')}</div>
-            </div>
-          ))}
-        </Card>
-      );
-    }
-
-    const EDIT_KEYWORDS_RE = /\b(edit|change|move|add|remove|update|modify|set|delete|rename)\b/i;
-
-    function FloatingChat({ trip }) {
-      const [open, setOpen] = useState(false);
-      const [draft, setDraft] = useState('');
-      const [pending, setPending] = useState(false);
-      const [pulse, setPulse] = useState(false);
-      const [messages, setMessages] = useState([]);
-      const inputRef = useRef(null);
-      const convRef = useRef(null);
-      const taResize = (el) => { if (!el) return; el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 96) + 'px'; };
-      useEffect(() => {
-        const onChatFocus = () => { setOpen(true); setTimeout(() => inputRef.current && inputRef.current.focus(), 0); };
-        window.addEventListener('floating-chat:focus', onChatFocus);
-        return () => window.removeEventListener('floating-chat:focus', onChatFocus);
-      }, []);
-      useEffect(() => {
-        if (!open) return;
-        const onKey = (e) => { if (e.key === 'Escape') { e.stopPropagation(); setOpen(false); } };
-        document.addEventListener('keydown', onKey);
-        return () => document.removeEventListener('keydown', onKey);
-      }, [open]);
-      useEffect(() => { if (open && inputRef.current) inputRef.current.focus(); }, [open]);
-      useEffect(() => { if (convRef.current) convRef.current.scrollTop = convRef.current.scrollHeight; }, [messages, pending]);
-
-      const send = useCallback(async (text) => {
-        const trimmed = (text ?? draft).trim();
-        if (!trimmed || pending) return;
-        setMessages(m => [...m, { role: 'user', text: trimmed }]);
-        setDraft('');
-        if (inputRef.current) { inputRef.current.style.height = 'auto'; }
-        setPending(true);
-        const looksLikeEdit = EDIT_KEYWORDS_RE.test(trimmed);
-        try {
-          if (looksLikeEdit) {
-            const r = await window.BabuAI.tripEdit(trimmed, trip || null, { dryRun: true });
-            if (r.intent === 'edit' && r.proposed && r.proposed.diffs?.length) {
-              setMessages(m => [...m, { role: 'proposed', text: r.summary || trimmed, diffs: r.proposed.diffs, patch: r.proposed.patch, last: trimmed }]);
-            } else {
-              // Model re-routed as qa/unknown — fall back to trip-qa for a useful reply.
-              const q = await window.BabuAI.tripQA(trimmed, trip || null);
-              setMessages(m => [...m, { role: 'assistant', text: q.response || r.summary || '(empty response)' }]);
-            }
-          } else {
-            const q = await window.BabuAI.tripQA(trimmed, trip || null);
-            setMessages(m => [...m, { role: 'assistant', text: q.response || '(empty response)' }]);
-          }
-          if (!open) setPulse(true);
-        } catch (err) {
-          setMessages(m => [...m, { role: 'error', text: err.message || 'Request failed', last: trimmed }]);
-        } finally {
-          setPending(false);
-        }
-      }, [draft, pending, trip, open]);
-
-      const applyProposal = useCallback(async (idx, msg) => {
-        setPending(true);
-        try {
-          const r = await window.BabuAI.tripEdit(msg.last || msg.text, trip || null, { dryRun: false });
-          if (r.applied) {
-            setMessages(m => m.map((x, i) => i === idx ? { ...x, role: 'applied', editId: r.editId } : x));
-            window.dispatchEvent(new CustomEvent('trip:edited', { detail: { editId: r.editId } }));
-          } else {
-            setMessages(m => m.map((x, i) => i === idx ? { ...x, role: 'edit-error', applyError: r.applyError || r.error || 'apply failed' } : x));
-          }
-        } catch (err) {
-          setMessages(m => m.map((x, i) => i === idx ? { ...x, role: 'edit-error', applyError: err.message } : x));
-        } finally {
-          setPending(false);
-        }
-      }, [trip]);
-
-      const revertProposal = useCallback(async (idx, msg) => {
-        if (!msg.editId) return;
-        setPending(true);
-        try {
-          await window.BabuAI.tripEditRevert(msg.editId, trip?.slug);
-          setMessages(m => m.map((x, i) => i === idx ? { ...x, role: 'reverted' } : x));
-          window.dispatchEvent(new CustomEvent('trip:edited', { detail: { reverted: msg.editId } }));
-        } catch (err) {
-          setMessages(m => m.map((x, i) => i === idx ? { ...x, role: 'edit-error', applyError: err.message } : x));
-        } finally {
-          setPending(false);
-        }
-      }, [trip]);
-
-      const discardProposal = (idx) => setMessages(m => m.map((x, i) => i === idx ? { ...x, role: 'discarded' } : x));
-
-      useEffect(() => { if (!pulse) return; const t = setTimeout(() => setPulse(false), 2800); return () => clearTimeout(t); }, [pulse]);
-      const onKeyDown = (e) => {
-        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); send(); }
-        else if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
-      };
-      return (
-        <div className="floating-chat" aria-live="off">
-          {!open && (
-            <button type="button" className={`floating-chat-bubble ${pulse ? 'is-pulsing' : ''}`}
-              aria-label="Open trip assistant chat" onClick={() => { setOpen(true); setPulse(false); }}>
-              <Icon name="fa-comment-dots" />
-            </button>
-          )}
-          {open && (
-            <div className="floating-chat-panel" role="dialog" aria-label="Trip assistant">
-              <header className="floating-chat-header">
-                <span><Icon name="fa-comment-dots" /> Trip Assistant</span>
-                <span className="floating-chat-header-actions">
-                  <IconButton icon="fa-window-minimize" label="Minimize chat" onClick={() => setOpen(false)} />
-                  <IconButton icon="fa-xmark" label="Close chat" onClick={() => { setOpen(false); setMessages([]); }} />
-                </span>
-              </header>
-              <div ref={convRef} className="floating-chat-conversation" aria-live="polite">
-                {messages.length === 0 && !pending && (
-                  <div className="floating-chat-msg system">Ask anything about your trip.</div>
-                )}
-                {messages.map((m, i) => (
-                  <div key={i} className={`floating-chat-msg ${m.role}`}>
-                    {m.role === 'proposed' && <>
-                      <Text size="sm" style={{ margin: 0, marginBottom: '0.4rem' }}><Icon name="fa-wand-magic-sparkles" /> {m.text}</Text>
-                      <DiffViewer diffs={m.diffs} />
-                      <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.5rem' }}>
-                        <Button variant="primary" size="sm" icon="fa-check" loading={pending} onClick={() => applyProposal(i, m)}>Apply</Button>
-                        <Button variant="ghost" size="sm" icon="fa-xmark" onClick={() => discardProposal(i)}>Discard</Button>
-                      </div>
-                    </>}
-                    {m.role === 'applied' && <>
-                      <Text size="sm" style={{ margin: 0 }}><Icon name="fa-check" /> Applied</Text>
-                      <Button variant="ghost" size="sm" icon="fa-rotate-left" onClick={() => revertProposal(i, m)}>Revert</Button>
-                    </>}
-                    {m.role === 'reverted' && <Text size="sm" style={{ margin: 0 }}><Icon name="fa-rotate-left" /> Reverted</Text>}
-                    {m.role === 'discarded' && <Text size="sm" color="muted" style={{ margin: 0 }}>Discarded.</Text>}
-                    {m.role === 'edit-error' && <>
-                      <Text size="sm" color="error" style={{ margin: 0 }}>{m.applyError || 'Edit failed.'}</Text>
-                      <Button variant="secondary" size="sm" icon="fa-rotate" onClick={() => { setMessages(prev => prev.filter((_, j) => j !== i)); send(m.last); }}>Retry</Button>
-                    </>}
-                    {(m.role === 'user' || m.role === 'assistant' || m.role === 'system') && m.text}
-                    {m.role === 'error' && <>{m.text}<Button variant="secondary" size="sm" icon="fa-rotate" onClick={() => { setMessages(prev => prev.slice(0, -1)); send(m.last); }}>Retry</Button></>}
-                  </div>
-                ))}
-                {pending && <div className="floating-chat-msg assistant"><ThinkingDots /></div>}
-              </div>
-              <div className="floating-chat-chips" role="toolbar" aria-label="Quick actions">
-                {TRIP_QUICK_ACTIONS.map(a => (
-                  <button key={a.id} type="button" className="floating-chat-chip" onClick={() => send(a.label)} disabled={pending}>{a.label}</button>
-                ))}
-              </div>
-              <div className="floating-chat-input-row">
-                <textarea
-                  ref={inputRef}
-                  className="input-field"
-                  rows={1}
-                  placeholder={'Ask about your trip\u2026 (\u23ceCmd send, \u21e7\u23ce newline)'}
-                  value={draft}
-                  onChange={e => { setDraft(e.target.value); taResize(e.target); }}
-                  onKeyDown={onKeyDown}
-                  aria-label="Chat message"
-                />
-                <Button variant="primary" icon="fa-paper-plane" loading={pending} onClick={() => send()} aria-label="Send message" />
               </div>
             </div>
           )}
@@ -2072,7 +547,9 @@
       );
     }
 
+    // =================================================================
     // CHAPTER SECTIONS DATA
+    // =================================================================
 
     const CHAPTER_SECTIONS = {
       ch00: [
@@ -2108,29 +585,29 @@
       ]
     };
 
+    // =================================================================
     // CHAPTER READER
+    // =================================================================
 
     function ChapterReader({ chapter, onBack, onNavigateChapter, onProgress }) {
       const [content, setContent] = useState(null);
       const [loading, setLoading] = useState(true);
       const [scrollProgress, setScrollProgress] = useState(0);
-      const [readerPrefs, setReaderPrefs] = useLocalStoragePrefs('reader', {
-        fontScale: 1,
-        fontFamily: 'lato',
-        readingTheme: 'dark',
-        lineSpacing: 1.85,
-        contentWidth: 'medium'
+      const [fontScale, setFontScale] = useState(() => {
+        try { const v = parseFloat(localStorage.getItem('rp_fontScale')); return isNaN(v) ? 1 : v; } catch(e) { return 1; }
       });
-      const { fontScale, fontFamily, readingTheme, lineSpacing, contentWidth } = readerPrefs;
-      const setPref = (k) => (u) => setReaderPrefs(p => ({
-        ...p,
-        [k]: typeof u === 'function' ? u(p[k]) : u
-      }));
-      const setFontScale    = setPref('fontScale');
-      const setFontFamily   = setPref('fontFamily');
-      const setReadingTheme = setPref('readingTheme');
-      const setLineSpacing  = setPref('lineSpacing');
-      const setContentWidth = setPref('contentWidth');
+      const [fontFamily, setFontFamily] = useState(() => {
+        try { const v = localStorage.getItem('rp_fontFamily'); return (v && v !== 'garamond') ? v : 'lato'; } catch(e) { return 'lato'; }
+      });
+      const [readingTheme, setReadingTheme] = useState(() => {
+        try { return localStorage.getItem('rp_readingTheme') || 'dark'; } catch(e) { return 'dark'; }
+      });
+      const [lineSpacing, setLineSpacing] = useState(() => {
+        try { const v = parseFloat(localStorage.getItem('rp_lineSpacing')); return isNaN(v) ? 1.85 : v; } catch(e) { return 1.85; }
+      });
+      const [contentWidth, setContentWidth] = useState(() => {
+        try { return localStorage.getItem('rp_contentWidth') || 'medium'; } catch(e) { return 'medium'; }
+      });
       const [controlsOpen, setControlsOpen] = useState(false);
       const [activeSection, setActiveSection] = useState(0);
       const [tocOpen, setTocOpen] = useState(true);
@@ -2148,13 +625,19 @@
       const articleRef = useRef(null);
 
       const NOTE_TYPES = {
-        edit:       { label: 'Edit',       icon: 'fa-pen',              color: '#c6a6ff' },
-        reflection: { label: 'Reflection', icon: 'fa-lightbulb',        color: '#f4d49c' },
+        edit:       { label: 'Edit',       icon: 'fa-pen',           color: '#c6a6ff' },
+        reflection: { label: 'Reflection', icon: 'fa-lightbulb',     color: '#f4d49c' },
         research:   { label: 'Research',   icon: 'fa-magnifying-glass', color: '#34d399' },
-        continuity: { label: 'Continuity', icon: 'fa-link',             color: '#ffb0cc' },
-        voice:      { label: 'Voice',      icon: 'fa-microphone',       color: '#93c5fd' }
+        continuity: { label: 'Continuity', icon: 'fa-link',          color: '#ffb0cc' },
+        voice:      { label: 'Voice',      icon: 'fa-microphone',    color: '#93c5fd' }
       };
-      const FONT_MAP = { lato: "'Lato', 'Inter', sans-serif", inter: "'Inter', 'Lato', sans-serif", georgia: "'Georgia', 'Garamond', serif", dyslexic: "'OpenDyslexic', 'Comic Sans MS', sans-serif" };
+
+      const FONT_MAP = {
+        lato: "'Lato', 'Inter', sans-serif",
+        inter: "'Inter', 'Lato', sans-serif",
+        georgia: "'Georgia', 'Garamond', serif",
+        dyslexic: "'OpenDyslexic', 'Comic Sans MS', sans-serif"
+      };
       const FONT_LABELS = { lato: 'Lato', inter: 'Inter', georgia: 'Georgia', dyslexic: 'Dyslexic' };
       const SPACING_OPTS = [{ val: 1.6, label: 'Tight' }, { val: 1.75, label: 'Normal' }, { val: 1.85, label: 'Relaxed' }, { val: 2.1, label: 'Airy' }];
       const WIDTH_OPTS = [{ val: 'narrow', label: 'Narrow', icon: 'fa-compress' }, { val: 'medium', label: 'Medium', icon: 'fa-grip-lines' }, { val: 'wide', label: 'Wide', icon: 'fa-expand' }];
@@ -2172,13 +655,31 @@
           .then(text => { setContent(text); setLoading(false); })
           .catch(() => { setContent(null); setLoading(false); });
       }, [chapter.id]);
+
+      // Persist bookmarks
       useEffect(() => {
         try { localStorage.setItem('bm_' + chapter.id, JSON.stringify(bookmarks)); } catch(e) {}
       }, [bookmarks, chapter.id]);
+
+      // Persist reader preferences
+      useEffect(() => { try { localStorage.setItem('rp_fontScale', fontScale); } catch(e) {} }, [fontScale]);
+      useEffect(() => { try { localStorage.setItem('rp_fontFamily', fontFamily); } catch(e) {} }, [fontFamily]);
+      useEffect(() => { try { localStorage.setItem('rp_readingTheme', readingTheme); } catch(e) {} }, [readingTheme]);
+      useEffect(() => { try { localStorage.setItem('rp_lineSpacing', lineSpacing); } catch(e) {} }, [lineSpacing]);
+      useEffect(() => { try { localStorage.setItem('rp_contentWidth', contentWidth); } catch(e) {} }, [contentWidth]);
+
+      // Auto-collapse sidebars in wide mode, re-expand in narrow/medium
       useEffect(() => {
-        if (contentWidth === 'wide') { setTocOpen(false); setNotesOpen(false); }
-        else { setTocOpen(true); setNotesOpen(true); }
+        if (contentWidth === 'wide') {
+          setTocOpen(false);
+          setNotesOpen(false);
+        } else {
+          setTocOpen(true);
+          setNotesOpen(true);
+        }
       }, [contentWidth]);
+
+      // Load notes: try JSON file first, fallback to localStorage
       useEffect(() => {
         const lsKey = 'notes_' + chapter.id;
         fetch('data/notes/' + chapter.id + '-notes.json')
@@ -2189,10 +690,14 @@
             setNotesLoaded(true);
           });
       }, [chapter.id]);
+
+      // Persist notes to localStorage on every change
       useEffect(() => {
         if (!notesLoaded) return;
         try { localStorage.setItem('notes_' + chapter.id, JSON.stringify(notes)); } catch(e) {}
       }, [notes, chapter.id, notesLoaded]);
+
+      // Show resume banner if bookmarks exist on load
       useEffect(() => {
         if (bookmarks.length > 0) setShowResume(true);
         const t = setTimeout(() => setShowResume(false), 8000);
@@ -2207,6 +712,7 @@
           setScrollProgress(pct);
           if (onProgress) onProgress(pct);
 
+          // Determine active section based on scroll position
           let current = 0;
           for (let i = sections.length - 1; i >= 0; i--) {
             const el = sectionRefs.current['sec-' + i];
@@ -2217,6 +723,7 @@
           }
           setActiveSection(current);
 
+          // Track which paragraph is currently in the viewport center
           const paraEls = document.querySelectorAll('[id^="para-"]');
           let closestIdx = 0;
           let closestDist = Infinity;
@@ -2237,10 +744,12 @@
 
       useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, [chapter.id]);
 
+      // Parse text into paragraphs — first line is title, skip it
       const paragraphs = content ? content.split('\n\n').filter(p => p.trim()) : [];
       const titleLine = paragraphs.length > 0 ? paragraphs[0] : chapter.subtitle;
       let bodyParagraphs = paragraphs.slice(1);
 
+      // Merge short salutation lines (e.g. "Kids,") into the next paragraph
       if (bodyParagraphs.length > 1) {
         const merged = [];
         for (let i = 0; i < bodyParagraphs.length; i++) {
@@ -2255,49 +764,86 @@
         bodyParagraphs = merged;
       }
 
+      // Build a map: paragraph index → section index (for inserting dividers)
       const sectionAtPara = useMemo(() => {
         const map = {};
         sections.forEach((sec, idx) => { map[sec.para - 1] = idx; });
         return map;
       }, [sections]);
 
+      // Compute reading time (~230 wpm)
       const wordCount = content ? content.split(/\s+/).length : chapter.words;
       const readingMinutes = Math.max(1, Math.round(wordCount / 230));
 
-      const isAdviceHeading = (text) => /^(Babu[''\u2019]s Advice|Dad[''\u2019]s Advice|What I Wish)/i.test(text.trim());
-      const toggleBookmark = (paraIdx) => setBookmarks(prev => prev.includes(paraIdx) ? prev.filter(b => b !== paraIdx) : [...prev, paraIdx].sort((a,b) => a - b));
-      const bookmarkCurrentParagraph = () => { if (!bookmarks.includes(currentParaIdx)) setBookmarks(prev => [...prev, currentParaIdx].sort((a,b) => a - b)); };
-      const getParaPreview = (idx) => {
+      // Detect "Dad's Advice" section
+      function isAdviceHeading(text) {
+        return /^(Babu[''\u2019]s Advice|Dad[''\u2019]s Advice|What I Wish)/i.test(text.trim());
+      }
+
+      function toggleBookmark(paraIdx) {
+        setBookmarks(prev => prev.includes(paraIdx) ? prev.filter(b => b !== paraIdx) : [...prev, paraIdx].sort((a,b) => a - b));
+      }
+
+      function bookmarkCurrentParagraph() {
+        if (!bookmarks.includes(currentParaIdx)) {
+          setBookmarks(prev => [...prev, currentParaIdx].sort((a,b) => a - b));
+        }
+      }
+
+      function getParaPreview(idx) {
         if (!bodyParagraphs[idx]) return 'Para ' + (idx + 1);
         const text = bodyParagraphs[idx].trim().replace(/\n+/g, ' ');
         const words = text.split(/\s+/).slice(0, 5).join(' ');
         return words.length < text.length ? words + '…' : words;
-      };
-      const addNote = () => {
-        if (!noteText.trim()) return;
-        setNotes(prev => [...prev, {
-          id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-          type: noteType, text: noteText.trim(),
-          paraIdx: currentParaIdx, paraPreview: getParaPreview(currentParaIdx),
-          timestamp: new Date().toISOString(), chapter: chapter.id
-        }]);
-        setNoteText('');
-      };
-      const removeNote = (noteId) => setNotes(prev => prev.filter(n => n.id !== noteId));
+      }
 
+      function addNote() {
+        if (!noteText.trim()) return;
+        const note = {
+          id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+          type: noteType,
+          text: noteText.trim(),
+          paraIdx: currentParaIdx,
+          paraPreview: getParaPreview(currentParaIdx),
+          timestamp: new Date().toISOString(),
+          chapter: chapter.id
+        };
+        setNotes(prev => [...prev, note]);
+        setNoteText('');
+      }
+
+      function removeNote(noteId) {
+        setNotes(prev => prev.filter(n => n.id !== noteId));
+      }
+
+      // Map paragraph index → notes at that paragraph
       const notesAtPara = useMemo(() => {
         const map = {};
-        notes.forEach(n => { (map[n.paraIdx] = map[n.paraIdx] || []).push(n); });
+        notes.forEach(n => {
+          if (!map[n.paraIdx]) map[n.paraIdx] = [];
+          map[n.paraIdx].push(n);
+        });
         return map;
       }, [notes]);
-      const scrollToSection = (idx) => { const el = sectionRefs.current['sec-' + idx]; if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
-      const scrollToBookmark = (paraIdx) => { const el = document.getElementById('para-' + paraIdx); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); setShowResume(false); };
+
+      function scrollToSection(idx) {
+        const el = sectionRefs.current['sec-' + idx];
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      function scrollToBookmark(paraIdx) {
+        const el = document.getElementById('para-' + paraIdx);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setShowResume(false);
+      }
 
       return (
         <div className="chapter-reader-wrap" data-content-width={contentWidth}>
+
+          {/* ═══ Floating Side TOC ═══ */}
           {!loading && content && sections.length > 0 && (
             <aside className={`toc-sidebar ${tocOpen ? 'open' : 'collapsed'}`}>
-              <button className="toc-toggle" onClick={() => setTocOpen(o => !o)} title={tocOpen ? 'Collapse TOC' : 'Expand TOC'} aria-label={tocOpen ? 'Collapse table of contents' : 'Expand table of contents'} aria-expanded={tocOpen}>
+              <button className="toc-toggle" onClick={() => setTocOpen(o => !o)} title={tocOpen ? 'Collapse TOC' : 'Expand TOC'}>
                 <Icon name={tocOpen ? 'fa-angles-left' : 'fa-list'} size="0.75em" />
               </button>
               {tocOpen && (
@@ -2308,25 +854,38 @@
                   </div>
                   <nav className="toc-nav">
                     {sections.map((sec, idx) => (
-                      <button key={idx} className={`toc-item ${activeSection === idx ? 'active' : ''}`} onClick={() => scrollToSection(idx)}>
+                      <button
+                        key={idx}
+                        className={`toc-item ${activeSection === idx ? 'active' : ''}`}
+                        onClick={() => scrollToSection(idx)}
+                      >
                         <span className="toc-marker"></span>
                         <span className="toc-item-text">{sec.title}</span>
                       </button>
                     ))}
                   </nav>
+
                   <div className="toc-divider"></div>
+
                   <button className="toc-bookmark-action" onClick={bookmarkCurrentParagraph} title="Bookmark the paragraph currently in view">
-                    <Icon name="fa-bookmark" size="0.7em" /> <span>Bookmark Here</span>
+                    <Icon name="fa-bookmark" size="0.7em" />
+                    <span>Bookmark Here</span>
                   </button>
+
                   {bookmarks.length > 0 && (
                     <div className="toc-bookmarks">
                       <div className="toc-header" style={{ marginTop: '0.6rem' }}>
-                        <Icon name="fa-bookmark" size="0.65em" /> <span>Bookmarks ({bookmarks.length})</span>
+                        <Icon name="fa-bookmark" size="0.65em" />
+                        <span>Bookmarks ({bookmarks.length})</span>
                       </div>
                       {bookmarks.map(bIdx => (
                         <div key={bIdx} className="toc-bookmark-row">
-                          <button className="toc-bookmark-item" onClick={() => scrollToBookmark(bIdx)}><span className="toc-bm-preview">{getParaPreview(bIdx)}</span></button>
-                          <button className="toc-bookmark-remove" onClick={() => toggleBookmark(bIdx)} title="Remove bookmark" aria-label="Remove bookmark"><Icon name="fa-xmark" size="0.55em" /></button>
+                          <button className="toc-bookmark-item" onClick={() => scrollToBookmark(bIdx)}>
+                            <span className="toc-bm-preview">{getParaPreview(bIdx)}</span>
+                          </button>
+                          <button className="toc-bookmark-remove" onClick={() => toggleBookmark(bIdx)} title="Remove bookmark">
+                            <Icon name="fa-xmark" size="0.55em" />
+                          </button>
                         </div>
                       ))}
                     </div>
@@ -2336,9 +895,10 @@
             </aside>
           )}
 
+          {/* ═══ Floating Right Notes Panel ═══ */}
           {!loading && content && (
             <aside className={`notes-sidebar ${notesOpen ? 'open' : 'collapsed'}`}>
-              <button className="notes-toggle" onClick={() => setNotesOpen(o => !o)} title={notesOpen ? 'Collapse Notes' : 'Expand Notes'} aria-label={notesOpen ? 'Collapse notes panel' : 'Expand notes panel'} aria-expanded={notesOpen}>
+              <button className="notes-toggle" onClick={() => setNotesOpen(o => !o)} title={notesOpen ? 'Collapse Notes' : 'Expand Notes'}>
                 <Icon name={notesOpen ? 'fa-angles-right' : 'fa-sticky-note'} size="0.75em" />
               </button>
               {notesOpen && (
@@ -2349,13 +909,17 @@
                     <span className="notes-count">{notes.length}</span>
                   </div>
 
+                  {/* Note composer */}
                   <div className="note-composer">
                     <div className="note-type-row">
                       {Object.entries(NOTE_TYPES).map(([key, t]) => (
-                        <button key={key} type="button" className={`note-type-chip ${noteType === key ? 'active' : ''}`}
+                        <button
+                          key={key}
+                          className={`note-type-chip ${noteType === key ? 'active' : ''}`}
                           onClick={() => setNoteType(key)}
                           style={noteType === key ? { borderColor: t.color, background: t.color + '18' } : {}}
-                          title={t.label} aria-label={`Set note type to ${t.label}`} aria-pressed={noteType === key}>
+                          title={t.label}
+                        >
                           <Icon name={t.icon} size="0.65em" />
                           <span className="note-type-label">{t.label}</span>
                         </button>
@@ -2365,17 +929,20 @@
                       <Icon name="fa-map-pin" size="0.6em" />
                       <span>Anchored to: {getParaPreview(currentParaIdx)}</span>
                     </div>
-                    <FormField label="Note text">
-                      <textarea className="note-input" placeholder="Add a note about this passage..." value={noteText}
-                        onChange={e => setNoteText(e.target.value)}
-                        onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) addNote(); }}
-                        rows={4} aria-label="Note text" />
-                    </FormField>
-                    <button type="button" className="note-add-btn" onClick={addNote} disabled={!noteText.trim()} aria-label="Add note">
+                    <textarea
+                      className="note-input"
+                      placeholder="Add a note about this passage..."
+                      value={noteText}
+                      onChange={e => setNoteText(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) addNote(); }}
+                      rows={4}
+                    />
+                    <button className="note-add-btn" onClick={addNote} disabled={!noteText.trim()}>
                       <Icon name="fa-plus" size="0.7em" /> Add Note
                     </button>
                   </div>
 
+                  {/* Notes list */}
                   <div className="notes-list">
                     {notes.length === 0 && (
                       <div className="notes-empty">
@@ -2388,11 +955,17 @@
                       return (
                         <div key={note.id} className="note-card">
                           <div className="note-card-header">
-                            <span className="note-card-type" style={{ color: nt.color }}><Icon name={nt.icon} size="0.6em" /> {nt.label}</span>
-                            <button className="note-card-remove" onClick={() => removeNote(note.id)} title="Delete note" aria-label="Delete note"><Icon name="fa-xmark" size="0.6em" /></button>
+                            <span className="note-card-type" style={{ color: nt.color }}>
+                              <Icon name={nt.icon} size="0.6em" /> {nt.label}
+                            </span>
+                            <button className="note-card-remove" onClick={() => removeNote(note.id)} title="Delete note">
+                              <Icon name="fa-xmark" size="0.6em" />
+                            </button>
                           </div>
                           <p className="note-card-text">{note.text}</p>
-                          <button className="note-card-anchor" onClick={() => scrollToBookmark(note.paraIdx)}><Icon name="fa-map-pin" size="0.55em" /> {note.paraPreview}</button>
+                          <button className="note-card-anchor" onClick={() => scrollToBookmark(note.paraIdx)}>
+                            <Icon name="fa-map-pin" size="0.55em" /> {note.paraPreview}
+                          </button>
                         </div>
                       );
                     })}
@@ -2402,16 +975,23 @@
             </aside>
           )}
 
+          {/* ═══ Resume Reading Banner ═══ */}
           {showResume && bookmarks.length > 0 && (
             <div className="resume-banner">
               <Icon name="fa-bookmark" size="0.85em" />
               <span>Continue where you left off?</span>
-              <button className="resume-btn" onClick={() => scrollToBookmark(bookmarks[bookmarks.length - 1])}>Resume <Icon name="fa-arrow-right" size="0.7em" /></button>
-              <button className="resume-dismiss" onClick={() => setShowResume(false)} aria-label="Dismiss resume banner"><Icon name="fa-xmark" size="0.75em" /></button>
+              <button className="resume-btn" onClick={() => scrollToBookmark(bookmarks[bookmarks.length - 1])}>
+                Resume <Icon name="fa-arrow-right" size="0.7em" />
+              </button>
+              <button className="resume-dismiss" onClick={() => setShowResume(false)}>
+                <Icon name="fa-xmark" size="0.75em" />
+              </button>
             </div>
           )}
 
           <div className="chapter-reader-container" data-content-width={contentWidth}>
+
+            {/* Chapter header */}
             <header className="chapter-reader-header">
               <div className="chapter-reader-num">Chapter {chapter.num}</div>
               <h1 className="chapter-reader-title">{chapter.title}</h1>
@@ -2419,7 +999,9 @@
               <div className="chapter-header-rule"></div>
             </header>
 
+            {/* ═══ Reading Controls ═══ */}
             <div className="rc-wrapper">
+              {/* Collapsed toolbar */}
               <div className="rc-toolbar">
                 <button className={`rc-toggle-btn ${controlsOpen ? 'active' : ''}`} onClick={() => setControlsOpen(o => !o)} title="Customize view">
                   <Icon name="fa-sliders" size="0.9em" />
@@ -2433,10 +1015,13 @@
                 </div>
               </div>
 
+              {/* Expanded panel */}
               <div className={`rc-panel ${controlsOpen ? 'open' : ''}`}>
                 <div className="rc-panel-inner">
+
+                  {/* Row 1: Font Size + Font Family */}
                   <div className="rc-group">
-                    <label className="rc-label">Font Size</label>
+                    <div className="rc-label">Font Size</div>
                     <div className="rc-size-row">
                       <button className="rc-circle-btn" onClick={() => setFontScale(s => Math.max(0.8, +(s - 0.1).toFixed(1)))}>
                         <span style={{ fontSize: '0.85em', fontWeight: 700 }}>&minus;</span>
@@ -2452,7 +1037,7 @@
                   </div>
 
                   <div className="rc-group">
-                    <label className="rc-label">Font</label>
+                    <div className="rc-label">Font</div>
                     <div className="rc-btn-row">
                       {Object.keys(FONT_MAP).map(f => (
                         <button key={f} className={`rc-pill ${fontFamily === f ? 'active' : ''}`} onClick={() => setFontFamily(f)}
@@ -2463,8 +1048,9 @@
                     </div>
                   </div>
 
+                  {/* Row 2: Theme + Line Spacing */}
                   <div className="rc-group">
-                    <label className="rc-label">Theme</label>
+                    <div className="rc-label">Theme</div>
                     <div className="rc-btn-row">
                       <button className={`rc-theme-swatch dark ${readingTheme === 'dark' ? 'active' : ''}`} onClick={() => setReadingTheme('dark')}>
                         <span className="swatch-dot dark-dot"></span> Dark
@@ -2479,7 +1065,7 @@
                   </div>
 
                   <div className="rc-group">
-                    <label className="rc-label">Line Spacing</label>
+                    <div className="rc-label">Line Spacing</div>
                     <div className="rc-btn-row">
                       {SPACING_OPTS.map(s => (
                         <button key={s.val} className={`rc-pill ${lineSpacing === s.val ? 'active' : ''}`} onClick={() => setLineSpacing(s.val)}>
@@ -2489,8 +1075,9 @@
                     </div>
                   </div>
 
+                  {/* Row 3: Content Width */}
                   <div className="rc-group rc-group-full">
-                    <label className="rc-label">Content Width</label>
+                    <div className="rc-label">Content Width</div>
                     <div className="rc-btn-row">
                       {WIDTH_OPTS.map(w => (
                         <button key={w.val} className={`rc-pill ${contentWidth === w.val ? 'active' : ''}`} onClick={() => setContentWidth(w.val)}>
@@ -2504,6 +1091,7 @@
               </div>
             </div>
 
+            {/* Content body */}
             <article ref={articleRef} className="chapter-reader-body" data-reading-theme={readingTheme} style={{ fontSize: (1.2 * fontScale) + 'rem', fontFamily: FONT_MAP[fontFamily], lineHeight: lineSpacing }}>
               {loading && (
                 <div className="chapter-loading">
@@ -2560,8 +1148,6 @@
                         className={`bookmark-btn ${isBookmarked ? 'active' : ''}`}
                         onClick={() => toggleBookmark(i)}
                         title={isBookmarked ? 'Remove bookmark' : 'Bookmark this paragraph'}
-                        aria-label={isBookmarked ? 'Remove bookmark' : 'Bookmark this paragraph'}
-                        aria-pressed={isBookmarked}
                       >
                         <Icon name={isBookmarked ? 'fa-bookmark' : 'fa-bookmark'} size="0.7em" />
                       </button>
@@ -2580,6 +1166,7 @@
               })}
             </article>
 
+            {/* Chapter navigation footer */}
             <footer className="chapter-nav-footer">
               <div className="chapter-nav-row">
                 {prevChapter && prevChapter.file ? (
@@ -2612,25 +1199,41 @@
       );
     }
 
+    // =================================================================
     // SCROLL TO TOP BUTTON
+    // =================================================================
 
     function ScrollToTop({ progress }) {
       const [visible, setVisible] = useState(false);
+
       useEffect(() => {
-        const onScroll = () => setVisible(window.scrollY > 400);
+        function onScroll() {
+          setVisible(window.scrollY > 400);
+        }
         window.addEventListener('scroll', onScroll);
         return () => window.removeEventListener('scroll', onScroll);
       }, []);
+
+      // SVG circle math: r=21, circumference=2*pi*21 ≈ 131.95
       const r = 21;
       const circ = 2 * Math.PI * r;
       const offset = circ - (circ * (progress || 0) / 100);
       const showRing = typeof progress === 'number' && progress > 0;
+
       return (
-        <button className={`scroll-top-btn ${visible ? 'show' : ''}`} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="Scroll to top">
+        <button
+          className={`scroll-top-btn ${visible ? 'show' : ''}`}
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          aria-label="Scroll to top"
+        >
           {showRing && (
             <svg className="scroll-top-ring" width="52" height="52" viewBox="0 0 52 52">
               <circle className="ring-track" cx="26" cy="26" r={r} />
-              <circle className="ring-fill" cx="26" cy="26" r={r} strokeDasharray={circ} strokeDashoffset={offset} transform="rotate(-90 26 26)" />
+              <circle className="ring-fill" cx="26" cy="26" r={r}
+                strokeDasharray={circ}
+                strokeDashoffset={offset}
+                transform="rotate(-90 26 26)"
+              />
             </svg>
           )}
           <svg className="scroll-top-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -2640,10 +1243,23 @@
       );
     }
 
-    // BUDGET PILL + USAGE MODAL (Phase 8)
+    // =================================================================
+    // PHASE 8: BUDGET PILL & USAGE MODAL
+    // =================================================================
 
     const budgetColor = pct => pct >= 90 ? 'var(--error)' : pct >= 75 ? 'var(--warning)' : 'var(--success)';
-    const fetchSummary = () => fetch('http://localhost:3001/api/usage/summary').then(r => r.ok ? r.json() : null).catch(() => null);
+    const fetchSummary = () => {
+      console.log('[API:REQ]', 'http://localhost:3001/api/usage/summary');
+      return fetch('http://localhost:3001/api/usage/summary')
+        .then(r => {
+          console.log('[API:RES]', 'http://localhost:3001/api/usage/summary', r.status);
+          return r.ok ? r.json() : null;
+        })
+        .catch(err => {
+          console.error('[API:ERR]', 'http://localhost:3001/api/usage/summary', err);
+          return null;
+        });
+    };
 
     function BudgetAdvisor({ s }) {
       const [details, setDetails] = useState(false);
@@ -2661,9 +1277,9 @@
           : `Your cap fits your usage well. No change needed.`;
       const monoMuted = { fontFamily: 'var(--font-mono, monospace)', color: 'var(--text-muted, #aaa)' };
       return (
-        <Card variant="glass" style={{ padding: '0.85rem', marginTop: '1rem' }}>
-          <Text weight="600" size="sm">Budget Advisor</Text>
-          <Text size="sm" color="muted" style={{ marginTop: '0.3rem' }}>{advice}</Text>
+        <div style={{ background: 'rgba(255,255,255,0.05)', padding: '0.85rem', marginTop: '1rem', borderRadius: '8px' }}>
+          <div style={{ fontWeight: 600, fontSize: '0.95rem', marginBottom: '0.5rem' }}>Budget Advisor</div>
+          <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>{advice}</div>
           <button type="button" onClick={() => setDetails(d => !d)} style={{ marginTop: '0.4rem', background: 'none', border: 'none', color: 'var(--accent)', fontSize: '0.75rem', cursor: 'pointer', padding: 0 }}>{details ? 'Hide details' : 'Show details'}</button>
           {details && (
             <div style={{ marginTop: '0.5rem', display: 'grid', gap: '0.2rem', fontSize: '0.75rem', ...monoMuted }}>
@@ -2671,7 +1287,7 @@
               <span>projected month-end: ${projected.toFixed(2)}</span><span>throttle hits this month: {hits}</span>
             </div>
           )}
-        </Card>
+        </div>
       );
     }
 
@@ -2690,47 +1306,66 @@
       const mono = { fontFamily: 'var(--font-mono, monospace)', fontSize: '0.78rem' };
       const muted = { color: 'var(--text-muted, #aaa)' };
       return (
-        <Modal onClose={onClose} size="lg" ariaLabel="Monthly budget details" title={`Monthly Budget — $${Number(s.spentThisMonth || 0).toFixed(2)} / $${Number(s.monthlyCAP || 50).toFixed(2)} (${pct.toFixed(0)}%)`}>
-          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
-            {['summary', 'breakdown'].map(t => <button key={t} type="button" onClick={() => setTab(t)} className={`journal-tab ${tab === t ? 'active' : ''}`}>{t[0].toUpperCase() + t.slice(1)}</button>)}
-          </div>
-          {state.loading && <SkeletonRow variant="queue-row" count={3} />}
-          {!state.loading && tab === 'summary' && (
-            <div>
-              <div style={{ position: 'relative', height: '1rem', background: 'var(--accent-soft)', borderRadius: '999px', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', inset: 0, width: `${pct}%`, background: color, transition: 'width 200ms' }} />
-                {[75, 90].map(th => <div key={th} style={{ position: 'absolute', top: 0, bottom: 0, left: `${th}%`, width: '1px', background: 'var(--text-muted, #777)', opacity: 0.6 }} aria-hidden />)}
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }} onClick={e => e.target === e.currentTarget && onClose()}>
+          <div style={{
+            background: 'var(--bg-primary)',
+            borderRadius: '12px',
+            width: '900px',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            padding: '1.5rem',
+            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.3)'
+          }}>
+            <h2 style={{ marginTop: 0, marginBottom: '1rem', fontSize: '1.25rem' }}>{`Monthly Budget — $${Number(s.spentThisMonth || 0).toFixed(2)} / $${Number(s.monthlyCAP || 50).toFixed(2)} (${pct.toFixed(0)}%)`}</h2>
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
+              {['summary', 'breakdown'].map(t => <button key={t} type="button" onClick={() => setTab(t)} className={`journal-tab ${tab === t ? 'active' : ''}`}>{t[0].toUpperCase() + t.slice(1)}</button>)}
+            </div>
+            {state.loading && <div style={{ height: '2rem', background: 'var(--accent-soft)', borderRadius: '4px', animation: 'pulse 2s infinite' }} />}
+            {!state.loading && tab === 'summary' && (
+              <div>
+                <div style={{ position: 'relative', height: '1rem', background: 'var(--accent-soft)', borderRadius: '999px', overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', inset: 0, width: `${pct}%`, background: color, transition: 'width 200ms' }} />
+                  {[75, 90].map(th => <div key={th} style={{ position: 'absolute', top: 0, bottom: 0, left: `${th}%`, width: '1px', background: 'var(--text-muted, #777)', opacity: 0.6 }} aria-hidden />)}
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.25rem', fontSize: '0.7rem', ...mono, ...muted }}><span>0</span><span>75%</span><span>90%</span><span>100%</span></div>
+                <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginTop: '0.75rem' }}>
+                  Throttle state: <strong style={{ color }}>{s.throttleState || 'normal'}</strong>.
+                  {s.throttleState === 'soft' && ' Edit intents are throttled to clarify-only until usage drops below 75%.'}
+                  {s.throttleState === 'hard' && ' Non-essential endpoints return 429 until the next billing month or cap increase.'}
+                </div>
+                <BudgetAdvisor s={s} />
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.25rem', fontSize: '0.7rem', ...mono, ...muted }}><span>0</span><span>75%</span><span>90%</span><span>100%</span></div>
-              <Text size="sm" color="muted" style={{ marginTop: '0.75rem' }}>
-                Throttle state: <strong style={{ color }}>{s.throttleState || 'normal'}</strong>.
-                {s.throttleState === 'soft' && ' Edit intents are throttled to clarify-only until usage drops below 75%.'}
-                {s.throttleState === 'hard' && ' Non-essential endpoints return 429 until the next billing month or cap increase.'}
-              </Text>
-              <BudgetAdvisor s={s} />
-            </div>
-          )}
-          {!state.loading && tab === 'breakdown' && (
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-                <thead><tr style={{ textAlign: 'left', ...muted }}>{['Endpoint','Calls','Avg Cost','Total %','Last Call'].map(h => <th key={h} style={td}>{h}</th>)}</tr></thead>
-                <tbody>
-                  {(s.byEndpoint || []).map(row => (
-                    <tr key={row.endpoint} style={{ borderTop: '1px solid var(--border, #333)' }}>
-                      <td style={{ ...td, ...mono }}>{row.endpoint}</td>
-                      <td style={td}>{row.calls}</td>
-                      <td style={{ ...td, fontFamily: mono.fontFamily }}>${Number(row.avgCost || 0).toFixed(3)}</td>
-                      <td style={td}>{Number(row.percentOfMonth || 0).toFixed(1)}%</td>
-                      <td style={{ ...td, ...muted, fontSize: '0.78rem' }}>{row.lastCallAt ? new Date(row.lastCallAt).toLocaleString() : '—'}</td>
-                    </tr>
-                  ))}
-                  {(!s.byEndpoint || s.byEndpoint.length === 0) && <tr><td colSpan={5} style={{ padding: '0.75rem', textAlign: 'center', ...muted }}>No usage recorded this month.</td></tr>}
-                </tbody>
-              </table>
-            </div>
-          )}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}><Button variant="primary" onClick={onClose}>Done</Button></div>
-        </Modal>
+            )}
+            {!state.loading && tab === 'breakdown' && (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                  <thead><tr style={{ textAlign: 'left', ...muted }}>{['Endpoint','Calls','Avg Cost','Total %','Last Call'].map(h => <th key={h} style={td}>{h}</th>)}</tr></thead>
+                  <tbody>
+                    {(s.byEndpoint || []).map(row => (
+                      <tr key={row.endpoint} style={{ borderTop: '1px solid var(--border, #333)' }}>
+                        <td style={{ ...td, ...mono }}>{row.endpoint}</td>
+                        <td style={td}>{row.calls}</td>
+                        <td style={{ ...td, fontFamily: mono.fontFamily }}>${Number(row.avgCost || 0).toFixed(3)}</td>
+                        <td style={td}>{Number(row.percentOfMonth || 0).toFixed(1)}%</td>
+                        <td style={{ ...td, ...muted, fontSize: '0.78rem' }}>{row.lastCallAt ? new Date(row.lastCallAt).toLocaleString() : '—'}</td>
+                      </tr>
+                    ))}
+                    {(!s.byEndpoint || s.byEndpoint.length === 0) && <tr><td colSpan={5} style={{ padding: '0.75rem', textAlign: 'center', ...muted }}>No usage recorded this month.</td></tr>}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}><button type="button" onClick={onClose} style={{ background: 'var(--accent)', color: 'white', padding: '0.5rem 1rem', borderRadius: '4px', border: 'none', cursor: 'pointer' }}>Done</button></div>
+          </div>
+        </div>
       );
     }
 
@@ -2759,7 +1394,9 @@
       );
     }
 
+    // =================================================================
     // MAIN APP
+    // =================================================================
 
     function App() {
       const [page, setPage] = useState('home');
@@ -2767,29 +1404,16 @@
       const [activeChapter, setActiveChapter] = useState(null);
       const [readProgress, setReadProgress] = useState(0);
       const [usageOpen, setUsageOpen] = useState(false);
-      const { trip: activeTrip, loading: activeTripLoading, error: activeTripError } = useActiveTrip();
-      const { open: paletteOpen, setOpen: setPaletteOpen } = useCommandPalette();
-      const toast = React.useContext(ToastContext);
-      const commands = useMemo(() => {
-        const copyDate = () => {
-          const iso = todayISO();
-          navigator.clipboard.writeText(iso).then(
-            () => toast && toast.show(`Copied ${iso}`, 'success'),
-            () => toast && toast.show('Copy failed', 'error')
-          );
-        };
-        const gotoCapture = () => { setPage('trip'); window.dispatchEvent(new CustomEvent('trip:set-subtab', { detail: 'capture' })); };
-        return [
-          { id: 'open-chat',       label: 'Open chat',              icon: 'fa-comment-dots',     keywords: 'chat assistant trip qa', action: () => { setPage('trip'); window.dispatchEvent(new CustomEvent('floating-chat:focus')); } },
-          { id: 'open-itinerary',  label: 'Open active itinerary',  icon: 'fa-map-location-dot', keywords: 'trip overview',          action: () => { setPage('trip'); } },
-          { id: 'voice-entry',     label: 'New voice entry',        icon: 'fa-microphone',       keywords: 'voice record speech',    action: gotoCapture },
-          { id: 'paste-itinerary', label: 'Paste itinerary',        icon: 'fa-paste',            keywords: 'itinerary paste agenda', action: gotoCapture },
-          { id: 'refresh-queues',  label: 'Refresh queues',         icon: 'fa-rotate',           keywords: 'queue refetch pending',  action: () => window.dispatchEvent(new CustomEvent('queue:refresh')) },
-          { id: 'copy-date',       label: "Copy today's date",      icon: 'fa-calendar-day',     keywords: 'date dayone today',      action: copyDate }
-        ];
-      }, [toast]);
 
-      useEffect(() => { loadTrips().then(setTrips); }, []);
+      useEffect(() => {
+        console.log('[THEME]', document.body.dataset.theme || 'default');
+        console.log('[NAV]', page);
+        loadTrips().then(setTrips);
+      }, []);
+
+      useEffect(() => {
+        console.log('[NAV]', page);
+      }, [page]);
 
       function openChapter(ch) {
         if (ch.file) {
@@ -2805,21 +1429,19 @@
 
       return (
         <div>
-          <nav className="nav" role="navigation" aria-label="Primary">
+          <nav className="nav">
             <div className="nav-brand">Asif's Journal</div>
             <div className="nav-links">
-              <button type="button" aria-current={page === 'home' ? 'page' : undefined} className={`nav-link ${page === 'home' ? 'active' : ''}`} onClick={() => { setPage('home'); setActiveChapter(null); }}><Icon name="fa-house" /> <span>Dashboard</span></button>
-              <button type="button" aria-current={page === 'memoir' || page === 'chapter' ? 'page' : undefined} className={`nav-link ${page === 'memoir' || page === 'chapter' ? 'active' : ''}`} onClick={() => { setPage('memoir'); setActiveChapter(null); }}><Icon name="fa-book-open" /> <span>Memoir</span></button>
-              <button type="button" aria-current={page === 'trip' ? 'page' : undefined} className={`nav-link ${page === 'trip' ? 'active' : ''}`} onClick={() => { setPage('trip'); setActiveChapter(null); }}><Icon name="fa-plane" /> <span>Trip</span></button>
-              <button type="button" aria-current={page === 'dayone' ? 'page' : undefined} className={`nav-link ${page === 'dayone' ? 'active' : ''}`} onClick={() => { setPage('dayone'); setActiveChapter(null); }}><Icon name="fa-feather-pointed" /> <span>DayOne</span></button>
+              <button className={`nav-link ${page === 'home' ? 'active' : ''}`} onClick={() => { setPage('home'); setActiveChapter(null); }}><Icon name="fa-house" /> <span>Dashboard</span></button>
+              <button className={`nav-link ${page === 'memoir' || page === 'chapter' ? 'active' : ''}`} onClick={() => { setPage('memoir'); setActiveChapter(null); }}><Icon name="fa-book-open" /> <span>Memoir</span></button>
+              <button className={`nav-link ${page === 'dayone' ? 'active' : ''}`} onClick={() => { setPage('dayone'); setActiveChapter(null); }}><Icon name="fa-feather-pointed" /> <span>DayOne</span></button>
               <BudgetPill onOpen={() => setUsageOpen(true)} />
             </div>
           </nav>
 
-          <main id="main-content" className="page">
+          <main className="page">
             {page === 'home' && <HomePage trips={trips} onNavigate={setPage} />}
             {page === 'memoir' && <MemoirModule onOpenChapter={openChapter} />}
-            {page === 'trip' && <TripModule trip={activeTrip} loading={activeTripLoading} error={activeTripError} />}
             {page === 'dayone' && <DayOneModule trips={trips} />}
             {page === 'chapter' && activeChapter && (
               <ChapterReader
@@ -2831,18 +1453,14 @@
             )}
             <ScrollToTop progress={page === 'chapter' ? readProgress : null} />
           </main>
-          <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} commands={commands} />
           {usageOpen && <UsageModal onClose={() => setUsageOpen(false)} />}
         </div>
       );
     }
 
     const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<ToastProvider><App /></ToastProvider>);
+    root.render(<App />);
   </script>
-
-  <!-- AI Voice Refine drawer (independent Babel script, isolated React root) -->
-  <script type="text/babel" src="js/voice-refiner.jsx"></script>
 
 </body>
 </html>
