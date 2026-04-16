@@ -1335,7 +1335,123 @@
     function QueuePanel({ trip }) {
       return <EmptyState icon="fa-inbox" title="Queue is empty" description="Captured receipts and voice notes will appear here." />;
     }
-    function FloatingChat({ trip }) { return null; } // expanded in commit (e)
+    const TRIP_QUICK_ACTIONS = [
+      { id: 'next',   label: "What's next today?" },
+      { id: 'sumday', label: "Summarize today" },
+      { id: 'tip',    label: "Tip for this country" }
+    ];
+
+    function FloatingChat({ trip }) {
+      const [open, setOpen] = useState(false);
+      const [draft, setDraft] = useState('');
+      const [pending, setPending] = useState(false);
+      const [pulse, setPulse] = useState(false);
+      const [messages, setMessages] = useState([]);
+      const inputRef = useRef(null);
+      const convRef = useRef(null);
+      const taResize = (el) => { if (!el) return; el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 96) + 'px'; };
+
+      useEffect(() => {
+        function onChatFocus() { setOpen(true); setTimeout(() => inputRef.current && inputRef.current.focus(), 0); }
+        window.addEventListener('floating-chat:focus', onChatFocus);
+        return () => window.removeEventListener('floating-chat:focus', onChatFocus);
+      }, []);
+
+      useEffect(() => {
+        if (!open) return;
+        function onKey(e) { if (e.key === 'Escape') { e.stopPropagation(); setOpen(false); } }
+        document.addEventListener('keydown', onKey);
+        return () => document.removeEventListener('keydown', onKey);
+      }, [open]);
+
+      useEffect(() => { if (open && inputRef.current) inputRef.current.focus(); }, [open]);
+      useEffect(() => { if (convRef.current) convRef.current.scrollTop = convRef.current.scrollHeight; }, [messages, pending]);
+
+      const send = useCallback(async (text) => {
+        const trimmed = (text ?? draft).trim();
+        if (!trimmed || pending) return;
+        setMessages(m => [...m, { role: 'user', text: trimmed }]);
+        setDraft('');
+        if (inputRef.current) { inputRef.current.style.height = 'auto'; }
+        setPending(true);
+        try {
+          const r = await window.BabuAI.tripQA(trimmed, trip || null);
+          setMessages(m => [...m, { role: 'assistant', text: r.response || '(empty response)' }]);
+          if (!open) setPulse(true);
+        } catch (err) {
+          setMessages(m => [...m, { role: 'error', text: err.message || 'Request failed', last: trimmed }]);
+        } finally {
+          setPending(false);
+        }
+      }, [draft, pending, trip, open]);
+
+      useEffect(() => { if (!pulse) return; const t = setTimeout(() => setPulse(false), 2800); return () => clearTimeout(t); }, [pulse]);
+
+      function onKeyDown(e) {
+        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); send(); }
+        else if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+      }
+
+      const lastError = messages.length && messages[messages.length - 1].role === 'error' ? messages[messages.length - 1] : null;
+
+      return (
+        <div className="floating-chat" aria-live="off">
+          {!open && (
+            <button
+              type="button"
+              className={`floating-chat-bubble ${pulse ? 'is-pulsing' : ''}`}
+              aria-label="Open trip assistant chat"
+              onClick={() => { setOpen(true); setPulse(false); }}
+            >
+              <Icon name="fa-comment-dots" />
+            </button>
+          )}
+          {open && (
+            <div className="floating-chat-panel" role="dialog" aria-label="Trip assistant">
+              <header className="floating-chat-header">
+                <span><Icon name="fa-comment-dots" /> Trip Assistant</span>
+                <span className="floating-chat-header-actions">
+                  <IconButton icon="fa-window-minimize" label="Minimize chat" onClick={() => setOpen(false)} />
+                  <IconButton icon="fa-xmark" label="Close chat" onClick={() => { setOpen(false); setMessages([]); }} />
+                </span>
+              </header>
+              <div ref={convRef} className="floating-chat-conversation" aria-live="polite">
+                {messages.length === 0 && !pending && (
+                  <div className="floating-chat-msg system">Ask anything about your trip.</div>
+                )}
+                {messages.map((m, i) => (
+                  <div key={i} className={`floating-chat-msg ${m.role}`}>
+                    {m.text}
+                    {m.role === 'error' && (
+                      <Button variant="secondary" size="sm" icon="fa-rotate" onClick={() => { setMessages(prev => prev.slice(0, -1)); send(m.last); }}>Retry</Button>
+                    )}
+                  </div>
+                ))}
+                {pending && <div className="floating-chat-msg assistant"><ThinkingDots /></div>}
+              </div>
+              <div className="floating-chat-chips" role="toolbar" aria-label="Quick actions">
+                {TRIP_QUICK_ACTIONS.map(a => (
+                  <button key={a.id} type="button" className="floating-chat-chip" onClick={() => send(a.label)} disabled={pending}>{a.label}</button>
+                ))}
+              </div>
+              <div className="floating-chat-input-row">
+                <textarea
+                  ref={inputRef}
+                  className="input-field"
+                  rows={1}
+                  placeholder={'Ask about your trip\u2026 (\u23ceCmd send, \u21e7\u23ce newline)'}
+                  value={draft}
+                  onChange={e => { setDraft(e.target.value); taResize(e.target); }}
+                  onKeyDown={onKeyDown}
+                  aria-label="Chat message"
+                />
+                <Button variant="primary" icon="fa-paper-plane" loading={pending} onClick={() => send()} aria-label="Send message" />
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
 
     // =================================================================
     // CHAPTER SECTIONS DATA

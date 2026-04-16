@@ -49,5 +49,28 @@
         body: JSON.stringify(payload),
       });
     },
+
+    async tripQA(message, tripContext) {
+      if (!message || !message.trim()) throw new Error("tripQA: message is required");
+      return getJSON("/api/trip-qa", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message, tripContext: tripContext ?? null }),
+      });
+    },
+
+    async tripAssistant(message, tripContext, intent) {
+      if (!message || !message.trim()) throw new Error("tripAssistant: message is required");
+      return getJSON("/api/trip-assistant", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message, tripContext: tripContext ?? null, intent: intent ?? null }),
+      });
+    },
+
+    async referenceData(name) {
+      if (!name || !/^[a-z][a-z0-9-]*$/.test(name)) throw new Error("referenceData: invalid name");
+      return getJSON(`/api/reference-data/${name}`);
+    },
   };
 })();
