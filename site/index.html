@@ -1120,6 +1120,7 @@
 
     const TRIP_SUB_TABS = [
       { id: 'overview', label: 'Overview', icon: 'fa-map-location-dot' },
+      { id: 'capture',  label: 'Capture',  icon: 'fa-camera-retro' },
       { id: 'tools',    label: 'Tools',    icon: 'fa-toolbox' },
       { id: 'queue',    label: 'Queue',    icon: 'fa-inbox' }
     ];
@@ -1170,6 +1171,7 @@
           </div>
 
           {subTab === 'overview' && <TripOverview trip={trip} />}
+          {subTab === 'capture'  && <TripCapture  trip={trip} />}
           {subTab === 'tools'    && <TripTools    trip={trip} />}
           {subTab === 'queue'    && <QueuePanel   trip={trip} />}
           {subTab === 'overview' && <FloatingChat trip={trip} />}
