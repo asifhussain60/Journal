@@ -9,12 +9,18 @@
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
     "health": "curl -s http://localhost:3001/health | jq",
-    "smoke": "curl -s -X POST http://localhost:3001/api/voice-test -H 'Content-Type: application/json' -d '{}' | jq"
+    "smoke": "curl -s -X POST http://localhost:3001/api/voice-test -H 'Content-Type: application/json' -d '{}' | jq",
+    "validate": "node scripts/validate-schemas.mjs",
+    "harass": "node scripts/harass.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.30.0",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
     "cors": "^2.8.5",
-    "express": "^4.21.0"
+    "express": "^4.21.0",
+    "express-rate-limit": "^7.4.1",
+    "fast-json-patch": "^3.1.1"
   },
   "engines": {
     "node": ">=20"

@@ -335,3 +335,54 @@ Asif's journal voice is: first-person, present-tense feeling with past-tense nar
 | Memoir chapters | `chapters/ch{NN}-{name}.txt` |
 | Server start | `cd journal && npx serve . -l 3000 --cors` |
 | App URL | `http://localhost:3000/site/index.html` (or `localhost:3000` with redirect) |
+| Local Claude proxy | `cd journal/server && npm run start` — listens on `http://127.0.0.1:3001` |
+
+---
+
+## 10. LOCAL CLAUDE PROXY (SERVER/)
+
+The React app is a thin edge client; every Anthropic API call goes through a local Node/Express proxy at `server/` on port 3001. The key lives in macOS Keychain — never in browser, never in `.env`. Phase 1 of `_workspace/ideas/app-cowork-execution-plan.md` locks the middleware stack and contract.
+
+### 10.1 Endpoints
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/health` | Liveness + model + key-source diagnostics (no secrets). Exempt from rate-limit. |
+| POST | `/api/voice-test` | Babu-memoir smoke test. Proves wiring + voice. |
+| POST | `/api/refine` | Voice DNA refinement. Body: `{ text, model?, max_tokens?, promptName? }`. When `promptName` is omitted, uses `reference/voice-fingerprint.md` (legacy path). When supplied, uses the named prompt from `server/src/prompts/`. |
+| POST | `/api/chat` | Generic passthrough. Body: `{ system?, messages, model?, max_tokens?, promptName? }`. When `promptName` is supplied, `prompt.system` wins over body `system`. |
+
+Additional feature endpoints ship in later phases (`/api/trip-qa`, `/api/trip-assistant`, `/api/upload`, `/api/extract-receipt`, `/api/queue/:name`, `/api/ingest-itinerary`, `/api/trip-edit`, `/api/trip-edit/revert`, `/api/usage/summary`). See the execution plan §7.
+
+### 10.2 Cross-cutting middleware (Phase 1)
+
+- **Usage logger** — every request appends one JSONL row to `server/logs/usage.jsonl` with `{ timestamp, endpoint, method, model, promptName, tokensIn, tokensOut, durationMs, statusCode, visionUsed }`. Non-model endpoints log `tokensIn=0, tokensOut=0, model=null`. File is gitignored.
+- **Rate limit** — 20 requests per 60 seconds, per IP, per endpoint path. `/health` is exempt. 21st request within the window returns HTTP 429 with `{ ok: false, error, endpoint, retryAfterSeconds }`.
+- **Prompt loader** — `server/src/prompts/index.js` exposes `hasPrompt(name)` and `loadPrompt(name)`. Each prompt module exports `{ name, system, description, ... }`. Phase 1 registers `example` only; feature prompts register in later phases.
+
+### 10.3 Queue model (App → Cowork)
+
+The App writes scratch queues under `trips/{slug}/`. Cowork (Claude Code in terminal) drains them. Processed artifacts are deleted after successful drain — no archives. Summary:
+
+| Path | Kind | Lifecycle | Git |
+|---|---|---|---|
+| `trips/{slug}/pending.json` | Capture queue (receipts, voice, notes) | delete-on-drain | gitignored |
+| `trips/{slug}/voice-inbox/*.jsonl` | Voice transcript queue | delete-on-drain | gitignored |
+| `trips/{slug}/receipts/{id}.{ext}` | Receipt image binaries | delete-on-drain | gitignored |
+| `trips/{slug}/itinerary-inbox.json` | Itinerary paste queue | delete-on-drain | gitignored |
+| `trips/{slug}/snapshots/*` | Pre-write snapshots for revert | delete-on-drain | gitignored |
+| `trips/{slug}/dead-letter/*` | Rows drain failed on | survives until user discards | tracked |
+| `trips/{slug}/edit-log.json` | Provenance log for bounded trip.yaml writes | durable | tracked |
+| `server/logs/usage.jsonl` | Per-request telemetry | durable | gitignored |
+| `server/logs/drain-log.jsonl` | Cowork drain provenance (Phase 4+) | durable | gitignored |
+
+### 10.4 Schemas
+
+- `server/src/schemas/pending.schema.json` — row contract for `pending.json`. Required `schemaVersion: "1"`.
+- `server/src/schemas/edit-log.schema.json` — row contract for `edit-log.json`. Required `schemaVersion: "1"`.
+- Valid + invalid fixtures live in `server/src/schemas/__fixtures__/`.
+- Run `cd server && npm run validate` to compile schemas and assert fixtures pass/fail as expected. Prints `schemas OK, fixtures OK` on success.
+
+### 10.5 Harassment check
+
+`cd server && npm run harass` fires 21 requests at each non-health endpoint and asserts the 21st returns HTTP 429. Run against a live proxy (`npm run start` in a separate terminal). Prints `harass OK` on success.

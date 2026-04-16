@@ -232,4 +232,46 @@ journal/
 
 ---
 
+## App vs Cowork
+
+Phase 1 of the execution plan at `_workspace/ideas/app-cowork-execution-plan.md` splits the repo into two cooperating surfaces. This section mirrors the plan's §1 and §2 so the split stays discoverable from the governing framework. The full roadmap, phase spec, and acceptance criteria stay in the execution plan; this section is a stable summary.
+
+**Two surfaces, one repo:**
+
+- **App** — React SPA at `site/` plus the Express proxy at `server/` (port 3001). Thin edge client. Handles capture, cheap deterministic extractions, bounded transforms, and instant page-local UX. Writes only to scratch queues and per-trip artifacts.
+- **Cowork** — Claude Code running in terminal. Canonical brain. Owns memoir files, git, YNAB, synthesis, queue drains, and `reference/` writes.
+
+The App writes scratch queues; Cowork drains them. Any ambiguity resolves in favor of Cowork.
+
+**Canonical writes map (summary):**
+
+| Surface | May write | May never write |
+|---|---|---|
+| App | `trips/{slug}/pending.json`, `trips/{slug}/voice-inbox/*.jsonl`, `trips/{slug}/receipts/*`, `trips/{slug}/itinerary-inbox.json`, `trips/{slug}/dead-letter/*`, `trips/{slug}/edit-log.json`, `trips/{slug}/snapshots/*`, bounded edits to `trips/{slug}/trip.yaml` (Phase 6 only), `server/logs/usage.jsonl` | `chapters/`, `reference/`, git metadata, YNAB, `framework.md` |
+| Cowork | memoir files, `reference/`, git, YNAB via MCP, reconciled artifacts, drain outputs, `framework.md`, `_workspace/`, `server/logs/drain-log.jsonl` | — |
+
+**Execution tiers** (router decision order: deterministic → defer to Cowork → cheapest acceptable model → budget-throttled):
+
+1. Tier 0 — deterministic. Code + data tables. No model call.
+2. Tier 1 — cheap App model (Haiku). Small bounded extractions.
+3. Tier 2 — bounded App reasoning (Sonnet). Only when instant UX demands it.
+4. Tier 3 — Cowork. Everything else.
+
+**Memoir content stays as files, permanently.** `chapters/`, `reference/`, `chapters/scratchpads/` (the `@@marker` scratchpads), `chapters/snapshots/`, `trips/{slug}/trip.yaml`, `trips/{slug}/itinerary.md`, `trips/{slug}/journal/`, `trips/{slug}/memoir-extracts.md`, and `trips/{slug}/voice-guide.md` are all file-based and git-versioned. Operational data (queues, logs, metadata) moves to SQLite at `server/data/ops.db` in Phase 9 (locked 2026-04-16); memoir prose never migrates.
+
+**Workspace policy:** `_workspace/` stays untracked. The execution plan lives at `_workspace/ideas/app-cowork-execution-plan.md` and is the single source of truth for the split and roadmap. When a phase lands, its final state mirrors into this file.
+
+**Phase 1 contract lock (complete when `cd server && npm run validate` exits 0):**
+
+- Named-prompt loader at `server/src/prompts/`.
+- Passive token-usage logger writing `server/logs/usage.jsonl` on every request.
+- JSON Schemas for `pending.json` and `edit-log.json` with required `schemaVersion: "1"`.
+- Optional `promptName` body field on `/api/refine` and `/api/chat` (byte-identical behavior when omitted).
+- Rate-limit middleware (20 req/min per IP per endpoint; `/health` exempt).
+- `.gitignore` entries per plan §5.10.
+
+See `_workspace/ideas/app-cowork-execution-plan.md` for the full phase roadmap (Phases 1–9), UI canon, proxy endpoint inventory, and acceptance criteria.
+
+---
+
 *This framework is the governing document for the journal ecosystem. Update it when skills are added, removed, or restructured.*

@@ -19,9 +19,24 @@ Thumbs.db
 # Node / server proxy
 server/node_modules/
 server/.logs/
+server/logs/*.jsonl
+server/data/*.db
+server/data/*.db-wal
+server/data/*.db-shm
+server/data/backups/
 node_modules/
 
 # Environment files (API keys should live in macOS Keychain, not .env)
 .env
 .env.local
 *.env
+
+# Phase 1 execution-plan workspace — stays untracked per plan §1.4
+_workspace/
+
+# Per-trip queue + ephemeral artifacts (App writes, Cowork drains and deletes per §5.10)
+trips/*/pending.json
+trips/*/receipts/
+trips/*/voice-inbox/
+trips/*/itinerary-inbox.json
+trips/*/snapshots/
