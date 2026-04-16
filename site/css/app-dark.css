@@ -2534,3 +2534,141 @@ select.input-field {
     margin: 1rem auto;
   }
 }
+
+/* ═══════════════════════════════════════════════════
+   PHASE 2 — DESIGN SYSTEM ATOMS
+   Utility classes for Button, IconButton, Badge, Text.
+   Existing .btn / .badge / .input-field rules above are
+   kept intact; these additions only add new variants.
+   ═══════════════════════════════════════════════════ */
+
+/* --- Button sizes & extra variants --- */
+.btn-size-sm { padding: 0.45rem 0.9rem; font-size: 0.82rem; border-radius: var(--radius-sm); }
+.btn-size-md { }
+.btn-size-lg { padding: 1rem 1.85rem; font-size: 1.05rem; border-radius: var(--radius-lg); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid transparent;
+}
+.btn-ghost:hover {
+  background: rgba(255,255,255,.08);
+  border-color: rgba(255,255,255,.16);
+}
+.btn-destructive {
+  background: rgba(208,96,96,.18);
+  color: #ffb3b3;
+  border: 1px solid rgba(208,96,96,.35);
+}
+.btn-destructive:hover {
+  background: rgba(208,96,96,.28);
+  border-color: rgba(208,96,96,.55);
+  transform: translateY(-2px);
+}
+.btn.is-loading {
+  cursor: progress;
+  opacity: 0.75;
+}
+.btn .btn-label { display: inline; }
+.btn:disabled, .btn[aria-busy="true"] { cursor: not-allowed; }
+
+/* --- IconButton --- */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.icon-btn:hover { background: rgba(255,255,255,.1); }
+.icon-btn-size-sm { width: 2rem; height: 2rem; font-size: 0.85em; }
+.icon-btn-size-md { width: 2.5rem; height: 2.5rem; }
+.icon-btn-size-lg { width: 3rem; height: 3rem; font-size: 1.15em; }
+.icon-btn-primary {
+  background: linear-gradient(135deg, var(--rose), var(--mauve));
+  color: white;
+}
+.icon-btn-primary:hover { filter: brightness(1.1); }
+.icon-btn-secondary {
+  background: rgba(255,255,255,.1);
+  border-color: rgba(255,255,255,.18);
+}
+.icon-btn-destructive {
+  color: #ffb3b3;
+  background: rgba(208,96,96,.14);
+  border-color: rgba(208,96,96,.3);
+}
+
+/* --- Badge variants & sizes --- */
+.badge-size-sm { font-size: 0.62rem; padding: 0.2rem 0.55rem; }
+.badge-size-md { }
+.badge-neutral {
+  background: rgba(255,255,255,.08);
+  color: var(--text-muted);
+  border: 1px solid rgba(255,255,255,.14);
+}
+.badge-success {
+  background: rgba(90,172,114,.15);
+  color: #a6e3b9;
+  border: 1px solid rgba(90,172,114,.3);
+}
+.badge-warning {
+  background: rgba(212,160,48,.16);
+  color: var(--gold);
+  border: 1px solid rgba(212,160,48,.3);
+}
+.badge-error {
+  background: rgba(208,96,96,.18);
+  color: #ffb3b3;
+  border: 1px solid rgba(208,96,96,.35);
+}
+.badge-info {
+  background: rgba(90,142,200,.18);
+  color: #a8c8f0;
+  border: 1px solid rgba(90,142,200,.35);
+}
+.badge-accent {
+  background: rgba(198,166,255,.15);
+  color: var(--lavender);
+  border: 1px solid rgba(198,166,255,.3);
+}
+.badge .fa-solid { margin-right: 0.35em; }
+
+/* --- Text atom --- */
+.text { margin: 0; }
+.text-sans   { font-family: var(--font-sans); }
+.text-serif  { font-family: var(--font-serif); }
+.text-mono   { font-family: var(--font-mono); }
+.text-script { font-family: var(--font-script); }
+
+.text-size-xs  { font-size: 0.75rem; }
+.text-size-sm  { font-size: 0.85rem; }
+.text-size-md  { font-size: 1rem; }
+.text-size-lg  { font-size: 1.2rem; }
+.text-size-xl  { font-size: 1.5rem; }
+.text-size-2xl { font-size: 2rem; }
+.text-size-3xl { font-size: 2.5rem; }
+
+.text-weight-light    { font-weight: 300; }
+.text-weight-normal   { font-weight: 400; }
+.text-weight-medium   { font-weight: 500; }
+.text-weight-semibold { font-weight: 600; }
+.text-weight-bold     { font-weight: 700; }
+
+.text-align-left   { text-align: left; }
+.text-align-center { text-align: center; }
+.text-align-right  { text-align: right; }
+
+.text-color-primary { color: var(--text); }
+.text-color-muted   { color: var(--text-muted); }
+.text-color-accent  { color: var(--accent); }
+.text-color-rose    { color: var(--rose); }
+.text-color-gold    { color: var(--gold); }

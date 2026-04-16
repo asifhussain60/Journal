@@ -145,6 +145,54 @@
     }
 
     // =================================================================
+    // DESIGN SYSTEM — ATOMS
+    // =================================================================
+
+    function Button({ variant = 'primary', size = 'md', loading = false, disabled, icon, iconRight, children, className = '', type = 'button', ...rest }) {
+      const cls = ['btn', `btn-${variant}`, `btn-size-${size}`, loading && 'is-loading', className].filter(Boolean).join(' ');
+      return (
+        <button type={type} className={cls} disabled={disabled || loading} aria-busy={loading || undefined} {...rest}>
+          {loading && <Icon name="fa-circle-notch fa-spin" />}
+          {!loading && icon && <Icon name={icon} />}
+          {children != null && <span className="btn-label">{children}</span>}
+          {!loading && iconRight && <Icon name={iconRight} />}
+        </button>
+      );
+    }
+
+    function IconButton({ icon, label, variant = 'ghost', size = 'md', className = '', ...rest }) {
+      const cls = ['icon-btn', `icon-btn-${variant}`, `icon-btn-size-${size}`, className].filter(Boolean).join(' ');
+      return (
+        <button type="button" className={cls} aria-label={label} title={label} {...rest}>
+          <Icon name={icon} />
+        </button>
+      );
+    }
+
+    function Badge({ variant = 'neutral', size = 'md', icon, children, className = '', ...rest }) {
+      const cls = ['badge', `badge-${variant}`, `badge-size-${size}`, className].filter(Boolean).join(' ');
+      return (
+        <span className={cls} {...rest}>
+          {icon && <Icon name={icon} />}
+          {children}
+        </span>
+      );
+    }
+
+    function Text({ as: Tag = 'p', variant = 'sans', size, weight, align, color, className = '', children, ...rest }) {
+      const cls = [
+        'text',
+        `text-${variant}`,
+        size && `text-size-${size}`,
+        weight && `text-weight-${weight}`,
+        align && `text-align-${align}`,
+        color && `text-color-${color}`,
+        className
+      ].filter(Boolean).join(' ');
+      return <Tag className={cls} {...rest}>{children}</Tag>;
+    }
+
+    // =================================================================
     // COMPONENTS
     // =================================================================
 
