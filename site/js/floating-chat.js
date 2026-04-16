@@ -42,11 +42,15 @@
       // Bubble (toggle button)
       this.bubble = document.createElement('button');
       this.bubble.className = 'fc-bubble';
+      // Lucide Scroll icon — icon-only bubble per ScrollBot design.
+      this.bubble.setAttribute('aria-label', 'Open Trip Assistant');
       this.bubble.innerHTML = `
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M19 17V5a2 2 0 0 0-2-2H4"/>
+          <path d="M15 8h-5"/>
+          <path d="M15 12h-5"/>
+          <path d="M8 21h13a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/>
         </svg>
-        <span>Trip Assistant</span>
       `;
 
       // Panel (main chat interface)
@@ -57,7 +61,15 @@
       const header = document.createElement('div');
       header.className = 'fc-header';
       header.innerHTML = `
-        <div class="fc-header-title">Trip Assistant</div>
+        <div class="fc-header-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M19 17V5a2 2 0 0 0-2-2H4"/>
+            <path d="M15 8h-5"/>
+            <path d="M15 12h-5"/>
+            <path d="M8 21h13a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/>
+          </svg>
+          <span>Trip Assistant</span>
+        </div>
         <div style="display: flex; gap: 0.25rem;">
           <button class="fc-header-btn fc-minimize" aria-label="Minimize">−</button>
           <button class="fc-header-btn fc-close" aria-label="Close">✕</button>
