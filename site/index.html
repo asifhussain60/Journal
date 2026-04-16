@@ -1654,6 +1654,109 @@
       );
     }
 
+    function ItineraryPaste({ trip }) {
+      const { show: toast } = useToast();
+      const [open, setOpen] = useState(false);
+      const [text, setText] = useState('');
+      const [ext, setExt] = useState(null);
+      const [parsing, setParsing] = useState(false);
+      const [submitting, setSubmitting] = useState(false);
+      const [error, setError] = useState(null);
+
+      const close = () => {
+        setText(''); setExt(null); setError(null);
+        setParsing(false); setSubmitting(false); setOpen(false);
+      };
+
+      const parse = async () => {
+        if (text.trim().length < 20) { setError('Paste at least 20 characters.'); return; }
+        setParsing(true); setError(null); setExt(null);
+        try {
+          const r = await window.BabuAI.ingestItinerary(text.trim());
+          setExt(r.extracted);
+        } catch (err) {
+          setError((err.body && err.body.error) || err.message || 'Parse failed.');
+        } finally {
+          setParsing(false);
+        }
+      };
+
+      const accept = async () => {
+        if (!ext) return;
+        setSubmitting(true); setError(null);
+        try {
+          await window.BabuAI.queuePost('itinerary-inbox', {
+            schemaVersion: '1',
+            id: `itinerary-${(crypto.randomUUID && crypto.randomUUID()) || Date.now()}`,
+            createdAt: new Date().toISOString(),
+            tripSlug: trip?.slug,
+            kind: 'itinerary', source: 'app', status: 'pending', memoryWorthy: false,
+            payload: { extracted: ext, original: text.trim() },
+          });
+          toast('Itinerary accepted', 'success');
+          window.dispatchEvent(new CustomEvent('queue:refresh'));
+          close();
+        } catch (err) {
+          setError(err.message || 'Save failed.');
+        } finally {
+          setSubmitting(false);
+        }
+      };
+
+      const empty = ext && !ext.flights?.length && !ext.hotels?.length && !ext.highlights?.length;
+      return (
+        <>
+          <Card variant="glass" style={{ padding: '1.75rem' }}>
+            <Text as="h4" variant="serif" size="md" style={{ margin: 0, marginBottom: '0.25rem' }}>Paste itinerary</Text>
+            <Text size="sm" color="muted" style={{ marginBottom: '1rem' }}>Drop a confirmation email or agenda; we'll extract flights, hotels, and highlights.</Text>
+            <Button variant="primary" icon="fa-paste" onClick={() => setOpen(true)}>Paste itinerary</Button>
+          </Card>
+          {open && (
+            <Modal title="Paste itinerary" onClose={close} size="lg">
+              <div style={{ display: 'grid', gap: '0.75rem' }}>
+                <Textarea rows={8} placeholder="Paste confirmation email, agenda, notes…"
+                  value={text} onChange={e => setText(e.target.value)} />
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <Button variant="secondary" icon="fa-wand-magic-sparkles" loading={parsing}
+                    onClick={parse} disabled={!text.trim() || parsing}>Parse</Button>
+                  {ext && !empty && <Button variant="primary" icon="fa-check" loading={submitting} onClick={accept}>Accept</Button>}
+                  <Button variant="ghost" onClick={close}>Cancel</Button>
+                </div>
+                {error && <Text color="error" size="sm">{error}</Text>}
+                {parsing && <SkeletonRow variant="queue-row" count={3} />}
+                {ext && !parsing && (
+                  <div style={{ display: 'grid', gap: '0.5rem' }}>
+                    {(ext.dates?.start || ext.dates?.end) && (
+                      <Badge variant="neutral" icon="fa-calendar">{ext.dates?.start || '?'} → {ext.dates?.end || '?'}</Badge>
+                    )}
+                    {ext.flights?.length > 0 && (
+                      <Card variant="flat" style={{ padding: '0.75rem' }}>
+                        <Text size="sm" weight="semibold" style={{ margin: 0, marginBottom: '0.25rem' }}><Icon name="fa-plane" /> Flights</Text>
+                        {ext.flights.map((f, i) => <Text key={i} size="sm" style={{ margin: 0 }}>{f.airline ? f.airline + ' · ' : ''}{f.departure || '?'} → {f.arrival || '?'}{f.date ? ' · ' + f.date : ''}</Text>)}
+                      </Card>
+                    )}
+                    {ext.hotels?.length > 0 && (
+                      <Card variant="flat" style={{ padding: '0.75rem' }}>
+                        <Text size="sm" weight="semibold" style={{ margin: 0, marginBottom: '0.25rem' }}><Icon name="fa-hotel" /> Hotels</Text>
+                        {ext.hotels.map((h, i) => <Text key={i} size="sm" style={{ margin: 0 }}>{h.name || '(unnamed)'}{h.location ? ' · ' + h.location : ''}{h.dates ? ' · ' + h.dates : ''}</Text>)}
+                      </Card>
+                    )}
+                    {ext.highlights?.length > 0 && (
+                      <Card variant="flat" style={{ padding: '0.75rem' }}>
+                        <Text size="sm" weight="semibold" style={{ margin: 0, marginBottom: '0.25rem' }}><Icon name="fa-star" /> Highlights</Text>
+                        {ext.highlights.map((h, i) => <Text key={i} size="sm" style={{ margin: 0 }}>{h.date || '?'}{h.time ? ' ' + h.time : ''} — {h.description || '(no description)'}</Text>)}
+                      </Card>
+                    )}
+                    {empty && <Text size="sm" color="muted">No structured rows extracted. Edit the paste and try again.</Text>}
+                  </div>
+                )}
+              </div>
+            </Modal>
+          )}
+        </>
+      );
+    }
+
     const TRIP_QUICK_ACTIONS = [
       { id: 'next',   label: "What's next today?" },
       { id: 'sumday', label: "Summarize today" },
