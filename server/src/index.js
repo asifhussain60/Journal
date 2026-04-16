@@ -19,6 +19,9 @@
 //   POST /api/trip-edit/revert         — Phase 6: idempotent revert by edit-log id
 //   GET  /api/edit-log                 — Phase 6: read trips/{slug}/edit-log.json
 //   GET  /api/usage/summary            — Phase 8: monthly spend + per-endpoint breakdown
+//   GET  /api/dead-letter              — Phase 8: list all dead-letter entries for active trip
+//   POST /api/queue/:name/replay       — Phase 8: replay one dead-letter entry back to its queue
+//   POST /api/dead-letter/discard      — Phase 8: delete a dead-letter entry without replay
 //
 // CORS is locked to http://localhost:3000 (the `npx serve` dev port for site/).
 
@@ -54,6 +57,11 @@ import {
   readEditLog,
 } from "./trip-edit-ops.js";
 import { getUsageSummary } from "./usage-summary.js";
+import {
+  listDeadLetter,
+  replayDeadLetterEntry,
+  deleteDeadLetterEntry,
+} from "./dead-letter.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -623,6 +631,52 @@ app.get("/api/edit-log", async (_req, res) => {
     const slug = await getActiveTripSlug();
     const items = await readEditLog(slug);
     res.json({ ok: true, items, tripSlug: slug });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err?.message ?? String(err) });
+  }
+});
+
+// --- Phase 8: dead-letter surfacing + replay + discard -----------------------
+app.get("/api/dead-letter", async (_req, res) => {
+  try {
+    const slug = await getActiveTripSlug();
+    const items = await listDeadLetter(slug);
+    res.json({ ok: true, tripSlug: slug, items });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err?.message ?? String(err) });
+  }
+});
+
+app.post("/api/queue/:name/replay", async (req, res) => {
+  try {
+    const { name } = req.params;
+    const { id } = req.body ?? {};
+    if (!QUEUE_VALIDATORS.has(name)) {
+      return res.status(404).json({ ok: false, error: `unknown queue "${name}"` });
+    }
+    if (typeof id !== "string" || !id.length) {
+      return res.status(400).json({ ok: false, error: "id (string) is required" });
+    }
+    const slug = await getActiveTripSlug();
+    const result = await replayDeadLetterEntry(slug, name, id);
+    res.json({ ok: true, tripSlug: slug, ...result });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err?.message ?? String(err) });
+  }
+});
+
+app.post("/api/dead-letter/discard", async (req, res) => {
+  try {
+    const { queueName, id } = req.body ?? {};
+    if (typeof queueName !== "string" || !queueName.length) {
+      return res.status(400).json({ ok: false, error: "queueName (string) is required" });
+    }
+    if (typeof id !== "string" || !id.length) {
+      return res.status(400).json({ ok: false, error: "id (string) is required" });
+    }
+    const slug = await getActiveTripSlug();
+    const result = await deleteDeadLetterEntry(slug, queueName, id);
+    res.json({ ok: true, tripSlug: slug, queueName, id, ...result });
   } catch (err) {
     res.status(500).json({ ok: false, error: err?.message ?? String(err) });
   }
