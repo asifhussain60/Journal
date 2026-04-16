@@ -27,19 +27,13 @@
     );
   }
 
-  // ---- tiny toast ---------------------------------------------------------
-  function useToast() {
-    const [msg, setMsg] = useState("");
-    const timer = useRef(null);
-    function show(text) {
-      setMsg(text);
-      if (timer.current) clearTimeout(timer.current);
-      timer.current = setTimeout(() => setMsg(""), 1800);
+  // ---- shared toast (delegated to the main app's ToastProvider) -----------
+  // The main #root tree renders <ToastProvider> which exposes window.__appToast.
+  // We call into it so the repo has a single toast implementation.
+  function toast(msg, variant) {
+    if (window.__appToast && typeof window.__appToast.show === "function") {
+      window.__appToast.show(msg, variant || "info");
     }
-    const node = msg
-      ? React.createElement("div", { className: "ai-toast" }, msg)
-      : null;
-    return [node, show];
   }
 
   // ---- main drawer component ----------------------------------------------
@@ -51,7 +45,6 @@
     const [error, setError] = useState("");
     const [usage, setUsage] = useState(null);
     const [view, setView] = useState("diff"); // "diff" | "refined"
-    const [toastNode, toast] = useToast();
 
     async function runRefine() {
       setBusy(true);
@@ -62,7 +55,7 @@
         const r = await window.BabuAI.refine(raw);
         setRefined(r.refined);
         setUsage(r.usage || null);
-        toast("Refined");
+        toast("Refined", "success");
       } catch (err) {
         setError(err.message || String(err));
       } finally {
@@ -74,9 +67,9 @@
       if (!refined) return;
       try {
         await navigator.clipboard.writeText(refined);
-        toast("Copied to clipboard");
+        toast("Copied to clipboard", "success");
       } catch {
-        toast("Copy failed");
+        toast("Copy failed", "error");
       }
     }
 
@@ -210,9 +203,7 @@
             usage ? React.createElement("div", { className: "ai-usage" },
               `tokens: ${usage.input_tokens} in / ${usage.output_tokens} out`) : null
           )
-        ),
-
-        toastNode
+        )
       )
     );
   }

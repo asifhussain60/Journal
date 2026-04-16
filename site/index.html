@@ -128,18 +128,6 @@
       return <i className={`fa-solid ${name}`} style={{ fontSize: size, color }}></i>;
     }
 
-    function showToast(message) {
-      const toast = document.createElement('div');
-      toast.className = 'toast';
-      toast.textContent = message;
-      document.body.appendChild(toast);
-      setTimeout(() => toast.remove(), 3000);
-    }
-
-    function copyToClipboard(text) {
-      navigator.clipboard.writeText(text).then(() => showToast('Copied to DayOne clipboard'));
-    }
-
     function formatDate(iso) {
       return new Date(iso + 'T12:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
     }
@@ -488,13 +476,78 @@
       );
     }
 
+    const ToastContext = React.createContext(null);
+
+    const TOAST_ICONS = {
+      success: 'fa-circle-check',
+      error:   'fa-triangle-exclamation',
+      warning: 'fa-triangle-exclamation',
+      info:    'fa-circle-info'
+    };
+
+    function ToastProvider({ children }) {
+      const [toasts, setToasts] = useState([]);
+
+      const show = useCallback((message, variant = 'info', duration = 3000) => {
+        const id = Date.now() + Math.random();
+        setToasts(prev => [...prev, { id, message, variant }]);
+        if (duration > 0) {
+          setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), duration);
+        }
+        return id;
+      }, []);
+
+      const dismiss = useCallback((id) => {
+        setToasts(prev => prev.filter(t => t.id !== id));
+      }, []);
+
+      useEffect(() => {
+        window.__appToast = { show, dismiss };
+        return () => {
+          if (window.__appToast && window.__appToast.show === show) {
+            delete window.__appToast;
+          }
+        };
+      }, [show, dismiss]);
+
+      const value = useMemo(() => ({ show, dismiss }), [show, dismiss]);
+
+      return (
+        <ToastContext.Provider value={value}>
+          {children}
+          <div className="toast-container" role="region" aria-live="polite" aria-label="Notifications">
+            {toasts.map(t => (
+              <div key={t.id} className={`toast toast-${t.variant}`} role="status" onClick={() => dismiss(t.id)}>
+                <Icon name={TOAST_ICONS[t.variant] || TOAST_ICONS.info} />
+                <span className="toast-message">{t.message}</span>
+              </div>
+            ))}
+          </div>
+        </ToastContext.Provider>
+      );
+    }
+
+    function useToast() {
+      const ctx = React.useContext(ToastContext);
+      if (!ctx) throw new Error('useToast must be used within <ToastProvider>');
+      return ctx;
+    }
+
     // =================================================================
     // COMPONENTS
     // =================================================================
 
     // --- DayOne Code Preview ---
     function DayOnePreview({ entry, selectedJournal }) {
+      const { show: toast } = useToast();
       const md = `# ${entry.location} \u2014 ${formatDate(entry.date)}\n\n**Mood:** ${entry.mood}\n**Journal:** ${selectedJournal || entry.journal}\n**Tags:** ${entry.tags.join(', ')}\n\n${entry.text}\n\n*[Refined with Voice DNA]*`;
+
+      function copyMd() {
+        navigator.clipboard.writeText(md).then(
+          () => toast('Copied to DayOne clipboard', 'success'),
+          () => toast('Copy failed', 'error')
+        );
+      }
 
       return (
         <div className="glass-card fade-enter stagger-2" style={{ padding: '2rem' }}>
@@ -504,7 +557,7 @@
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', lineHeight: '1.7', color: 'var(--text-main)', whiteSpace: 'pre-wrap', marginBottom: '1.5rem' }}>
             {md}
           </div>
-          <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => copyToClipboard(md)}>
+          <button className="btn btn-primary" style={{ width: '100%' }} onClick={copyMd}>
             <Icon name="fa-copy" /> Copy for DayOne
           </button>
         </div>
@@ -1643,7 +1696,7 @@
     }
 
     const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
+    root.render(<ToastProvider><App /></ToastProvider>);
   </script>
 
   <!-- AI Voice Refine drawer (independent Babel script, isolated React root) -->
