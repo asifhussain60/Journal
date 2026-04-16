@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm start *)",
+      "Bash(curl -s http://localhost:3001/health)",
+      "Bash(curl -s http://localhost:3001/api/queue/pending)",
+      "Bash(lsof -nP -iTCP:3001 -sTCP:LISTEN)"
+    ]
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "generatedAt": "2026-04-16T18:36:52.999Z",
+  "tripSlug": "2026-04-ishrat-engagement",
+  "match": false,
+  "tables": [
+    {
+      "table": "pending_queue",
+      "fileRowCount": 0,
+      "dbRowCount": 0,
+      "match": true,
+      "divergences": []
+    },
+    {
+      "table": "voice_inbox",
+      "fileRowCount": 0,
+      "dbRowCount": 0,
+      "match": true,
+      "divergences": []
+    },
+    {
+      "table": "itinerary_inbox",
+      "fileRowCount": 0,
+      "dbRowCount": 0,
+      "match": true,
+      "divergences": []
+    },
+    {
+      "table": "dead_letter",
+      "fileRowCount": 0,
+      "dbRowCount": 0,
+      "match": true,
+      "divergences": []
+    },
+    {
+      "table": "edit_log",
+      "fileRowCount": 0,
+      "dbRowCount": 0,
+      "match": true,
+      "divergences": []
+    },
+    {
+      "table": "usage",
+      "fileRowCount": 940,
+      "dbRowCount": 0,
+      "match": false,
+      "divergences": [
+        {
+          "reason": "count-drift",
+          "file": 940,
+          "db": 0
+        }
+      ]
+    }
+  ]
+}
