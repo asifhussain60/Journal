@@ -63,6 +63,14 @@ html{scroll-behavior:smooth}
   border-radius:0;
   box-shadow:none;
 }
+/* When a fixed .nav precedes the hero (site-shell itineraries),
+   lift the hero top padding so its badge + title clear the header.
+   Standalone views (trips/<slug>/itinerary.html) omit .nav and keep
+   the tighter 2.5rem default. */
+.nav ~ .hero,
+.nav + .hero {
+  padding-top: 6rem;
+}
 .hero::before{
   content:"";
   position:absolute;
@@ -1362,8 +1370,12 @@ html{scroll-behavior:smooth}
 @media (max-width:860px){
   .hero{
     min-height:auto;
-    padding-top:2.5rem;
+    padding-top:2rem;
     padding-bottom:1.2rem;
+  }
+  .nav ~ .hero,
+  .nav + .hero {
+    padding-top: 5rem;
   }
   .flight-card{
     grid-template-columns:1fr;
