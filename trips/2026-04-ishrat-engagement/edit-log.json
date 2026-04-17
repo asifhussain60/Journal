@@ -1048,5 +1048,30 @@
     "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-ed0d0f4e-1710-4ceb-85e0-955d258c99c9.yaml",
     "actor": "app",
     "status": "applied"
+  },
+  {
+    "schemaVersion": "1",
+    "id": "2e4ae266-f1b9-41c6-afd4-2c5278eb7613",
+    "createdAt": "2026-04-17T22:28:22.070Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "Swap event 1.3 → Mithaas Dinner",
+    "patch": [
+      {
+        "op": "replace",
+        "path": "/days/0/events/2/event",
+        "value": "Mithaas Dinner"
+      }
+    ],
+    "inversePatch": [
+      {
+        "op": "replace",
+        "path": "/days/0/events/2/event",
+        "value": "Mithaas North Brunswick"
+      }
+    ],
+    "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-2e4ae266-f1b9-41c6-afd4-2c5278eb7613.yaml",
+    "actor": "app",
+    "status": "applied"
   }
 ]
