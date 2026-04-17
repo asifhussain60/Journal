@@ -23,6 +23,17 @@
 <link rel="stylesheet" href="../../site/css/itinerary.css">
 <link rel="stylesheet" href="../../site/css/theme-switcher.css">
 <script src="../../site/js/theme-switcher.js" defer></script>
+
+<!-- Import map: shares window.React with ESM modules (react-colorful) so
+     hooks work across the UMD/ESM boundary. -->
+<script type="importmap">
+{
+  "imports": {
+    "react": "data:text/javascript;charset=utf-8,const R=window.React;export default R;export const {useState,useEffect,useRef,useMemo,useCallback,useReducer,useLayoutEffect,useContext,createElement,Fragment,forwardRef,memo,Children,cloneElement,createContext,isValidElement,useImperativeHandle,useDebugValue}=R;",
+    "react-dom": "data:text/javascript;charset=utf-8,const R=window.ReactDOM;export default R;export const {createRoot,hydrateRoot,findDOMNode,createPortal,render,unmountComponentAtNode,flushSync,unstable_batchedUpdates}=R;"
+  }
+}
+</script>
 <script src="../../site/js/tweaker/tweaker-loader.js"></script>
 </head>
 <body>

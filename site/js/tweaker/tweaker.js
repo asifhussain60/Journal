@@ -78,8 +78,12 @@
 
   async function loadLibs() {
     if (LIBS.ready) return LIBS;
+    // react-colorful must share the SAME React instance as our components
+    // (both sides call hooks which require identical dispatcher references).
+    // `?external=react,react-dom` keeps the imports bare; the importmap
+    // in the HTML head resolves them to window.React/window.ReactDOM shims.
     const [colorfulMod, floatingMod, selectorMod] = await Promise.all([
-      import('https://esm.sh/react-colorful@5.6.1?deps=react@18.3.1,react-dom@18.3.1'),
+      import('https://esm.sh/react-colorful@5.6.1?external=react,react-dom'),
       import('https://esm.sh/@floating-ui/dom@1.6.11'),
       import('https://esm.sh/css-selector-generator@3.6.9'),
     ]);

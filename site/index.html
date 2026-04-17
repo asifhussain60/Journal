@@ -36,6 +36,18 @@
   <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone@7.29.2/babel.min.js"></script>
 
+  <!-- Import map: lets ESM modules (e.g. react-colorful) share the single
+       window.React instance loaded above. Without this, esm.sh bundles its
+       own React and hooks crash with a null-dispatcher error. -->
+  <script type="importmap">
+  {
+    "imports": {
+      "react": "data:text/javascript;charset=utf-8,const R=window.React;export default R;export const {useState,useEffect,useRef,useMemo,useCallback,useReducer,useLayoutEffect,useContext,createElement,Fragment,forwardRef,memo,Children,cloneElement,createContext,isValidElement,useImperativeHandle,useDebugValue}=R;",
+      "react-dom": "data:text/javascript;charset=utf-8,const R=window.ReactDOM;export default R;export const {createRoot,hydrateRoot,findDOMNode,createPortal,render,unmountComponentAtNode,flushSync,unstable_batchedUpdates}=R;"
+    }
+  }
+  </script>
+
   <script type="text/babel">
     const { useState, useEffect, useRef, useCallback, useMemo } = React;
 
