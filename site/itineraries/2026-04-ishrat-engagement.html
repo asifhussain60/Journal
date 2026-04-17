@@ -1170,25 +1170,15 @@
         return { head: m[1].trim(), period: m[2].toUpperCase() };
       }
 
-      // Stable per-event key for view-transition-name, so adds/removes/moves
-      // animate individually instead of the whole timeline cross-fading.
-      function eventTxName(ev) {
-        var key = (ev.time || '') + '|' + (ev.event || '') + '|' + (ev.tag || '');
-        var h = 5381;
-        for (var i = 0; i < key.length; i++) h = (((h << 5) + h) + key.charCodeAt(i)) | 0;
-        return 'ev-' + Math.abs(h).toString(36);
-      }
-
       function renderEventCard(ev) {
         // Accept both `venue` (canonical yaml) and `address` (legacy static HTML).
         var address = ev.address || ev.venue || '';
         var key = tagKey(ev.tag);
         var icon = pickEventIcon(ev.tag, ev.event);
         var t = splitTime(ev.time);
-        var txName = eventTxName(ev);
 
         var parts = [];
-        parts.push('<div class="event" style="view-transition-name:' + txName + ';">');
+        parts.push('<div class="event">');
 
         // Time column (outside the card, left of the rail)
         parts.push('  <div class="event-time-col">');
@@ -1225,7 +1215,7 @@
         var hasContact = address || ev.phone || ev.website;
         if (hasContact) {
           parts.push('      <div class="event-contact">');
-          if (address) parts.push('        <span class="event-addr"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>' + escHtml(address) + '</span>');
+          if (address) parts.push('        <span class="event-addr">' + escHtml(address) + '</span>');
           if (ev.phone) parts.push('        <span class="event-phone"><i class="fa-solid fa-phone" aria-hidden="true"></i><a href="' + telHref(ev.phone) + '">' + escHtml(ev.phone) + '</a></span>');
           if (ev.website) parts.push('        <a class="event-website" href="' + escHtml(ev.website) + '" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>Website</a>');
           parts.push('      </div>');
@@ -1275,31 +1265,20 @@
           html += '</div>'; // .day-card
         });
 
-        // Apply the DOM swap. Wrapped in the View Transitions API where
-        // available so added/removed/moved events animate (each .event has
-        // its own view-transition-name). Falls back to an instant swap.
-        var applyRender = function() {
-          // Destroy existing Leaflet maps right before the DOM swap — old
-          // references would otherwise leak handlers on detached containers.
-          destroyAllMaps();
-          timeline.innerHTML = html;
+        // Destroy existing Leaflet maps right before the DOM swap — old
+        // references would otherwise leak handlers on detached containers.
+        destroyAllMaps();
+        timeline.innerHTML = html;
 
-          // Auto-open day 1
-          var firstCard = timeline.querySelector('.day-card');
-          if (firstCard) firstCard.classList.add('open');
+        // Auto-open day 1
+        var firstCard = timeline.querySelector('.day-card');
+        if (firstCard) firstCard.classList.add('open');
 
-          // Initialize map for every currently-open day card. Collapsed maps
-          // are lazy-initialized on first open by toggleCard().
-          timeline.querySelectorAll('.day-card.open .day-map').forEach(function(el) {
-            if (el.id && !el._leaflet_id) initMap(el.id);
-          });
-        };
-
-        if (typeof document.startViewTransition === 'function') {
-          document.startViewTransition(applyRender);
-        } else {
-          applyRender();
-        }
+        // Initialize map for every currently-open day card. Collapsed maps
+        // are lazy-initialized on first open by toggleCard().
+        timeline.querySelectorAll('.day-card.open .day-map').forEach(function(el) {
+          if (el.id && !el._leaflet_id) initMap(el.id);
+        });
       }
 
       function formatDayDate(dateStr) {

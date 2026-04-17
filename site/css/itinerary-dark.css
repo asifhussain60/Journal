@@ -630,49 +630,6 @@ body::after{
   transition:none !important;
 }
 
-/* ─── View Transitions (Chrome 111+, Safari 18+, Firefox 139+) ──────────
-   Fires whenever renderItinerary re-runs (e.g. after FloatingChat edits an
-   event). Each .event has a unique view-transition-name, so the browser
-   animates insertions, deletions, and moves independently rather than
-   cross-fading the whole timeline. Root is tuned faster than per-event so
-   the overall page doesn't linger. */
-::view-transition-old(root),
-::view-transition-new(root){
-  animation-duration:.32s;
-  animation-timing-function:cubic-bezier(.4,0,.2,1);
-}
-/* Default per-item animations (applies to every named view-transition group
-   that doesn't have a more specific rule). Slight stagger baked into the
-   timing function so cards feel like they arrive with momentum. */
-::view-transition-group(*){
-  animation-duration:.45s;
-  animation-timing-function:cubic-bezier(.34,1.2,.64,1);
-}
-::view-transition-old(*){
-  animation:fade-slide-out .28s cubic-bezier(.4,0,1,1) both;
-}
-::view-transition-new(*){
-  animation:fade-slide-in .42s cubic-bezier(.22,1,.36,1) both;
-}
-@keyframes fade-slide-out{
-  from{ opacity:1; transform:translateY(0); }
-  to  { opacity:0; transform:translateY(-6px) scale(.98); }
-}
-@keyframes fade-slide-in{
-  from{ opacity:0; transform:translateY(10px) scale(.98); }
-  to  { opacity:1; transform:translateY(0) scale(1); }
-}
-@media (prefers-reduced-motion:reduce){
-  ::view-transition-old(root),
-  ::view-transition-new(root),
-  ::view-transition-group(*),
-  ::view-transition-old(*),
-  ::view-transition-new(*){
-    animation-duration:.01ms !important;
-    animation:none !important;
-  }
-}
-
 /* ═══ EVENT CARDS — timeline rail + card ═══ */
 .event-list{
   display:grid;
