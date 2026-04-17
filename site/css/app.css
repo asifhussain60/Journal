@@ -1455,7 +1455,9 @@ select.input-field {
   -webkit-backdrop-filter: blur(24px) saturate(140%);
   border: 1px solid var(--white-10);
   border-radius: 16px;
-  padding: 1rem;
+  /* Asymmetric padding — extra top/bottom so the "SECTIONS" header
+     doesn't crowd the panel edge. */
+  padding: 1.5rem 1rem 1.25rem;
   box-shadow: 0 8px 32px var(--shadow-a30);
   animation: fadeSlideUp 0.3s ease both;
   height: calc(100vh - 200px);
@@ -1692,7 +1694,9 @@ select.input-field {
   -webkit-backdrop-filter: blur(24px) saturate(140%);
   border: 1px solid var(--white-10);
   border-radius: 16px;
-  padding: 1rem;
+  /* Asymmetric padding — extra top/bottom so the "CHAPTER NOTES" header
+     doesn't crowd the panel edge. */
+  padding: 1.5rem 1rem 1.25rem;
   box-shadow: 0 8px 32px var(--shadow-a30);
   animation: fadeSlideUp 0.3s ease both;
   height: calc(100vh - 200px);
