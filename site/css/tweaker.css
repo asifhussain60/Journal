@@ -750,7 +750,170 @@ body[data-tweak-mode="on"] [data-tweak-chrome] * {
   box-shadow: var(--focus-ring);
 }
 
-/* ─── Color property rows ─── */
+/* ─── "Applying to" badge on the palette header ─── */
+.tweaker-apply-target {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: none;
+  color: var(--text-muted);
+  background: var(--white-06);
+  border: 1px solid var(--border-subtle);
+}
+.tweaker-apply-target strong {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0;
+}
+.tweaker-apply-target.is-bg     strong { color: var(--accent); }
+.tweaker-apply-target.is-text   strong { color: var(--rose); }
+.tweaker-apply-target.is-border strong { color: var(--gold); }
+
+/* ─── Big side-by-side color cards (Background | Text) ─── */
+.tweaker-color-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+.tweaker-color-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  background: var(--white-04);
+  border: 1.5px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--motion-fast);
+}
+.tweaker-color-card:hover {
+  border-color: var(--border-accent);
+  background: var(--white-06);
+}
+.tweaker-color-card.is-active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent),
+    0 6px 18px -4px color-mix(in srgb, var(--accent) 28%, transparent);
+}
+.tweaker-color-card-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.tweaker-color-card-head i:first-child {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.tweaker-color-card.is-active .tweaker-color-card-head i:first-child { color: var(--accent); }
+.tweaker-color-card-label { flex: 1; }
+.tweaker-color-card-edit-dot {
+  font-size: 0.74rem;
+  color: var(--accent);
+}
+.tweaker-color-card-preview {
+  width: 100%;
+  height: 54px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  box-shadow: inset 0 0 0 1px var(--white-14);
+  background-image:
+    linear-gradient(45deg, var(--white-08) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--white-08) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--white-08) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--white-08) 75%);
+  background-size: 12px 12px;
+  background-position: 0 0, 0 6px, 6px -6px, -6px 0;
+}
+.tweaker-color-card-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.tweaker-color-card-hex {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+.tweaker-color-card-alpha {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+
+/* ─── Compact Border row ─── */
+.tweaker-border-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  background: var(--white-04);
+  border: 1.5px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--motion-fast);
+}
+.tweaker-border-row:hover {
+  border-color: var(--border-accent);
+  background: var(--white-06);
+}
+.tweaker-border-row.is-active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent),
+    0 6px 18px -4px color-mix(in srgb, var(--accent) 28%, transparent);
+}
+.tweaker-border-row-icon {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+.tweaker-border-row.is-active .tweaker-border-row-icon { color: var(--accent); }
+.tweaker-border-row-label {
+  flex: 1;
+  font-weight: 500;
+}
+.tweaker-border-row-preview {
+  width: 22px;
+  height: 22px;
+}
+
+/* ─── Active picker panel (below the cards) ─── */
+.tweaker-active-picker-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.tweaker-active-picker-body .react-colorful {
+  width: 100% !important;
+  height: 200px !important;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px var(--white-08);
+}
+
+/* ─── Color property rows (legacy — kept for backward compat) ─── */
 .tweaker-color-row {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);

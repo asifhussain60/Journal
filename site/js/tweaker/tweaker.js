@@ -814,28 +814,23 @@
       });
     }, [selection, tokens]);
 
-    // Auto-pick the most relevant color property when the selection changes:
-    //   - text-ish element (has color but no solid bg) → 'text'
-    //   - element with a solid/painted bg             → 'bg'
-    //   - otherwise                                   → 'bg' (default)
-    useEffect(() => {
-      if (!selection || !rows.length) return;
-      const bgRow = rows.find((r) => r.id === 'bg');
-      const textRow = rows.find((r) => r.id === 'text');
-      const tag = (selection.element.tagName || '').toLowerCase();
-      const isTextish = ['h1','h2','h3','h4','h5','h6','p','span','a','li','em','strong','blockquote','label'].includes(tag);
-      const bgIsTransparent = !bgRow || !bgRow.value || /rgba\(0, 0, 0, 0\)|transparent/.test(bgRow.value);
-      if (isTextish && textRow) setActiveId('text');
-      else if (bgIsTransparent && textRow && textRow.value) setActiveId('text');
-      else setActiveId('bg');
-    }, [selection]);
+    // Always default to Background on any new selection. No auto-switch based
+    // on element type — the user's previous complaint: auto-selecting Text for
+    // a div with transparent bg meant they'd change the wrong color by default.
+    useEffect(() => { if (selection) setActiveId('bg'); }, [selection]);
 
     const bgRow = rows.find((r) => r.id === 'bg');
     const textRow = rows.find((r) => r.id === 'text');
+    const borderRow = rows.find((r) => r.id === 'border');
+    const activeRow = rows.find((r) => r.id === activeId);
+    const activeLabel = activeRow ? activeRow.label : 'Background';
+    const activeClassKey = activeId === 'bg' ? 'is-bg' : activeId === 'text' ? 'is-text' : 'is-border';
 
-    function handleApply(hex, tokenHint) {
+    // Apply a color to an EXPLICIT row (never routes through activeId so there
+    // can be no ambiguity about what gets edited).
+    function applyToRow(rowId, hex, tokenHint) {
       if (!selection) return;
-      const row = rows.find((r) => r.id === activeId);
+      const row = rows.find((r) => r.id === rowId);
       if (!row) return;
       const useGlobal = scope === 'global' && row.tokenName;
       onEdit({
@@ -853,39 +848,156 @@
     }
 
     return h('div', { className: 'tweaker-tab-colors' },
-      h(SwatchGrid, { onApply: handleApply }),
+      // ── THEME PALETTE with explicit "Applying to →" badge ──
+      h('div', { className: 'tweaker-section' },
+        h('div', { className: 'tweaker-section-head' },
+          h('span', null, 'Theme palette'),
+          selection && h('span', { className: 'tweaker-apply-target ' + activeClassKey },
+            'Applying to → ', h('strong', null, activeLabel)),
+        ),
+        h('div', { className: 'tweaker-swatch-grid' },
+          (() => {
+            const snap = paletteSnapshot();
+            const order = ['--bg','--bg-secondary','--bg-tertiary','--accent','--rose','--gold','--mauve','--lavender','--blush','--success','--warning','--error'];
+            return order
+              .map((name) => ({ name, value: snap[name] }))
+              .filter((t) => t.value)
+              .map((t) => h('button', {
+                key: t.name,
+                className: 'tweaker-palette-chip',
+                style: { background: t.value },
+                title: `${t.name}  ${t.value}  →  ${activeLabel}`,
+                onClick: () => applyToRow(activeId, normalizeHex(t.value), t.name),
+                disabled: !selection,
+                'aria-label': t.name,
+              }));
+          })()
+        ),
+      ),
 
       !selection && h('div', { className: 'tweaker-callout' },
         h('i', { className: 'fa-solid fa-hand-pointer' }),
         h('span', null, 'Click any element on the page to start editing its properties.'),
       ),
 
+      // ── TWO big side-by-side cards: Background | Text ──
       selection && h('div', { className: 'tweaker-section' },
-        h('div', { className: 'tweaker-section-head' },
-          h('span', null, 'Properties'),
-          h('span', { className: 'tweaker-hint' }, `Active: ${(rows.find((r) => r.id === activeId) || {}).label || '—'}`),
+        h('div', { className: 'tweaker-color-cards' },
+          h(ColorCard, {
+            row: bgRow, label: 'Background', icon: 'fa-fill-drip',
+            active: activeId === 'bg',
+            onClick: () => setActiveId('bg'),
+            scope,
+          }),
+          h(ColorCard, {
+            row: textRow, label: 'Text', icon: 'fa-font',
+            active: activeId === 'text',
+            onClick: () => setActiveId('text'),
+            scope,
+          }),
         ),
-        rows.map((row) => h(ColorRow, {
-          key: row.id, row, active: activeId === row.id,
-          onFocus: () => setActiveId(row.id),
-          onPickerChange: (hex) => {
-            setActiveId(row.id);
-            handleApply(hex);
-          },
+        borderRow && h(BorderRow, {
+          row: borderRow, active: activeId === 'border',
+          onClick: () => setActiveId('border'),
           scope,
-        }))
+        }),
       ),
 
-      selection && (bgRow && textRow) && h('div', { className: 'tweaker-section' },
+      // ── Full-width PICKER for the active card ──
+      selection && activeRow && h('div', { className: 'tweaker-section tweaker-active-picker' },
         h('div', { className: 'tweaker-section-head' },
-          h('span', null, 'Contrast (text vs background)'),
+          h('span', null, 'Editing — ', h('strong', null, activeLabel)),
+          activeRow.tokenName && h('span', { className: 'tweaker-token-badge' },
+            scope === 'global' ? 'GLOBAL' : 'SCOPED'),
         ),
+        h(ActivePicker, { row: activeRow, onChange: (hex) => applyToRow(activeId, hex) }),
+      ),
+
+      // ── Contrast ──
+      selection && bgRow && textRow && h('div', { className: 'tweaker-section' },
+        h('div', { className: 'tweaker-section-head' },
+          h('span', null, 'Contrast (text vs background)')),
         h(ContrastChip, { fg: normalizeHex(textRow.value), bg: normalizeHex(bgRow.value) })
       ),
 
+      // ── Opacity ──
       selection && h('div', { className: 'tweaker-section' },
         h('div', { className: 'tweaker-section-head' }, h('span', null, 'Opacity')),
         h(OpacityRow, { selection, onEdit, tokens })
+      ),
+    );
+  }
+
+  // ──────────────────────────────────────────────────────────────────
+  // ColorCard — big side-by-side card for Background / Text
+  // ──────────────────────────────────────────────────────────────────
+  function ColorCard({ row, label, icon, active, onClick }) {
+    if (!row) return null;
+    const hexWithAlpha = normalizeHex(row.value, true);
+    const hexDisplay = hexWithAlpha.slice(0, 7).toUpperCase();
+    const alphaHex = hexWithAlpha.slice(7, 9) || 'ff';
+    const alphaPct = Math.round((parseInt(alphaHex, 16) || 255) / 255 * 100);
+    return h('button', {
+      className: 'tweaker-color-card' + (active ? ' is-active' : ''),
+      onClick, type: 'button',
+      'aria-pressed': active ? 'true' : 'false',
+      title: `Edit ${label.toLowerCase()} color`,
+    },
+      h('div', { className: 'tweaker-color-card-head' },
+        h('i', { className: 'fa-solid ' + icon }),
+        h('span', { className: 'tweaker-color-card-label' }, label),
+        active && h('i', { className: 'fa-solid fa-pen-to-square tweaker-color-card-edit-dot', 'aria-hidden': 'true' }),
+      ),
+      h('div', { className: 'tweaker-color-card-preview', style: { background: hexWithAlpha } }),
+      h('div', { className: 'tweaker-color-card-meta' },
+        h('span', { className: 'tweaker-color-card-hex' }, hexDisplay),
+        alphaPct < 100 && h('span', { className: 'tweaker-color-card-alpha' }, `${alphaPct}%`),
+      ),
+    );
+  }
+
+  // Compact Border row.
+  function BorderRow({ row, active, onClick }) {
+    if (!row) return null;
+    const hexWithAlpha = normalizeHex(row.value, true);
+    const hexDisplay = hexWithAlpha.slice(0, 7).toUpperCase();
+    return h('button', {
+      className: 'tweaker-border-row' + (active ? ' is-active' : ''),
+      onClick, type: 'button',
+      'aria-pressed': active ? 'true' : 'false',
+    },
+      h('i', { className: 'fa-regular fa-square tweaker-border-row-icon' }),
+      h('span', { className: 'tweaker-border-row-label' }, 'Border'),
+      h('span', { className: 'tweaker-color-preview tweaker-border-row-preview', style: { background: hexWithAlpha } }),
+      h('span', { className: 'tweaker-color-card-hex' }, hexDisplay),
+      active && h('i', { className: 'fa-solid fa-pen-to-square tweaker-color-card-edit-dot', 'aria-hidden': 'true' }),
+    );
+  }
+
+  // Full-width color picker panel for whichever card is currently active.
+  function ActivePicker({ row, onChange }) {
+    const hexWithAlpha = normalizeHex(row.value, true);
+    const hexDisplay = hexWithAlpha.slice(0, 7).toUpperCase();
+    const alphaHex = hexWithAlpha.slice(7, 9) || 'ff';
+    return h('div', { className: 'tweaker-active-picker-body' },
+      LIBS.Picker && h(LIBS.Picker, { color: hexWithAlpha, onChange }),
+      h('div', { className: 'tweaker-color-row-actions' },
+        h('input', {
+          type: 'text', className: 'tweaker-hex-input',
+          value: hexDisplay,
+          onChange: (e) => {
+            const v = e.target.value.trim();
+            if (/^#[0-9a-fA-F]{6}$/.test(v)) onChange(v.toLowerCase() + alphaHex);
+          },
+        }),
+        window.EyeDropper && h('button', {
+          className: 'tweaker-btn-icon',
+          title: 'Eye-dropper (pick any pixel)',
+          onClick: async () => {
+            const picked = await pickWithEyeDropper();
+            if (picked) onChange(picked.toLowerCase() + alphaHex);
+          },
+        }, h('i', { className: 'fa-solid fa-eye-dropper' })),
       ),
     );
   }
