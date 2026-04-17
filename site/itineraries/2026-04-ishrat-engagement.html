@@ -1257,7 +1257,11 @@
 
         parts.push('      <div class="event-summary">');
         parts.push('        <div class="event-summary-text">');
-        parts.push('          <h4 class="event-title">' + escHtml(ev.event) + '</h4>');
+        // Title is click-to-edit. Tab/Enter/blur commits via /api/swap-event;
+        // Escape cancels. Empty on commit restores the original — titles can
+        // never be blank. stopPropagation inside handler so editing doesn't
+        // also toggle the accordion.
+        parts.push('          <h4 class="event-title" data-day-idx="' + dayIdx + '" data-event-idx="' + eventIdx + '" title="Click to edit" onclick="beginTitleEdit(event, this)">' + escHtml(ev.event) + '</h4>');
         if (summaryPills.length) {
           parts.push('          <div class="event-summary-meta">' + summaryPills.join('') + '</div>');
         }
@@ -1986,6 +1990,112 @@
       }
       window.requestDeleteEvent = requestDeleteEvent;
 
+      // ─── Click-to-edit event title ──────────────────────────────────
+      // Turn the <h4> into a contenteditable field on click. Tab/Enter/blur
+      // commits; Escape cancels; empty on commit restores the original so
+      // the title can never be blank. Saves through /api/swap-event —
+      // same route the alt-modal uses, tagged source: manual-swap.
+      function beginTitleEdit(e, el) {
+        if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+        if (!el || el.classList.contains('is-editing') || el.classList.contains('is-saving')) return;
+        var original = (el.textContent || '').trim();
+        el.setAttribute('data-original', original);
+        el.classList.add('is-editing');
+        el.setAttribute('contenteditable', 'plaintext-only');
+        el.focus();
+        // Select all so the user can immediately overtype.
+        try {
+          var sel = window.getSelection();
+          var range = document.createRange();
+          range.selectNodeContents(el);
+          sel.removeAllRanges();
+          sel.addRange(range);
+        } catch (_) {}
+        el.addEventListener('blur', commitTitleEdit);
+        el.addEventListener('keydown', handleTitleKey);
+        // Swallow clicks inside the editable so they don't bubble to the
+        // accordion toggle while the user is selecting/editing text.
+        el.addEventListener('click', swallowClickWhileEditing);
+      }
+
+      function swallowClickWhileEditing(e) {
+        if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+      }
+
+      function handleTitleKey(e) {
+        var el = e.target;
+        if (e.key === 'Enter' || e.key === 'Tab') {
+          // Both commit; let Tab move focus naturally after blur fires.
+          if (e.key === 'Enter') e.preventDefault();
+          el.blur();
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          el.textContent = el.getAttribute('data-original') || '';
+          el.blur();
+        }
+      }
+
+      function commitTitleEdit(e) {
+        var el = e.target;
+        el.removeEventListener('blur', commitTitleEdit);
+        el.removeEventListener('keydown', handleTitleKey);
+        el.removeEventListener('click', swallowClickWhileEditing);
+        el.classList.remove('is-editing');
+        el.removeAttribute('contenteditable');
+
+        // Normalize: trim + collapse any pasted line breaks to spaces.
+        // contenteditable can smuggle <br>s into textContent as "\n".
+        var next = (el.textContent || '').replace(/\s+/g, ' ').trim();
+        var original = el.getAttribute('data-original') || '';
+
+        if (!next) {
+          // Rule: titles are never blank. Quietly restore.
+          el.textContent = original;
+          return;
+        }
+        if (next === original) {
+          el.textContent = original; // normalize any stray whitespace
+          return;
+        }
+        el.textContent = next;
+
+        var dayIdx = Number(el.getAttribute('data-day-idx'));
+        var eventIdx = Number(el.getAttribute('data-event-idx'));
+        if (!Number.isFinite(dayIdx) || !Number.isFinite(eventIdx)) return;
+
+        el.classList.add('is-saving');
+        fetch(API_BASE + '/api/swap-event', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tripSlug: SLUG,
+            dayIndex: dayIdx,
+            eventIndex: eventIdx,
+            source: 'manual-swap',
+            replacement: { name: next },
+          }),
+        })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            el.classList.remove('is-saving');
+            if (!data.ok) throw new Error(data.error || 'Save failed');
+            if (window.notify && typeof window.notify.success === 'function') {
+              window.notify.success('Renamed to \u201c' + next + '\u201d');
+            }
+            // Re-render so sort/pills/links reflect the new title everywhere.
+            refreshItinerary();
+          })
+          .catch(function(err) {
+            el.classList.remove('is-saving');
+            el.textContent = original;
+            console.warn('[TITLE-EDIT]', err);
+            if (window.notify && typeof window.notify.error === 'function') {
+              window.notify.error('Couldn\u2019t save: ' + (err.message || String(err)));
+            }
+          });
+      }
+      window.beginTitleEdit = beginTitleEdit;
+
       // Expose findAlternate to the global scope so inline onclick handlers
       // on the generated .alt-find-btn buttons can reach it. Everything else
       // in this IIFE is internal.
@@ -2542,7 +2652,11 @@
           html += '    <span class="budget-cat-total">' + esc(fmtMoney(c.total)) + '</span>';
           html += '    <span class="budget-cat-chevron">\u25BC</span>';
           html += '  </div>';
+          // .budget-cat-body uses a grid-rows 0fr→1fr animation. The inner
+          // wrapper is required so the child can be `overflow:hidden` while
+          // the parent animates its allotted row height from 0 to intrinsic.
           html += '  <div class="budget-cat-body">';
+          html += '    <div class="budget-cat-body-inner">';
           (c.transactions || []).forEach(function(t) {
             var payee = t.payee || 'Unknown';
             if (t.memo) payee += ' \u2014 ' + t.memo;
@@ -2553,6 +2667,7 @@
             if (t.card) html += '<span class="budget-txn-card">' + esc(t.card) + '</span>';
             html += '</div>';
           });
+          html += '    </div>';
           html += '  </div>';
           html += '</div>';
         });

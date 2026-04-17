@@ -1133,7 +1133,9 @@ html{scroll-behavior:smooth}
   opacity:.35;
 }
 
-/* Title — prominent, Inter for clarity */
+/* Title — prominent, Inter for clarity.
+   Click-to-edit: hover shows a soft underline to hint editability;
+   focus-style is a rose ring while contenteditable is active. */
 .event-title{
   margin:0;
   font-family:"Inter","SF Pro Display","Helvetica Neue",system-ui,sans-serif;
@@ -1142,6 +1144,48 @@ html{scroll-behavior:smooth}
   line-height:1.25;
   color:var(--text);
   letter-spacing:-.005em;
+  /* Edit-affordance surface: negative margin + positive padding keeps the
+     baseline unchanged while giving the focus ring / hover tint a
+     comfortable breathing box. */
+  padding:2px 6px;
+  margin-left:-6px;
+  margin-right:-6px;
+  border-radius:6px;
+  cursor:text;
+  transition:background-color .18s ease, box-shadow .18s ease;
+}
+.event-title:hover{
+  background:color-mix(in srgb, var(--rose-2) 10%, transparent);
+}
+.event-title.is-editing{
+  background:color-mix(in srgb, var(--bg) 65%, var(--white-06));
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--rose-2) 65%, transparent),
+    0 0 0 5px color-mix(in srgb, var(--rose-2) 14%, transparent);
+  outline:none;
+  caret-color:var(--rose);
+}
+.event-title.is-saving{
+  opacity:.6;
+  pointer-events:none;
+  position:relative;
+}
+.event-title.is-saving::after{
+  content:"";
+  position:absolute;
+  right:-1.4rem;
+  top:50%;
+  width:12px;
+  height:12px;
+  margin-top:-6px;
+  border-radius:50%;
+  border:1.5px solid color-mix(in srgb, var(--rose) 45%, transparent);
+  border-top-color:var(--rose);
+  animation:title-spin .9s linear infinite;
+}
+@keyframes title-spin{
+  from{ transform:rotate(0deg); }
+  to  { transform:rotate(360deg); }
 }
 
 /* Summary meta — pill row under the title, always visible so "what is
@@ -1680,6 +1724,11 @@ html{scroll-behavior:smooth}
      so when the panel pins to the viewport there's a dark gap below
      the nav instead of the panel sitting flush against it. */
   top:6.5rem;
+  /* Panel sizes to its own content — no internal scroll. Expanding a
+     category grows the panel; collapsing shrinks it. When total content
+     exceeds the viewport, it scrolls with the main page instead of
+     introducing a nested scrollbar. */
+  align-self:start;
   border-radius:var(--radius-xl);
   padding:1.5rem 1.35rem;
   background:
@@ -1687,13 +1736,6 @@ html{scroll-behavior:smooth}
     linear-gradient(135deg, color-mix(in srgb, var(--rose) 4%, transparent), transparent 45%);
   border:1px solid var(--white-10);
   box-shadow:var(--shadow);
-  max-height:calc(100vh - 7.5rem);
-  overflow:auto;
-}
-.budget-panel::-webkit-scrollbar{width:6px}
-.budget-panel::-webkit-scrollbar-thumb{
-  background:var(--white-14);
-  border-radius:999px;
 }
 .budget-title-row{
   display:flex;
@@ -1949,14 +1991,23 @@ html{scroll-behavior:smooth}
 .budget-cat-total{color:var(--gold); font-size:.92rem; font-family:"Inter","SF Pro Display",system-ui,sans-serif; font-weight:600; font-variant-numeric:tabular-nums}
 .budget-cat-chevron{transition:transform .3s ease; opacity:.6}
 .budget-cat.open .budget-cat-chevron{transform:rotate(180deg); opacity:1}
+/* Category body — grid-rows trick (0fr → 1fr) animates to intrinsic
+   height so categories with many transactions expand fully instead of
+   clipping at a fixed max-height or forcing internal scroll. The inner
+   wrapper takes overflow:hidden while the parent animates row height. */
 .budget-cat-body{
-  max-height:0;
-  overflow:hidden;
-  transition:max-height .45s ease, padding .3s ease;
+  display:grid;
+  grid-template-rows:0fr;
+  transition:grid-template-rows .4s cubic-bezier(.22,1,.36,1),
+             padding .3s ease;
   padding:0 .75rem;
 }
+.budget-cat-body-inner{
+  min-height:0;
+  overflow:hidden;
+}
 .budget-cat.open .budget-cat-body{
-  max-height:360px;
+  grid-template-rows:1fr;
   padding:0 .75rem .75rem;
 }
 .budget-txn{
