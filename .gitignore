@@ -3,7 +3,11 @@ scratchpad-*.txt
 
 # OS files
 .DS_Store
+**/.DS_Store
 Thumbs.db
+
+# Claude Code (per-machine local state)
+.claude/
 
 # MCP config (contains API tokens)
 .mcp.json

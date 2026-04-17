@@ -10,7 +10,6 @@
 // extract-receipt, ingest-itinerary). Each one lives in its own file; the registry
 // stays the single lookup surface.
 
-import examplePrompt from "./example.js";
 import tripQaPrompt from "./trip-qa.js";
 import tripAssistantPrompt from "./trip-assistant.js";
 import extractReceiptPrompt from "./extract-receipt.js";
@@ -24,7 +23,6 @@ import findAlternativesPrompt from "./find-alternatives.js";
  * @type {Record<string, { name: string; system: string; [k: string]: unknown }>}
  */
 const REGISTRY = Object.freeze({
-  [examplePrompt.name]: examplePrompt,
   [tripQaPrompt.name]: tripQaPrompt,
   [tripAssistantPrompt.name]: tripAssistantPrompt,
   [extractReceiptPrompt.name]: extractReceiptPrompt,
