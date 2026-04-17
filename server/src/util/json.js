@@ -5,6 +5,26 @@
 // first balanced {...} block and retry once with `undefined → null`
 // sanitization before giving up.
 
+// Wrap user-supplied text for inclusion in a model prompt. Not a security
+// boundary (Claude can still be manipulated by cleverly crafted payloads),
+// but it gives the model an unambiguous "this is data, not instruction"
+// delimiter and caps the length so a huge paste cannot exhaust the window.
+const USER_MSG_CAP = 8000;
+export function wrapUserMessage(message) {
+  const clean = String(message ?? "").trim();
+  const capped = clean.length > USER_MSG_CAP ? clean.slice(0, USER_MSG_CAP) + "\n…(truncated)" : clean;
+  return `<user-message>\n${capped}\n</user-message>`;
+}
+
+// Log a JSON-extraction failure to stderr. Callers pass the model output and
+// a routing label so grep can trace which endpoint the failure came from.
+export function logExtractFailure(promptName, rawText) {
+  const snippet = typeof rawText === "string" && rawText.length > 240
+    ? rawText.slice(0, 240) + "…"
+    : rawText;
+  console.warn(`[JSON:EXTRACT:FAIL] prompt=${promptName}`, snippet);
+}
+
 // Replace bare `undefined` tokens (outside string literals) with `null`.
 // Models occasionally emit JS-literal syntax instead of strict JSON — e.g.
 // `"old": undefined` when describing a field that didn't previously exist.

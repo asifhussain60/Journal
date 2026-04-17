@@ -19,13 +19,55 @@
 
   const BASE = (window.BABU_AI_PROXY_URL || defaultApiBase()).replace(/\/+$/, "");
 
+  // Default fetch timeouts. Model-backed endpoints can genuinely take 30s+,
+  // so we split into two classes. Callers can override via opts.timeoutMs.
+  const DEFAULT_TIMEOUT_MS = 15000;
+  const MODEL_TIMEOUT_MS = 60000;
+  const MODEL_PATHS = [
+    "/api/refine", "/api/chat", "/api/trip-qa", "/api/trip-assistant",
+    "/api/trip-edit", "/api/ingest-itinerary", "/api/extract-receipt",
+    "/api/theme-swatches", "/api/theme-review", "/api/find-alternatives",
+  ];
+
+  function pickTimeout(path, override) {
+    if (Number.isFinite(override) && override > 0) return override;
+    return MODEL_PATHS.some((p) => path.startsWith(p)) ? MODEL_TIMEOUT_MS : DEFAULT_TIMEOUT_MS;
+  }
+
   async function getJSON(path, init = {}) {
     // credentials:include lets the Cloudflare Access auth cookie ride along
     // cross-origin from journal(.dev)?.kashkole.com to journal-api.kashkole.com.
     // Safe on localhost — ignored when there's no cookie to send.
-    const r = await fetch(BASE + path, { credentials: "include", ...init });
+    const { timeoutMs, signal: callerSignal, ...rest } = init;
+    const timeout = pickTimeout(path, timeoutMs);
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(new Error(`request timed out after ${timeout}ms`)), timeout);
+    // Honor a caller-supplied signal as well (e.g. request dedup).
+    if (callerSignal) {
+      if (callerSignal.aborted) ctl.abort(callerSignal.reason);
+      else callerSignal.addEventListener("abort", () => ctl.abort(callerSignal.reason), { once: true });
+    }
+
+    let r;
+    try {
+      r = await fetch(BASE + path, { credentials: "include", signal: ctl.signal, ...rest });
+    } catch (err) {
+      clearTimeout(timer);
+      if (err?.name === "AbortError") {
+        const e = new Error(callerSignal?.aborted ? "request cancelled" : `request timed out after ${timeout}ms`);
+        e.code = callerSignal?.aborted ? "cancelled" : "timeout";
+        throw e;
+      }
+      const e = new Error(err?.message || "network error");
+      e.code = "network";
+      throw e;
+    }
+    clearTimeout(timer);
+
     const body = await r.json().catch(() => ({ ok: false, error: "non-JSON response" }));
-    if (!r.ok || body.ok === false) {
+    // Reject on HTTP error, explicit ok:false, OR an `error` field with ok:true
+    // (some routes return soft errors as ok:true+error; treat them uniformly).
+    if (!r.ok || body.ok === false || (body.ok && body.error)) {
       const msg = body.error || `HTTP ${r.status}`;
       const err = new Error(msg);
       err.status = r.status;
@@ -37,6 +79,14 @@
 
   window.BabuAI = {
     baseUrl: BASE,
+
+    // Low-level helper. Handles timeout, AbortController plumbing, credential
+    // cookies, and the ok:false / error-field normalization. Prefer this over
+    // raw fetch anywhere in the app that calls the cowork server.
+    //   request(path, { method, headers, body, signal, timeoutMs })
+    async request(path, init = {}) {
+      return getJSON(path, init);
+    },
 
     async health() {
       return getJSON("/health");
@@ -67,7 +117,7 @@
       });
     },
 
-    async tripQA(message, tripSlugOrContext) {
+    async tripQA(message, tripSlugOrContext, opts = {}) {
       if (!message || !message.trim()) throw new Error("tripQA: message is required");
       const body = { message };
       if (typeof tripSlugOrContext === 'string') {
@@ -79,10 +129,12 @@
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
+        signal: opts.signal,
+        timeoutMs: opts.timeoutMs,
       });
     },
 
-    async tripAssistant(message, tripSlugOrContext, intent) {
+    async tripAssistant(message, tripSlugOrContext, intent, opts = {}) {
       if (!message || !message.trim()) throw new Error("tripAssistant: message is required");
       const body = { message, intent: intent ?? null };
       if (typeof tripSlugOrContext === 'string') {
@@ -94,6 +146,8 @@
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
+        signal: opts.signal,
+        timeoutMs: opts.timeoutMs,
       });
     },
 
@@ -111,13 +165,8 @@
       if (!(file instanceof File || file instanceof Blob)) throw new Error("uploadReceipt: File required");
       const form = new FormData();
       form.append("file", file);
-      const r = await fetch(BASE + "/api/upload", { method: "POST", body: form, credentials: "include" });
-      const body = await r.json().catch(() => ({ ok: false, error: "non-JSON response" }));
-      if (!r.ok || body.ok === false) {
-        const err = new Error(body.error || `HTTP ${r.status}`);
-        err.status = r.status; err.body = body; throw err;
-      }
-      return body;
+      // Intentional long timeout: multipart upload can be slow on mobile networks.
+      return getJSON("/api/upload", { method: "POST", body: form, timeoutMs: 60000 });
     },
 
     async extractReceipt(imagePath) {
@@ -150,6 +199,8 @@
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
+        signal: opts.signal,
+        timeoutMs: opts.timeoutMs,
       });
     },
 

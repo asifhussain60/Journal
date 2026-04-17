@@ -62,7 +62,20 @@ export function createThemeRouter({ anthropic, DEFAULT_MODEL, themeSaveValidator
       if (!parsed || !Array.isArray(parsed.swatches)) {
         return res.status(502).json({ ok: false, error: "model output missing swatches[]", rawText: text });
       }
-      res.json({ ok: true, model: msg.model, usage: msg.usage, promptName: prompt.name, swatches: parsed.swatches });
+      // Per-swatch schema: hex must be a 6-digit lowercase hex, label must be
+      // a short string. Drop anything malformed rather than trusting the model.
+      const cleaned = parsed.swatches
+        .filter((s) => s && typeof s.hex === "string" && /^#[0-9a-fA-F]{6}$/.test(s.hex) && typeof s.label === "string" && s.label.trim())
+        .map((s) => ({
+          hex: s.hex.toLowerCase(),
+          label: String(s.label).trim().slice(0, 40),
+          contrastAA: Boolean(s.contrastAA),
+          rationale: typeof s.rationale === "string" ? s.rationale.slice(0, 200) : "",
+        }));
+      if (cleaned.length === 0) {
+        return res.status(502).json({ ok: false, error: "all swatches failed validation", rawText: text });
+      }
+      res.json({ ok: true, model: msg.model, usage: msg.usage, promptName: prompt.name, swatches: cleaned });
     } catch (err) {
       res.status(502).json({ ok: false, error: err?.message ?? String(err) });
     }

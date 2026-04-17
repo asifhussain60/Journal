@@ -82,7 +82,9 @@ export function createWeatherRouter() {
         url.searchParams.set("end_date", date);
       }
 
-      const r = await fetch(url);
+      // Open-Meteo is free + unauthenticated but occasionally slow. Cap the
+      // wait at 8s so the tile can render a fallback instead of spinning.
+      const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
       if (!r.ok) return res.status(502).json({ ok: false, error: "open-meteo http_" + r.status });
       const j = await r.json();
 

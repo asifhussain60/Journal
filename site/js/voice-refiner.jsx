@@ -27,15 +27,13 @@
     );
   }
 
-  // ---- shared toast (delegated to window.notify / Sonner) -----------------
-  // The single source of truth lives in site/js/toast.js — it mounts a Sonner
-  // <Toaster /> once per page and exposes success/error/info/warning/message.
+  // Toast delegates to window.notify (see site/js/toast.js). toast.js itself
+  // queues calls before Sonner boots and installs a console fallback if React
+  // never appears, so callers can fire-and-forget without null-guards.
   function toast(msg, variant) {
     const v = variant || "info";
-    const n = window.notify;
-    if (n && typeof n[v] === "function") return n[v](msg);
-    if (n && typeof n.message === "function") return n.message(msg);
-    console.log("[TOAST]", v, msg);
+    const fn = (window.notify && window.notify[v]) || (window.notify && window.notify.message);
+    if (fn) fn(msg);
   }
 
   // ---- main drawer component ----------------------------------------------

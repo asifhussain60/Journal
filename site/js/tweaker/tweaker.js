@@ -547,38 +547,34 @@
   // §9 API client
   // ══════════════════════════════════════════════════════════════════════════
 
+  // Route all cowork calls through window.BabuAI.request when available so we
+  // get timeout + ok:false normalization for free; fall back to raw fetch only
+  // if the client wasn't loaded (should never happen in practice).
+  function apiPost(path, body, opts = {}) {
+    if (window.BabuAI && typeof window.BabuAI.request === 'function') {
+      return window.BabuAI.request(path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        ...opts,
+      });
+    }
+    return fetch(`${CFG.apiBase}${path}`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }).then(async (res) => {
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok || j.ok === false) throw Object.assign(new Error(j.error || `HTTP ${res.status}`), { body: j, status: res.status });
+      return j;
+    });
+  }
+
   const API = {
-    async swatches({ currentColor, role, activePalette, context }) {
-      const res = await fetch(`${CFG.apiBase}/api/theme-swatches`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ currentColor, role, activePalette, context }),
-      });
-      if (!res.ok) throw new Error(`swatches failed: ${res.status}`);
-      return res.json();
-    },
-    async review({ activeTheme, baselineTokens, pendingChanges }) {
-      const res = await fetch(`${CFG.apiBase}/api/theme-review`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ activeTheme, baselineTokens, pendingChanges }),
-      });
-      if (!res.ok) throw new Error(`review failed: ${res.status}`);
-      return res.json();
-    },
-    async save(payload) {
-      const res = await fetch(`${CFG.apiBase}/api/theme-save`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const body = await res.json();
-      if (!res.ok) throw Object.assign(new Error(body.error || 'save failed'), { body });
-      return body;
-    },
+    swatches: (payload) => apiPost('/api/theme-swatches', payload),
+    review:   (payload) => apiPost('/api/theme-review', payload),
+    save:     (payload) => apiPost('/api/theme-save', payload),
   };
 
   function activeThemeInfo() {
@@ -606,47 +602,200 @@
 
   // ══════════════════════════════════════════════════════════════════════════
   // §10 React: AI swatch strip
+  //
+  // On-demand palette suggester for the active color slot. Starts collapsed so
+  // it never fires a model call unless the user explicitly asks for ideas;
+  // after that, intent chips (warmer / cooler / saturated / muted) let them
+  // steer a re-run without losing the previous result.
   // ══════════════════════════════════════════════════════════════════════════
 
-  function AISwatchStrip({ currentColor, role, onApply, activeTheme }) {
+  // UI role ids (bg/text/border) don't all match the backend enum
+  // (bg/fg/accent/border). This is the single place that translates.
+  const ROLE_UI_TO_API = { bg: 'bg', text: 'fg', border: 'border', accent: 'accent' };
+
+  // Intent chips: nudge the model toward a direction without writing English.
+  // Empty intent = full variety spread (the default 4).
+  const SWATCH_INTENTS = [
+    { id: '',          label: 'Variety' },
+    { id: 'warmer',    label: 'Warmer' },
+    { id: 'cooler',    label: 'Cooler' },
+    { id: 'saturated', label: 'More saturated' },
+    { id: 'muted',     label: 'More muted' },
+    { id: 'darker',    label: 'Deeper' },
+    { id: 'lighter',   label: 'Lighter' },
+  ];
+
+  const SWATCH_HISTORY_KEY = 'journal:tweaker:swatch-history';
+  const SWATCH_HISTORY_MAX = 8;
+
+  function readSwatchHistory(themeId) {
+    try {
+      const raw = localStorage.getItem(SWATCH_HISTORY_KEY);
+      const all = raw ? JSON.parse(raw) : {};
+      return Array.isArray(all[themeId]) ? all[themeId] : [];
+    } catch { return []; }
+  }
+
+  function writeSwatchHistory(themeId, entry) {
+    try {
+      const raw = localStorage.getItem(SWATCH_HISTORY_KEY);
+      const all = raw ? JSON.parse(raw) : {};
+      const prev = Array.isArray(all[themeId]) ? all[themeId] : [];
+      all[themeId] = [entry, ...prev].slice(0, SWATCH_HISTORY_MAX);
+      localStorage.setItem(SWATCH_HISTORY_KEY, JSON.stringify(all));
+    } catch { /* quota or private-mode — ignore */ }
+  }
+
+  // Validate a single swatch object before we render it. The server is
+  // supposed to do this but the model occasionally ships malformed items,
+  // and `contrastRatio(undefined, …)` would throw in the render path.
+  function isValidSwatch(s) {
+    return s && typeof s.hex === 'string'
+      && /^#[0-9a-fA-F]{6}$/.test(s.hex)
+      && typeof s.label === 'string' && s.label.length > 0;
+  }
+
+  function AISwatchStrip({ currentColor, uiRole, onApply, activeTheme }) {
+    const apiRole = ROLE_UI_TO_API[uiRole] || 'bg';
     const [swatches, setSwatches] = useState(null);
     const [err, setErr] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [intent, setIntent] = useState('');
+    const [expanded, setExpanded] = useState(false);
+    const [history, setHistory] = useState(() => readSwatchHistory(activeTheme.id));
     const lastRequest = useRef(0);
 
-    useEffect(() => {
-      const thisReq = ++lastRequest.current;
-      if (!currentColor || !/^#[0-9a-fA-F]{3,6}$/.test(currentColor)) { setSwatches(null); return; }
-      setLoading(true); setErr(null); setSwatches(null);
+    const canRequest = !!currentColor && /^#[0-9a-fA-F]{6,8}$/.test(currentColor);
+
+    const run = useCallback((nextIntent) => {
+      if (!canRequest) return;
+      const reqId = ++lastRequest.current;
+      setLoading(true); setErr(null);
+      const effectiveIntent = nextIntent === undefined ? intent : nextIntent;
       API.swatches({
-        currentColor,
-        role,
+        currentColor: currentColor.slice(0, 7), // strip alpha for the model
+        role: apiRole,
         activePalette: paletteSnapshot(),
-        context: { themeName: activeTheme.name },
+        context: { themeName: activeTheme.name, intent: effectiveIntent || null },
       })
-        .then((r) => { if (thisReq === lastRequest.current) setSwatches(r.swatches || []); })
-        .catch((e) => { if (thisReq === lastRequest.current) setErr(e.message); })
-        .finally(() => { if (thisReq === lastRequest.current) setLoading(false); });
-    }, [currentColor, role, activeTheme.id]);
+        .then((r) => {
+          if (reqId !== lastRequest.current) return;
+          const clean = Array.isArray(r.swatches) ? r.swatches.filter(isValidSwatch) : [];
+          setSwatches(clean);
+          if (clean.length) {
+            const entry = {
+              at: Date.now(),
+              intent: effectiveIntent || null,
+              sourceColor: currentColor.slice(0, 7),
+              role: apiRole,
+              swatches: clean,
+            };
+            writeSwatchHistory(activeTheme.id, entry);
+            setHistory(readSwatchHistory(activeTheme.id));
+          }
+        })
+        .catch((e) => {
+          if (reqId !== lastRequest.current) return;
+          // Friendly messages by error class — the raw "HTTP 502" is useless.
+          if (e.code === 'timeout') setErr('timed out — try again');
+          else if (e.code === 'network') setErr('offline — check your connection');
+          else setErr(e.message || 'model unavailable');
+        })
+        .finally(() => { if (reqId === lastRequest.current) setLoading(false); });
+    }, [apiRole, currentColor, canRequest, intent, activeTheme.id, activeTheme.name]);
+
+    // Auto-refresh when currentColor/role changes after we've opened the strip
+    // once: preserves the "live suggestions while editing" feel but never
+    // fires before the user asks for it.
+    useEffect(() => {
+      if (!expanded || !canRequest) return;
+      run();
+      // eslint-disable-next-line
+    }, [currentColor, apiRole, expanded]);
+
+    const applyChip = useCallback((s) => {
+      // Pass the swatch alongside the hex so the caller can record provenance.
+      onApply(s.hex, { ...s, source: 'ai-swatch' });
+    }, [onApply]);
+
+    // ── Collapsed preview: one-line trigger ─────────────────────────────
+    if (!expanded) {
+      return h('div', { className: 'tweaker-swatch-strip is-collapsed', [CFG.chromeAttr]: '' },
+        h('button', {
+          type: 'button',
+          className: 'tweaker-swatch-trigger',
+          disabled: !canRequest,
+          title: canRequest ? 'Ask AI for palette suggestions' : 'Pick a color first',
+          onClick: () => { setExpanded(true); run(); },
+        },
+          h('i', { className: 'fa-solid fa-wand-magic-sparkles' }),
+          ' Suggest palette'),
+        history.length > 0 && h('button', {
+          type: 'button',
+          className: 'tweaker-swatch-history-btn',
+          title: `Show ${history.length} recent suggestion${history.length === 1 ? '' : 's'}`,
+          onClick: () => setExpanded(true),
+        }, h('i', { className: 'fa-regular fa-clock' })),
+      );
+    }
+
+    // ── Expanded: results + intent chips + regenerate ───────────────────
+    const currentResults = swatches || (history[0] && history[0].swatches) || null;
 
     return h('div', { className: 'tweaker-swatch-strip', [CFG.chromeAttr]: '' },
-      h('div', { className: 'tweaker-swatch-label' }, 'AI suggestions',
-        loading ? h('span', { className: 'tweaker-dots' }, '…') : null),
-      err ? h('div', { className: 'tweaker-err' }, 'AI offline: ' + err) :
-      !swatches ? h('div', { className: 'tweaker-muted' }, loading ? 'thinking…' : '') :
-      swatches.length === 0 ? h('div', { className: 'tweaker-muted' }, 'no suggestions') :
-      h('div', { className: 'tweaker-swatch-row' },
-        swatches.map((s, i) =>
+      h('div', { className: 'tweaker-swatch-label' },
+        h('span', null, 'AI suggestions'),
+        loading ? h('span', { className: 'tweaker-dots' }, '…') : null,
+        h('span', { className: 'tweaker-swatch-spacer' }),
+        h('button', {
+          type: 'button',
+          className: 'tweaker-swatch-refresh',
+          disabled: loading || !canRequest,
+          title: 'Regenerate with current intent',
+          onClick: () => run(),
+        }, h('i', { className: 'fa-solid fa-arrows-rotate' })),
+        h('button', {
+          type: 'button',
+          className: 'tweaker-swatch-close',
+          title: 'Collapse',
+          onClick: () => setExpanded(false),
+        }, '×'),
+      ),
+      h('div', { className: 'tweaker-swatch-intents' },
+        SWATCH_INTENTS.map((opt) =>
           h('button', {
-            key: i,
+            key: opt.id || 'variety',
             type: 'button',
-            className: 'tweaker-swatch',
-            style: { background: s.hex, color: contrastRatio('#ffffff', s.hex) > 3 ? '#fff' : '#000' },
-            title: s.rationale + (s.contrastAA ? ' (AA ✓)' : ''),
-            onClick: () => onApply(s.hex, s),
-          }, s.label || s.hex)
+            className: 'tweaker-swatch-intent' + (intent === opt.id ? ' is-on' : ''),
+            disabled: loading,
+            onClick: () => { setIntent(opt.id); run(opt.id); },
+          }, opt.label)
         )
-      )
+      ),
+      err
+        ? h('div', { className: 'tweaker-err' },
+            h('span', null, err),
+            h('button', {
+              type: 'button',
+              className: 'tweaker-swatch-retry',
+              onClick: () => run(),
+            }, 'Retry'))
+        : currentResults === null
+          ? h('div', { className: 'tweaker-muted' }, loading ? 'thinking…' : 'no suggestions yet')
+          : currentResults.length === 0
+            ? h('div', { className: 'tweaker-muted' }, 'no usable suggestions — try a different intent')
+            : h('div', { className: 'tweaker-swatch-row' },
+                currentResults.map((s, i) =>
+                  h('button', {
+                    key: `${s.hex}-${i}`,
+                    type: 'button',
+                    className: 'tweaker-swatch',
+                    style: { background: s.hex, color: contrastRatio('#ffffff', s.hex) > 3 ? '#fff' : '#000' },
+                    title: (s.rationale || s.label) + (s.contrastAA ? ' (AA ✓)' : ''),
+                    onClick: () => applyChip(s),
+                  }, s.label || s.hex)
+                )
+              ),
     );
   }
 
@@ -736,7 +885,7 @@
           h('i', { className: 'fa-regular fa-square' }), ' Box'),
       ),
       h('div', { className: 'tweaker-body' },
-        tab === 'colors' && h(ColorsTab, { selection, scope, tokens, onEdit, painter, pendingChanges }),
+        tab === 'colors' && h(ColorsTab, { selection, scope, tokens, onEdit, painter, pendingChanges, activeTheme }),
         tab === 'type' && h(TypeTab, { selection, scope, tokens, onEdit }),
         tab === 'box' && h(BoxTab, { selection, scope, tokens, onEdit }),
       ),
@@ -1014,7 +1163,7 @@
     );
   }
 
-  function ColorsTab({ selection, scope, tokens, onEdit, painter, pendingChanges = [] }) {
+  function ColorsTab({ selection, scope, tokens, onEdit, painter, pendingChanges = [], activeTheme }) {
     const [activeId, setActiveId] = useState('bg');
 
     // Resolve current values from the element's computed style + any token
@@ -1194,6 +1343,16 @@
       selection && h('div', { className: 'tweaker-section' },
         h('div', { className: 'tweaker-section-head' }, h('span', null, 'Opacity')),
         h(OpacityRow, { selection, onEdit, tokens })
+      ),
+
+      // ── AI palette suggestions (opt-in, per active slot) ──
+      selection && activeRow && activeTheme && h('div', { className: 'tweaker-section' },
+        h(AISwatchStrip, {
+          currentColor: normalizeHex(activeRow.value).slice(0, 7),
+          uiRole: activeId,
+          activeTheme,
+          onApply: (hex, meta) => applyToRow(activeId, hex, meta && meta.label ? `ai:${meta.label}` : 'ai'),
+        })
       ),
     );
   }

@@ -10,6 +10,10 @@
     'delete', 'modify', 'switch', 'replace', 'cancel'
   ];
 
+  // localStorage key for the open/closed preference. Scoped per host so a
+  // trip page and the main journal can carry independent state if desired.
+  const OPEN_STATE_KEY = 'journal:chat:isOpen';
+
   const FloatingChat = {
     root: null,
     panel: null,
@@ -20,6 +24,10 @@
     isOpen: false,
     tripContext: null,
     config: {},
+    // Last user message, kept so the Retry button on an error bubble actually
+    // resends what the user typed (not the textarea placeholder).
+    lastMessage: null,
+    lastIntent: null,
 
     init(opts = {}) {
       this.config = opts;
@@ -35,6 +43,13 @@
 
       this.buildDOM();
       this.attachEvents();
+
+      // Restore open state from last session so the user doesn't have to
+      // re-open the chat on every reload.
+      try {
+        if (localStorage.getItem(OPEN_STATE_KEY) === '1') this.open();
+      } catch (_) { /* private-mode localStorage blocks — ignore */ }
+
       console.log('[CHAT:INIT] Floating chat initialized', this.tripContext);
     },
 
@@ -225,6 +240,7 @@
       this.isOpen = true;
       this.root.classList.add('fc-open');
       this.textarea.focus();
+      try { localStorage.setItem(OPEN_STATE_KEY, '1'); } catch (_) {}
       console.log('[CHAT:OPEN] Panel expanded');
     },
 
@@ -232,7 +248,15 @@
       this.isOpen = false;
       // Trigger exit animation: reset opacity/transform
       this.root.classList.remove('fc-open');
+      try { localStorage.setItem(OPEN_STATE_KEY, '0'); } catch (_) {}
       console.log('[CHAT:CLOSE] Panel collapsed');
+    },
+
+    // Removes any pending "thinking" dots bubble. Extracted because QA, edit,
+    // and apply paths all need to clear the same element on settle.
+    removeThinking() {
+      const el = this.messagesContainer.querySelector('.fc-msg-thinking');
+      if (el) el.remove();
     },
 
     // displayOverride: optional short text to show in the user bubble when
@@ -256,11 +280,24 @@
         message.toLowerCase().includes(keyword)
       );
 
+      // Remember the last user message so the Retry button on an error
+      // bubble actually replays what the user asked, not the placeholder.
+      this.lastMessage = message;
+      this.lastIntent = isEditIntent ? 'edit' : 'qa';
+
       if (isEditIntent) {
         this.handleEdit(message);
       } else {
         this.handleQA(message);
       }
+    },
+
+    // Replays the last user message through the same intent classifier that
+    // send() used. Called from the Retry button on error bubbles.
+    retryLast() {
+      if (!this.lastMessage) return;
+      if (this.lastIntent === 'edit') this.handleEdit(this.lastMessage);
+      else this.handleQA(this.lastMessage);
     },
 
     handleQA(message) {
@@ -269,6 +306,7 @@
 
       // Call API
       if (!window.BabuAI || !window.BabuAI.tripQA) {
+        this.removeThinking();
         console.log('[CHAT:ERR] BabuAI.tripQA not available');
         this.addMessage('Trip assistant API not available', 'error');
         if (window.notify) window.notify.error('Trip assistant unavailable', { description: 'Check that the cowork server is running.' });
@@ -277,22 +315,16 @@
 
       window.BabuAI.tripQA(message, this.tripContext.slug)
         .then(data => {
-          // Remove thinking message
-          const thinkingMsg = this.messagesContainer.querySelector('.fc-msg-thinking');
-          if (thinkingMsg) thinkingMsg.remove();
-
+          this.removeThinking();
           // API returns { ok, response, model, usage }
           const text = data.response || data.rawText || JSON.stringify(data);
           this.addMessage(text, 'ai');
           console.log('[CHAT:RES]', { message, response: text, model: data.model });
         })
         .catch(error => {
-          // Remove thinking message
-          const thinkingMsg = this.messagesContainer.querySelector('.fc-msg-thinking');
-          if (thinkingMsg) thinkingMsg.remove();
-
+          this.removeThinking();
           console.log('[CHAT:ERR]', { message, error: error.message });
-          this.addMessage(`Error: ${error.message}`, 'error', true);
+          this.addMessage(this.formatError(error), 'error', true);
           if (window.notify) window.notify.error('Trip assistant failed', { description: error.message });
         });
 
@@ -304,6 +336,7 @@
       this.addMessage('', 'thinking');
 
       if (!window.BabuAI || !window.BabuAI.tripEdit) {
+        this.removeThinking();
         console.log('[CHAT:ERR] BabuAI.tripEdit not available');
         this.addMessage('Edit API not available', 'error');
         if (window.notify) window.notify.error('Edit API unavailable', { description: 'Check that the cowork server is running.' });
@@ -313,8 +346,7 @@
       // First call: dry run
       window.BabuAI.tripEdit(message, this.tripContext.slug, { dryRun: true })
         .then(proposal => {
-          const thinkingMsg = this.messagesContainer.querySelector('.fc-msg-thinking');
-          if (thinkingMsg) thinkingMsg.remove();
+          this.removeThinking();
 
           const summary = proposal.summary || proposal.rawText || JSON.stringify(proposal);
           const patch = proposal.proposed && proposal.proposed.patch;
@@ -337,12 +369,9 @@
           console.log('[CHAT:EDIT] Proposal', { message, intent: proposal.intent, summary, actionable: isActionable });
         })
         .catch(error => {
-          // Remove thinking message
-          const thinkingMsg = this.messagesContainer.querySelector('.fc-msg-thinking');
-          if (thinkingMsg) thinkingMsg.remove();
-
+          this.removeThinking();
           console.log('[CHAT:ERR]', { message, error: error.message });
-          this.addMessage(`Error: ${error.message}`, 'error', true);
+          this.addMessage(this.formatError(error), 'error', true);
           if (window.notify) window.notify.error('Edit preview failed', { description: error.message });
         });
 
@@ -354,8 +383,7 @@
 
       window.BabuAI.tripEdit(message, this.tripContext.slug, { dryRun: false })
         .then((result) => {
-          const thinkingMsg = this.messagesContainer.querySelector('.fc-msg-thinking');
-          if (thinkingMsg) thinkingMsg.remove();
+          this.removeThinking();
 
           console.log('[CHAT:EDIT] Applied', { message, proposal, result });
 
@@ -380,13 +408,23 @@
           }
         })
         .catch(error => {
-          const thinkingMsg = this.messagesContainer.querySelector('.fc-msg-thinking');
-          if (thinkingMsg) thinkingMsg.remove();
-
+          this.removeThinking();
           console.log('[CHAT:ERR]', { message, error: error.message });
-          this.addMessage(`Error: ${error.message}`, 'error', true);
+          this.addMessage(this.formatError(error), 'error', true);
           if (window.notify) window.notify.error('Edit failed to apply', { description: error.message });
         });
+    },
+
+    // Turn a client error into a user-friendly bubble. Highlights timeout /
+    // cancelled / network cases so the user can tell them apart from a real
+    // server failure, and drops the raw "HTTP 502" noise.
+    formatError(error) {
+      const code = error && error.code;
+      if (code === 'timeout') return 'The request timed out. Try again, or simplify your question.';
+      if (code === 'network') return 'Network error reaching the trip assistant. Check your connection.';
+      if (code === 'cancelled') return 'Request cancelled.';
+      const msg = (error && error.message) || 'Something went wrong.';
+      return `Error: ${msg}`;
     },
 
     addMessage(content, type, isRetryable = false, onApply = null, onDiscard = null) {
@@ -415,14 +453,20 @@
         msgDiv.querySelector('[data-action="discard"]').addEventListener('click', onDiscard);
       } else if (type === 'error') {
         msgDiv.className = 'fc-msg-error';
+        const canRetry = isRetryable && !!this.lastMessage;
         msgDiv.innerHTML = `
           <div>${this.escapeHtml(content)}</div>
-          ${isRetryable ? '<div class="fc-retry" data-retry="true">Retry</div>' : ''}
+          ${canRetry ? '<div class="fc-retry" data-retry="true" role="button" tabindex="0">Try again</div>' : ''}
         `;
-        if (isRetryable) {
-          msgDiv.querySelector('[data-retry]').addEventListener('click', () => {
+        if (canRetry) {
+          const retry = () => {
             msgDiv.remove();
-            this.handleQA(this.textarea.placeholder);
+            this.retryLast();
+          };
+          const btn = msgDiv.querySelector('[data-retry]');
+          btn.addEventListener('click', retry);
+          btn.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); retry(); }
           });
         }
       } else if (type === 'system') {

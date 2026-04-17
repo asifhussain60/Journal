@@ -398,6 +398,105 @@
 }
 .tweaker-swatch:hover { transform: translateY(-1px); }
 
+/* Collapsed state — just the "Suggest palette" trigger + history button. */
+.tweaker-swatch-strip.is-collapsed {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-1) var(--space-2);
+}
+.tweaker-swatch-trigger {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  background: transparent;
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: color var(--motion-fast), border-color var(--motion-fast);
+}
+.tweaker-swatch-trigger:hover:not(:disabled) {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.tweaker-swatch-trigger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.tweaker-swatch-history-btn {
+  padding: var(--space-1) var(--space-2);
+  margin-left: var(--space-1);
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.72rem;
+}
+
+/* Intent chips row — steering controls for the strip. */
+.tweaker-swatch-intents {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.tweaker-swatch-intent {
+  padding: 2px var(--space-1);
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: color var(--motion-fast), border-color var(--motion-fast), background var(--motion-fast);
+}
+.tweaker-swatch-intent:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--border-default);
+}
+.tweaker-swatch-intent.is-on {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-a08);
+}
+.tweaker-swatch-intent:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Header helpers: spacer pushes refresh/close to the right; refresh + close
+   stay icon-sized so the strip label doesn't wrap. */
+.tweaker-swatch-spacer { flex: 1; }
+.tweaker-swatch-refresh,
+.tweaker-swatch-close {
+  padding: 0 4px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.78rem;
+  line-height: 1;
+}
+.tweaker-swatch-refresh:hover:not(:disabled),
+.tweaker-swatch-close:hover { color: var(--accent); }
+
+.tweaker-swatch-retry {
+  margin-left: var(--space-1);
+  padding: 2px var(--space-1);
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 0.62rem;
+  cursor: pointer;
+}
+.tweaker-swatch-retry:hover { color: var(--accent); border-color: var(--accent); }
+
 /* ─── Form controls ─── */
 .tweaker-select,
 .tweaker-text {

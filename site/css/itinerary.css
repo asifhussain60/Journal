@@ -1834,7 +1834,84 @@ html{scroll-behavior:smooth}
   color:var(--error);
   font-size:.92rem;
   line-height:1.5;
+  display:flex;
+  flex-direction:column;
+  gap:.6rem;
 }
+.alt-modal-retry{
+  align-self:flex-start;
+  padding:.4rem .9rem;
+  border-radius:8px;
+  background:rgba(255,255,255,.06);
+  border:1px solid var(--white-12);
+  color:var(--text);
+  font-size:.82rem;
+  cursor:pointer;
+  transition:background-color .18s ease, border-color .18s ease;
+}
+.alt-modal-retry:hover{
+  background:rgba(255,255,255,.10);
+  border-color:var(--white-18);
+}
+
+/* ── Constraints bar (cuisine / price / drive steering for find-alternatives) ── */
+.alt-constraints{
+  display:flex;
+  flex-wrap:wrap;
+  gap:.6rem;
+  align-items:flex-end;
+  padding:.6rem .85rem;
+  margin-bottom:.7rem;
+  border-radius:10px;
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--white-08);
+}
+.alt-constraint-group{
+  display:flex;
+  flex-direction:column;
+  gap:.2rem;
+  font-size:.7rem;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:var(--text-muted);
+}
+.alt-constraint-group select{
+  min-width:7rem;
+  padding:.35rem .55rem;
+  border-radius:7px;
+  background:rgba(0,0,0,.25);
+  border:1px solid var(--white-12);
+  color:var(--text);
+  font-size:.88rem;
+  text-transform:none;
+  letter-spacing:normal;
+}
+.alt-constraint-apply{
+  padding:.45rem .95rem;
+  border-radius:8px;
+  background:color-mix(in srgb, var(--rose) 35%, transparent);
+  border:1px solid color-mix(in srgb, var(--rose) 55%, transparent);
+  color:var(--text);
+  font-size:.84rem;
+  cursor:pointer;
+  transition:background-color .18s ease;
+}
+.alt-constraint-apply:hover{ background:color-mix(in srgb, var(--rose) 50%, transparent); }
+
+/* ── Spend-donut fallback when YNAB is not configured ── */
+.spend-unconfigured{
+  display:inline-flex;
+  align-items:center;
+  gap:.45rem;
+  padding:.3rem .6rem;
+  border-radius:6px;
+  background:rgba(255,255,255,.04);
+  border:1px dashed var(--white-12);
+  color:var(--text-muted);
+  font-size:.7rem;
+  font-family:var(--font-sans);
+}
+.spend-unconfigured i{ color:var(--warning); }
 
 .alt-option{
   padding:.95rem 1.05rem;
