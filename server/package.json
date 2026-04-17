@@ -15,7 +15,8 @@
     "test-throttle": "node scripts/test-throttle.mjs",
     "migrate": "node scripts/migrate-schema.mjs",
     "validate-parity": "node scripts/validate-parity.mjs",
-    "validate-markers": "node scripts/validate-markers.mjs"
+    "validate-markers": "node scripts/validate-markers.mjs",
+    "validate-themes": "node scripts/validate-theme-parity.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.30.0",

@@ -49,6 +49,40 @@
   --text-muted: #c9b8d4;
   --muted: #eddfe8;                /* itinerary alias */
   --text-main: #fff7fb;            /* JSX compat alias */
+  --contrast-dark: #2b2240;        /* "always-dark" token for text on tinted surfaces (matches --bg in dark themes, --text in light themes) */
+
+  /* ─── Phase 2 canonical tokens (framework.md §Phase 2) ─── */
+  --state-success: var(--success);
+  --state-warning: var(--warning);
+  --state-error:   var(--error);
+  --state-info:    var(--info);
+  --radius-pill:   9999px;
+  --radius-full:   9999px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --motion-fast:   150ms ease-out;
+  --motion-normal: 250ms ease-out;
+  --motion-slow:   400ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --transition-fast: var(--motion-fast);
+  --focus-ring:    0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
+  --shadow-card-hover: var(--shadow-md);
+  --shadow-float:      var(--shadow-lg);
+
+  /* ─── Alias tokens (component CSS uses alternate names; keep in sync) ─── */
+  --accent-primary: var(--accent);
+  --font-body:      var(--font-sans);
+  --font-display:   var(--font-serif);
+  --border:         var(--border-default);
+  --pct-color:      var(--text-muted);
+  --accent-bright:  var(--accent);
+  --accent-dark:    var(--bg-tertiary);
+  --accent-alt:     var(--accent);
 
   /* ─── Borders ─── */
   --border-default: rgba(255, 255, 255, 0.06);

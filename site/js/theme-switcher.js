@@ -29,6 +29,14 @@
       swatches: ['#2b2240', '#c6a6ff', '#ffb0cc', '#f4d49c']
     },
     {
+      id: 'slick-obsidian',
+      file: 'theme-slick-obsidian.css',
+      name: 'Slick Obsidian',
+      description: 'Slate · sea-emerald · amber · Playfair',
+      category: 'Dark',
+      swatches: ['#14171C', '#6DBFA0', '#D4A361', '#D98A7C']
+    },
+    {
       id: 'tales-dark-green',
       file: 'theme-tales-dark.css',
       name: 'Tales Dark Green',
@@ -37,12 +45,52 @@
       swatches: ['#262626', '#3ab159', '#61c57b', '#e3c567']
     },
     {
+      id: 'tales-scarlet',
+      file: 'theme-tales-scarlet.css',
+      name: 'Tales Scarlet',
+      description: 'Oxblood · ember · warm gold',
+      category: 'Dark',
+      swatches: ['#2A1A1A', '#C94B4B', '#E3B45B', '#B87A7A']
+    },
+    {
+      id: 'boomerang-dusk',
+      file: 'theme-boomerang-dusk.css',
+      name: 'Boomerang Dusk',
+      description: 'Navy · dusky teal · apricot',
+      category: 'Dark',
+      swatches: ['#1A2239', '#4E96B5', '#E3A062', '#C88597']
+    },
+    {
       id: 'daylight',
       file: 'theme-daylight.css',
       name: 'Daylight',
       description: 'Warm paper · amber · rose',
       category: 'Light',
       swatches: ['#F8F5EF', '#B46432', '#C46A7A', '#C89B5E']
+    },
+    {
+      id: 'summarize-ivory',
+      file: 'theme-summarize-ivory.css',
+      name: 'Summarize Ivory',
+      description: 'Ivory paper · forest sage · Lora serif',
+      category: 'Light',
+      swatches: ['#FDFBF4', '#4A7856', '#C5923B', '#B85450']
+    },
+    {
+      id: 'paperclip-linen',
+      file: 'theme-paperclip-linen.css',
+      name: 'Paperclip Linen',
+      description: 'Linen · terracotta · stone violet',
+      category: 'Light',
+      swatches: ['#FAFAF6', '#A84D32', '#C0985F', '#7A7394']
+    },
+    {
+      id: 'unify-monograph',
+      file: 'theme-unify-monograph.css',
+      name: 'Unify Monograph',
+      description: 'Near-white · cobalt · brass · Inter+Lora',
+      category: 'Light',
+      swatches: ['#FBFBF9', '#2D5FA8', '#B5894E', '#B2716C']
     }
   ];
 

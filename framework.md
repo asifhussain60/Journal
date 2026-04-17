@@ -311,6 +311,8 @@ Acceptance gates (all required to pass before tag):
 - Gate F — Home, Memoir → Chapters → ChapterReader (reader prefs persist), and DayOne Journal flows all work identically to Phase 1. Keyboard navigation reaches every interactive element.
 - Gate G — visual regression: before/after screenshots of Home, Memoir-chapters, and DayOne-editor show no layout shifts; cosmetic improvements only.
 
+_Theme-parity sustainability (added 2026-04-17)_: the token-driven system is guarded by `server/scripts/validate-theme-parity.mjs` (runnable via `npm run validate-themes`), which enforces 6 checks — token parity across themes, no hex literals in enforced component CSS, no palette rgba in enforced component CSS, every `var(--token)` reference resolves, zero `<style>` blocks / inline color styles in HTML, and switcher-file consistency. The `skills-staging/css-theme-sync/` skill wraps the validator with the authoritative hex→token + rgba→color-mix mapping and offers auto-fix for deterministic violations. Invoke after any edit to `site/css/` or when adding a new theme/view.
+
 **Phase 3 app shell + chat Q&A (complete when all acceptance gates pass under `tag phase-03-app-shell-and-chat-qa`):**
 
 App now ships a real Trip surface with FloatingChat Q&A and zero-cost Tier 0 tools.

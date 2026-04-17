@@ -1,0 +1,263 @@
+/* ═══════════════════════════════════════════════════
+   SUMMARIZE IVORY — light editorial, literary quarterly
+   Harvested from WrapBootstrap Summarize (Droid Serif + Lato
+   editorial pairing), re-tuned: ivory paper + forest sage
+   accent + burnt sienna + aged brass. Body in Lora (new),
+   UI in Lato (already loaded).
+   ═══════════════════════════════════════════════════ */
+
+:root {
+  /* ─── Surfaces ─── */
+  --bg: #FDFBF4;
+  --bg-2: #F4EFDF;
+  --bg-primary: #FDFBF4;
+  --bg-secondary: #F4EFDF;
+  --bg-tertiary: #EAE3CE;
+  --bg-card: rgba(255, 255, 255, 0.85);
+  --bg-card-hover: rgba(255, 255, 255, 0.95);
+  --bg-card-solid: #FFFFFF;
+
+  /* ─── Panels + lines ─── */
+  --panel: rgba(45, 40, 30, 0.05);
+  --panel-2: rgba(45, 40, 30, 0.10);
+  --line: rgba(45, 40, 30, 0.10);
+  --line-strong: rgba(45, 40, 30, 0.22);
+
+  /* ─── Text ─── */
+  --text: #1F1B15;
+  --text-primary: #1F1B15;
+  --text-secondary: #4A4236;
+  --text-muted: #6D6253;
+  --muted: #4A4236;
+  --text-main: #1F1B15;
+  --contrast-dark: #1F1B15;        /* "always-dark" token — matches --text in light themes */
+
+  /* ─── Phase 2 canonical tokens ─── */
+  --state-success: var(--success);
+  --state-warning: var(--warning);
+  --state-error:   var(--error);
+  --state-info:    var(--info);
+  --radius-pill:   9999px;
+  --radius-full:   9999px;
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+  --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 64px;
+  --motion-fast:   150ms ease-out;
+  --motion-normal: 250ms ease-out;
+  --motion-slow:   400ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --transition-fast: var(--motion-fast);
+  --focus-ring:    0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
+  --shadow-card-hover: var(--shadow-md);
+  --shadow-float:      var(--shadow-lg);
+
+  /* ─── Alias tokens ─── */
+  --accent-primary: var(--accent);
+  --font-body:      var(--font-sans);
+  --font-display:   var(--font-serif);
+  --border:         var(--border-default);
+  --pct-color:      var(--text-muted);
+  --accent-bright:  var(--accent);
+  --accent-dark:    var(--bg-tertiary);
+  --accent-alt:     var(--accent);
+
+  /* ─── Borders ─── */
+  --border-default: rgba(45, 40, 30, 0.10);
+  --border-subtle: rgba(45, 40, 30, 0.05);
+  --border-accent: rgba(74, 120, 86, 0.35);
+
+  /* ─── Accent + palette ─── */
+  --accent-rgb: 74, 120, 86;
+  --accent: #4A7856;
+  --accent-soft: rgba(74, 120, 86, 0.12);
+  --accent-hover: rgba(74, 120, 86, 0.22);
+  --rose: #B85450;
+  --rose-2: #C86E6A;
+  --blush: #F2D9D6;
+  --mauve: #6D6085;
+  --lavender: #7A708F;
+  --gold: #C5923B;
+  --wisteria: #8C7FA1;
+
+  /* ─── Semantic ─── */
+  --success: #3B7A48;
+  --warning: #B8831E;
+  --error: #A83A34;
+  --info: #2F6A94;
+
+  /* ─── Shadows ─── */
+  --shadow: 0 24px 64px rgba(45, 40, 30, 0.14);
+  --shadow-soft: 0 8px 32px rgba(45, 40, 30, 0.08);
+  --shadow-card: 0 4px 20px rgba(45, 40, 30, 0.06);
+  --shadow-sm: 0 1px 3px rgba(45, 40, 30, 0.10);
+  --shadow-md: 0 4px 12px rgba(45, 40, 30, 0.14);
+  --shadow-lg: 0 8px 32px rgba(45, 40, 30, 0.18);
+  --shadow-glow: 0 0 20px rgba(74, 120, 86, 0.15);
+
+  /* ─── Glass surfaces ─── */
+  --glass-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.55) 100%);
+  --glass-bg-hover: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.75) 100%);
+  --glass-border: rgba(255, 255, 255, 0.75);
+  --glass-border-light: rgba(255, 255, 255, 0.95);
+  --glass-shadow: 0 10px 40px rgba(45, 40, 30, 0.06);
+  --glass-shadow-hover: 0 16px 50px rgba(45, 40, 30, 0.10);
+
+  /* ─── Mesh blobs ─── */
+  --bg-mesh-1: rgba(197, 146, 59, 0.10);
+  --bg-mesh-2: rgba(184, 84, 80, 0.07);
+  --bg-mesh-3: rgba(109, 96, 133, 0.08);
+  --bg-mesh-4: rgba(74, 120, 86, 0.08);
+
+  /* ─── Radius scale ─── */
+  --radius-xl: 20px;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --radius-xs: 6px;
+
+  /* ─── Layout ─── */
+  --content: min(1320px, 100%);
+  --gutter: clamp(1.5rem, 4vw, 3rem);
+
+  /* ─── Fonts — Lora serif body, Lato UI, Cormorant fallback ─── */
+  --font-serif: 'Lora', 'Cormorant Garamond', 'Georgia', serif;
+  --font-sans: 'Lato', 'Nunito Sans', 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'DM Mono', monospace;
+  --font-script: 'Great Vibes', cursive;
+  --font-dance: 'Dancing Script', cursive;
+
+  /* ─── Mood palette (warm ivory-optimized) ─── */
+  --mood-romantic-bg:     rgba(184, 84, 80, 0.16);
+  --mood-romantic-fg:     #8E2F2B;
+  --mood-adventure-bg:    rgba(74, 120, 86, 0.18);
+  --mood-adventure-fg:    #2F5E3B;
+  --mood-cultural-bg:     rgba(197, 146, 59, 0.20);
+  --mood-cultural-fg:     #7D5C20;
+  --mood-relaxed-bg:      rgba(122, 112, 143, 0.20);
+  --mood-relaxed-fg:      #4F4866;
+  --mood-celebration-bg:  rgba(197, 146, 59, 0.22);
+  --mood-celebration-fg:  #7D5C20;
+  --mood-bittersweet-bg:  rgba(109, 96, 133, 0.22);
+  --mood-bittersweet-fg:  #453D5C;
+  --mood-anticipation-bg: rgba(184, 84, 80, 0.18);
+  --mood-anticipation-fg: #7A2D28;
+  --mood-reflective-bg:   rgba(47, 106, 148, 0.18);
+  --mood-reflective-fg:   #1E4666;
+  --mood-spiritual-bg:    rgba(74, 120, 86, 0.20);
+  --mood-spiritual-fg:    #2F5E3B;
+  --mood-playful-bg:      rgba(184, 132, 100, 0.20);
+  --mood-playful-fg:      #6B3E1F;
+
+  /* ─── Book-spine palette (muted earth tones) ─── */
+  --book-ch00-bg: #B8A384;  --book-ch00-border: #8E7C5F;
+  --book-ch01-bg: #C9AE7D;  --book-ch01-border: #9C855A;
+  --book-ch02-bg: #9C8C9E;  --book-ch02-border: #7A6C7C;
+  --book-ch03-bg: #C69987;  --book-ch03-border: #9E7560;
+  --book-ch04-bg: #8C99A8;  --book-ch04-border: #687584;
+  --book-ch05-bg: #A59098;  --book-ch05-border: #7E6B74;
+  --book-ch06-bg: #A89980;  --book-ch06-border: #82735A;
+  --book-ch07-bg: #B9918E;  --book-ch07-border: #8E6B68;
+  --book-default-bg: #B0A289;  --book-default-border: #857863;
+
+  /* ─── Note-type palette ─── */
+  --note-edit-color:        var(--accent);
+  --note-reflection-color:  var(--gold);
+  --note-research-color:    #3B7A48;
+  --note-continuity-color:  var(--rose);
+  --note-voice-color:       #2F6A94;
+
+  /* ─── Alpha ramps (recast for light theme — text-tint) ─── */
+  --white-04: rgba(31, 27, 21, 0.04);
+  --white-05: rgba(31, 27, 21, 0.05);
+  --white-06: rgba(31, 27, 21, 0.06);
+  --white-08: rgba(31, 27, 21, 0.06);
+  --white-10: rgba(31, 27, 21, 0.08);
+  --white-12: rgba(31, 27, 21, 0.10);
+  --white-14: rgba(31, 27, 21, 0.12);
+  --white-16: rgba(31, 27, 21, 0.14);
+  --white-18: rgba(31, 27, 21, 0.16);
+  --white-22: rgba(31, 27, 21, 0.22);
+  --white-24: rgba(31, 27, 21, 0.24);
+  --white-30: rgba(31, 27, 21, 0.30);
+  --white-40: rgba(31, 27, 21, 0.40);
+  --white-50: rgba(255, 255, 255, 0.50);
+  --white-60: rgba(255, 255, 255, 0.65);
+  --white-75: rgba(255, 255, 255, 0.80);
+  --white-90: rgba(255, 255, 255, 0.92);
+
+  --shadow-a10: rgba(45, 40, 30, 0.08);
+  --shadow-a16: rgba(45, 40, 30, 0.12);
+  --shadow-a18: rgba(45, 40, 30, 0.14);
+  --shadow-a22: rgba(45, 40, 30, 0.18);
+  --shadow-a30: rgba(45, 40, 30, 0.22);
+  --shadow-a35: rgba(45, 40, 30, 0.28);
+  --shadow-a50: rgba(45, 40, 30, 0.40);
+
+  --accent-a06: color-mix(in srgb, var(--accent) 6%, transparent);
+  --accent-a08: color-mix(in srgb, var(--accent) 8%, transparent);
+  --accent-a12: color-mix(in srgb, var(--accent) 12%, transparent);
+  --accent-a14: color-mix(in srgb, var(--accent) 14%, transparent);
+  --accent-a15: color-mix(in srgb, var(--accent) 15%, transparent);
+  --accent-a18: color-mix(in srgb, var(--accent) 18%, transparent);
+  --accent-a20: color-mix(in srgb, var(--accent) 20%, transparent);
+  --accent-a25: color-mix(in srgb, var(--accent) 25%, transparent);
+  --accent-a30: color-mix(in srgb, var(--accent) 30%, transparent);
+  --accent-a35: color-mix(in srgb, var(--accent) 35%, transparent);
+
+  --rose-a06: color-mix(in srgb, var(--rose) 6%, transparent);
+  --rose-a08: color-mix(in srgb, var(--rose) 8%, transparent);
+  --rose-a10: color-mix(in srgb, var(--rose) 10%, transparent);
+  --rose-a14: color-mix(in srgb, var(--rose) 14%, transparent);
+  --rose-a15: color-mix(in srgb, var(--rose) 15%, transparent);
+  --rose-a18: color-mix(in srgb, var(--rose) 18%, transparent);
+
+  --gold-a06: color-mix(in srgb, var(--gold) 6%, transparent);
+  --gold-a08: color-mix(in srgb, var(--gold) 8%, transparent);
+  --gold-a14: color-mix(in srgb, var(--gold) 14%, transparent);
+  --gold-a18: color-mix(in srgb, var(--gold) 18%, transparent);
+}
+
+/* ─── Body ambience — ivory paper ─── */
+body {
+  background:
+    radial-gradient(circle at 10% 10%, rgba(74, 120, 86, 0.05), transparent 25%),
+    radial-gradient(circle at 90% 12%, rgba(197, 146, 59, 0.04), transparent 28%),
+    radial-gradient(circle at 50% 100%, rgba(184, 84, 80, 0.03), transparent 25%),
+    linear-gradient(180deg, #FFFDF7 0%, #F8F4E5 40%, #F2ECD6 100%);
+  color: var(--text);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.65;
+}
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: auto;
+  pointer-events: none;
+  z-index: -2;
+  filter: blur(70px);
+  opacity: 0.28;
+}
+body::before {
+  width: 34rem; height: 34rem;
+  left: -10rem; top: 8rem;
+  background: radial-gradient(circle, rgba(74, 120, 86, 0.16), transparent 70%);
+  animation: driftOne 18s ease-in-out infinite alternate;
+}
+body::after {
+  width: 30rem; height: 30rem;
+  right: -8rem; top: 18rem;
+  background: radial-gradient(circle, rgba(197, 146, 59, 0.14), transparent 72%);
+  animation: driftTwo 24s ease-in-out infinite alternate;
+}
+
+@keyframes driftOne {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(5rem, -2rem, 0) scale(1.12); }
+}
+@keyframes driftTwo {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(-6rem, 3rem, 0) scale(1.08); }
+}

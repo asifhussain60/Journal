@@ -1,0 +1,263 @@
+/* ═══════════════════════════════════════════════════
+   SLICK OBSIDIAN — dark literary night
+   Harvested from WrapBootstrap Slick (Playfair Display +
+   modern sans), retuned: deep slate + soft sea-emerald
+   accent + warm amber + muted coral. Playfair (new) for
+   display, Inter (already loaded) for body and UI.
+   ═══════════════════════════════════════════════════ */
+
+:root {
+  /* ─── Surfaces ─── */
+  --bg: #14171C;
+  --bg-2: #1E232B;
+  --bg-primary: #14171C;
+  --bg-secondary: #1E232B;
+  --bg-tertiary: #252A33;
+  --bg-card: rgba(255, 255, 255, 0.06);
+  --bg-card-hover: rgba(255, 255, 255, 0.10);
+  --bg-card-solid: rgba(255, 255, 255, 0.14);
+
+  /* ─── Panels + lines ─── */
+  --panel: rgba(255, 255, 255, 0.09);
+  --panel-2: rgba(255, 255, 255, 0.14);
+  --line: rgba(255, 255, 255, 0.10);
+  --line-strong: rgba(255, 255, 255, 0.20);
+
+  /* ─── Text ─── */
+  --text: #F1EDE3;
+  --text-primary: #F1EDE3;
+  --text-secondary: #DAD3C2;
+  --text-muted: #B2A992;
+  --muted: #DAD3C2;
+  --text-main: #F1EDE3;
+  --contrast-dark: #14171C;        /* "always-dark" token */
+
+  /* ─── Phase 2 canonical tokens ─── */
+  --state-success: var(--success);
+  --state-warning: var(--warning);
+  --state-error:   var(--error);
+  --state-info:    var(--info);
+  --radius-pill:   9999px;
+  --radius-full:   9999px;
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+  --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 64px;
+  --motion-fast:   150ms ease-out;
+  --motion-normal: 250ms ease-out;
+  --motion-slow:   400ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --transition-fast: var(--motion-fast);
+  --focus-ring:    0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
+  --shadow-card-hover: var(--shadow-md);
+  --shadow-float:      var(--shadow-lg);
+
+  /* ─── Alias tokens ─── */
+  --accent-primary: var(--accent);
+  --font-body:      var(--font-sans);
+  --font-display:   var(--font-serif);
+  --border:         var(--border-default);
+  --pct-color:      var(--text-muted);
+  --accent-bright:  var(--accent);
+  --accent-dark:    var(--bg-tertiary);
+  --accent-alt:     var(--accent);
+
+  /* ─── Borders ─── */
+  --border-default: rgba(255, 255, 255, 0.07);
+  --border-subtle: rgba(255, 255, 255, 0.04);
+  --border-accent: rgba(109, 191, 160, 0.32);
+
+  /* ─── Accent + palette ─── */
+  --accent-rgb: 109, 191, 160;
+  --accent: #6DBFA0;
+  --accent-soft: rgba(109, 191, 160, 0.12);
+  --accent-hover: rgba(109, 191, 160, 0.22);
+  --rose: #D98A7C;
+  --rose-2: #E3A193;
+  --blush: #F3D2C9;
+  --mauve: #B7A9D4;
+  --lavender: #8D8AB8;
+  --gold: #D4A361;
+  --wisteria: #A098BC;
+
+  /* ─── Semantic ─── */
+  --success: #6CD49C;
+  --warning: #E3B463;
+  --error: #E37C72;
+  --info: #7FB4E3;
+
+  /* ─── Shadows ─── */
+  --shadow: 0 24px 64px rgba(0, 0, 0, 0.42);
+  --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.24);
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.28);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.60);
+  --shadow-glow: 0 0 20px rgba(109, 191, 160, 0.18);
+
+  /* ─── Glass surfaces ─── */
+  --glass-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.05) 100%);
+  --glass-bg-hover: linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.08) 100%);
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --glass-border-light: rgba(255, 255, 255, 0.22);
+  --glass-shadow: 0 10px 40px rgba(0, 0, 0, 0.32);
+  --glass-shadow-hover: 0 16px 50px rgba(0, 0, 0, 0.42);
+
+  /* ─── Mesh blobs ─── */
+  --bg-mesh-1: rgba(109, 191, 160, 0.14);
+  --bg-mesh-2: rgba(212, 163, 97, 0.10);
+  --bg-mesh-3: rgba(141, 138, 184, 0.10);
+  --bg-mesh-4: rgba(217, 138, 124, 0.08);
+
+  /* ─── Radius scale ─── */
+  --radius-xl: 20px;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --radius-xs: 6px;
+
+  /* ─── Layout ─── */
+  --content: min(1320px, 100%);
+  --gutter: clamp(1.5rem, 4vw, 3rem);
+
+  /* ─── Fonts — Playfair display, Inter UI/body ─── */
+  --font-serif: 'Playfair Display', 'Cormorant Garamond', 'Georgia', serif;
+  --font-sans: 'Inter', 'Nunito Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'DM Mono', monospace;
+  --font-script: 'Great Vibes', cursive;
+  --font-dance: 'Dancing Script', cursive;
+
+  /* ─── Mood palette (dark-slate-optimized) ─── */
+  --mood-romantic-bg:     rgba(217, 138, 124, 0.18);
+  --mood-romantic-fg:     #F0B7AC;
+  --mood-adventure-bg:    rgba(109, 191, 160, 0.18);
+  --mood-adventure-fg:    #A0DCC3;
+  --mood-cultural-bg:     rgba(212, 163, 97, 0.18);
+  --mood-cultural-fg:     #ECC88A;
+  --mood-relaxed-bg:      rgba(141, 138, 184, 0.20);
+  --mood-relaxed-fg:      #C2BEDE;
+  --mood-celebration-bg:  rgba(212, 163, 97, 0.20);
+  --mood-celebration-fg:  #ECC88A;
+  --mood-bittersweet-bg:  rgba(160, 152, 188, 0.22);
+  --mood-bittersweet-fg:  #CEC6DF;
+  --mood-anticipation-bg: rgba(217, 138, 124, 0.20);
+  --mood-anticipation-fg: #F0B7AC;
+  --mood-reflective-bg:   rgba(127, 180, 227, 0.18);
+  --mood-reflective-fg:   #B7D7F0;
+  --mood-spiritual-bg:    rgba(109, 191, 160, 0.20);
+  --mood-spiritual-fg:    #A0DCC3;
+  --mood-playful-bg:      rgba(227, 164, 180, 0.18);
+  --mood-playful-fg:      #F2BFCA;
+
+  /* ─── Book-spine palette (muted jewel) ─── */
+  --book-ch00-bg: #2F3B48;  --book-ch00-border: #212A35;
+  --book-ch01-bg: #3D4A42;  --book-ch01-border: #2A352F;
+  --book-ch02-bg: #443D50;  --book-ch02-border: #322D3B;
+  --book-ch03-bg: #5A4238;  --book-ch03-border: #3F2D26;
+  --book-ch04-bg: #36424F;  --book-ch04-border: #262F3A;
+  --book-ch05-bg: #4E3A4A;  --book-ch05-border: #372738;
+  --book-ch06-bg: #324240;  --book-ch06-border: #223030;
+  --book-ch07-bg: #4C3A45;  --book-ch07-border: #362833;
+  --book-default-bg: #3E3948;  --book-default-border: #2A2733;
+
+  /* ─── Note-type palette ─── */
+  --note-edit-color:        var(--accent);
+  --note-reflection-color:  var(--gold);
+  --note-research-color:    #6CD49C;
+  --note-continuity-color:  var(--rose);
+  --note-voice-color:       #7FB4E3;
+
+  /* ─── Alpha ramps ─── */
+  --white-04: rgba(255, 255, 255, 0.04);
+  --white-05: rgba(255, 255, 255, 0.05);
+  --white-06: rgba(255, 255, 255, 0.06);
+  --white-08: rgba(255, 255, 255, 0.08);
+  --white-10: rgba(255, 255, 255, 0.10);
+  --white-12: rgba(255, 255, 255, 0.12);
+  --white-14: rgba(255, 255, 255, 0.14);
+  --white-16: rgba(255, 255, 255, 0.16);
+  --white-18: rgba(255, 255, 255, 0.18);
+  --white-22: rgba(255, 255, 255, 0.22);
+  --white-24: rgba(255, 255, 255, 0.24);
+  --white-30: rgba(255, 255, 255, 0.30);
+  --white-40: rgba(255, 255, 255, 0.40);
+  --white-50: rgba(255, 255, 255, 0.50);
+  --white-60: rgba(255, 255, 255, 0.60);
+  --white-75: rgba(255, 255, 255, 0.75);
+  --white-90: rgba(255, 255, 255, 0.90);
+
+  --shadow-a10: rgba(0, 0, 0, 0.16);
+  --shadow-a16: rgba(0, 0, 0, 0.22);
+  --shadow-a18: rgba(0, 0, 0, 0.26);
+  --shadow-a22: rgba(0, 0, 0, 0.32);
+  --shadow-a30: rgba(0, 0, 0, 0.40);
+  --shadow-a35: rgba(0, 0, 0, 0.46);
+  --shadow-a50: rgba(0, 0, 0, 0.60);
+
+  --accent-a06: color-mix(in srgb, var(--accent) 6%, transparent);
+  --accent-a08: color-mix(in srgb, var(--accent) 8%, transparent);
+  --accent-a12: color-mix(in srgb, var(--accent) 12%, transparent);
+  --accent-a14: color-mix(in srgb, var(--accent) 14%, transparent);
+  --accent-a15: color-mix(in srgb, var(--accent) 15%, transparent);
+  --accent-a18: color-mix(in srgb, var(--accent) 18%, transparent);
+  --accent-a20: color-mix(in srgb, var(--accent) 20%, transparent);
+  --accent-a25: color-mix(in srgb, var(--accent) 25%, transparent);
+  --accent-a30: color-mix(in srgb, var(--accent) 30%, transparent);
+  --accent-a35: color-mix(in srgb, var(--accent) 35%, transparent);
+
+  --rose-a06: color-mix(in srgb, var(--rose) 6%, transparent);
+  --rose-a08: color-mix(in srgb, var(--rose) 8%, transparent);
+  --rose-a10: color-mix(in srgb, var(--rose) 10%, transparent);
+  --rose-a14: color-mix(in srgb, var(--rose) 14%, transparent);
+  --rose-a15: color-mix(in srgb, var(--rose) 15%, transparent);
+  --rose-a18: color-mix(in srgb, var(--rose) 18%, transparent);
+
+  --gold-a06: color-mix(in srgb, var(--gold) 6%, transparent);
+  --gold-a08: color-mix(in srgb, var(--gold) 8%, transparent);
+  --gold-a14: color-mix(in srgb, var(--gold) 14%, transparent);
+  --gold-a18: color-mix(in srgb, var(--gold) 18%, transparent);
+}
+
+/* ─── Body ambience — deep slate ─── */
+body {
+  background:
+    radial-gradient(circle at 10% 10%, rgba(109, 191, 160, 0.10), transparent 25%),
+    radial-gradient(circle at 90% 12%, rgba(212, 163, 97, 0.08), transparent 28%),
+    radial-gradient(circle at 50% 100%, rgba(141, 138, 184, 0.06), transparent 25%),
+    linear-gradient(180deg, #11141A 0%, #181C23 40%, #14171C 100%);
+  color: var(--text);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+}
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: auto;
+  pointer-events: none;
+  z-index: -2;
+  filter: blur(70px);
+  opacity: 0.28;
+}
+body::before {
+  width: 34rem; height: 34rem;
+  left: -10rem; top: 8rem;
+  background: radial-gradient(circle, rgba(109, 191, 160, 0.16), transparent 70%);
+  animation: driftOne 18s ease-in-out infinite alternate;
+}
+body::after {
+  width: 30rem; height: 30rem;
+  right: -8rem; top: 18rem;
+  background: radial-gradient(circle, rgba(212, 163, 97, 0.14), transparent 72%);
+  animation: driftTwo 24s ease-in-out infinite alternate;
+}
+
+@keyframes driftOne {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(5rem, -2rem, 0) scale(1.12); }
+}
+@keyframes driftTwo {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(-6rem, 3rem, 0) scale(1.08); }
+}

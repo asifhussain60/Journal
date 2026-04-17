@@ -1,0 +1,262 @@
+/* ═══════════════════════════════════════════════════
+   TALES SCARLET — dark dramatic, oxblood + ember
+   Harvested from WrapBootstrap Tales (styles-dark-red.css
+   sibling). Retuned: deep oxblood + ember scarlet accent +
+   warm gold. PT Serif + Open Sans — both already loaded.
+   ═══════════════════════════════════════════════════ */
+
+:root {
+  /* ─── Surfaces ─── */
+  --bg: #2A1A1A;
+  --bg-2: #362020;
+  --bg-primary: #2A1A1A;
+  --bg-secondary: #362020;
+  --bg-tertiary: #402828;
+  --bg-card: rgba(255, 255, 255, 0.07);
+  --bg-card-hover: rgba(255, 255, 255, 0.11);
+  --bg-card-solid: rgba(255, 255, 255, 0.16);
+
+  /* ─── Panels + lines ─── */
+  --panel: rgba(255, 255, 255, 0.10);
+  --panel-2: rgba(255, 255, 255, 0.16);
+  --line: rgba(255, 255, 255, 0.11);
+  --line-strong: rgba(255, 255, 255, 0.21);
+
+  /* ─── Text ─── */
+  --text: #F3E8D9;
+  --text-primary: #F3E8D9;
+  --text-secondary: #DDCFBB;
+  --text-muted: #B8A898;
+  --muted: #DDCFBB;
+  --text-main: #F3E8D9;
+  --contrast-dark: #2A1A1A;        /* "always-dark" token */
+
+  /* ─── Phase 2 canonical tokens ─── */
+  --state-success: var(--success);
+  --state-warning: var(--warning);
+  --state-error:   var(--error);
+  --state-info:    var(--info);
+  --radius-pill:   9999px;
+  --radius-full:   9999px;
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+  --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 64px;
+  --motion-fast:   150ms ease-out;
+  --motion-normal: 250ms ease-out;
+  --motion-slow:   400ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --transition-fast: var(--motion-fast);
+  --focus-ring:    0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
+  --shadow-card-hover: var(--shadow-md);
+  --shadow-float:      var(--shadow-lg);
+
+  /* ─── Alias tokens ─── */
+  --accent-primary: var(--accent);
+  --font-body:      var(--font-sans);
+  --font-display:   var(--font-serif);
+  --border:         var(--border-default);
+  --pct-color:      var(--text-muted);
+  --accent-bright:  var(--accent);
+  --accent-dark:    var(--bg-tertiary);
+  --accent-alt:     var(--accent);
+
+  /* ─── Borders ─── */
+  --border-default: rgba(255, 255, 255, 0.07);
+  --border-subtle: rgba(255, 255, 255, 0.04);
+  --border-accent: rgba(201, 75, 75, 0.34);
+
+  /* ─── Accent + palette ─── */
+  --accent-rgb: 201, 75, 75;
+  --accent: #C94B4B;
+  --accent-soft: rgba(201, 75, 75, 0.14);
+  --accent-hover: rgba(201, 75, 75, 0.24);
+  --rose: #B87A7A;
+  --rose-2: #D19A9A;
+  --blush: #F2CFCF;
+  --mauve: #B590A0;
+  --lavender: #9E7F8D;
+  --gold: #E3B45B;
+  --wisteria: #A3848E;
+
+  /* ─── Semantic ─── */
+  --success: #8BCF7A;
+  --warning: #EFC16F;
+  --error: #F08080;
+  --info: #7BB0D8;
+
+  /* ─── Shadows ─── */
+  --shadow: 0 24px 64px rgba(0, 0, 0, 0.42);
+  --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.24);
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.28);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.48);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.54);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.58);
+  --shadow-glow: 0 0 20px rgba(201, 75, 75, 0.20);
+
+  /* ─── Glass surfaces ─── */
+  --glass-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.06) 100%);
+  --glass-bg-hover: linear-gradient(135deg, rgba(255, 255, 255, 0.20) 0%, rgba(255, 255, 255, 0.10) 100%);
+  --glass-border: rgba(255, 255, 255, 0.16);
+  --glass-border-light: rgba(255, 255, 255, 0.24);
+  --glass-shadow: 0 10px 40px rgba(0, 0, 0, 0.32);
+  --glass-shadow-hover: 0 16px 50px rgba(0, 0, 0, 0.42);
+
+  /* ─── Mesh blobs ─── */
+  --bg-mesh-1: rgba(201, 75, 75, 0.16);
+  --bg-mesh-2: rgba(227, 180, 91, 0.11);
+  --bg-mesh-3: rgba(184, 122, 122, 0.11);
+  --bg-mesh-4: rgba(163, 132, 142, 0.08);
+
+  /* ─── Radius scale ─── */
+  --radius-xl: 20px;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --radius-xs: 6px;
+
+  /* ─── Layout ─── */
+  --content: min(1320px, 100%);
+  --gutter: clamp(1.5rem, 4vw, 3rem);
+
+  /* ─── Fonts — PT Serif body, Open Sans UI ─── */
+  --font-serif: 'PT Serif', 'Cormorant Garamond', 'Georgia', serif;
+  --font-sans: 'Open Sans', 'Nunito Sans', 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'DM Mono', monospace;
+  --font-script: 'Great Vibes', cursive;
+  --font-dance: 'Dancing Script', cursive;
+
+  /* ─── Mood palette ─── */
+  --mood-romantic-bg:     rgba(201, 75, 75, 0.20);
+  --mood-romantic-fg:     #EB9090;
+  --mood-adventure-bg:    rgba(139, 207, 122, 0.18);
+  --mood-adventure-fg:    #B8EAA5;
+  --mood-cultural-bg:     rgba(227, 180, 91, 0.20);
+  --mood-cultural-fg:     #F2CE86;
+  --mood-relaxed-bg:      rgba(158, 127, 141, 0.22);
+  --mood-relaxed-fg:      #D3B5C0;
+  --mood-celebration-bg:  rgba(227, 180, 91, 0.22);
+  --mood-celebration-fg:  #F2CE86;
+  --mood-bittersweet-bg:  rgba(181, 144, 160, 0.22);
+  --mood-bittersweet-fg:  #DDBECB;
+  --mood-anticipation-bg: rgba(201, 75, 75, 0.20);
+  --mood-anticipation-fg: #EB9090;
+  --mood-reflective-bg:   rgba(123, 176, 216, 0.18);
+  --mood-reflective-fg:   #B5D5EE;
+  --mood-spiritual-bg:    rgba(139, 207, 122, 0.20);
+  --mood-spiritual-fg:    #B8EAA5;
+  --mood-playful-bg:      rgba(209, 154, 154, 0.20);
+  --mood-playful-fg:      #ECC5C5;
+
+  /* ─── Book-spine palette (oxblood range) ─── */
+  --book-ch00-bg: #5E3132;  --book-ch00-border: #44201F;
+  --book-ch01-bg: #6E3D30;  --book-ch01-border: #512A1E;
+  --book-ch02-bg: #52262E;  --book-ch02-border: #3A171E;
+  --book-ch03-bg: #7A3B3D;  --book-ch03-border: #582627;
+  --book-ch04-bg: #462A30;  --book-ch04-border: #2E171C;
+  --book-ch05-bg: #5B333E;  --book-ch05-border: #421F28;
+  --book-ch06-bg: #3F2426;  --book-ch06-border: #291515;
+  --book-ch07-bg: #613238;  --book-ch07-border: #451F24;
+  --book-default-bg: #4F2A2C;  --book-default-border: #36181A;
+
+  /* ─── Note-type palette ─── */
+  --note-edit-color:        var(--accent);
+  --note-reflection-color:  var(--gold);
+  --note-research-color:    #8BCF7A;
+  --note-continuity-color:  var(--rose);
+  --note-voice-color:       #7BB0D8;
+
+  /* ─── Alpha ramps ─── */
+  --white-04: rgba(255, 255, 255, 0.04);
+  --white-05: rgba(255, 255, 255, 0.05);
+  --white-06: rgba(255, 255, 255, 0.06);
+  --white-08: rgba(255, 255, 255, 0.08);
+  --white-10: rgba(255, 255, 255, 0.10);
+  --white-12: rgba(255, 255, 255, 0.12);
+  --white-14: rgba(255, 255, 255, 0.14);
+  --white-16: rgba(255, 255, 255, 0.16);
+  --white-18: rgba(255, 255, 255, 0.18);
+  --white-22: rgba(255, 255, 255, 0.22);
+  --white-24: rgba(255, 255, 255, 0.24);
+  --white-30: rgba(255, 255, 255, 0.30);
+  --white-40: rgba(255, 255, 255, 0.40);
+  --white-50: rgba(255, 255, 255, 0.50);
+  --white-60: rgba(255, 255, 255, 0.60);
+  --white-75: rgba(255, 255, 255, 0.75);
+  --white-90: rgba(255, 255, 255, 0.90);
+
+  --shadow-a10: rgba(0, 0, 0, 0.16);
+  --shadow-a16: rgba(0, 0, 0, 0.22);
+  --shadow-a18: rgba(0, 0, 0, 0.26);
+  --shadow-a22: rgba(0, 0, 0, 0.32);
+  --shadow-a30: rgba(0, 0, 0, 0.40);
+  --shadow-a35: rgba(0, 0, 0, 0.46);
+  --shadow-a50: rgba(0, 0, 0, 0.60);
+
+  --accent-a06: color-mix(in srgb, var(--accent) 6%, transparent);
+  --accent-a08: color-mix(in srgb, var(--accent) 8%, transparent);
+  --accent-a12: color-mix(in srgb, var(--accent) 12%, transparent);
+  --accent-a14: color-mix(in srgb, var(--accent) 14%, transparent);
+  --accent-a15: color-mix(in srgb, var(--accent) 15%, transparent);
+  --accent-a18: color-mix(in srgb, var(--accent) 18%, transparent);
+  --accent-a20: color-mix(in srgb, var(--accent) 20%, transparent);
+  --accent-a25: color-mix(in srgb, var(--accent) 25%, transparent);
+  --accent-a30: color-mix(in srgb, var(--accent) 30%, transparent);
+  --accent-a35: color-mix(in srgb, var(--accent) 35%, transparent);
+
+  --rose-a06: color-mix(in srgb, var(--rose) 6%, transparent);
+  --rose-a08: color-mix(in srgb, var(--rose) 8%, transparent);
+  --rose-a10: color-mix(in srgb, var(--rose) 10%, transparent);
+  --rose-a14: color-mix(in srgb, var(--rose) 14%, transparent);
+  --rose-a15: color-mix(in srgb, var(--rose) 15%, transparent);
+  --rose-a18: color-mix(in srgb, var(--rose) 18%, transparent);
+
+  --gold-a06: color-mix(in srgb, var(--gold) 6%, transparent);
+  --gold-a08: color-mix(in srgb, var(--gold) 8%, transparent);
+  --gold-a14: color-mix(in srgb, var(--gold) 14%, transparent);
+  --gold-a18: color-mix(in srgb, var(--gold) 18%, transparent);
+}
+
+/* ─── Body ambience — oxblood ─── */
+body {
+  background:
+    radial-gradient(circle at 10% 10%, rgba(201, 75, 75, 0.12), transparent 25%),
+    radial-gradient(circle at 90% 12%, rgba(227, 180, 91, 0.08), transparent 28%),
+    radial-gradient(circle at 50% 100%, rgba(184, 122, 122, 0.07), transparent 25%),
+    linear-gradient(180deg, #271616 0%, #301C1C 40%, #2A1A1A 100%);
+  color: var(--text);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+}
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: auto;
+  pointer-events: none;
+  z-index: -2;
+  filter: blur(70px);
+  opacity: 0.30;
+}
+body::before {
+  width: 34rem; height: 34rem;
+  left: -10rem; top: 8rem;
+  background: radial-gradient(circle, rgba(201, 75, 75, 0.20), transparent 70%);
+  animation: driftOne 18s ease-in-out infinite alternate;
+}
+body::after {
+  width: 30rem; height: 30rem;
+  right: -8rem; top: 18rem;
+  background: radial-gradient(circle, rgba(227, 180, 91, 0.14), transparent 72%);
+  animation: driftTwo 24s ease-in-out infinite alternate;
+}
+
+@keyframes driftOne {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(5rem, -2rem, 0) scale(1.12); }
+}
+@keyframes driftTwo {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(-6rem, 3rem, 0) scale(1.08); }
+}
