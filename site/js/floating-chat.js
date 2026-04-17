@@ -80,20 +80,53 @@
       this.messagesContainer = document.createElement('div');
       this.messagesContainer.className = 'fc-messages';
 
-      // Quick-action chips (shown when empty)
+      // Quick-action chips (shown when empty).
+      //
+      // Each chip is { label, message }:
+      //   label   — short text shown on the chip button
+      //   message — what actually gets sent to the model on click. Can be
+      //             more detailed than the label so the model has enough
+      //             instruction even when the chip text is terse.
+      //
+      // To add a new intelligent action, append another entry here — no
+      // other changes needed. The send() path routes to /api/trip-assistant
+      // (QA) or /api/trip-edit (when the message contains an edit verb).
       const chipsContainer = document.createElement('div');
       chipsContainer.className = 'fc-chips';
       chipsContainer.id = 'fc-chips-container';
       const chips = [
-        "What's next today?",
-        "Summarize this trip",
-        "Edit itinerary"
+        {
+          label: "What's next today?",
+          message: "What's next today?",
+        },
+        {
+          label: "Fill Gaps",
+          message:
+            "Scan my trip day by day. Find every time gap of 90 minutes or more " +
+            "between consecutive events. For each gap, propose 1–2 activities " +
+            "appropriate to the time of day and what's already scheduled: " +
+            "breakfast 7–10am, lunch 11am–1pm, dinner 5–7pm, coffee/snack in the " +
+            "off-meal hours, a light walk or short sightseeing stop in daylight, " +
+            "and a rest block after dense activity. Do NOT double-book meals. " +
+            "Prefer venues close to the previous stop. For each proposal give: " +
+            "day, a specific start time, activity name, one-line rationale. " +
+            "Format as a per-day bulleted list.",
+        },
+        {
+          label: "Summarize this trip",
+          message: "Summarize this trip",
+        },
+        {
+          label: "Edit itinerary",
+          message: "Edit itinerary",
+        },
       ];
-      chips.forEach(chipText => {
+      chips.forEach(({ label, message }) => {
         const chip = document.createElement('button');
         chip.className = 'fc-chip';
-        chip.textContent = chipText;
-        chip.dataset.message = chipText;
+        chip.textContent = label;
+        chip.dataset.label = label;
+        chip.dataset.message = message;
         chipsContainer.appendChild(chip);
       });
 
@@ -152,12 +185,14 @@
       // Send button
       this.sendBtn.addEventListener('click', () => this.send());
 
-      // Quick-action chips
+      // Quick-action chips. The user-visible bubble shows the chip's short
+      // label, while the API call uses dataset.message (which may be a
+      // longer, more detailed prompt — e.g. Fill Gaps).
       document.getElementById('fc-chips-container').addEventListener('click', (e) => {
         if (e.target.classList.contains('fc-chip')) {
           this.textarea.value = e.target.dataset.message;
           this.sendBtn.disabled = false;
-          this.send();
+          this.send(e.target.dataset.label || e.target.dataset.message);
         }
       });
 
@@ -200,19 +235,23 @@
       console.log('[CHAT:CLOSE] Panel collapsed');
     },
 
-    send() {
+    // displayOverride: optional short text to show in the user bubble when
+    // the actual API payload is longer (e.g. Fill Gaps chip). Defaults to
+    // the raw textarea value.
+    send(displayOverride) {
       const message = this.textarea.value.trim();
       if (!message) return;
 
-      // Show user message
-      this.addMessage(message, 'user');
+      // Show user message (use the override so long chip prompts don't
+      // turn into a huge bubble).
+      this.addMessage(displayOverride || message, 'user');
       this.textarea.value = '';
       this.sendBtn.disabled = true;
 
       // Hide chips
       document.getElementById('fc-chips-container').style.display = 'none';
 
-      // Detect intent
+      // Detect intent against the real message, not the label.
       const isEditIntent = EDIT_KEYWORDS.some(keyword =>
         message.toLowerCase().includes(keyword)
       );
