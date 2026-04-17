@@ -101,6 +101,52 @@
   --font-dance: 'Dancing Script', cursive;
 }
 
-/* Component styling (body, cards, buttons, timeline, etc.) lives
-   in app-dark.css and itinerary-dark.css — both consume the tokens
-   above via var(). Keep this file tokens only for clean theme swaps. */
+/* ─── Body ambience (shared by dashboard + itinerary under this theme) ─── */
+[data-theme="rose-mauve-night"] body {
+  background:
+    radial-gradient(circle at 10% 10%, rgba(255, 176, 204, 0.10), transparent 25%),
+    radial-gradient(circle at 90% 12%, rgba(198, 166, 255, 0.09), transparent 28%),
+    radial-gradient(circle at 50% 100%, rgba(255, 212, 156, 0.06), transparent 25%),
+    linear-gradient(180deg, #27203c 0%, #322a4a 28%, #2b2240 100%);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+[data-theme="rose-mauve-night"] body::before,
+[data-theme="rose-mauve-night"] body::after {
+  content: "";
+  position: fixed;
+  inset: auto;
+  pointer-events: none;
+  z-index: -2;
+  filter: blur(70px);
+  opacity: 0.30;
+}
+[data-theme="rose-mauve-night"] body::before {
+  width: 34rem; height: 34rem;
+  left: -10rem; top: 8rem;
+  background: radial-gradient(circle, rgba(255, 176, 204, 0.18), transparent 70%);
+  animation: driftOne 18s ease-in-out infinite alternate;
+}
+[data-theme="rose-mauve-night"] body::after {
+  width: 30rem; height: 30rem;
+  right: -8rem; top: 18rem;
+  background: radial-gradient(circle, rgba(198, 166, 255, 0.16), transparent 72%);
+  animation: driftTwo 24s ease-in-out infinite alternate;
+}
+
+/* Drift keyframes (global — CSS keyframes can't be scoped to a selector).
+   Named uniquely to this theme so a future theme can define its own
+   ambient-motion set without collision. */
+@keyframes driftOne {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(5rem, -2rem, 0) scale(1.12); }
+}
+@keyframes driftTwo {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(-6rem, 3rem, 0) scale(1.08); }
+}
+
+/* Component styling (cards, buttons, timeline, etc.) lives in
+   app-dark.css and itinerary-dark.css — both consume the tokens
+   and keyframes above via var() / animation names. */

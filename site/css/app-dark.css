@@ -8,44 +8,10 @@
    future theme swaps are pure token replacements.
    ═══════════════════════════════════════════════════ */
 
-/* ─── Reset & Body ─── */
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
-body {
-  font-family: var(--font-sans);
-  color: var(--text);
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-  min-height: 100vh;
-  overflow-x: hidden;
-  background:
-    radial-gradient(circle at 10% 10%, rgba(255,176,204,.10), transparent 25%),
-    radial-gradient(circle at 90% 12%, rgba(198,166,255,.09), transparent 28%),
-    radial-gradient(circle at 50% 100%, rgba(255,212,156,.06), transparent 25%),
-    linear-gradient(180deg, #27203c 0%, #322a4a 28%, #2b2240 100%);
-}
-body::before,
-body::after {
-  content: "";
-  position: fixed;
-  inset: auto;
-  pointer-events: none;
-  z-index: -2;
-  filter: blur(70px);
-  opacity: .30;
-}
-body::before {
-  width: 34rem; height: 34rem;
-  left: -10rem; top: 8rem;
-  background: radial-gradient(circle, rgba(255,176,204,.18), transparent 70%);
-  animation: driftOne 18s ease-in-out infinite alternate;
-}
-body::after {
-  width: 30rem; height: 30rem;
-  right: -8rem; top: 18rem;
-  background: radial-gradient(circle, rgba(198,166,255,.16), transparent 72%);
-  animation: driftTwo 24s ease-in-out infinite alternate;
-}
+/* Reset + dark-theme body ambience (gradient bg, decorative blobs,
+   driftOne/driftTwo keyframes) live in base.css and
+   themes/rose-mauve-night.css respectively. Keep this file
+   components-only. */
 
 /* ─── Animated Mesh Background ─── */
 .bg-mesh {
@@ -74,14 +40,6 @@ body::after {
   33%  { transform: scale(1.05) translate(3%, 2%); }
   66%  { transform: scale(1.02) translate(-2%, 4%); }
   100% { transform: scale(1) translate(-2%, -2%); }
-}
-@keyframes driftOne {
-  from { transform: translate3d(0,0,0) scale(1); }
-  to   { transform: translate3d(5rem,-2rem,0) scale(1.12); }
-}
-@keyframes driftTwo {
-  from { transform: translate3d(0,0,0) scale(1); }
-  to   { transform: translate3d(-6rem,3rem,0) scale(1.08); }
 }
 @keyframes fadeSlideUp {
   from { opacity: 0; transform: translateY(20px); }
