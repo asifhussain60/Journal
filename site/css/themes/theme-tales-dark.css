@@ -1,0 +1,260 @@
+/* ═══════════════════════════════════════════════════
+   TALES DARK-GREEN — ported from WrapBootstrap Tales 3.3.6-v3
+   Source: _workspace/wrapbootstrap/Tales/HTML/css/styles-dark-green.css
+   Copyright (Tales): HackerThemes 2016.
+
+   This file is a complete token replacement — swap the <link>
+   reference in the 3 view HTML files to switch to this theme.
+   Component markup stays our own (we do not adopt Bootstrap's
+   class vocabulary), so the site LOOKS Tales-flavored but isn't
+   a visual replica of Tales' blog-teaser / masthead / subheader
+   layouts. See themes/theme.css for the swap-mechanism comment.
+   ═══════════════════════════════════════════════════ */
+
+:root {
+  /* ─── Surfaces (Tales charcoal stack) ─── */
+  --bg: #262626;
+  --bg-2: #313131;
+  --bg-primary: #262626;
+  --bg-secondary: #313131;
+  --bg-tertiary: #404040;
+  --bg-card: rgba(71, 71, 71, 0.70);
+  --bg-card-hover: rgba(71, 71, 71, 0.85);
+  --bg-card-solid: #474747;
+
+  /* ─── Panels + lines ─── */
+  --panel: rgba(255, 255, 255, 0.05);
+  --panel-2: rgba(255, 255, 255, 0.09);
+  --line: #3d3d3d;
+  --line-strong: #4a4a4a;
+
+  /* ─── Text (Tales neutral greys) ─── */
+  --text: #dfdfdf;
+  --text-primary: #dfdfdf;
+  --text-secondary: #c6c6c6;
+  --text-muted: #9a9a9a;
+  --muted: #c6c6c6;
+  --text-main: #dfdfdf;
+
+  /* ─── Borders ─── */
+  --border-default: rgba(255, 255, 255, 0.08);
+  --border-subtle: rgba(255, 255, 255, 0.04);
+  --border-accent: rgba(58, 177, 89, 0.35);
+
+  /* ─── Accent (Tales green scale) ─── */
+  --accent-rgb: 58, 177, 89;
+  --accent: #3ab159;
+  --accent-soft: rgba(58, 177, 89, 0.14);
+  --accent-hover: #61c57b;
+
+  /* Tales extended greens */
+  --accent-bright: #81d597;
+  --accent-dark: #34984f;
+  --accent-alt: #5bc276;
+
+  /* Journal aliases: keep component files happy under Tales palette.
+     Rose/mauve/gold/lavender/wisteria recast as sibling tones in the
+     Tales colour family so existing var(--rose) etc. don't break. */
+  --rose: #6bb87f;       /* softer green substitute */
+  --rose-2: #81d597;
+  --blush: #dfdfdf;      /* pale neutral for highlight surfaces */
+  --mauve: #61c57b;
+  --lavender: #81d597;
+  --gold: #e3c567;       /* warm accent that reads against green */
+  --wisteria: #6b8f75;
+
+  /* ─── Semantic ─── */
+  --success: #3ab159;
+  --warning: #e3a12a;
+  --error: #d04e3e;
+  --info: #4fa4c4;
+
+  /* ─── Shadows ─── */
+  --shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
+  --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.22);
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.18);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.40);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.55);
+  --shadow-glow: 0 0 20px rgba(58, 177, 89, 0.20);
+
+  /* ─── Glass surfaces (Tales is less translucent than R&MN) ─── */
+  --glass-bg: linear-gradient(135deg, rgba(71, 71, 71, 0.80) 0%, rgba(49, 49, 49, 0.72) 100%);
+  --glass-bg-hover: linear-gradient(135deg, rgba(71, 71, 71, 0.92) 0%, rgba(49, 49, 49, 0.85) 100%);
+  --glass-border: rgba(255, 255, 255, 0.10);
+  --glass-border-light: rgba(255, 255, 255, 0.16);
+  --glass-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+  --glass-shadow-hover: 0 16px 50px rgba(0, 0, 0, 0.42);
+
+  /* ─── Mesh blobs (subdued — Tales is flat charcoal) ─── */
+  --bg-mesh-1: rgba(58, 177, 89, 0.06);
+  --bg-mesh-2: rgba(97, 197, 123, 0.04);
+  --bg-mesh-3: rgba(129, 213, 151, 0.04);
+  --bg-mesh-4: rgba(227, 197, 103, 0.03);
+
+  /* ─── Radius scale (Tales is subtly rounded, 6px primary) ─── */
+  --radius-xl: 12px;
+  --radius-lg: 10px;
+  --radius-md: 8px;
+  --radius-sm: 6px;
+  --radius-xs: 4px;
+
+  /* ─── Layout ─── */
+  --content: min(1320px, 100%);
+  --gutter: clamp(1.5rem, 4vw, 3rem);
+
+  /* ─── Fonts (Tales uses Open Sans + PT Serif) ─── */
+  --font-serif: 'PT Serif', 'Georgia', serif;
+  --font-sans: 'Open Sans', 'Nunito Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-script: 'Great Vibes', cursive;
+  --font-dance: 'Dancing Script', cursive;
+
+  /* ─── Mood palette (recast in green-accented hues) ─── */
+  --mood-romantic-bg:     rgba(107, 184, 127, 0.20);
+  --mood-romantic-fg:     #9adfae;
+  --mood-adventure-bg:    rgba(58, 177, 89, 0.22);
+  --mood-adventure-fg:    #81d597;
+  --mood-cultural-bg:     rgba(227, 197, 103, 0.20);
+  --mood-cultural-fg:     #f0dc8b;
+  --mood-relaxed-bg:      rgba(79, 164, 196, 0.20);
+  --mood-relaxed-fg:      #8dc8db;
+  --mood-celebration-bg:  rgba(129, 213, 151, 0.22);
+  --mood-celebration-fg:  #a3e3ba;
+  --mood-bittersweet-bg:  rgba(107, 143, 117, 0.24);
+  --mood-bittersweet-fg:  #a3c0ac;
+  --mood-anticipation-bg: rgba(227, 161, 42, 0.18);
+  --mood-anticipation-fg: #f0c878;
+  --mood-reflective-bg:   rgba(79, 164, 196, 0.18);
+  --mood-reflective-fg:   #8dc8db;
+  --mood-spiritual-bg:    rgba(91, 194, 118, 0.20);
+  --mood-spiritual-fg:    #8dd9a6;
+  --mood-playful-bg:      rgba(129, 213, 151, 0.22);
+  --mood-playful-fg:      #a3e3ba;
+
+  /* ─── Book-spine palette (Tales-toned greys with green bias) ─── */
+  --book-ch00-bg: #3a4a40;  --book-ch00-border: #2c3a32;
+  --book-ch01-bg: #2f4638;  --book-ch01-border: #223528;
+  --book-ch02-bg: #3d4f42;  --book-ch02-border: #2e3d33;
+  --book-ch03-bg: #2d4236;  --book-ch03-border: #1f2f26;
+  --book-ch04-bg: #404848;  --book-ch04-border: #303838;
+  --book-ch05-bg: #384938;  --book-ch05-border: #2a3a2a;
+  --book-ch06-bg: #3b4a3b;  --book-ch06-border: #2c3a2c;
+  --book-ch07-bg: #354838;  --book-ch07-border: #263828;
+  --book-default-bg: #3a4540;  --book-default-border: #2b332e;
+
+  /* ─── Note-type palette ─── */
+  --note-edit-color:        var(--accent);
+  --note-reflection-color:  var(--gold);
+  --note-research-color:    #4fa4c4;
+  --note-continuity-color:  var(--accent-bright);
+  --note-voice-color:       #a3c0ac;
+
+  /* ─── Alpha ramps ─── */
+  --white-04: rgba(255, 255, 255, 0.04);
+  --white-05: rgba(255, 255, 255, 0.05);
+  --white-06: rgba(255, 255, 255, 0.06);
+  --white-08: rgba(255, 255, 255, 0.08);
+  --white-10: rgba(255, 255, 255, 0.10);
+  --white-12: rgba(255, 255, 255, 0.12);
+  --white-14: rgba(255, 255, 255, 0.14);
+  --white-16: rgba(255, 255, 255, 0.16);
+  --white-18: rgba(255, 255, 255, 0.18);
+  --white-22: rgba(255, 255, 255, 0.22);
+  --white-24: rgba(255, 255, 255, 0.24);
+  --white-30: rgba(255, 255, 255, 0.30);
+  --white-40: rgba(255, 255, 255, 0.40);
+  --white-50: rgba(255, 255, 255, 0.50);
+  --white-60: rgba(255, 255, 255, 0.60);
+  --white-75: rgba(255, 255, 255, 0.75);
+  --white-90: rgba(255, 255, 255, 0.90);
+
+  --shadow-a10: rgba(0, 0, 0, 0.18);
+  --shadow-a16: rgba(0, 0, 0, 0.24);
+  --shadow-a18: rgba(0, 0, 0, 0.28);
+  --shadow-a22: rgba(0, 0, 0, 0.32);
+  --shadow-a30: rgba(0, 0, 0, 0.42);
+  --shadow-a35: rgba(0, 0, 0, 0.48);
+  --shadow-a50: rgba(0, 0, 0, 0.60);
+
+  --accent-a06: color-mix(in srgb, var(--accent) 6%, transparent);
+  --accent-a08: color-mix(in srgb, var(--accent) 8%, transparent);
+  --accent-a12: color-mix(in srgb, var(--accent) 12%, transparent);
+  --accent-a14: color-mix(in srgb, var(--accent) 14%, transparent);
+  --accent-a15: color-mix(in srgb, var(--accent) 15%, transparent);
+  --accent-a18: color-mix(in srgb, var(--accent) 18%, transparent);
+  --accent-a20: color-mix(in srgb, var(--accent) 20%, transparent);
+  --accent-a25: color-mix(in srgb, var(--accent) 25%, transparent);
+  --accent-a30: color-mix(in srgb, var(--accent) 30%, transparent);
+  --accent-a35: color-mix(in srgb, var(--accent) 35%, transparent);
+
+  --rose-a06: color-mix(in srgb, var(--rose) 6%, transparent);
+  --rose-a08: color-mix(in srgb, var(--rose) 8%, transparent);
+  --rose-a10: color-mix(in srgb, var(--rose) 10%, transparent);
+  --rose-a14: color-mix(in srgb, var(--rose) 14%, transparent);
+  --rose-a15: color-mix(in srgb, var(--rose) 15%, transparent);
+  --rose-a18: color-mix(in srgb, var(--rose) 18%, transparent);
+
+  --gold-a06: color-mix(in srgb, var(--gold) 6%, transparent);
+  --gold-a08: color-mix(in srgb, var(--gold) 8%, transparent);
+  --gold-a14: color-mix(in srgb, var(--gold) 14%, transparent);
+  --gold-a18: color-mix(in srgb, var(--gold) 18%, transparent);
+}
+
+/* ─── Body ambience — flat charcoal with subtle inset glow ─── */
+body {
+  background:
+    radial-gradient(circle at 10% 10%, rgba(58, 177, 89, 0.04), transparent 30%),
+    radial-gradient(circle at 90% 90%, rgba(97, 197, 123, 0.03), transparent 35%),
+    linear-gradient(180deg, #2a2a2a 0%, #262626 40%, #222222 100%);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.7;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Subtle top inset shadow, matching Tales' widewrapper.main */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 16px;
+  pointer-events: none;
+  z-index: -1;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.25), transparent);
+}
+
+/* Single ambient glow (Tales isn't blob-driven like R&MN) */
+body::after {
+  content: "";
+  position: fixed;
+  right: -12rem;
+  top: 10rem;
+  width: 28rem;
+  height: 28rem;
+  pointer-events: none;
+  z-index: -2;
+  filter: blur(80px);
+  opacity: 0.20;
+  background: radial-gradient(circle, rgba(58, 177, 89, 0.35), transparent 70%);
+  animation: driftOne 22s ease-in-out infinite alternate;
+}
+
+@keyframes driftOne {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(-4rem, 3rem, 0) scale(1.10); }
+}
+@keyframes driftTwo {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(3rem, -2rem, 0) scale(1.06); }
+}
+
+/* Headings: Tales uses PT Serif for h1 and Open Sans for the rest. */
+h1 { font-family: var(--font-serif); font-weight: normal; }
+h2, h3 { font-family: var(--font-sans); }
