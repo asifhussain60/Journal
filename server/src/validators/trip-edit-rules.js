@@ -3,6 +3,61 @@
 // Called after ajv passes structural validation. These rules check
 // cross-field invariants ajv can't express. All checks return
 // { valid, errors: [{ field, reason }] } — never throw.
+//
+// Destination card standard (enforced by validateDestinationEvents):
+// Events whose tag is in DESTINATION_TAGS MUST have venue + phone + rating.
+// This is the last line of defense: if the AI editor emits a partial
+// destination event, the patch is rejected before it touches disk.
+
+const DESTINATION_TAGS = new Set([
+  "DINING", "CAFE", "NATURE", "SHOPPING", "SPA",
+  "ENTERTAINMENT", "REST", "ENGAGEMENT_HIGHLIGHT",
+  "EVENT", "CELEBRATION",
+]);
+
+function isValidPhone(p) {
+  return typeof p === "string" && /\d/.test(p) && p.replace(/\D/g, "").length >= 7;
+}
+
+function isValidRating(r) {
+  const n = typeof r === "number" ? r : parseFloat(r);
+  return Number.isFinite(n) && n >= 1 && n <= 5;
+}
+
+function isNonEmptyString(s) {
+  return typeof s === "string" && s.trim().length > 0;
+}
+
+function validateDestinationEvents(trip, errors) {
+  const days = Array.isArray(trip.days) ? trip.days : [];
+  days.forEach((day, di) => {
+    const events = Array.isArray(day?.events) ? day.events : [];
+    events.forEach((ev, ei) => {
+      const tag = typeof ev?.tag === "string" ? ev.tag.toUpperCase() : "";
+      if (!DESTINATION_TAGS.has(tag)) return;
+      const base = `days[${di}].events[${ei}]`;
+      if (!isNonEmptyString(ev?.venue)) {
+        errors.push({ field: `${base}.venue`, reason: `${tag} event requires venue (full address)` });
+      }
+      if (!isValidPhone(ev?.phone)) {
+        errors.push({ field: `${base}.phone`, reason: `${tag} event requires phone (US format)` });
+      }
+      // ENGAGEMENT_HIGHLIGHT / CELEBRATION are private events — rating optional.
+      if (tag !== "ENGAGEMENT_HIGHLIGHT" && tag !== "CELEBRATION") {
+        if (!isValidRating(ev?.rating)) {
+          errors.push({ field: `${base}.rating`, reason: `${tag} event requires rating (1.0–5.0)` });
+        }
+      }
+      // Deprecated fields — reject if present.
+      if (ev && "website" in ev) {
+        errors.push({ field: `${base}.website`, reason: "deprecated field — do not include" });
+      }
+      if (ev && "reviews" in ev) {
+        errors.push({ field: `${base}.reviews`, reason: "deprecated field — do not include" });
+      }
+    });
+  });
+}
 
 function parseDate(s) {
   if (typeof s !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return null;
@@ -81,6 +136,10 @@ export function validateTrip(trip) {
       errors.push({ field: `highlights[${idx}]`, reason: "start must be before end" });
     }
   });
+
+  // Destination card standard — enforced last so structural errors
+  // surface before field-completeness errors.
+  validateDestinationEvents(trip, errors);
 
   return { valid: errors.length === 0, errors };
 }

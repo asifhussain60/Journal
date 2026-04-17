@@ -1208,16 +1208,14 @@
           parts.push('      <div class="event-rating">');
           parts.push('        <span class="event-rating-stars" aria-label="Rated ' + escHtml(String(ev.rating)) + ' out of 5">' + renderStars(ev.rating) + '</span>');
           parts.push('        <span class="event-rating-num">' + escHtml(String(ev.rating)) + '</span>');
-          if (ev.reviews) parts.push('        <span class="event-rating-count">· ' + escHtml(String(ev.reviews)) + ' reviews</span>');
           parts.push('      </div>');
         }
 
-        var hasContact = address || ev.phone || ev.website;
+        var hasContact = address || ev.phone;
         if (hasContact) {
           parts.push('      <div class="event-contact">');
           if (address) parts.push('        <span class="event-addr">' + escHtml(address) + '</span>');
           if (ev.phone) parts.push('        <span class="event-phone"><i class="fa-solid fa-phone" aria-hidden="true"></i><a href="' + telHref(ev.phone) + '">' + escHtml(ev.phone) + '</a></span>');
-          if (ev.website) parts.push('        <a class="event-website" href="' + escHtml(ev.website) + '" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>Website</a>');
           parts.push('      </div>');
         }
 

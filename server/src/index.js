@@ -682,13 +682,20 @@ app.post("/api/trip-edit", async (req, res) => {
     const userBlock = `${ctxBlock}Caller keyword hint: ${tier0 ? "edit" : "none"}\nMessage: ${message.trim()}`;
     const msg = await anthropic.messages.create({
       model: prompt.model ?? DEFAULT_MODEL,
-      max_tokens: 2048,
+      max_tokens: 4096,
       system: prompt.system,
       messages: [{ role: "user", content: userBlock }],
-      // Intentionally no web_search here: trip-edit must return a single JSON
-      // object. Tools encourage conversational preamble that breaks parsing.
+      // web_search enabled: trip-edit researches venue details (address, phone,
+      // rating) before emitting patches so destination cards meet the standard
+      // schema. The prompt instructs the model to return JSON ONLY as its final
+      // text block after any tool calls; extractJsonObject finds the last
+      // balanced {...} so interleaved prose is tolerated.
+      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }],
     });
     const raw = msg.content.filter((b) => b.type === "text").map((b) => b.text).join("").trim();
+    const citations = msg.content
+      .filter((b) => b.type === "web_search_tool_result")
+      .flatMap((b) => (b.content || []).filter((c) => c.url).map((c) => ({ title: c.title, url: c.url })));
     const proposed = extractJsonObject(raw);
     if (!proposed) {
       // Surface the raw text to the caller — the chat can show it so the user
@@ -712,7 +719,16 @@ app.post("/api/trip-edit", async (req, res) => {
         diffs: Array.isArray(proposed.diffs) ? proposed.diffs : [],
         patch: Array.isArray(proposed.patch) ? proposed.patch : [],
       },
+      ...(citations.length ? { citations } : {}),
     };
+
+    // needs_info — model is asking the user a clarifying question. Do NOT apply
+    // any patch; the UI should render the summary as a chat bubble so the user
+    // can answer. This keeps destination cards standards-compliant by never
+    // shipping partial data.
+    if (intent === "needs_info") {
+      return res.json({ ...response, needsInfo: true, question: proposed.summary });
+    }
 
     if (dryRun || intent !== "edit" || !response.proposed.patch.length) {
       return res.json(response);
