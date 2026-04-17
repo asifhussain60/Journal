@@ -291,7 +291,7 @@ select.input {
    PAGE-SHELL CONTRACT (canonical)
    Every active view is expected to compose from:
 
-     <html data-theme="...">
+     <html>
        <body>
          <div class="bg-mesh"></div>      ← decorative layer (optional)
          <nav class="nav">…</nav>         ← pill header (see below)
@@ -302,16 +302,17 @@ select.input {
          </main>
        </body>
 
-   Visual theming: data-theme on <html> swaps token files.
-   Shell naming: .nav / .page / .container / .section are
-   the stable primitives — do not rename per page.
+   Single-theme build: theme.css declares every token at :root.
+   Restyling the app = edit colors/fonts in themes/theme.css.
+   If a second theme is ever added, convert :root → [data-theme]
+   and set the attribute on <html>; no markup changes needed.
 
-   Shell nav variants (pick one per view, not both):
-     • `.nav` (this file) — centered floating pill, tokenized, the
-       default for site-shell pages. Dashboard uses this.
-     • `.itn-nav` (itinerary-dark.css) — full-width sticky bar, dark
-       gradient background. A deliberate design variant for the
-       immersive dark itinerary, not a rename of `.nav`.
+   Shell nav variants:
+     • `.nav` (this file) — centered floating pill, the default for
+       site-shell pages. Dashboard uses this.
+     • `.itn-nav` (itinerary.css) — full-width sticky bar used by
+       the immersive itinerary. Deliberate alternative design for
+       long-form page chrome, not an alias of `.nav`.
 
    Standalone share artifacts (e.g. trips/<slug>/itinerary.html)
    may omit both — they are explicitly scoped as printable
@@ -320,9 +321,9 @@ select.input {
 
 /* ─── Canonical pill Navigation ─── */
 /* Fully tokenized — every visual property resolves via theme tokens
-   declared in themes/<theme>.css. Dark itineraries currently opt into
-   a distinct full-width bar (`.itn-nav` in itinerary-dark.css); see the
-   PAGE-SHELL CONTRACT comment above for when to use which. */
+   declared in themes/theme.css. The itinerary opts into a distinct
+   full-width bar (`.itn-nav` in itinerary.css); see the PAGE-SHELL
+   CONTRACT comment above for when to use which. */
 .nav {
   position: fixed;
   top: 1.5rem;

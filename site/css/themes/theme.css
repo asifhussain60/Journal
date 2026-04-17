@@ -1,16 +1,18 @@
 /* ═══════════════════════════════════════════════════
-   ROSE & MAUVE NIGHT — Canonical Dark Theme
-   Deep plum base, rose + mauve + lavender accents,
-   gold highlights. Single source of truth for dark
-   theme tokens. Consumed by app-dark.css (dashboard
-   dark components) and itinerary-dark.css (itinerary
-   dark components) via var().
+   JOURNAL THEME — Rose & Mauve Night
+   THE single visual theme for the journal. Every color,
+   font, radius, shadow, and layout token lives here.
+   Edit these values to restyle the entire app — all
+   component files (base.css, app.css, itinerary.css,
+   floating-chat.css, ai-drawer.css) consume tokens
+   via var().
 
-   Activation: <html data-theme="rose-mauve-night">
-   Mirror theme: themes/lavender-romance.css (light).
+   If a second theme is ever needed, convert this :root
+   block to [data-theme="…"] and add a sibling scoped
+   block; the HTML layer has no theme-specific markup.
    ═══════════════════════════════════════════════════ */
 
-[data-theme="rose-mauve-night"] {
+:root {
   /* ─── Surfaces ─── */
   --bg: #2b2240;
   --bg-2: #3a3050;
@@ -95,14 +97,14 @@
 
   /* ─── Fonts ─── */
   --font-serif: 'Cormorant Garamond', 'Georgia', serif;
-  --font-sans: 'Inter', 'Nunito Sans', system-ui, sans-serif;
+  --font-sans: 'Nunito Sans', 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', 'DM Mono', monospace;
   --font-script: 'Great Vibes', cursive;
   --font-dance: 'Dancing Script', cursive;
 }
 
-/* ─── Body ambience (shared by dashboard + itinerary under this theme) ─── */
-[data-theme="rose-mauve-night"] body {
+/* ─── Body ambience ─── */
+body {
   background:
     radial-gradient(circle at 10% 10%, rgba(255, 176, 204, 0.10), transparent 25%),
     radial-gradient(circle at 90% 12%, rgba(198, 166, 255, 0.09), transparent 28%),
@@ -112,8 +114,8 @@
   min-height: 100vh;
   overflow-x: hidden;
 }
-[data-theme="rose-mauve-night"] body::before,
-[data-theme="rose-mauve-night"] body::after {
+body::before,
+body::after {
   content: "";
   position: fixed;
   inset: auto;
@@ -122,22 +124,22 @@
   filter: blur(70px);
   opacity: 0.30;
 }
-[data-theme="rose-mauve-night"] body::before {
+body::before {
   width: 34rem; height: 34rem;
   left: -10rem; top: 8rem;
   background: radial-gradient(circle, rgba(255, 176, 204, 0.18), transparent 70%);
   animation: driftOne 18s ease-in-out infinite alternate;
 }
-[data-theme="rose-mauve-night"] body::after {
+body::after {
   width: 30rem; height: 30rem;
   right: -8rem; top: 18rem;
   background: radial-gradient(circle, rgba(198, 166, 255, 0.16), transparent 72%);
   animation: driftTwo 24s ease-in-out infinite alternate;
 }
 
-/* Drift keyframes (global — CSS keyframes can't be scoped to a selector).
-   Named uniquely to this theme so a future theme can define its own
-   ambient-motion set without collision. */
+/* Drift keyframes — global (CSS keyframes can't be scoped). If a
+   second theme is ever added, its own ambient-motion set should use
+   distinct names to avoid collision. */
 @keyframes driftOne {
   from { transform: translate3d(0, 0, 0) scale(1); }
   to   { transform: translate3d(5rem, -2rem, 0) scale(1.12); }
@@ -147,6 +149,6 @@
   to   { transform: translate3d(-6rem, 3rem, 0) scale(1.08); }
 }
 
-/* Component styling (cards, buttons, timeline, etc.) lives in
-   app-dark.css and itinerary-dark.css — both consume the tokens
-   and keyframes above via var() / animation names. */
+/* Component styling (cards, buttons, nav, timeline, etc.) lives in
+   app.css (dashboard) and itinerary.css (itinerary pages). Both
+   consume the tokens and keyframes above via var() / animation names. */

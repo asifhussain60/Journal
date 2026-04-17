@@ -47,10 +47,13 @@ journal/                          ← Server root (npx serve runs here)
 │   ├── index.html                ← THE APP (entire React SPA)
 │   ├── active-trip.html          ← Current active itinerary (standalone HTML)
 │   ├── css/
-│   │   ├── base.css              ← Shared design system (443 lines)
-│   │   ├── sample_lavender.css   ← Active theme (278 lines)
-│   │   ├── memoir_theme.css      ← Memoir-specific overrides
-│   │   └── trip_theme.css        ← Trip-specific overrides
+│   │   ├── themes/
+│   │   │   └── theme.css         ← THE single theme file (tokens at :root)
+│   │   ├── base.css              ← Shell primitives + typography scale
+│   │   ├── app.css               ← Dashboard components
+│   │   ├── itinerary.css         ← Trip itinerary components
+│   │   ├── floating-chat.css     ← Chat widget
+│   │   └── ai-drawer.css         ← Voice Refine drawer
 │   └── data/
 │       └── manifest.json         ← Active trip + archive metadata
 ├── trips/
@@ -390,7 +393,7 @@ Defined at the top of the `<script type="text/babel">` block in `site/index.html
 
 ### 8.6 Design Tokens (Phase 2)
 
-Added to `site/css/sample_lavender.css` under a top-level `:root` (theme-agnostic) alongside a global `prefers-reduced-motion` block and a `:focus-visible` default using `--focus-ring`. See [framework.md § App vs Cowork › Phase 2 design-system canon](../framework.md) for the full list (`--state-*`, `--radius-*`, `--space-*`, `--motion-*`, `--focus-ring`, `--shadow-card-hover`, `--shadow-float`).
+Added to `site/css/themes/theme.css` under a top-level `:root` alongside a global `prefers-reduced-motion` block and a `:focus-visible` default using `--focus-ring`. See [framework.md § App vs Cowork › Phase 2 design-system canon](../framework.md) for the full list (`--state-*`, `--radius-*`, `--space-*`, `--motion-*`, `--focus-ring`, `--shadow-card-hover`, `--shadow-float`).
 
 ### 8.7 Utilities
 
@@ -404,7 +407,7 @@ Added to `site/css/sample_lavender.css` under a top-level `:root` (theme-agnosti
 | What | Where |
 |------|-------|
 | The entire React app | `site/index.html` |
-| Active theme CSS | `site/css/sample_lavender.css` |
+| Theme tokens | `site/css/themes/theme.css` |
 | Base design system CSS | `site/css/base.css` |
 | Active trip metadata | `site/data/manifest.json` |
 | Active itinerary HTML | `site/active-trip.html` |

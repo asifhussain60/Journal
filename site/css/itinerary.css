@@ -1,18 +1,19 @@
 /* ═══════════════════════════════════════════════════
-   ITINERARY DARK — Rose & Mauve Night Theme v2.0
-   Holistic redesign: proper spacing, refined radius,
-   reduced border noise, visual hierarchy, breathing room.
+   ITINERARY — Trip itinerary components
+   Hero, flight/day/dining cards, timeline, budget panel,
+   footer, FAB, modal. Paired with themes/theme.css for
+   all color/font/shadow tokens.
 
-   Token contract: consumes tokens declared in
-   themes/rose-mauve-night.css. Keep this file
-   components-only.
+   Holistic design: proper spacing, refined radius,
+   reduced border noise, visual hierarchy, breathing room.
    ═══════════════════════════════════════════════════ */
 
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 
-/* Itinerary-specific font override; background ambience + driftOne/driftTwo
-   keyframes are provided by themes/rose-mauve-night.css. */
+/* Body background + driftOne/driftTwo keyframes come from
+   themes/theme.css. This rule just sets the itinerary's
+   preferred sans stack. */
 body{
   font-family:"Nunito Sans",system-ui,sans-serif;
 }

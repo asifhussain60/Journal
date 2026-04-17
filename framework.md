@@ -272,7 +272,7 @@ The App writes scratch queues; Cowork drains them. Any ambiguity resolves in fav
 
 **Phase 2 design-system canon (complete when all acceptance gates pass under `tag phase-02-design-system-canon`):**
 
-_Substrate status (pre-Phase-2, commit `afcd14a`)_: CSS architecture is theme-swappable. Tokens live in `site/css/themes/{lavender-romance,rose-mauve-night}.css` scoped to `[data-theme="…"]`; `<html>` carries the active theme; every component file (`app.css`, `app-dark.css`, `itinerary-light.css`, `itinerary-dark.css`) consumes tokens via `var()` and is `:root`-free. Page-shell contract (`.page` > `.container` > sections, `.nav` pill header, `.bg-mesh` decorative layer) documented in `base.css`. Zero `<style>` blocks and zero hardcoded `style="…"` attributes across `site/index.html`, `site/itineraries/*.html`, and `trips/*/itinerary.html`; 15 narrow `style={{ '--var': value }}` bridges remain for genuinely dynamic values (mood colors, reader font-scale, stagger delays, progress widths, icon props) — classes in `app.css` consume those via `var()`. The component inventory below operates on this substrate.
+_Substrate status (pre-Phase-2)_: CSS architecture is a **single-theme, token-driven design system**. Every color, font, radius, shadow, and layout token lives in `site/css/themes/theme.css` at `:root`; edit those values to restyle the entire app. HTML carries no `data-theme` attribute. Component files — `base.css` (shell primitives: pill nav, page, container, typography scale), `app.css` (dashboard components), `itinerary.css` (trip itinerary components), `floating-chat.css`, `ai-drawer.css` — consume tokens via `var()` and are `:root`-free. Zero `<style>` blocks and zero hardcoded `style="…"` attributes across `site/index.html`, `site/itineraries/*.html`, and `trips/*/itinerary.html`; 15 narrow `style={{ '--var': value }}` bridges remain for genuinely dynamic values (mood colors, reader font-scale, stagger delays, progress widths, icon props) — classes in `app.css` consume those via `var()`. If a second theme is ever needed, convert `theme.css`'s `:root` block to `[data-theme="…"]` and add a sibling scoped block — HTML is already theme-agnostic. The component inventory below operates on this substrate.
 
 Component inventory (all live in the single `<script type="text/babel">` block in `site/index.html`):
 
@@ -281,7 +281,7 @@ Component inventory (all live in the single `<script type="text/babel">` block i
 - **Organisms** — `Modal` (React portal, backdrop click + Esc to close, focus trap, body-scroll lock, focus restore on unmount), `ConfirmDialog` (wraps Modal; destructive variant uses warning icon + destructive button), `ToastProvider` + `useToast()` (context-based, `aria-live="polite"`, `success | warning | error | info`, exposed globally via `window.__appToast` so `voice-refiner.jsx`'s isolated React root uses the same single implementation), `CommandPalette` (Cmd-K / Ctrl-K; fuzzy filter; empty shell in Phase 2 — commands registered in Phase 3).
 - **State hooks** — `useFetch(url, options?) → { data, loading, error, refetch }`, `useLocalStoragePrefs(key, defaults) → [prefs, setPrefs]`, `useActiveTrip() → { trip, loading, error }`, `useCommandPalette() → { open, setOpen }`, `useToast() → { show, dismiss }`.
 
-Token additions (`site/css/themes/lavender-romance.css` under the `[data-theme="lavender-romance"]` selector — theme-agnostic names mirrored in `site/css/themes/rose-mauve-night.css` so switching themes is a single attribute change on `<html>`):
+Token additions (`site/css/themes/theme.css` at `:root` — the single source of visual truth; new tokens below extend the existing scale):
 
 - State: `--state-success`, `--state-warning`, `--state-error`, `--state-info`.
 - Radius scale: `--radius-sm` (8), `--radius-md` (12), `--radius-lg` (16), `--radius-xl` (20), `--radius-pill` (9999).
@@ -306,7 +306,7 @@ Acceptance gates (all required to pass before tag):
 - Gate A — component inventory (grep): atoms 4+, molecules 7, organisms 4, hooks 4.
 - Gate B — legacy cleanup: one toast implementation, zero inline `toISOString().split` in `index.html`, Card call-sites routed through `<Card variant="…">`.
 - Gate C — a11y: `aria-label` count substantially higher than the pre-Phase-2 baseline of 1; skip link present; `<label|htmlFor|<FormField>` count > 15 (was 5).
-- Gate D — `prefers-reduced-motion` block present in `themes/lavender-romance.css`.
+- Gate D — `prefers-reduced-motion` block present in `themes/theme.css`.
 - Gate E — `<script type="text/babel">` block in `site/index.html` stays under ~2,100 lines.
 - Gate F — Home, Memoir → Chapters → ChapterReader (reader prefs persist), and DayOne Journal flows all work identically to Phase 1. Keyboard navigation reaches every interactive element.
 - Gate G — visual regression: before/after screenshots of Home, Memoir-chapters, and DayOne-editor show no layout shifts; cosmetic improvements only.
@@ -399,7 +399,7 @@ Acceptance gates (all required to pass before tag):
 
 The primary editing surface: FloatingChat classifies natural-language intent, previews proposed diffs, and writes atomic patches to `trip.yaml` with snapshot-based revert.
 
-- **Design restoration** — `<head>` now loads the canonical lavender stack: `base.css` → `app-dark.css` (kept for Phase 4+ components, tokens-free since the pre-Phase-2 substrate refactor) → `app.css` → `itinerary-light.css` → `themes/lavender-romance.css` → `ai-drawer.css`. `<html>` (not `<body>`) gets `data-theme="lavender-romance"`. Five literal `\uXXXX` escapes in JSX text nodes were fixed (they rendered as backslash-u strings in the browser because JSX doesn't process unicode escapes in text). Trip components now carry the canonical class names: `trip-details-card`, `flights-card`, `highlights-card`, `flight-card`, `highlight-item`, `glass-pill-nav`, `traveler-badge`.
+- **Design restoration** — `<head>` loads the single-theme stack: `themes/theme.css` → `base.css` → `app.css` → `ai-drawer.css`. No `data-theme` attribute on `<html>` — the app ships one visual identity (Rose & Mauve Night) and restyling is done by editing tokens in `themes/theme.css`. Five literal `\uXXXX` escapes in JSX text nodes were fixed (they rendered as backslash-u strings in the browser because JSX doesn't process unicode escapes in text). Trip components now carry the canonical class names: `trip-details-card`, `flights-card`, `highlights-card`, `flight-card`, `highlight-item`, `glass-pill-nav`, `traveler-badge`.
 - **trip-edit schema + validators** (`server/src/schemas/trip-edit.schema.json`, `server/src/validators/trip-edit-rules.js`) — structural + semantic: dates monotonic, flight dates within trip bounds, depart < arrive, no flight overlap on the wall-clock timeline, hotel checkOut > checkIn, highlight dates within bounds, start < end. `validateTrip(obj)` returns `{ valid, errors }` — never throws.
 - **Proxy** (`server/src/index.js`):
   - `POST /api/trip-edit` → Tier 0 keyword hint + Sonnet `trip-edit` prompt classifies intent (`edit` / `qa` / `unknown`) and returns `{ intent, summary, proposed: { diffs, patch } }`. When `dryRun: false` and intent=edit, calls `applyTripEdit(slug, { intent, patch })`.
@@ -415,7 +415,7 @@ Acceptance gates (all required to pass before tag):
 
 - Gate A — ≥5 canonical trip classes present in `site/index.html` (`trip-details-card`, `flight-card`, `flight-row`, `highlights-card`, `highlight-item`, `glass-pill-nav`, `traveler-badge`).
 - Gate B — zero literal `\uXXXX` escapes in JSX text nodes.
-- Gate C — ≥5 CSS files referenced in `site/index.html` (base.css, app.css, themes/lavender-romance.css, ai-drawer.css, plus one of {itinerary-light.css, itinerary-dark.css} once Trip is in-SPA; app-dark.css retained for Phase 4+ components).
+- Gate C — ≥4 CSS files referenced in `site/index.html` (themes/theme.css, base.css, app.css, ai-drawer.css; itinerary.css joins the list when Trip goes in-SPA).
 - Gate D — `POST /api/trip-edit` responds.
 - Gate E — `POST /api/trip-edit/revert` responds.
 - Gate F — `cd server && npm run validate` passes (3 schemas).

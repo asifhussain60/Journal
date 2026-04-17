@@ -1,6 +1,6 @@
 /* ai-drawer.css — scoped styles for the Voice Refine drawer.
    All rules are nested under .ai-drawer-root or .ai-drawer so they cannot
-   leak into the main app. Pulls theme tokens from app-dark.css. */
+   leak into the main app. Consumes theme tokens from themes/theme.css. */
 
 .ai-drawer-root {
   position: fixed;
