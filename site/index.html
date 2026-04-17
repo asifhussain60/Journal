@@ -1440,6 +1440,11 @@
 
       useEffect(() => {
         console.log('[NAV]', page);
+        // Refresh the nav budget pill on every view change. BudgetPill
+        // already listens for `budget:refresh` via its event-bus wiring,
+        // so this one dispatch keeps its display in sync with whatever
+        // the cowork server has spent since the last 30-s poll.
+        window.dispatchEvent(new Event('budget:refresh'));
       }, [page]);
 
       function openChapter(ch) {
