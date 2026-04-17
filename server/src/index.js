@@ -28,6 +28,9 @@
 //   POST /api/dead-letter/discard      — queue.js
 //   GET  /api/usage/summary            — usage.js
 //   POST /api/distance-matrix          — distance.js
+//   POST /api/theme-swatches           — theme.js (tweaker)
+//   POST /api/theme-review             — theme.js (tweaker)
+//   POST /api/theme-save               — theme.js (tweaker)
 //
 // CORS is locked to ALLOWED_ORIGINS (defaults cover localhost + prod/dev Pages).
 
@@ -52,6 +55,7 @@ import { createQueueRouter } from "./routes/queue.js";
 import { createReceiptsRouter } from "./routes/receipts.js";
 import { createUsageRouter } from "./routes/usage.js";
 import { createDistanceRouter } from "./routes/distance.js";
+import { createThemeRouter } from "./routes/theme.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -127,6 +131,12 @@ const QUEUE_VALIDATORS = new Map();
   }
 }
 
+// Theme-save schema validator (Phase 10 — tweaker).
+const themeSaveSchema = JSON.parse(
+  await readFile(path.join(SCHEMA_DIR, "theme-save.schema.json"), "utf8")
+);
+const themeSaveValidator = ajv.compile(themeSaveSchema);
+
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -147,6 +157,7 @@ app.use(createQueueRouter({ queueValidators: QUEUE_VALIDATORS }));
 app.use(createReceiptsRouter({ anthropic, DEFAULT_MODEL, upload }));
 app.use(createUsageRouter({ MONTHLY_CAP }));
 app.use(createDistanceRouter());
+app.use(createThemeRouter({ anthropic, DEFAULT_MODEL, themeSaveValidator }));
 
 // --- Start -------------------------------------------------------------------
 app.listen(PORT, "127.0.0.1", () => {

@@ -1,0 +1,88 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "theme-save.schema.json",
+  "title": "Theme save payload",
+  "description": "Body shape for POST /api/theme-save — either overwrites the current theme file or scaffolds a new one.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "mode", "slug", "tokenMutations", "scopedOverrides"],
+  "properties": {
+    "schemaVersion": { "const": "1" },
+    "mode": { "enum": ["overwrite", "new"] },
+    "slug": {
+      "description": "For mode=overwrite: the existing theme's slug. For mode=new: the new theme's slug (lowercase-hyphenated).",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "minLength": 2,
+      "maxLength": 40
+    },
+    "baseSlug": {
+      "description": "For mode=new only: the slug of the theme being forked from (supplies the unchanged tokens).",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "name": {
+      "description": "For mode=new only: human-readable theme name shown in the switcher.",
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 60
+    },
+    "description": {
+      "description": "For mode=new only: one-line switcher description.",
+      "type": "string",
+      "maxLength": 120
+    },
+    "category": {
+      "description": "For mode=new only: 'Dark' or 'Light'.",
+      "enum": ["Dark", "Light", "High Contrast", "Vendor", "Other"]
+    },
+    "swatches": {
+      "description": "For mode=new only: 3–5 hex values shown as the dropdown's swatch bar.",
+      "type": "array",
+      "items": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+      "minItems": 3,
+      "maxItems": 5
+    },
+    "tokenMutations": {
+      "description": "Global token changes to apply in the theme file's :root block.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "value"],
+        "properties": {
+          "name": { "type": "string", "pattern": "^--[a-z][a-z0-9-]*$" },
+          "value": { "type": "string", "minLength": 1, "maxLength": 200 }
+        }
+      }
+    },
+    "scopedOverrides": {
+      "description": "Selector-scoped rules appended to the theme file's TWEAKER OVERRIDES section.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["selector", "property", "value"],
+        "properties": {
+          "selector": { "type": "string", "minLength": 1, "maxLength": 300 },
+          "property": { "type": "string", "pattern": "^[a-z-]+$", "maxLength": 40 },
+          "value": { "type": "string", "minLength": 1, "maxLength": 200 }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "mode": { "const": "new" } }, "required": ["mode"] },
+      "then": {
+        "required": ["baseSlug", "name", "category", "swatches"],
+        "properties": {
+          "baseSlug": { "type": "string" },
+          "name": { "type": "string" },
+          "category": { "type": "string" },
+          "swatches": { "type": "array" }
+        }
+      }
+    }
+  ]
+}

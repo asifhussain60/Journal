@@ -1,0 +1,482 @@
+/* ═══════════════════════════════════════════════════
+   TWEAKER — in-app theme editor chrome
+   All selectors scope under [data-tweak-chrome] or
+   .tweaker-* class names so app content is unaffected.
+   Every color/font/space/radius value consumes a var()
+   token — validator check 2 requires this.
+   ═══════════════════════════════════════════════════ */
+
+/* ─── Floating nav wrench (activation toggle) ─── */
+.tweaker-nav-btn {
+  position: fixed;
+  right: var(--space-4);
+  top: calc(var(--space-4) + 44px);
+  z-index: 9999990;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-pill);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  backdrop-filter: blur(16px) saturate(160%);
+  box-shadow: var(--shadow-md);
+  transition: transform var(--motion-fast), border-color var(--motion-fast);
+}
+.tweaker-nav-btn:hover {
+  transform: translateY(-1px);
+  border-color: var(--border-accent);
+}
+.tweaker-nav-btn.is-on {
+  background: color-mix(in srgb, var(--accent) 20%, var(--bg));
+  border-color: var(--accent);
+  color: var(--text);
+}
+.tweaker-nav-btn i { font-size: 0.9rem; color: var(--accent); }
+.tweaker-nav-btn.is-on i { color: var(--text); }
+.tweaker-nav-btn-label { letter-spacing: 0.02em; }
+
+/* ─── Hover highlight overlay ─── */
+#tweaker-hover-highlight {
+  box-shadow: 0 0 0 1px var(--bg-card-solid) inset, 0 0 24px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+/* ─── Inspector panel ─── */
+.tweaker-inspector {
+  position: fixed;
+  z-index: 9999997;
+  width: 320px;
+  max-height: calc(100vh - 24px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg), 0 0 0 1px var(--white-06) inset;
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+}
+
+.tweaker-inspector-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--border-default);
+  background: var(--bg-card);
+}
+.tweaker-inspector-selector {
+  flex: 1;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tweaker-x {
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  border: 0;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+.tweaker-x:hover { background: var(--white-08); color: var(--text); }
+
+.tweaker-scope-toggle {
+  display: flex;
+  padding: var(--space-2) var(--space-3);
+  gap: var(--space-1);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.tweaker-scope-toggle button {
+  flex: 1;
+  padding: var(--space-1) var(--space-2);
+  background: var(--white-06);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+.tweaker-scope-toggle button.on {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.tweaker-tabs {
+  display: flex;
+  padding: 0 var(--space-3);
+  gap: var(--space-1);
+  border-bottom: 1px solid var(--border-default);
+}
+.tweaker-tabs button {
+  flex: 1;
+  padding: var(--space-2) 0;
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color var(--motion-fast), border-color var(--motion-fast);
+}
+.tweaker-tabs button:hover { color: var(--text); }
+.tweaker-tabs button.on { color: var(--text); border-bottom-color: var(--accent); }
+
+.tweaker-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-2);
+}
+
+.tweaker-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-top: 1px solid var(--border-default);
+  background: var(--bg-card);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+.tweaker-footer .tweaker-muted { flex: 1; }
+
+/* ─── Rows (one per editable property) ─── */
+.tweaker-row {
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-1);
+}
+.tweaker-row:hover { background: var(--white-04); }
+.tweaker-row-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  font-size: 0.78rem;
+}
+.tweaker-prop {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text);
+  font-weight: 500;
+  flex: 1;
+}
+.tweaker-swatch-dot {
+  width: 18px; height: 18px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border-default);
+  flex-shrink: 0;
+}
+.tweaker-tokname {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 120px;
+}
+.tweaker-row-body {
+  padding-top: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.tweaker-row-body .react-colorful {
+  width: 100% !important;
+  height: 160px !important;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.tweaker-empty {
+  padding: var(--space-4);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  text-align: center;
+  font-style: italic;
+}
+
+/* ─── AI swatch strip ─── */
+.tweaker-swatch-strip {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  background: var(--white-04);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+}
+.tweaker-swatch-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+}
+.tweaker-dots { color: var(--accent); }
+.tweaker-swatch-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-1);
+}
+.tweaker-swatch {
+  padding: var(--space-2) var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-align: center;
+  transition: transform var(--motion-fast);
+}
+.tweaker-swatch:hover { transform: translateY(-1px); }
+
+/* ─── Form controls ─── */
+.tweaker-select,
+.tweaker-text {
+  width: 100%;
+  padding: var(--space-1) var(--space-2);
+  background: var(--white-06);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+.tweaker-row-body input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+/* ─── Contrast note ─── */
+.tweaker-contrast {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+.tweaker-contrast .ok { color: var(--success); }
+.tweaker-contrast .warn { color: var(--warning); }
+
+/* ─── Action bar (persistent bottom bar when pending changes exist) ─── */
+.tweaker-action-bar {
+  position: fixed;
+  left: 50%;
+  bottom: var(--space-4);
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-lg);
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  color: var(--text);
+  z-index: 9999996;
+}
+
+/* ─── Buttons ─── */
+.tweaker-btn,
+.tweaker-btn-sm {
+  padding: var(--space-1) var(--space-3);
+  background: var(--white-08);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--motion-fast);
+}
+.tweaker-btn-sm {
+  padding: 2px var(--space-2);
+  font-size: 0.72rem;
+}
+.tweaker-btn:hover,
+.tweaker-btn-sm:hover { background: var(--white-12); }
+.tweaker-btn:disabled,
+.tweaker-btn-sm:disabled { opacity: 0.4; cursor: not-allowed; }
+.tweaker-btn-primary {
+  background: var(--accent);
+  color: var(--contrast-dark);
+  border-color: var(--accent);
+}
+.tweaker-btn-primary:hover {
+  background: color-mix(in srgb, var(--accent) 85%, var(--text));
+}
+
+/* ─── Modals (review + save) ─── */
+.tweaker-modal-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(8px);
+  z-index: 9999998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+}
+.tweaker-modal {
+  width: 100%;
+  max-width: 540px;
+  max-height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  color: var(--text);
+  font-family: var(--font-sans);
+}
+.tweaker-modal-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-default);
+}
+.tweaker-modal-header h3 {
+  flex: 1;
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+.tweaker-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+.tweaker-modal-body p { margin: 0 0 var(--space-3); }
+.tweaker-modal-body ul { margin: 0; padding-left: var(--space-4); }
+.tweaker-modal-body li { margin-bottom: var(--space-2); }
+.tweaker-modal-body code {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  padding: 1px var(--space-1);
+  background: var(--white-08);
+  border-radius: var(--radius-xs);
+}
+.tweaker-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--border-default);
+  background: var(--bg-card);
+}
+
+.tweaker-review-section { margin-top: var(--space-3); }
+.tweaker-review-section h4 {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.tweaker-modal-body .flag-warn strong { color: var(--warning); }
+.tweaker-modal-body .flag-error strong { color: var(--error); }
+
+/* ─── Save-modal form ─── */
+.tweaker-save-mode {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+.tweaker-save-mode label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  font-size: 0.88rem;
+}
+.tweaker-save-new {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--white-04);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-3);
+}
+.tweaker-save-new input,
+.tweaker-save-new select {
+  padding: var(--space-2);
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+}
+.tweaker-save-summary {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+/* ─── Toast ─── */
+.tweaker-toast {
+  position: fixed;
+  left: 50%;
+  top: var(--space-4);
+  transform: translateX(-50%);
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  z-index: 9999999;
+  max-width: 480px;
+}
+.tweaker-toast-success { border-color: var(--success); }
+.tweaker-toast-error { border-color: var(--error); }
+
+.tweaker-err { color: var(--error); font-size: 0.82rem; }
+.tweaker-muted { color: var(--text-muted); font-size: 0.82rem; }
+
+/* ─── Tweak-mode indicator on body ─── */
+body[data-tweak-mode="on"] {
+  cursor: crosshair;
+}
+body[data-tweak-mode="on"] [data-tweak-chrome],
+body[data-tweak-mode="on"] [data-tweak-chrome] * {
+  cursor: auto;
+}

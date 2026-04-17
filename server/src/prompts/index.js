@@ -16,6 +16,8 @@ import extractReceiptPrompt from "./extract-receipt.js";
 import ingestItineraryPrompt from "./ingest-itinerary.js";
 import tripEditPrompt from "./trip-edit.js";
 import findAlternativesPrompt from "./find-alternatives.js";
+import themeSwatchesPrompt from "./theme-swatches.js";
+import themeReviewPrompt from "./theme-review.js";
 
 /**
  * Registry of all prompts known at startup time. Extend by importing the new
@@ -29,6 +31,8 @@ const REGISTRY = Object.freeze({
   [ingestItineraryPrompt.name]: ingestItineraryPrompt,
   [tripEditPrompt.name]: tripEditPrompt,
   [findAlternativesPrompt.name]: findAlternativesPrompt,
+  [themeSwatchesPrompt.name]: themeSwatchesPrompt,
+  [themeReviewPrompt.name]: themeReviewPrompt,
 });
 
 /**
