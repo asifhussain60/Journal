@@ -1,15 +1,20 @@
-// routes/holiday-budget.js — trip-window spending breakdown.
+// routes/holiday-budget.js — Holiday-category spending breakdown.
 //   GET /api/holiday-budget?since=YYYY-MM-DD&until=YYYY-MM-DD&fresh=1
 //
-// Pulls every outflow in the date window (across ALL YNAB categories — same
-// scope as /api/trip-spend) then asks Claude Haiku to bucket each transaction
-// into 8 standard trip categories using the payee name + memo field (the
-// user's free-form notes). Totals are verified against the raw transaction
-// sum so LLM drift can't lose money.
+// Pulls every outflow tagged to the YNAB "Holiday" category (the user's
+// trip-tagging convention) and asks Claude Haiku to bucket each one into 8
+// standard trip sub-categories using payee + memo field. Totals are verified
+// against the raw transaction sum so LLM drift can't lose money.
 //
-// Available balance is a soft-lookup: if the user has a YNAB category named
-// "Holiday" we surface its balance (piggy-bank savings). If they don't, the
-// tile just reads $0 — no 404, no blocking.
+// Scope rationale: the user categorises trip-related outflows into a single
+// YNAB category called "Holiday" (sitting in their "Piggy Bank" group). That
+// category is the source-of-truth for what belongs to this trip; a naive
+// date-range-across-all-categories approach over-pulls mortgage / utilities
+// / subscriptions and drowns the panel. Optional since/until narrow within
+// the Holiday set.
+//
+// Available = the Holiday category's balance (piggy-bank savings). Missing
+// category → $0 Available, $0 Spent, empty list — no 404.
 //
 // Response shape:
 //   {
@@ -120,9 +125,13 @@ async function classifyWithHaiku({ anthropic, prompt, txns }) {
   }));
 
   try {
+    // max_tokens scales with input — each classification row is ~80 tokens of
+    // JSON output. 200 txns × 80 ≈ 16k. Cap at 32k to stay well under Haiku's
+    // limit while leaving headroom for future large trips.
+    const outBudget = Math.min(32768, Math.max(2048, txns.length * 120));
     const msg = await anthropic.messages.create({
       model: prompt.model,
-      max_tokens: 2048,
+      max_tokens: outBudget,
       system: prompt.system,
       messages: [
         {
@@ -194,8 +203,8 @@ export function createHolidayBudgetRouter({ anthropic }) {
         }
       }
 
-      // 1. Categories — soft-find "Holiday" just for the Available tile.
-      //    Missing category is fine; the tile falls back to $0.
+      // 1. Locate the "Holiday" YNAB category. Its balance drives the
+      //    Available tile; its id scopes the transaction fetch below.
       const catData = await ynabFetch(`/budgets/${budgetId}/categories`, token);
       const groups = catData?.data?.category_groups ?? [];
       let holiday = null;
@@ -207,22 +216,20 @@ export function createHolidayBudgetRouter({ anthropic }) {
         if (holiday) break;
       }
 
-      // 2. Transactions — all outflows in [effSince, effUntil] across ALL
-      //    YNAB categories (not scoped to Holiday). Matches /api/trip-spend's
-      //    approach so both surfaces see the same transaction universe. YNAB's
-      //    `since_date` param returns everything from that date forward; we
-      //    clamp the upper bound client-side.
-      const txnUrl = new URL(`https://api.youneedabudget.com/v1/budgets/${budgetId}/transactions`);
-      txnUrl.searchParams.set("since_date", effSince);
-      const txnResp = await fetch(txnUrl, { headers: { Authorization: `Bearer ${token}` } });
-      if (!txnResp.ok) {
-        return res.status(502).json({ ok: false, error: "ynab http_" + txnResp.status });
+      // 2. Transactions — only those tagged to Holiday. This is the user's
+      //    trip-tagging convention; broader scoping pulls unrelated home
+      //    expenses. Date window (since/until) narrows further within Holiday.
+      let expanded = [];
+      if (holiday) {
+        const txnData = await ynabFetch(
+          `/budgets/${budgetId}/categories/${holiday.id}/transactions`,
+          token
+        );
+        const rawTxns = (txnData?.data?.transactions ?? []).filter(
+          (t) => !t.deleted && t.date >= effSince && t.date <= effUntil
+        );
+        expanded = expandSplits(rawTxns).filter((t) => outflowDollars(t.amount) > 0);
       }
-      const txnData = await txnResp.json();
-      const rawTxns = (txnData?.data?.transactions ?? []).filter(
-        (t) => !t.deleted && t.date >= effSince && t.date <= effUntil
-      );
-      const expanded = expandSplits(rawTxns).filter((t) => outflowDollars(t.amount) > 0);
 
       // 3. Classify via Haiku (single call). Guardrails fall back to "Misc"
       //    for anything the model omits or invents outside the 8-category set.

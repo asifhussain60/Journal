@@ -1224,15 +1224,35 @@
         //     rating, duration). Pills let you scan a day without expanding
         //     every card. Everything else (tag, address, phone, drive,
         //     notes) lives in the body. ──
+        // Meta pills — each carries a tiny label so its meaning is obvious
+        // at a glance. Clock-icon + bare minutes reads ambiguously as a
+        // clock time; the "FOR" label + hourglass disambiguates it as
+        // "duration of stay", not "start time".
         var summaryPills = [];
         if (ev.category) {
-          summaryPills.push('<span class="event-pill event-pill--category"><i class="fa-solid fa-tag" aria-hidden="true"></i>' + escHtml(ev.category) + '</span>');
+          summaryPills.push(
+            '<span class="event-pill event-pill--category">' +
+            '<i class="fa-solid fa-tag" aria-hidden="true"></i>' +
+            '<span class="event-pill-value">' + escHtml(ev.category) + '</span>' +
+            '</span>'
+          );
         }
         if (ev.rating) {
-          summaryPills.push('<span class="event-pill event-pill--rating"><i class="fa-solid fa-star" aria-hidden="true"></i>' + escHtml(String(ev.rating)) + '</span>');
+          summaryPills.push(
+            '<span class="event-pill event-pill--rating" title="Rating">' +
+            '<i class="fa-solid fa-star" aria-hidden="true"></i>' +
+            '<span class="event-pill-value">' + escHtml(String(ev.rating)) + '</span>' +
+            '</span>'
+          );
         }
         if (ev.duration_min) {
-          summaryPills.push('<span class="event-pill event-pill--duration"><i class="fa-regular fa-clock" aria-hidden="true"></i>' + escHtml(String(ev.duration_min)) + ' min</span>');
+          summaryPills.push(
+            '<span class="event-pill event-pill--duration" title="Duration at this stop">' +
+            '<i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>' +
+            '<span class="event-pill-label">for</span>' +
+            '<span class="event-pill-value">' + escHtml(String(ev.duration_min)) + ' min</span>' +
+            '</span>'
+          );
         }
 
         parts.push('      <div class="event-summary">');
@@ -2510,7 +2530,14 @@
           end = end || ds[ds.length - 1];
         }
         if (!start || !end) return null;
-        return { since: start, until: end };
+        // Widen backwards 90 days to capture pre-trip bookings (flights, hotel,
+        // activities, shopping) — those all post dates well before the trip
+        // itself. The Holiday YNAB category already filters to this trip's
+        // expenses so there's no risk of pulling in other trips' history.
+        var startD = new Date(start + 'T12:00:00');
+        startD.setDate(startD.getDate() - 90);
+        var since = startD.toISOString().slice(0, 10);
+        return { since: since, until: end };
       }
       function waitForTripWindow(timeoutMs) {
         var deadline = Date.now() + (timeoutMs || 2500);

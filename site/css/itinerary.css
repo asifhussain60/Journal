@@ -971,12 +971,31 @@ html{scroll-behavior:smooth}
   flex-wrap:wrap;
   gap:.35rem;
   margin-top:.4rem;
+  /* Right-justify so pills align to the card's trailing edge — turns a
+     decorative left-aligned strip into a structured meta-strip that reads
+     as "attributes of this event" instead of a continuation of the title. */
+  justify-content:flex-end;
 }
+/* Label-value pill structure: tiny uppercase label (e.g. "FOR") followed by
+   the value ("60 min"). Makes pills self-describing without bloating them. */
+.event-pill-label{
+  font-size:.58rem;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  opacity:.7;
+  font-weight:600;
+}
+.event-pill-value{ font-weight:500; }
 .event-pill{
   display:inline-flex;
   align-items:center;
+  justify-content:center;
   gap:.3rem;
-  padding:.2rem .55rem;
+  /* Uniform height + padding so pills visually balance across every event
+     card. Per-variant min-widths below lock rating + duration to the same
+     footprint regardless of value length. */
+  height:22px;
+  padding:0 .6rem;
   border-radius:999px;
   font-size:.72rem;
   font-weight:500;
@@ -986,21 +1005,37 @@ html{scroll-behavior:smooth}
   border:1px solid var(--white-12);
   color:var(--muted);
   white-space:nowrap;
+  box-sizing:border-box;
   transition:background-color .2s ease, border-color .2s ease;
 }
-.event-pill i{ font-size:.66rem; opacity:.8; }
+.event-pill i{ font-size:.66rem; opacity:.8; flex:0 0 auto; }
 .event-pill--category{
   background:color-mix(in srgb, var(--lavender) 14%, transparent);
   border-color:color-mix(in srgb, var(--lavender) 32%, transparent);
   color:var(--lavender);
   font-weight:600;
   letter-spacing:.02em;
+  /* Category text varies a lot. Give it a sensible min so short names
+     ("Hotel · Downtime") don't look cramped next to long siblings, but
+     cap the max so the whole meta-row stays on one line when possible. */
+  min-width:8rem;
+  max-width:20rem;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.event-pill--category .event-pill-value{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  min-width:0;
 }
 .event-pill--rating{
   background:color-mix(in srgb, var(--gold) 14%, transparent);
   border-color:color-mix(in srgb, var(--gold) 32%, transparent);
   color:var(--gold);
   font-variant-numeric:tabular-nums;
+  /* Rating is always one decimal digit (4.1 → 4.9); lock the width so the
+     star never shifts between rows. */
+  min-width:3.25rem;
 }
 .event-pill--rating i{ opacity:1; }
 .event-pill--duration{
@@ -1008,6 +1043,9 @@ html{scroll-behavior:smooth}
   border-color:color-mix(in srgb, var(--info) 32%, transparent);
   color:var(--info);
   font-variant-numeric:tabular-nums;
+  /* Fits "FOR 999 min" so 30/60/180-min events all share the same pill
+     footprint and the value end-aligns consistently across rows. */
+  min-width:6.25rem;
 }
 .event-card:hover .event-pill{
   border-color:color-mix(in srgb, currentColor 38%, transparent);
@@ -1538,8 +1576,12 @@ html{scroll-behavior:smooth}
   transition:opacity .25s ease;
 }
 .budget-summary.is-refreshing{ opacity:.55; }
+/* Enable container-query units (cqi) on the stat so big numbers scale with
+   the tile's own width instead of the viewport. Without this the clamp in
+   .budget-stat-value falls back to viewport-based sizing. */
+.budget-stat{ container-type:inline-size; }
 .budget-stat{
-  padding:1rem 1rem;
+  padding:.95rem .75rem;
   border-radius:var(--radius-md);
   background:var(--white-06);
   display:flex;
@@ -1549,25 +1591,39 @@ html{scroll-behavior:smooth}
   text-align:center;
   border:1px solid transparent;
   transition:background-color .3s ease, border-color .3s ease;
+  min-width:0;
 }
 .budget-stat.full-width{grid-column:1/-1}
 .budget-stat--skeleton .budget-stat-value{ opacity:.35; }
+/* Responsive font: scales with available width. Clamps keep it legible on
+   narrow panels without overflowing 5-figure amounts like $9,923.95. */
 .budget-stat-value{
   font-family:"Inter","SF Pro Display","Helvetica Neue",system-ui,sans-serif;
-  font-size:1.85rem;
+  font-size:clamp(1.15rem, 3.4cqi, 1.6rem);
   font-weight:700;
-  letter-spacing:-.03em;
+  letter-spacing:-.025em;
+  line-height:1.05;
   font-variant-numeric:tabular-nums;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
 }
-.budget-stat-label{color:var(--muted); font-size:.82rem; margin-top:.2rem}
+.budget-stat-label{
+  color:var(--muted);
+  font-size:.78rem;
+  margin-top:.4rem;
+  letter-spacing:.02em;
+}
 .budget-stat-pct{
   display:block;
-  font-size:.68rem;
-  letter-spacing:.08em;
+  font-size:.62rem;
+  letter-spacing:.14em;
   text-transform:uppercase;
-  margin-top:.15rem;
+  margin-top:.2rem;
   opacity:.85;
   font-variant-numeric:tabular-nums;
+  font-weight:600;
 }
 
 /* Available tile tone — green (ok) / orange (warn) / red (danger).
@@ -1724,7 +1780,7 @@ html{scroll-behavior:smooth}
 }
 .budget-txn{
   display:grid;
-  grid-template-columns:auto 1fr auto auto;
+  grid-template-columns:minmax(3rem,auto) 1fr auto auto;
   gap:.55rem;
   align-items:center;
   padding:.6rem .6rem;
@@ -1732,15 +1788,38 @@ html{scroll-behavior:smooth}
   border-radius:var(--radius-sm);
   background:var(--white-06);
   color:var(--muted);
-  font-size:.85rem;
+  font-size:.82rem;
 }
-.budget-txn-amount{color:var(--text); font-weight:600; font-family:"Inter","SF Pro Display",system-ui,sans-serif; font-variant-numeric:tabular-nums}
+.budget-txn-date{
+  white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+  color:var(--muted);
+  opacity:.85;
+  font-size:.72rem;
+  letter-spacing:.02em;
+}
+.budget-txn-payee{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:var(--text);
+}
+.budget-txn-amount{
+  color:var(--text);
+  font-weight:600;
+  font-family:"Inter","SF Pro Display",system-ui,sans-serif;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
 .budget-txn-card{
   padding:.15rem .4rem;
   border-radius:var(--radius-xs);
   background:var(--white-08);
-  font-size:.68rem;
-  letter-spacing:.06em;
+  font-size:.62rem;
+  letter-spacing:.08em;
+  white-space:nowrap;
+  color:var(--muted);
 }
 .budget-panel-footer{
   margin-top:1.1rem;
