@@ -302,41 +302,37 @@ select.input {
    If a second theme is ever added, convert :root → [data-theme]
    and set the attribute on <html>; no markup changes needed.
 
-   Shell nav variants:
-     • `.nav` (this file) — centered floating pill, the default for
-       site-shell pages. Dashboard uses this.
-     • `.itn-nav` (itinerary.css) — full-width sticky bar used by
-       the immersive itinerary. Deliberate alternative design for
-       long-form page chrome, not an alias of `.nav`.
+   Shell nav:
+     • `.nav` (this file) — full-bleed sticky header, gutter-padded,
+       glass background. Site-shell default.
+     • `.itn-nav` (itinerary.css) — older itinerary header bar with
+       slightly different styling; kept for backward compatibility
+       on existing itinerary markup. New pages should use `.nav`.
 
    Standalone share artifacts (e.g. trips/<slug>/itinerary.html)
    may omit both — they are explicitly scoped as printable
    or shareable static snapshots, not site-shell views.
    ═══════════════════════════════════════════════════ */
 
-/* ─── Canonical pill Navigation ─── */
+/* ─── Canonical full-width Navigation ─── */
 /* Fully tokenized — every visual property resolves via theme tokens
-   declared in themes/theme.css. The itinerary opts into a distinct
-   full-width bar (`.itn-nav` in itinerary.css); see the PAGE-SHELL
-   CONTRACT comment above for when to use which. */
+   declared in themes/theme.css. Full-bleed sticky header that spans
+   the viewport; gutter-padded so content doesn't butt the edges. */
 .nav {
   position: fixed;
-  top: 1.5rem;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 0;
+  left: 0;
+  right: 0;
   z-index: var(--z-nav);
   background: var(--glass-bg);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
-  border-radius: var(--radius-full);
-  padding: 0.5rem 1rem;
+  padding: 0.75rem var(--gutter);
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  width: 90%;
-  max-width: 1000px;
 }
 .nav-brand {
   font-family: var(--font-script);
@@ -344,8 +340,8 @@ select.input {
   background: linear-gradient(135deg, var(--accent), var(--rose));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  padding: 0 1rem;
   font-weight: 600;
+  white-space: nowrap;
 }
 .nav-links {
   display: flex;
@@ -354,8 +350,8 @@ select.input {
   justify-content: flex-end;
 }
 .nav-link {
-  padding: 0.6rem 1.25rem;
-  border-radius: var(--radius-full);
+  padding: 0.55rem 1.1rem;
+  border-radius: var(--radius-md);
   color: var(--text-muted);
   font-size: 0.95rem;
   font-weight: 500;
@@ -380,9 +376,8 @@ select.input {
 
 @media (max-width: 768px) {
   .nav {
-    width: 95%;
-    padding: 0.5rem;
-    gap: 0.5rem;
+    padding: 0.55rem 1rem;
+    gap: 0.75rem;
   }
   .nav-brand {
     font-size: 1.5rem;

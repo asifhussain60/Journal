@@ -53,7 +53,7 @@
 
 /* ─── Page Layout ─── */
 .page {
-  padding-top: 2rem;
+  padding-top: 6rem;   /* clears the fixed .nav header */
   padding-bottom: 6rem;
   min-height: 100vh;
 }
