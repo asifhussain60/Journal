@@ -293,7 +293,11 @@
   cursor: pointer;
   transition: background var(--motion-fast);
 }
-.tweaker-apply-menu button:hover { background: var(--white-08); }
+.tweaker-apply-menu button:hover:not(:disabled) { background: var(--white-08); }
+.tweaker-apply-menu button:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
 .tweaker-apply-menu button i {
   width: 18px;
   font-size: 0.82rem;
@@ -301,6 +305,30 @@
   flex-shrink: 0;
 }
 .tweaker-apply-menu strong { font-family: var(--font-serif); font-weight: 500; }
+
+/* Hairline separator that splits save options from the destructive
+   Reset row below. Same treatment as the system separators elsewhere. */
+.tweaker-apply-menu-sep {
+  height: 1px;
+  margin: var(--space-1) calc(var(--space-2) * -1);
+  background: var(--white-08);
+}
+/* Reset row — destructive tint so it reads as "danger zone" without
+   shouting. The icon + label shift to the error token, hover state
+   deepens the tint slightly. */
+.tweaker-apply-menu-reset {
+  color: var(--error) !important;
+}
+.tweaker-apply-menu-reset i {
+  color: var(--error) !important;
+}
+.tweaker-apply-menu-reset:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--error) 14%, transparent) !important;
+}
+.tweaker-apply-menu-reset strong {
+  color: var(--error);
+  font-weight: 600;
+}
 
 /* ─── Rows (one per editable property) ─── */
 .tweaker-row {
@@ -864,11 +892,15 @@ body[data-tweak-mode="on"] [data-tweak-chrome] * {
   gap: var(--space-2);
   margin-bottom: var(--space-2);
 }
+/* Compact color cards — tighter padding + gap, slim border. The preview
+   swatch + hex live on a single row so total card height lands at about
+   half of the previous layout while still showing the currently-selected
+   color clearly. */
 .tweaker-color-card {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-2);
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
   background: var(--white-04);
   border: 1.5px solid var(--border-default);
   border-radius: var(--radius-md);
@@ -892,24 +924,26 @@ body[data-tweak-mode="on"] [data-tweak-chrome] * {
 .tweaker-color-card-head {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  font-size: 0.78rem;
+  gap: var(--space-1);
+  font-size: 0.72rem;
   font-weight: 500;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
 }
 .tweaker-color-card-head i:first-child {
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
 }
 .tweaker-color-card.is-active .tweaker-color-card-head i:first-child { color: var(--accent); }
 .tweaker-color-card-label { flex: 1; }
 .tweaker-color-card-edit-dot {
-  font-size: 0.74rem;
+  font-size: 0.7rem;
   color: var(--accent);
 }
+/* Small swatch preview — ~28 px tall (down from 54 px). Still wide enough
+   to read as a color tile, short enough to keep the two cards compact. */
 .tweaker-color-card-preview {
   width: 100%;
-  height: 54px;
+  height: 28px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-default);
   box-shadow: inset 0 0 0 1px var(--white-14);
@@ -918,24 +952,24 @@ body[data-tweak-mode="on"] [data-tweak-chrome] * {
     linear-gradient(-45deg, var(--white-08) 25%, transparent 25%),
     linear-gradient(45deg, transparent 75%, var(--white-08) 75%),
     linear-gradient(-45deg, transparent 75%, var(--white-08) 75%);
-  background-size: 12px 12px;
-  background-position: 0 0, 0 6px, 6px -6px, -6px 0;
+  background-size: 10px 10px;
+  background-position: 0 0, 0 5px, 5px -5px, -5px 0;
 }
 .tweaker-color-card-meta {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--space-2);
+  gap: var(--space-1);
 }
 .tweaker-color-card-hex {
   font-family: var(--font-mono);
-  font-size: 0.76rem;
-  letter-spacing: 0.04em;
+  font-size: 0.7rem;
+  letter-spacing: 0.03em;
   color: var(--text);
 }
 .tweaker-color-card-alpha {
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.64rem;
   color: var(--text-muted);
 }
 
@@ -981,15 +1015,19 @@ body[data-tweak-mode="on"] [data-tweak-chrome] * {
   height: 22px;
 }
 
-/* ─── Active picker panel (reordered: between swatches and Bg/Text tiles) ─── */
+/* ─── Active picker panel (now sits BELOW the Bg/Text tiles) ───
+   Height reduced from 200 → 140 px so the picker occupies less vertical
+   real-estate. The SV area auto-scales to fit; react-colorful keeps the
+   hue + alpha bars at their native 24 px each, so reducing the total
+   gives the SV pad ~90 px which is still draggable on a trackpad. */
 .tweaker-active-picker-body {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-1);
 }
 .tweaker-active-picker-body .react-colorful {
   width: 100% !important;
-  height: 200px !important;
+  height: 140px !important;
   border-radius: var(--radius-sm);
   overflow: hidden;
   box-shadow: inset 0 0 0 1px var(--white-08);

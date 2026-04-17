@@ -10,7 +10,7 @@
 import express from "express";
 import { readFile, writeFile, rename } from "node:fs/promises";
 import { existsSync } from "node:fs";
-import { spawn } from "node:child_process";
+import { spawn, execFile } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadPrompt } from "../prompts/index.js";
@@ -225,6 +225,92 @@ export function createThemeRouter({ anthropic, DEFAULT_MODEL, themeSaveValidator
         path: path.relative(REPO_ROOT, writePath),
         tokenMutations: body.tokenMutations.length,
         scopedOverrides: body.scopedOverrides.length,
+      });
+    } catch (err) {
+      res.status(500).json({ ok: false, error: err?.message ?? String(err) });
+    }
+  });
+
+  // ─── POST /api/theme-reset ─────────────────────────────────────────────────
+  // Revert a theme CSS file to its git-HEAD "original default" state. This is
+  // what the tweaker's Reset action calls. Only themes present in git HEAD are
+  // resettable — freshly-created-in-session themes have no baseline and return
+  // 404 so the UI can surface a clear message.
+  //
+  // Body: { slug }
+  // Flow: read from git → stage write → run validator → rollback on failure.
+  router.post("/api/theme-reset", async (req, res) => {
+    const slug = typeof req.body?.slug === "string" ? req.body.slug.trim() : "";
+    if (!slug) {
+      return res.status(400).json({ ok: false, error: "slug required" });
+    }
+    // Shape matches theme-save.
+    const fileName = slug === "rose-mauve-night" ? "theme.css" : `theme-${slug}.css`;
+    const writePath = path.join(THEMES_DIR, fileName);
+    const repoRelPath = path.relative(REPO_ROOT, writePath);
+
+    try {
+      // Fetch the pristine content straight from git's object store — no
+      // working-tree dependency, so this also works mid-rebase or with
+      // unstaged edits elsewhere.
+      const pristine = await new Promise((resolve, reject) => {
+        execFile(
+          "git",
+          ["show", `HEAD:${repoRelPath}`],
+          { cwd: REPO_ROOT, encoding: "utf8", maxBuffer: 4 * 1024 * 1024 },
+          (err, stdout) => {
+            if (err) reject(err);
+            else resolve(stdout);
+          }
+        );
+      }).catch((err) => {
+        const msg = String(err?.stderr || err?.message || err);
+        // git emits "exists on disk, but not in 'HEAD'" or similar for
+        // untracked/new files — surface a 404 so the client can explain.
+        if (/not in|does not exist|exists on disk/i.test(msg)) {
+          return { __notFound: true };
+        }
+        throw err;
+      });
+
+      if (pristine && pristine.__notFound) {
+        return res.status(404).json({
+          ok: false,
+          error: `theme "${slug}" has no original state in git — Reset is only available for themes checked into the repo`,
+        });
+      }
+      if (typeof pristine !== "string" || !pristine.length) {
+        return res.status(500).json({ ok: false, error: "git HEAD returned empty content" });
+      }
+
+      // Preserve current content for rollback if the validator rejects.
+      const originalContent = existsSync(writePath)
+        ? await readFile(writePath, "utf8")
+        : null;
+
+      // Atomic-ish write via temp + rename so a concurrent reader never sees
+      // a half-written file.
+      const tempPath = writePath + `.tmp-${Date.now()}`;
+      await writeFile(tempPath, pristine, "utf8");
+      await rename(tempPath, writePath);
+
+      const validatorResult = await runValidator();
+      if (!validatorResult.ok) {
+        if (originalContent !== null) {
+          await writeFile(writePath, originalContent, "utf8");
+        }
+        return res.status(500).json({
+          ok: false,
+          error: "theme-parity validator rejected the reset — unexpected since git HEAD should already pass",
+          validator: validatorResult.output,
+        });
+      }
+
+      res.json({
+        ok: true,
+        slug,
+        path: repoRelPath,
+        bytesWritten: pristine.length,
       });
     } catch (err) {
       res.status(500).json({ ok: false, error: err?.message ?? String(err) });

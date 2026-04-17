@@ -575,6 +575,7 @@
     swatches: (payload) => apiPost('/api/theme-swatches', payload),
     review:   (payload) => apiPost('/api/theme-review', payload),
     save:     (payload) => apiPost('/api/theme-save', payload),
+    reset:    (payload) => apiPost('/api/theme-reset', payload),
   };
 
   function activeThemeInfo() {
@@ -803,7 +804,7 @@
   // §11 React: Inspector panel
   // ══════════════════════════════════════════════════════════════════════════
 
-  function Inspector({ selection, onClose, onEdit, activeTheme, pendingChanges, history, onApply, onCancel, onSaveAsNew, onReview, applying, painter }) {
+  function Inspector({ selection, onClose, onEdit, activeTheme, pendingChanges, history, onApply, onCancel, onSaveAsNew, onReview, onReset, applying, painter }) {
     const [tab, setTab] = useState('colors');
     const [scope, setScope] = useState('global');
     const [activeProperty, setActiveProperty] = useState(null);
@@ -910,20 +911,43 @@
           h('button', {
             className: 'tweaker-btn tweaker-btn-primary tweaker-apply-caret',
             onClick: () => setMenuOpen((v) => !v),
-            disabled: applying || pendingChanges.length === 0,
+            // Caret stays enabled even with zero pending changes so the
+            // Reset-to-defaults action in the menu is always reachable.
+            // Per-item disabled flags below gate the save-related options.
+            disabled: applying,
             'aria-label': 'More save options',
             'aria-expanded': menuOpen ? 'true' : 'false',
           }, h('i', { className: 'fa-solid fa-caret-' + (menuOpen ? 'up' : 'down') })),
           menuOpen && h('div', { className: 'tweaker-apply-menu' },
-            h('button', { onClick: () => { setMenuOpen(false); onApply(); } },
+            h('button', {
+              onClick: () => { setMenuOpen(false); onApply(); },
+              disabled: pendingChanges.length === 0,
+            },
               h('i', { className: 'fa-solid fa-floppy-disk' }),
               ' Save to ', h('strong', null, activeTheme.name)),
-            h('button', { onClick: () => { setMenuOpen(false); onSaveAsNew(); } },
+            h('button', {
+              onClick: () => { setMenuOpen(false); onSaveAsNew(); },
+              disabled: pendingChanges.length === 0,
+            },
               h('i', { className: 'fa-solid fa-plus' }),
               ' Save as new theme…'),
-            h('button', { onClick: () => { setMenuOpen(false); onReview(); } },
+            h('button', {
+              onClick: () => { setMenuOpen(false); onReview(); },
+              disabled: pendingChanges.length === 0,
+            },
               h('i', { className: 'fa-solid fa-wand-magic-sparkles' }),
               ' Review before saving'),
+            // Reset lives below a visual divider + in a destructive-tinted
+            // row so it reads as the "danger zone" of the menu. Always
+            // available — doesn't need pending changes.
+            onReset && h('div', { className: 'tweaker-apply-menu-sep', role: 'separator' }),
+            onReset && h('button', {
+              className: 'tweaker-apply-menu-reset',
+              onClick: () => { setMenuOpen(false); onReset(); },
+              title: `Revert ${activeTheme.name} to its original default (git-HEAD state)`,
+            },
+              h('i', { className: 'fa-solid fa-rotate-left' }),
+              ' Reset ', h('strong', null, activeTheme.name), ' to default'),
           )
         ),
       ),
@@ -1243,6 +1267,20 @@
     }
 
     return h('div', { className: 'tweaker-tab-colors' },
+      // ── AI palette suggestions — sits ABOVE the theme palette so
+      //    context-aware picks (warmer / cooler / deeper / lighter
+      //    variants of the active slot) are the first option the user
+      //    sees. Conditional on an active selection; falls through to
+      //    the Theme palette when no row is active. ──
+      selection && activeRow && activeTheme && h('div', { className: 'tweaker-section' },
+        h(AISwatchStrip, {
+          currentColor: normalizeHex(activeRow.value).slice(0, 7),
+          uiRole: activeId,
+          activeTheme,
+          onApply: (hex, meta) => applyToRow(activeId, hex, meta && meta.label ? `ai:${meta.label}` : 'ai'),
+        })
+      ),
+
       // ── THEME PALETTE with explicit "Applying to →" badge ──
       h('div', { className: 'tweaker-section' },
         h('div', { className: 'tweaker-section-head' },
@@ -1276,10 +1314,36 @@
         h('span', null, 'Click any element on the page to start editing its properties.'),
       ),
 
-      // ── Full-width PICKER for the active card (reordered to sit
-      //    between the palette swatches and the Background/Text tiles).
-      //    Eye-dropper + format-painter share a right-aligned tool
-      //    cluster so both affordances live at the picker's head. ──
+      // ── TWO compact side-by-side cards: Background | Text
+      //    (reordered to sit ABOVE the gradient picker so the tiles act
+      //    as the primary target-selector and the picker is a tool
+      //    applied to whichever tile is active). ──
+      selection && h('div', { className: 'tweaker-section' },
+        h('div', { className: 'tweaker-color-cards' },
+          h(ColorCard, {
+            row: bgRow, label: 'Background', icon: 'fa-fill-drip',
+            active: activeId === 'bg',
+            onClick: () => setActiveId('bg'),
+            scope,
+          }),
+          h(ColorCard, {
+            row: textRow, label: 'Text', icon: 'fa-font',
+            active: activeId === 'text',
+            onClick: () => setActiveId('text'),
+            scope,
+          }),
+        ),
+        borderRow && h(BorderRow, {
+          row: borderRow, active: activeId === 'border',
+          onClick: () => setActiveId('border'),
+          scope,
+        }),
+      ),
+
+      // ── Compact gradient picker for the active card. Now sits BELOW
+      //    the Background/Text tiles — the tiles are the target picker,
+      //    this is the value editor. Eye-dropper + format-painter share
+      //    a right-aligned tool cluster on the header. ──
       selection && activeRow && h('div', { className: 'tweaker-section tweaker-active-picker' },
         h('div', { className: 'tweaker-section-head' },
           h('span', null, 'Editing — ', h('strong', null, activeLabel)),
@@ -1309,29 +1373,6 @@
         h(ActivePicker, { row: activeRow, onChange: (hex) => applyToRow(activeId, hex) }),
       ),
 
-      // ── TWO big side-by-side cards: Background | Text ──
-      selection && h('div', { className: 'tweaker-section' },
-        h('div', { className: 'tweaker-color-cards' },
-          h(ColorCard, {
-            row: bgRow, label: 'Background', icon: 'fa-fill-drip',
-            active: activeId === 'bg',
-            onClick: () => setActiveId('bg'),
-            scope,
-          }),
-          h(ColorCard, {
-            row: textRow, label: 'Text', icon: 'fa-font',
-            active: activeId === 'text',
-            onClick: () => setActiveId('text'),
-            scope,
-          }),
-        ),
-        borderRow && h(BorderRow, {
-          row: borderRow, active: activeId === 'border',
-          onClick: () => setActiveId('border'),
-          scope,
-        }),
-      ),
-
       // ── Contrast ──
       selection && bgRow && textRow && h('div', { className: 'tweaker-section' },
         h('div', { className: 'tweaker-section-head' },
@@ -1343,16 +1384,6 @@
       selection && h('div', { className: 'tweaker-section' },
         h('div', { className: 'tweaker-section-head' }, h('span', null, 'Opacity')),
         h(OpacityRow, { selection, onEdit, tokens })
-      ),
-
-      // ── AI palette suggestions (opt-in, per active slot) ──
-      selection && activeRow && activeTheme && h('div', { className: 'tweaker-section' },
-        h(AISwatchStrip, {
-          currentColor: normalizeHex(activeRow.value).slice(0, 7),
-          uiRole: activeId,
-          activeTheme,
-          onApply: (hex, meta) => applyToRow(activeId, hex, meta && meta.label ? `ai:${meta.label}` : 'ai'),
-        })
       ),
     );
   }
@@ -2287,6 +2318,53 @@
       setReviewOpen(true);
     }
 
+    // Reset the active theme file back to its git-HEAD "original default"
+    // state. Destructive + irreversible (even persisted saves from prior
+    // sessions are rolled back), so we confirm before firing. Clears the
+    // session's pending changes and cache-busts the theme stylesheet so
+    // the live page reflects the restored colors.
+    async function resetToDefaults() {
+      if (applying) return;
+      const theme = activeThemeRef.current;
+      if (!theme || !theme.id) return;
+      const label = theme.name || theme.id;
+      const hasPending = pendingChanges.length > 0;
+      const extra = hasPending
+        ? `\n\nYou also have ${pendingChanges.length} pending change${pendingChanges.length === 1 ? '' : 's'} — those will be discarded.`
+        : '';
+      if (!window.confirm(
+        `Reset "${label}" to its original default?\n\nThis rolls the theme file back to how it was checked into git. Any saved tweaks from earlier sessions will be lost.${extra}`
+      )) return;
+
+      setApplying(true);
+      try {
+        const result = await API.reset({ slug: theme.id });
+        // Discard the session state first so the in-memory mutations don't
+        // re-paint over the reloaded stylesheet.
+        discardAllSilent();
+        // Cache-bust the <link id="theme-stylesheet"> so the browser
+        // re-fetches the reset CSS file.
+        const link = document.getElementById(CFG.themeStylesheetId);
+        if (link) link.href = link.href.split('?')[0] + '?t=' + Date.now();
+        if (window.notify) {
+          window.notify.success(`Reset "${label}" to default`, {
+            description: `${result.bytesWritten ?? 0} bytes restored from git HEAD`,
+            duration: 4000,
+          });
+        }
+      } catch (e) {
+        console.error('[tweaker] reset failed', e);
+        if (window.notify) {
+          window.notify.error('Reset failed', {
+            description: e.message || String(e),
+            duration: 6000,
+          });
+        }
+      } finally {
+        setApplying(false);
+      }
+    }
+
     // Nav wrench button — always labeled "Tweak". Click toggles Tweak Mode.
     // The is-on state indicates activation; the label stays stable.
     const navBtn = h('button', {
@@ -2318,6 +2396,7 @@
           onCancel: cancelWithConfirm,
           onSaveAsNew: openSaveAsNew,
           onReview: openReview,
+          onReset: resetToDefaults,
           applying,
           painter: painterRef.current,
         }),
