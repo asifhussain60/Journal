@@ -854,5 +854,199 @@
     "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-b409b6eb-0b2d-44b0-b40f-c572b07bf10c.yaml",
     "actor": "app",
     "status": "applied"
+  },
+  {
+    "schemaVersion": "1",
+    "id": "ed0d0f4e-1710-4ceb-85e0-955d258c99c9",
+    "createdAt": "2026-04-17T22:23:29.351Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "Delete Pizza Hut Delivery to Hotel from day 2",
+    "patch": [
+      {
+        "op": "remove",
+        "path": "/days/1/events/1"
+      }
+    ],
+    "inversePatch": [
+      {
+        "op": "replace",
+        "path": "/days/1/events/4/duration_min",
+        "value": 75
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/4/category",
+        "value": "Vietnamese · Pho & Rice Bowls"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/4/notes",
+        "value": "Vietnamese pho and rice plates (~15 min) — light and perfect for evening."
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/4/rating",
+        "value": 4.6
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/4/phone",
+        "value": "(732) 225-8889"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/4/event",
+        "value": "Dinner at The Pho House"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/4/time",
+        "value": "6:30 PM"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/duration_min",
+        "value": 30
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/category",
+        "value": "Specialty Coffee House"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/notes",
+        "value": "Specialty coffee bar with proper loose-leaf tea selection and cozy sit-down seating (~5 min from hotel). Ishrat's English tea, Asif's pour-over. Unwind before Pho House."
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/phone",
+        "value": "(732) 993-4114"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/tag",
+        "value": "CAFE"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/venue",
+        "value": "106 Church St, New Brunswick, NJ 08901"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/event",
+        "value": "Tea & Coffee at Hidden Grounds Coffee Co."
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/time",
+        "value": "5:20 PM"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/2/duration_min",
+        "value": 180
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/2/category",
+        "value": "Hotel · Downtime"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/2/notes",
+        "value": "Straight back to hotel after lunch (~5 min drive). Extended 3-hour nap — jet lag recovery is today's priority with no afternoon appointment. Ishrat can sleep deep through this window."
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/2/rating",
+        "value": 4.1
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/2/phone",
+        "value": "(732) 729-0900"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/2/tag",
+        "value": "REST"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/2/venue",
+        "value": "Home2 Suites by Hilton, 3 Jersey Ave, New Brunswick, NJ 08901"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/2/event",
+        "value": "Hotel Rest / Long Nap"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/2/time",
+        "value": "12:30 PM"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/1/duration_min",
+        "value": 45
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/1/category",
+        "value": "Pizza · Hotel-Delivery"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/1/rating",
+        "value": 4
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/1/phone",
+        "value": "(732) 940-0808"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/1/notes",
+        "value": "Order from Pizza Hut 2245 Rt 1 (North Brunswick, ~10 min) to the hotel — delivery, no driving. NJ Pizza Huts are delivery/carryout only (no real sit-down within easy reach), so hotel-delivery is the play. Place the order by 11:15 AM for an 11:45 drop — meal wraps at 12:30 PM exactly as the long nap begins. [Swapped from Baithakh sit-down so jet-lag Ishrat doesn't leave the hotel twice before the long nap.]"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/1/tag",
+        "value": "DINING"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/1/event",
+        "value": "Pizza Hut Delivery to Hotel"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/1/time",
+        "value": "11:45 AM"
+      },
+      {
+        "op": "add",
+        "path": "/days/1/events/5",
+        "value": {
+          "time": "8:00 PM",
+          "event": "Dessert at Crispy Cones",
+          "venue": "Wick Plaza, 1199 Amboy Ave, Edison, NJ 08837",
+          "tag": "DINING",
+          "phone": "(732) 744-0123",
+          "rating": 4.7,
+          "notes": "Walk over in the same plaza for Shark Tank-famous rotisserie dough cones with soft serve. Open till 11 PM. [Shifted from 7:30 PM so it starts after Pho House dinner ends at ~7:45 PM.]",
+          "category": "Ice Cream · Sweet Cones",
+          "duration_min": 30
+        }
+      }
+    ],
+    "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-ed0d0f4e-1710-4ceb-85e0-955d258c99c9.yaml",
+    "actor": "app",
+    "status": "applied"
   }
 ]
