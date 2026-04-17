@@ -113,13 +113,6 @@
           "rating": 4.5,
           "reviews": 1289,
           "notes": "South Asian sweets & dining (~10 min from hotel). She'll be on London time—midnight by 7 PM ET. Warm meal, then early night."
-        },
-        {
-          "time": "9:00 PM",
-          "event": "Test Entry (Dummy)",
-          "venue": "",
-          "tag": "TEST",
-          "notes": "This is a dummy entry added to confirm the editor is working. Safe to delete."
         }
       ]
     },

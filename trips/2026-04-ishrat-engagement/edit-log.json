@@ -28,5 +28,235 @@
     "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-2911131c-6fd5-4d62-bef6-6a8910aaef4b.yaml",
     "actor": "app",
     "status": "applied"
+  },
+  {
+    "schemaVersion": "1",
+    "id": "227eac76-4759-41bf-9ceb-89425f936beb",
+    "createdAt": "2026-04-17T00:09:41.401Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "Delete the Test Entry (Dummy) event from Day 1",
+    "patch": [
+      {
+        "op": "remove",
+        "path": "/days/0/events/3"
+      }
+    ],
+    "inversePatch": [
+      {
+        "op": "add",
+        "path": "/days/0/events/3",
+        "value": {
+          "time": "9:00 PM",
+          "event": "Test Entry (Dummy)",
+          "venue": "",
+          "tag": "TEST",
+          "notes": "This is a dummy entry added to confirm the editor is working. Safe to delete."
+        }
+      }
+    ],
+    "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-227eac76-4759-41bf-9ceb-89425f936beb.yaml",
+    "actor": "app",
+    "status": "applied"
+  },
+  {
+    "schemaVersion": "1",
+    "id": "cfaf22e7-9266-451d-97e2-3f843ec6a928",
+    "createdAt": "2026-04-17T00:16:12.891Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "Add a ~4:00 PM outdoor café/walk event on Day 2 between the Financial Advisor Meeting and dinner",
+    "patch": [
+      {
+        "op": "add",
+        "path": "/days/1/events/3",
+        "value": {
+          "time": "4:00 PM",
+          "event": "Afternoon Stroll & Coffee",
+          "venue": "Boyd Park, 625 River Rd, New Brunswick, NJ 08901",
+          "tag": "LEISURE",
+          "notes": "A relaxing post-meeting wind-down. Stroll along the Raritan River at Boyd Park — flat, scenic waterfront path. Grab a coffee or tea at Café 12 Ounce (112 Albany St, New Brunswick, ~5 min away) and sit outside if the weather's nice. Easy, unhurried, and a lovely way to decompress before dinner. Allow ~1.5 hours."
+        }
+      }
+    ],
+    "inversePatch": [
+      {
+        "op": "remove",
+        "path": "/days/1/events/5"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/4/notes",
+        "value": "Walk over in the same plaza for Shark Tank-famous rotisserie dough cones with soft serve. Open till 11 PM."
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/4/reviews",
+        "value": 231
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/4/rating",
+        "value": 4.7
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/4/phone",
+        "value": "(732) 744-0123"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/4/event",
+        "value": "Dessert at Crispy Cones"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/4/time",
+        "value": "7:30 PM"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/notes",
+        "value": "Vietnamese pho and rice plates (~15 min) — light and perfect for evening."
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/tag",
+        "value": "DINING"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/venue",
+        "value": "Wick Plaza, 1199 Amboy Ave, Edison, NJ 08837"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/event",
+        "value": "Dinner at The Pho House"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/time",
+        "value": "6:30 PM"
+      },
+      {
+        "op": "add",
+        "path": "/days/1/events/3/phone",
+        "value": "(732) 225-8889"
+      },
+      {
+        "op": "add",
+        "path": "/days/1/events/3/rating",
+        "value": 4.6
+      },
+      {
+        "op": "add",
+        "path": "/days/1/events/3/reviews",
+        "value": 912
+      }
+    ],
+    "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-cfaf22e7-9266-451d-97e2-3f843ec6a928.yaml",
+    "actor": "app",
+    "status": "applied"
+  },
+  {
+    "schemaVersion": "1",
+    "id": "6e34c1c5-0e12-4e44-a9bc-65e979f5bd47",
+    "createdAt": "2026-04-17T00:17:05.158Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "Remove the Afternoon Stroll & Coffee event from Day 2",
+    "patch": [
+      {
+        "op": "remove",
+        "path": "/days/1/events/3"
+      }
+    ],
+    "inversePatch": [
+      {
+        "op": "replace",
+        "path": "/days/1/events/4/notes",
+        "value": "Vietnamese pho and rice plates (~15 min) — light and perfect for evening."
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/4/reviews",
+        "value": 912
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/4/rating",
+        "value": 4.6
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/4/phone",
+        "value": "(732) 225-8889"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/4/event",
+        "value": "Dinner at The Pho House"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/4/time",
+        "value": "6:30 PM"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/notes",
+        "value": "A relaxing post-meeting wind-down. Stroll along the Raritan River at Boyd Park — flat, scenic waterfront path. Grab a coffee or tea at Café 12 Ounce (112 Albany St, New Brunswick, ~5 min away) and sit outside if the weather's nice. Easy, unhurried, and a lovely way to decompress before dinner. Allow ~1.5 hours."
+      },
+      {
+        "op": "remove",
+        "path": "/days/1/events/3/reviews"
+      },
+      {
+        "op": "remove",
+        "path": "/days/1/events/3/rating"
+      },
+      {
+        "op": "remove",
+        "path": "/days/1/events/3/phone"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/tag",
+        "value": "LEISURE"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/venue",
+        "value": "Boyd Park, 625 River Rd, New Brunswick, NJ 08901"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/event",
+        "value": "Afternoon Stroll & Coffee"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/time",
+        "value": "4:00 PM"
+      },
+      {
+        "op": "add",
+        "path": "/days/1/events/5",
+        "value": {
+          "time": "7:30 PM",
+          "event": "Dessert at Crispy Cones",
+          "venue": "Wick Plaza, 1199 Amboy Ave, Edison, NJ 08837",
+          "tag": "DINING",
+          "phone": "(732) 744-0123",
+          "rating": 4.7,
+          "reviews": 231,
+          "notes": "Walk over in the same plaza for Shark Tank-famous rotisserie dough cones with soft serve. Open till 11 PM."
+        }
+      }
+    ],
+    "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-6e34c1c5-0e12-4e44-a9bc-65e979f5bd47.yaml",
+    "actor": "app",
+    "status": "applied"
   }
 ]
