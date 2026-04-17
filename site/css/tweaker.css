@@ -70,8 +70,16 @@
 }
 
 /* ─── Hover highlight overlay ─── */
+/* Theme-aware multi-layer shadow: tight accent ring + soft outer glow that
+   contrasts against whichever theme is active. No solid border — just shadow. */
 #tweaker-hover-highlight {
-  box-shadow: 0 0 0 1px var(--bg-card-solid) inset, 0 0 24px color-mix(in srgb, var(--accent) 40%, transparent);
+  border: none !important;
+  background: color-mix(in srgb, var(--accent) 6%, transparent) !important;
+  box-shadow:
+    0 0 0 2px var(--accent),
+    0 0 0 6px color-mix(in srgb, var(--accent) 25%, transparent),
+    0 12px 48px -4px color-mix(in srgb, var(--accent) 45%, transparent),
+    0 4px 16px color-mix(in srgb, var(--contrast-dark) 35%, transparent);
 }
 
 /* ─── Inspector panel — fixed right-edge drawer, always visible in Tweak Mode ─── */
@@ -88,7 +96,13 @@
   background: var(--bg-2);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg), 0 0 0 1px var(--white-06) inset;
+  /* Multi-layer shadow: tight inset highlight + soft accent glow that
+     contrasts against the active theme's background. Theme-aware via --accent. */
+  box-shadow:
+    0 0 0 1px var(--white-06) inset,
+    0 20px 48px -8px color-mix(in srgb, var(--contrast-dark) 55%, transparent),
+    0 8px 24px -4px color-mix(in srgb, var(--accent) 28%, transparent),
+    0 2px 8px color-mix(in srgb, var(--contrast-dark) 30%, transparent);
   color: var(--text);
   animation: tweaker-slide-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
   font-family: var(--font-sans);
@@ -819,70 +833,82 @@ body[data-tweak-mode="on"] [data-tweak-chrome] * {
   cursor: grab;
 }
 
-/* ─── Box-model nested cross (margin → padding → content) ─── */
-.tweaker-box-model {
-  padding: var(--space-1);
-}
-.tweaker-box-ring {
+/* ─── Figma-style spacing widget (one per property: padding, margin) ─── */
+.tweaker-spacing {
   position: relative;
-  padding: 28px 52px;
-  border: 1px dashed var(--border-default);
-  border-radius: var(--radius-sm);
+  padding: var(--space-3);
   background: var(--white-04);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
 }
-.tweaker-box-margin {
+.tweaker-spacing-padding {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 28%, transparent);
+}
+.tweaker-spacing-margin {
   background: color-mix(in srgb, var(--warning) 7%, transparent);
   border-color: color-mix(in srgb, var(--warning) 28%, transparent);
 }
-.tweaker-box-padding {
-  background: color-mix(in srgb, var(--accent) 8%, transparent);
-  border-color: color-mix(in srgb, var(--accent) 32%, transparent);
-  padding: 24px 44px;
-}
-.tweaker-box-ring-label {
+.tweaker-spacing-link {
   position: absolute;
-  top: 4px; left: 8px;
+  top: 6px; right: 6px;
+  width: 22px; height: 22px;
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--text-muted);
-  background: var(--bg-2);
-  padding: 1px var(--space-1);
-  border-radius: var(--radius-xs);
-}
-.tweaker-box-link {
+  justify-content: center;
   background: transparent;
-  border: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-xs);
   color: var(--text-muted);
   cursor: pointer;
-  font-size: 0.72rem;
-  padding: 0;
-}
-.tweaker-box-link.on { color: var(--accent); }
-.tweaker-box-link:hover { color: var(--text); }
-
-.tweaker-box-ring .tweaker-scrub {
-  position: absolute;
-  min-width: 46px;
-  padding: 3px 4px;
   font-size: 0.68rem;
+  padding: 0;
+  transition: all var(--motion-fast);
 }
-.tweaker-box-ring .tweaker-box-top    { top: -13px; left: 50%; transform: translateX(-50%); }
-.tweaker-box-ring .tweaker-box-bottom { bottom: -13px; left: 50%; transform: translateX(-50%); }
-.tweaker-box-ring .tweaker-box-left   { left: -24px; top: 50%; transform: translateY(-50%); }
-.tweaker-box-ring .tweaker-box-right  { right: -24px; top: 50%; transform: translateY(-50%); }
-.tweaker-box-center {
-  display: block;
+.tweaker-spacing-link:hover {
+  color: var(--text);
+  background: var(--white-08);
+  border-color: var(--border-default);
+}
+.tweaker-spacing-link.on {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.tweaker-spacing-grid {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-rows: auto auto auto;
+  gap: var(--space-1) var(--space-2);
+  align-items: center;
+  justify-items: center;
+  max-width: 300px;
+  margin: 0 auto;
+}
+.tweaker-spacing-grid .cell-top    { grid-column: 2; grid-row: 1; }
+.tweaker-spacing-grid .cell-left   { grid-column: 1; grid-row: 2; }
+.tweaker-spacing-grid .cell-center { grid-column: 2; grid-row: 2; }
+.tweaker-spacing-grid .cell-right  { grid-column: 3; grid-row: 2; }
+.tweaker-spacing-grid .cell-bottom { grid-column: 2; grid-row: 3; }
+.tweaker-spacing-box {
+  width: 64px;
+  height: 44px;
+  background: color-mix(in srgb, var(--accent) 24%, transparent);
+  border: 1px dashed var(--accent);
+  border-radius: var(--radius-xs);
+}
+.tweaker-spacing-margin .tweaker-spacing-box {
+  background: color-mix(in srgb, var(--warning) 24%, transparent);
+  border-color: var(--warning);
+}
+.tweaker-spacing-grid .tweaker-scrub {
+  min-width: 58px;
+  max-width: 72px;
+  padding: 3px 5px;
+  font-size: 0.72rem;
+}
+.tweaker-spacing-grid .tweaker-scrub input {
   text-align: center;
-  padding: var(--space-2) 0;
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  letter-spacing: 0.08em;
 }
 
 /* ─── Radius live preview ─── */

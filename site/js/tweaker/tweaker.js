@@ -955,13 +955,25 @@
     });
 
     return h('div', { className: 'tweaker-tab-box' },
-      // Padding + margin nested cross
+      // Padding — Figma-style cross widget
       h('div', { className: 'tweaker-section' },
-        h('div', { className: 'tweaker-section-head' }, h('span', null, 'Spacing')),
-        h(BoxModelCross, {
-          marginTop: cs.marginTop, marginRight: cs.marginRight, marginBottom: cs.marginBottom, marginLeft: cs.marginLeft,
-          paddingTop: cs.paddingTop, paddingRight: cs.paddingRight, paddingBottom: cs.paddingBottom, paddingLeft: cs.paddingLeft,
-          onChange: (property, value) => emit(property, value),
+        h('div', { className: 'tweaker-section-head' }, h('span', null, 'Padding')),
+        h(SpacingEditor, {
+          kind: 'padding',
+          top: cs.paddingTop, right: cs.paddingRight, bottom: cs.paddingBottom, left: cs.paddingLeft,
+          onChangeSide: (side, v) => emit(`padding-${side}`, v),
+          onChangeAll: (v) => emit('padding', v),
+        })
+      ),
+
+      // Margin — separate widget
+      h('div', { className: 'tweaker-section' },
+        h('div', { className: 'tweaker-section-head' }, h('span', null, 'Margin')),
+        h(SpacingEditor, {
+          kind: 'margin',
+          top: cs.marginTop, right: cs.marginRight, bottom: cs.marginBottom, left: cs.marginLeft,
+          onChangeSide: (side, v) => emit(`margin-${side}`, v),
+          onChangeAll: (v) => emit('margin', v),
         })
       ),
 
@@ -980,52 +992,27 @@
     );
   }
 
-  function BoxModelCross({ marginTop, marginRight, marginBottom, marginLeft, paddingTop, paddingRight, paddingBottom, paddingLeft, onChange }) {
-    const [linkMargin, setLinkMargin] = useState(false);
-    const [linkPadding, setLinkPadding] = useState(false);
-
-    function onMargin(side, v) {
-      if (linkMargin) {
-        onChange('margin-top', v); onChange('margin-right', v); onChange('margin-bottom', v); onChange('margin-left', v);
-      } else onChange(`margin-${side}`, v);
-    }
-    function onPadding(side, v) {
-      if (linkPadding) {
-        onChange('padding-top', v); onChange('padding-right', v); onChange('padding-bottom', v); onChange('padding-left', v);
-      } else onChange(`padding-${side}`, v);
-    }
-
-    return h('div', { className: 'tweaker-box-model' },
-      // Outer ring: margin
-      h('div', { className: 'tweaker-box-ring tweaker-box-margin' },
-        h('span', { className: 'tweaker-box-ring-label' }, 'margin',
-          h('button', {
-            className: 'tweaker-box-link' + (linkMargin ? ' on' : ''),
-            onClick: () => setLinkMargin((v) => !v),
-            title: 'Link all 4 sides',
-          }, h('i', { className: 'fa-solid fa-link' }))
-        ),
-        h(ScrubbableInput, { className: 'tweaker-box-top',    value: marginTop,    onChange: (v) => onMargin('top', v) }),
-        h(ScrubbableInput, { className: 'tweaker-box-right',  value: marginRight,  onChange: (v) => onMargin('right', v) }),
-        h(ScrubbableInput, { className: 'tweaker-box-bottom', value: marginBottom, onChange: (v) => onMargin('bottom', v) }),
-        h(ScrubbableInput, { className: 'tweaker-box-left',   value: marginLeft,   onChange: (v) => onMargin('left', v) }),
-
-        // Inner ring: padding
-        h('div', { className: 'tweaker-box-ring tweaker-box-padding' },
-          h('span', { className: 'tweaker-box-ring-label' }, 'padding',
-            h('button', {
-              className: 'tweaker-box-link' + (linkPadding ? ' on' : ''),
-              onClick: () => setLinkPadding((v) => !v),
-              title: 'Link all 4 sides',
-            }, h('i', { className: 'fa-solid fa-link' }))
-          ),
-          h(ScrubbableInput, { className: 'tweaker-box-top',    value: paddingTop,    onChange: (v) => onPadding('top', v) }),
-          h(ScrubbableInput, { className: 'tweaker-box-right',  value: paddingRight,  onChange: (v) => onPadding('right', v) }),
-          h(ScrubbableInput, { className: 'tweaker-box-bottom', value: paddingBottom, onChange: (v) => onPadding('bottom', v) }),
-          h(ScrubbableInput, { className: 'tweaker-box-left',   value: paddingLeft,   onChange: (v) => onPadding('left', v) }),
-          h('span', { className: 'tweaker-box-center' }, 'content'),
-        )
-      )
+  // Figma-style cross: 5-cell grid (top, left, center, right, bottom) with a
+  // link toggle. Single widget per property (padding OR margin — not nested).
+  function SpacingEditor({ kind, top, right, bottom, left, onChangeSide, onChangeAll }) {
+    const [linked, setLinked] = useState(false);
+    const commit = (side, v) => {
+      if (linked) onChangeAll(v);
+      else onChangeSide(side, v);
+    };
+    return h('div', { className: 'tweaker-spacing tweaker-spacing-' + kind },
+      h('button', {
+        className: 'tweaker-spacing-link' + (linked ? ' on' : ''),
+        onClick: () => setLinked((v) => !v),
+        title: linked ? 'Unlink sides' : 'Link all 4 sides',
+      }, h('i', { className: 'fa-solid ' + (linked ? 'fa-link' : 'fa-link-slash') })),
+      h('div', { className: 'tweaker-spacing-grid' },
+        h('div', { className: 'cell cell-top' },    h(ScrubbableInput, { value: top,    onChange: (v) => commit('top', v) })),
+        h('div', { className: 'cell cell-left' },   h(ScrubbableInput, { value: left,   onChange: (v) => commit('left', v) })),
+        h('div', { className: 'cell cell-center' }, h('div', { className: 'tweaker-spacing-box' })),
+        h('div', { className: 'cell cell-right' },  h(ScrubbableInput, { value: right,  onChange: (v) => commit('right', v) })),
+        h('div', { className: 'cell cell-bottom' }, h(ScrubbableInput, { value: bottom, onChange: (v) => commit('bottom', v) })),
+      ),
     );
   }
 
@@ -1273,8 +1260,9 @@
     const pickerRef = useRef(null);
     const activeThemeRef = useRef(activeThemeInfo());
 
-    // On mount: snapshot baseline tokens, restore session, auto-activate if the
-    // URL carries ?tweak=1 or a prior session is still live.
+    // On mount: snapshot baseline tokens and restore any pending-changes session
+    // (so partial edits survive reload). Never auto-activate Tweak Mode — the
+    // user always starts in normal reading mode and must explicitly click Tweak.
     useEffect(() => {
       setBaselineTokens(paletteSnapshot());
       const s = loadSession();
@@ -1283,16 +1271,6 @@
         setUndoStack(s.undoStack || []);
         setRedoStack(s.redoStack || []);
       }
-      try {
-        const url = new URL(window.location.href);
-        const autoActivate =
-          url.searchParams.get('tweak') === '1' ||
-          localStorage.getItem(CFG.modeKey) === 'on';
-        if (autoActivate) {
-          localStorage.setItem(CFG.modeKey, 'on');
-          loadLibs().then(() => setActive(true));
-        }
-      } catch {}
     }, []);
 
     // Find or create the nav mount point (a span next to the theme-switcher).
