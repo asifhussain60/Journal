@@ -79,8 +79,8 @@
   position: fixed;
   right: 1.5rem;
   bottom: 1.5rem;
-  width: 420px;
-  height: 600px;
+  width: 480px;
+  height: 740px;
   max-height: calc(100vh - 3rem);
   max-width: calc(100vw - 3rem);
   z-index: 9000;
@@ -378,28 +378,38 @@
 }
 
 /* ─── Quick-action chips ────────────────────────────────────────────────── */
+/* Single horizontal row — each chip shares the available width equally so the
+ * toolbar reads as one crisp strip, not a 2x2 grid. Overflow scrolls if the
+ * label count grows beyond what fits. */
 .fc-chips {
   display: flex;
   gap: 0.4rem;
-  flex-wrap: wrap;
-  padding: 0.5rem 1rem;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding: 0.55rem 0.85rem;
   border-top: 1px solid var(--fc-plum-100);
   background: var(--fc-cream);
+  scrollbar-width: none;
 }
+.fc-chips::-webkit-scrollbar { display: none; }
 
 .fc-chip {
-  padding: 0.35rem 0.8rem;
-  border-radius: 999px;
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0.45rem 0.6rem;
+  border-radius: 0.5rem;
   border: 1px solid var(--fc-plum-200);
   background: var(--fc-plum-50);
   color: var(--fc-plum-800);
   font-family: var(--fc-body);
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   cursor: pointer;
   transition: all 0.2s;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-weight: 500;
-  flex-shrink: 0;
+  text-align: center;
 }
 
 .fc-chip:hover {

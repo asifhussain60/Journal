@@ -96,11 +96,11 @@
       chipsContainer.id = 'fc-chips-container';
       const chips = [
         {
-          label: "What's next today?",
+          label: "What's next?",
           message: "What's next today?",
         },
         {
-          label: "Fill Gaps",
+          label: "Fill gaps",
           message:
             "Scan my trip day by day. Find every time gap of 90 minutes or more " +
             "between consecutive events. For each gap, propose 1–2 activities " +
@@ -113,11 +113,11 @@
             "Format as a per-day bulleted list.",
         },
         {
-          label: "Summarize this trip",
+          label: "Summarize",
           message: "Summarize this trip",
         },
         {
-          label: "Edit itinerary",
+          label: "Edit",
           message: "Edit itinerary",
         },
       ];
