@@ -15,7 +15,7 @@ Sustainable enforcement for the token-driven theme system at `site/css/themes/`.
 - Preflight for any commit that touches `site/css/` or `site/js/theme-switcher.js`.
 - User explicitly asks: "validate themes", "theme parity", "css-theme-sync", "why is my theme not switching".
 
-## The 6 checks
+## The 8 checks
 
 The underlying validator is [server/scripts/validate-theme-parity.mjs](../../server/scripts/validate-theme-parity.mjs), invoked via `cd server && npm run validate-themes`.
 
@@ -23,13 +23,23 @@ The underlying validator is [server/scripts/validate-theme-parity.mjs](../../ser
 |---|---|---|
 | 1 | Token parity — every theme file declares every token in base (`theme.css`). | Blocker — missing tokens break theme swap. |
 | 2 | Hex literals in enforced component CSS outside fallback chains / intentional whitelist. | Blocker — hex bypasses the theme system. |
-| 3 | Palette rgba in enforced component CSS — `rgba(r,g,b,a)` where `r,g,b` matches any theme palette hex. | Blocker — same class as #2 but via rgba. |
-| 4 | Token reference validity — every `var(--token)` in components resolves to a declaration in `theme.css`. | Blocker — undefined tokens silently render as initial values. |
-| 5 | HTML hygiene — zero `<style>` blocks, zero `style="…"` attrs with color/bg hex/rgba in the 3 theme-consuming HTML files. | Blocker — inline styles bypass the theme link. |
-| 6 | Switcher consistency — every `theme-*.css` on disk is registered in `site/js/theme-switcher.js`; every registered theme has a file. | Warning — missing entries silently break selection. |
+| 3 | Palette rgba in enforced component CSS — `rgba(r,g,b,a)` where `r,g,b` matches any theme palette hex. | Blocker — same class as #2 via rgba. |
+| 4 | Token reference validity — every `var(--token)` resolves against declared tokens (aggregated from all CSS) + auto-discovered dynamic tokens. | Blocker — undefined tokens silently render as initial values. |
+| 5 | HTML hygiene — zero `<style>` blocks, zero `style="…"` HTML attrs with hex/rgba, zero JSX `style={{…}}` with hex/rgba literals inside `<script type="text/babel">` blocks. | Blocker — inline styles bypass the theme link. |
+| 6 | Switcher consistency — every `theme-*.css` on disk is registered in `site/js/theme-switcher.js`; every registered theme has a file on disk. | Blocker — missing entries silently break selection. |
+| 7 | Font parity — for every `--font-*` stack in every theme, the first non-system family must be loaded in every theme-consuming HTML's `<link>` Google Fonts URL. | Blocker — themes silently fall back to generic fonts otherwise. |
+| 8 | Switcher swatch parity — every hex in `THEMES[n].swatches` must be declared somewhere in the corresponding theme file. | Warning — stale swatches mislead the dropdown preview. |
 
-Enforced component files: `app.css`, `itinerary.css`, `ai-drawer.css`, `theme-switcher.css`.
-Advisory files (scanned for reference validity only): `base.css`, `floating-chat.css` (has its own scoped `--fc-*` palette — by design).
+**Enforced component CSS**: all `site/css/*.css` EXCEPT `floating-chat.css` (deliberately scoped `--fc-*` palette) and `base.css` (architectural :root defaults). New CSS files added to `site/css/` are automatically enforced without config changes.
+
+**HTML scope**: recursive scan of `site/**/*.html` + `trips/**/*.html`, filtered to files that link a theme stylesheet (`id="theme-stylesheet"` or `themes/theme*.css`). New views are automatically picked up.
+
+**Dynamic tokens**: auto-discovered by scanning `site/js/**`, component CSS, and the HTML file set for these patterns:
+- HTML inline: `style="--name: …"`
+- JSX: `style={{ '--name': … }}`
+- Imperative: `element.style.setProperty('--name', …)`
+
+The whitelist auto-expands, so new inline-injected tokens don't false-positive check 4.
 
 ## Mapping tables — authoritative
 
@@ -143,7 +153,40 @@ When invoked with "go" / "apply" / "fix" as a follow-up after the skill reports 
 
 ## Scope boundaries
 
-- Never touch `chapters/`, `reference/`, memoir files, or anything outside `site/css/`, `site/js/theme-switcher.js`, `site/*.html`, `site/itineraries/*.html`, `trips/*/itinerary.html`, `server/scripts/validate-theme-parity.mjs`, and its own skill directory.
+- Never touch `chapters/`, `reference/`, memoir files, or anything outside `site/css/`, `site/js/theme-switcher.js`, `site/**/*.html`, `trips/**/*.html`, `server/scripts/validate-theme-parity.mjs`, and its own skill directory.
 - Never modify `floating-chat.css`'s `--fc-*` scoped palette.
 - Never modify a theme file's hex palette values without a user confirmation (the palette is the theme's identity).
 - Never remove tokens from `theme.css` — tokens are additive across phases.
+
+## Sub-command: `new-theme <name> [--dark|--light] [--swatches="#c1,#c2,#c3,#c4"]`
+
+Scaffolds a new theme end-to-end so the user can't forget a step:
+
+1. Copy `site/css/themes/theme.css` (for dark) or `site/css/themes/theme-daylight.css` (for light) → `site/css/themes/theme-<slug>.css`.
+2. If `--swatches` given, patch the appropriate palette tokens (`--bg`, `--accent`, `--rose`, `--gold`) with the provided hex values; otherwise leave the copied theme unchanged and prompt user to edit manually.
+3. Append an entry to the `THEMES` array in [site/js/theme-switcher.js](../../site/js/theme-switcher.js) with id = slug, name = title-cased, category = dark|light, swatches = the 4 values used.
+4. For each HTML file that consumes the theme system (recursive `site/**/*.html` + `trips/**/*.html` filtered by theme-stylesheet link), parse any new `--font-*` custom font names from the scaffolded theme file and append missing families to the Google Fonts `<link>` URL.
+5. Run `npm run validate-themes`. If it fails, surface the specific violations and offer to auto-fix where deterministic.
+
+## Sub-command: `propagate-token <token-name> [value-spec]`
+
+When a new token is added to `theme.css` but not the other 8 themes, check 1 fails. This sub-command closes the gap:
+
+1. Read the token's value from `theme.css`.
+2. Classify: is it an alias (`var(--other)`), a scalar value (`9999px`, `150ms ease-out`), or a palette color (`#hex`)?
+3. For aliases and scalars: copy the exact declaration to every other theme file at a consistent insertion point (below the `--contrast-dark` block).
+4. For palette colors: prompt the user for per-theme values (or accept a uniform value via `value-spec`). Never silently copy a dark-theme color into a light theme or vice versa.
+5. Re-run the validator.
+
+## Color-mix browser support
+
+Many auto-fixes produce `color-mix(in srgb, …)` expressions. Supported in:
+- Chrome 111+ (Mar 2023)
+- Safari 16.2+ (Dec 2022)
+- Firefox 113+ (May 2023)
+
+Phase 1 env matrix locks the target to macOS + Chrome, so this is safe. If the target ever expands, revisit — older browsers render `color-mix()` as invalid CSS and skip the declaration (no runtime crash, just missing styling).
+
+## Pre-commit enforcement
+
+A hook at `.git/hooks/pre-commit` (installed via `scripts/install-git-hooks.sh`) runs `npm run validate-themes` automatically when any staged file matches `site/css/**`, `site/js/theme-switcher.js`, `site/**/*.html`, or `trips/**/*.html`. Commits with theme parity violations are blocked. Bypass in emergencies with `git commit --no-verify` (not recommended).

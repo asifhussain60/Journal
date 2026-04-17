@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# pre-commit hook — theme parity enforcement.
+#
+# Runs `cd server && npm run validate-themes` when any staged file matches:
+#   site/css/**
+#   site/js/theme-switcher.js
+#   site/**/*.html
+#   trips/**/*.html
+#
+# Exit 1 blocks the commit. Bypass with --no-verify (not recommended).
+# Install via: scripts/install-git-hooks.sh
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+# Collect staged files (added/copied/modified) for this commit.
+STAGED="$(git diff --cached --name-only --diff-filter=ACM || true)"
+
+if [ -z "$STAGED" ]; then
+  exit 0
+fi
+
+# Match theme-relevant paths.
+RELEVANT="$(printf '%s\n' "$STAGED" | grep -E '^(site/css/|site/js/theme-switcher\.js|site/.*\.html$|trips/.*\.html$)' || true)"
+
+if [ -z "$RELEVANT" ]; then
+  exit 0
+fi
+
+echo "[pre-commit] Theme-relevant files staged:"
+printf '  %s\n' $RELEVANT
+echo "[pre-commit] Running validate-themes..."
+
+LOG="$(mktemp)"
+if ! (cd server && npm run --silent validate-themes) > "$LOG" 2>&1; then
+  cat "$LOG"
+  rm -f "$LOG"
+  echo ""
+  echo "[pre-commit] ✗ Theme parity check failed. Fix the violations above, or run:"
+  echo "    cd server && npm run validate-themes"
+  echo ""
+  echo "To bypass in an emergency (not recommended):  git commit --no-verify"
+  exit 1
+fi
+
+rm -f "$LOG"
+echo "[pre-commit] ✓ Theme parity OK."
+exit 0
