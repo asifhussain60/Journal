@@ -5,11 +5,11 @@
    Lavender theme tokens. Consumed by app.css,
    floating-chat.css, ai-drawer.css via CSS vars.
 
-   Activation: <html data-theme="lavender">
+   Activation: <html data-theme="lavender-romance">
    Future theme swap = change this file reference.
    ═══════════════════════════════════════════════════ */
 
-[data-theme="lavender"] {
+[data-theme="lavender-romance"] {
   /* ─── Surfaces ─── */
   --bg-primary: #FAF7FC;
   --bg-secondary: #F5F0FA;
@@ -98,7 +98,7 @@
 }
 
 /* ─── Body ─── */
-[data-theme="lavender"] body {
+[data-theme="lavender-romance"] body {
   font-family: var(--font-sans);
   background-color: var(--bg-primary);
   background-image:
