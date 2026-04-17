@@ -1262,7 +1262,14 @@
           parts.push('          <div class="event-summary-meta">' + summaryPills.join('') + '</div>');
         }
         parts.push('        </div>');
-        parts.push('        <i class="event-caret fa-solid fa-chevron-down" aria-hidden="true"></i>');
+        // Action slot — delete + caret. Delete bails out of the accordion
+        // toggle via stopPropagation (same pattern as tel: links and the
+        // alt-find button) so clicking trash doesn't also expand the card.
+        var delLabel = String(ev.event || '').replace(/'/g, "\\'");
+        parts.push('        <div class="event-actions">');
+        parts.push('          <button type="button" class="event-delete-btn" aria-label="Delete this stop" title="Delete this stop" onclick="event.stopPropagation(); requestDeleteEvent(' + dayIdx + ',' + eventIdx + ',\'' + escHtml(delLabel) + '\')"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>');
+        parts.push('          <i class="event-caret fa-solid fa-chevron-down" aria-hidden="true"></i>');
+        parts.push('        </div>');
         parts.push('      </div>');
 
         // ── Collapsible body — grid-template-rows 0fr→1fr animates height. ──
@@ -1879,6 +1886,106 @@
           });
       }
       window.__refreshItinerary = refreshItinerary;
+      // ─── Delete-event confirmation modal ─────────────────────────────
+      // Opens a styled confirm dialog; on confirm calls /api/delete-event
+      // and re-renders. Cancel just closes. Single singleton DOM node —
+      // re-used across calls. All state flows through delModalCtx so the
+      // confirm handler knows what to POST.
+      var delModalCtx = null;
+      var delModal = null;
+
+      function buildDeleteModal() {
+        var m = document.createElement('div');
+        m.id = 'del-modal';
+        m.className = 'del-modal';
+        m.hidden = true;
+        m.innerHTML =
+          '<div class="del-modal-backdrop"></div>' +
+          '<div class="del-modal-panel" role="alertdialog" aria-modal="true" aria-labelledby="del-modal-title" aria-describedby="del-modal-msg">' +
+          '  <div class="del-modal-icon" aria-hidden="true">' +
+          '    <i class="fa-solid fa-trash-can"></i>' +
+          '  </div>' +
+          '  <h3 class="del-modal-title" id="del-modal-title">Delete this stop?</h3>' +
+          '  <p class="del-modal-msg" id="del-modal-msg">' +
+          '    You\u2019re about to remove <span class="del-modal-target"></span> from the itinerary. This change can be reverted from the edit log if needed.' +
+          '  </p>' +
+          '  <div class="del-modal-actions">' +
+          '    <button type="button" class="del-modal-btn del-modal-btn--cancel">Keep it</button>' +
+          '    <button type="button" class="del-modal-btn del-modal-btn--confirm"><i class="fa-solid fa-trash-can" aria-hidden="true"></i>Delete</button>' +
+          '  </div>' +
+          '</div>';
+        document.body.appendChild(m);
+        m.querySelector('.del-modal-backdrop').addEventListener('click', closeDeleteModal);
+        m.querySelector('.del-modal-btn--cancel').addEventListener('click', closeDeleteModal);
+        m.querySelector('.del-modal-btn--confirm').addEventListener('click', confirmDelete);
+        document.addEventListener('keydown', function(e) {
+          if (m.hidden) return;
+          if (e.key === 'Escape') closeDeleteModal();
+          else if (e.key === 'Enter') confirmDelete();
+        });
+        return m;
+      }
+
+      function openDeleteModal(ctx) {
+        delModalCtx = ctx;
+        if (!delModal) delModal = buildDeleteModal();
+        var targetEl = delModal.querySelector('.del-modal-target');
+        targetEl.textContent = '\u201c' + (ctx.eventName || 'this stop') + '\u201d';
+        delModal.hidden = false;
+        delModal.classList.remove('is-pending');
+        // Focus the cancel button by default — safest affordance for a
+        // destructive action.
+        setTimeout(function() {
+          var btn = delModal.querySelector('.del-modal-btn--cancel');
+          if (btn) btn.focus();
+        }, 50);
+      }
+
+      function closeDeleteModal() {
+        if (!delModal) return;
+        delModal.hidden = true;
+        delModal.classList.remove('is-pending');
+        delModalCtx = null;
+      }
+
+      function confirmDelete() {
+        if (!delModalCtx || !delModal) return;
+        if (delModal.classList.contains('is-pending')) return; // already in flight
+        var ctx = delModalCtx;
+        delModal.classList.add('is-pending');
+        fetch(API_BASE + '/api/delete-event', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tripSlug: SLUG,
+            dayIndex: ctx.dayIdx,
+            eventIndex: ctx.eventIdx,
+            eventName: ctx.eventName || '',
+          }),
+        })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (!data.ok) throw new Error(data.error || 'Delete failed');
+            closeDeleteModal();
+            if (window.notify && typeof window.notify.success === 'function') {
+              window.notify.success('Removed \u201c' + (ctx.eventName || 'stop') + '\u201d from the itinerary');
+            }
+            refreshItinerary();
+          })
+          .catch(function(err) {
+            console.warn('[DELETE-EVENT]', err);
+            delModal.classList.remove('is-pending');
+            if (window.notify && typeof window.notify.error === 'function') {
+              window.notify.error('Couldn\u2019t delete: ' + (err.message || String(err)));
+            }
+          });
+      }
+
+      function requestDeleteEvent(dayIdx, eventIdx, eventName) {
+        openDeleteModal({ dayIdx: dayIdx, eventIdx: eventIdx, eventName: eventName });
+      }
+      window.requestDeleteEvent = requestDeleteEvent;
+
       // Expose findAlternate to the global scope so inline onclick handlers
       // on the generated .alt-find-btn buttons can reach it. Everything else
       // in this IIFE is internal.

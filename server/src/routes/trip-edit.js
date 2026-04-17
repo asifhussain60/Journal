@@ -247,6 +247,33 @@ export function createTripEditRouter({ anthropic, DEFAULT_MODEL }) {
   //     strings into the log.
   // Builds a deterministic JSON Patch and applies via applyTripEdit so the
   // destination-card standard validator still runs.
+  // Delete a single event from a day. Deterministic JSON-Patch `remove` op
+  // applied via applyTripEdit so the snapshot / edit-log machinery mirrors
+  // what swap-event produces (i.e. invertible, auditable).
+  router.post("/api/delete-event", async (req, res) => {
+    const { tripSlug, dayIndex, eventIndex, eventName } = req.body ?? {};
+    if (!Number.isInteger(dayIndex) || !Number.isInteger(eventIndex)) {
+      return res.status(400).json({ ok: false, error: "dayIndex and eventIndex (integers) are required" });
+    }
+    try {
+      const slug = tripSlug || (await getActiveTripSlug());
+      const label = typeof eventName === "string" && eventName.trim() ? eventName.trim() : `event ${dayIndex + 1}.${eventIndex + 1}`;
+      const patch = [{ op: "remove", path: `/days/${dayIndex}/events/${eventIndex}` }];
+      const applied = await applyTripEdit(slug, {
+        intent: `Delete ${label} from day ${dayIndex + 1}`,
+        patch,
+      });
+      if (!applied.ok) {
+        shadow("edit-log", { id: applied.id || `del-fail-${Date.now()}`, tripSlug: slug, intent: "delete-event", source: "manual-delete", appliedPatch: patch, status: "failed", error: applied.error });
+        return res.status(400).json({ ok: false, error: applied.error, errors: applied.errors });
+      }
+      shadow("edit-log", { id: applied.id, tripSlug: slug, intent: "delete-event", source: "manual-delete", appliedPatch: patch, status: "applied", snapshotId: applied.snapshotId });
+      res.json({ ok: true, tripSlug: slug, ...applied });
+    } catch (err) {
+      res.status(502).json({ ok: false, error: err?.message ?? String(err) });
+    }
+  });
+
   router.post("/api/swap-event", async (req, res) => {
     const { tripSlug, dayIndex, eventIndex, replacement, source } = req.body ?? {};
     if (!Number.isInteger(dayIndex) || !Number.isInteger(eventIndex)) {

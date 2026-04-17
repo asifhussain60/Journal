@@ -833,7 +833,6 @@ html{scroll-behavior:smooth}
 }
 .event-caret{
   flex:0 0 auto;
-  margin-top:.35rem;
   width:22px;height:22px;
   display:grid;place-items:center;
   border-radius:50%;
@@ -852,6 +851,188 @@ html{scroll-behavior:smooth}
   opacity:1;
   color:var(--rose);
   background:color-mix(in srgb, var(--rose) 16%, transparent);
+}
+
+/* Action cluster — trash button + caret, grouped on the summary's right.
+   The trash is purposely low-contrast at rest to avoid pulling the eye
+   from the title; it heats up on hover to red so the destructive intent
+   is unambiguous. */
+.event-actions{
+  flex:0 0 auto;
+  display:flex;
+  align-items:center;
+  gap:.35rem;
+  margin-top:.2rem;
+}
+.event-delete-btn{
+  display:grid;
+  place-items:center;
+  width:26px;
+  height:26px;
+  border-radius:50%;
+  border:1px solid transparent;
+  background:transparent;
+  color:var(--muted);
+  font-size:.72rem;
+  cursor:pointer;
+  opacity:.42;
+  transition:
+    opacity .18s ease,
+    color .18s ease,
+    background-color .18s ease,
+    border-color .18s ease,
+    transform .18s ease;
+}
+.event-card:hover .event-delete-btn{ opacity:.78; }
+.event-delete-btn:hover,
+.event-delete-btn:focus-visible{
+  opacity:1;
+  color:var(--error);
+  background:color-mix(in srgb, var(--error) 14%, transparent);
+  border-color:color-mix(in srgb, var(--error) 45%, transparent);
+  transform:scale(1.06);
+  outline:none;
+}
+
+/* ── Delete confirmation modal ────────────────────────────────────── */
+.del-modal{
+  position:fixed;
+  inset:0;
+  z-index:2200;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  animation:del-fade-in .18s ease;
+}
+.del-modal[hidden]{ display:none; }
+@keyframes del-fade-in{ from{ opacity:0; } to{ opacity:1; } }
+.del-modal-backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(18,12,30,.72);
+  backdrop-filter:blur(7px);
+  -webkit-backdrop-filter:blur(7px);
+}
+.del-modal-panel{
+  position:relative;
+  width:min(420px, calc(100vw - 2rem));
+  padding:2rem 1.75rem 1.5rem;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  background:
+    radial-gradient(ellipse at top,
+      color-mix(in srgb, var(--error) 10%, transparent) 0%,
+      transparent 60%),
+    linear-gradient(180deg, var(--bg-tertiary) 0%, var(--bg) 100%);
+  border:1px solid var(--white-10);
+  border-radius:18px;
+  box-shadow:
+    0 40px 80px rgba(0,0,0,.6),
+    0 12px 28px var(--shadow-a35),
+    inset 0 1px 0 0 var(--white-05);
+  animation:del-rise .28s cubic-bezier(.34,1.4,.64,1);
+}
+@keyframes del-rise{
+  from{ opacity:0; transform:translateY(14px) scale(.96); }
+  to  { opacity:1; transform:translateY(0) scale(1); }
+}
+.del-modal-icon{
+  display:grid;
+  place-items:center;
+  width:58px;
+  height:58px;
+  border-radius:50%;
+  background:color-mix(in srgb, var(--error) 18%, transparent);
+  border:1px solid color-mix(in srgb, var(--error) 42%, transparent);
+  color:var(--error);
+  font-size:1.3rem;
+  margin-bottom:1rem;
+  animation:del-icon-pulse 2.2s ease-in-out infinite;
+}
+@keyframes del-icon-pulse{
+  0%,100%{ box-shadow:0 0 0 0 color-mix(in srgb, var(--error) 0%, transparent); }
+  50%    { box-shadow:0 0 0 6px color-mix(in srgb, var(--error) 16%, transparent); }
+}
+.del-modal-title{
+  margin:0 0 .5rem;
+  font-family:"Cormorant Garamond",serif;
+  font-size:1.6rem;
+  font-weight:500;
+  color:var(--text);
+  letter-spacing:.005em;
+}
+.del-modal-msg{
+  margin:0 0 1.3rem;
+  font-size:.9rem;
+  line-height:1.5;
+  color:var(--muted);
+  max-width:32ch;
+}
+.del-modal-target{
+  color:var(--text);
+  font-weight:500;
+  font-style:italic;
+}
+.del-modal-actions{
+  display:flex;
+  gap:.6rem;
+  width:100%;
+  justify-content:center;
+}
+.del-modal-btn{
+  flex:1 1 0;
+  max-width:160px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:.4rem;
+  padding:.65rem 1.1rem;
+  border-radius:10px;
+  font-size:.9rem;
+  font-weight:500;
+  letter-spacing:.01em;
+  cursor:pointer;
+  transition:
+    background-color .18s ease,
+    border-color .18s ease,
+    transform .18s ease,
+    opacity .18s ease;
+}
+.del-modal-btn:focus-visible{ outline:2px solid var(--rose-2); outline-offset:2px; }
+.del-modal-btn--cancel{
+  background:var(--white-05);
+  border:1px solid var(--white-12);
+  color:var(--text);
+}
+.del-modal-btn--cancel:hover{
+  background:var(--white-08);
+  border-color:var(--white-18);
+}
+.del-modal-btn--confirm{
+  background:color-mix(in srgb, var(--error) 75%, transparent);
+  border:1px solid var(--error);
+  color:var(--text);
+  font-weight:600;
+  box-shadow:0 4px 14px color-mix(in srgb, var(--error) 28%, transparent);
+}
+.del-modal-btn--confirm:hover{
+  background:var(--error);
+  transform:translateY(-1px);
+  box-shadow:0 6px 18px color-mix(in srgb, var(--error) 42%, transparent);
+}
+.del-modal.is-pending .del-modal-btn--confirm{
+  opacity:.65;
+  cursor:wait;
+  pointer-events:none;
+}
+.del-modal.is-pending .del-modal-btn--confirm i{
+  animation:del-spin 1s linear infinite;
+}
+@keyframes del-spin{
+  from{ transform:rotate(0deg); }
+  to  { transform:rotate(360deg); }
 }
 
 /* Collapsible body — grid trick smoothly animates 0 → intrinsic height. */
