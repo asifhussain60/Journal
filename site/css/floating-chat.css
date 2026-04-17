@@ -128,6 +128,10 @@
   color: var(--fc-plum-50);
   border-bottom: 1px solid var(--fc-plum-700);
 }
+.fc-header-actions {
+  display: flex;
+  gap: 0.25rem;
+}
 
 .fc-header-title {
   display: inline-flex;

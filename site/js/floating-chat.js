@@ -70,7 +70,7 @@
           </svg>
           <span>Trip Assistant</span>
         </div>
-        <div style="display: flex; gap: 0.25rem;">
+        <div class="fc-header-actions">
           <button class="fc-header-btn fc-minimize" aria-label="Minimize">−</button>
           <button class="fc-header-btn fc-close" aria-label="Close">✕</button>
         </div>
