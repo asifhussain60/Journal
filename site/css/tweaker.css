@@ -896,15 +896,53 @@ body[data-tweak-mode="on"] [data-tweak-chrome] * {
   box-shadow: inset 0 0 0 1px var(--white-08);
 }
 
+/* ─── Picker-header tool cluster (eye-dropper + format painter) ──────
+   Right-aligned group in the "Editing — Background" section head. The
+   wrapper owns the `margin-left: auto` so every tool sits flush with
+   the painter without each button needing its own alignment rule.
+*/
+.tweaker-section-head-tools {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* ─── Eye-dropper button (sibling of format painter) ─────────────── */
+.tweaker-dropper-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px; height: 26px;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  background: var(--white-04);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color var(--motion-fast), background var(--motion-fast),
+              border-color var(--motion-fast);
+}
+.tweaker-dropper-btn:hover {
+  color: var(--accent);
+  background: var(--white-08);
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border-default));
+}
+.tweaker-dropper-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
 /* ─── Format-painter brush button (Word/Excel-style) ─────────────────
-   Lives in the picker section header. Single-click = one-shot; double
-   click = sticky. Pulsing glow when active, with a pin badge when sticky.
-   Follows Word/Excel convention: the button is the only UI affordance —
-   feedback comes from the cursor change on <body> and from toast notes.
+   Lives in the picker section header tools cluster. Single-click =
+   one-shot; double-click = sticky. Pulsing glow when active, with a
+   pin badge when sticky. Follows Word/Excel convention: the button is
+   the only UI affordance — feedback comes from the cursor change on
+   <body> and from toast notes.
 */
 .tweaker-painter-btn {
   position: relative;
-  margin-left: auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;

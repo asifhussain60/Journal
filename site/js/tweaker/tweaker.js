@@ -639,6 +639,7 @@
         swatches.map((s, i) =>
           h('button', {
             key: i,
+            type: 'button',
             className: 'tweaker-swatch',
             style: { background: s.hex, color: contrastRatio('#ffffff', s.hex) > 3 ? '#fff' : '#000' },
             title: s.rationale + (s.contrastAA ? ' (AA ✓)' : ''),
@@ -735,7 +736,7 @@
           h('i', { className: 'fa-regular fa-square' }), ' Box'),
       ),
       h('div', { className: 'tweaker-body' },
-        tab === 'colors' && h(ColorsTab, { selection, scope, tokens, onEdit, painter }),
+        tab === 'colors' && h(ColorsTab, { selection, scope, tokens, onEdit, painter, pendingChanges }),
         tab === 'type' && h(TypeTab, { selection, scope, tokens, onEdit }),
         tab === 'box' && h(BoxTab, { selection, scope, tokens, onEdit }),
       ),
@@ -806,6 +807,7 @@
       h('div', { className: 'tweaker-swatch-grid' },
         featured.map((t) => h('button', {
           key: t.name,
+          type: 'button',
           className: 'tweaker-palette-chip',
           style: { background: t.value },
           title: `${t.name}  ${t.value}`,
@@ -1012,20 +1014,33 @@
     );
   }
 
-  function ColorsTab({ selection, scope, tokens, onEdit, painter }) {
+  function ColorsTab({ selection, scope, tokens, onEdit, painter, pendingChanges = [] }) {
     const [activeId, setActiveId] = useState('bg');
 
-    // Resolve current values from the element's computed style + any token match.
-    // When there's no selection, rows are empty — swatch grid still works for
-    // the user to preview-apply to the whole theme later (disabled state).
+    // Resolve current values from the element's computed style + any token
+    // match, then layer pending (not-yet-saved) edits on top so the pad,
+    // cards, and hex read-outs reflect the live preview immediately.
+    // Without this, eye-dropper / palette-chip / painter edits apply to the
+    // page but the picker cursor stays pinned to the pre-edit colour.
     const rows = useMemo(() => {
       if (!selection) return [];
       return COLOR_PROPS.map((p) => {
         const matched = tokens.find((t) => t.property === p.property);
-        const value = matched ? matched.value : getComputedStyle(selection.element)[p.property];
+        const baseline = matched ? matched.value : getComputedStyle(selection.element)[p.property];
+        // Scoped edits on THIS selector + property win over everything.
+        const scopedEdit = pendingChanges.find(c =>
+          c.kind === 'scoped' && c.selector === selection.selector && c.property === p.cssProperty
+        );
+        // Otherwise, a pending token mutation on the matched token wins.
+        const tokenEdit = matched ? pendingChanges.find(c =>
+          c.kind === 'token' && c.tokenName === matched.tokenName
+        ) : null;
+        const value = (scopedEdit && scopedEdit.value)
+          || (tokenEdit && tokenEdit.newValue)
+          || baseline;
         return { ...p, value: value || '', tokenName: matched ? matched.tokenName : null };
       });
-    }, [selection, tokens]);
+    }, [selection, tokens, pendingChanges]);
 
     // Always default to Background on any new selection. No auto-switch based
     // on element type — the user's previous complaint: auto-selecting Text for
@@ -1045,16 +1060,34 @@
       if (!selection) return;
       const row = rows.find((r) => r.id === rowId);
       if (!row) return;
+
+      // Transparent-trap guard: when the row's current colour is fully
+      // transparent (alpha 00) — common for elements with no explicit
+      // background — the picker, hex input, and eye-dropper all inherit
+      // that alpha and produce #rrggbb00 values that paint invisibly.
+      // If the NEW value is also alpha 00, promote it to ff so the
+      // user's edit is actually visible. An explicit drag of the alpha
+      // slider from a non-zero baseline still preserves transparency
+      // (oldAlpha != '00').
+      let nextHex = hex;
+      if (typeof nextHex === 'string' && nextHex.length === 9) {
+        const oldAlpha = normalizeHex(row.value, true).slice(7, 9);
+        const newAlpha = nextHex.slice(7, 9);
+        if (oldAlpha === '00' && newAlpha === '00') {
+          nextHex = nextHex.slice(0, 7) + 'ff';
+        }
+      }
+
       const useGlobal = scope === 'global' && row.tokenName;
       onEdit({
         kind: useGlobal ? 'token' : 'scoped',
         scope: useGlobal ? 'global' : 'scoped',
         tokenName: useGlobal ? row.tokenName : null,
         oldValue: row.value,
-        newValue: hex,
+        newValue: nextHex,
         selector: selection.selector,
         property: row.cssProperty,
-        value: hex,
+        value: nextHex,
         source: 'user',
         viaToken: tokenHint || null,
       });
@@ -1077,6 +1110,7 @@
               .filter((t) => t.value)
               .map((t) => h('button', {
                 key: t.name,
+                type: 'button',
                 className: 'tweaker-palette-chip',
                 style: { background: t.value },
                 title: `${t.name}  ${t.value}  →  ${activeLabel}`,
@@ -1094,18 +1128,34 @@
       ),
 
       // ── Full-width PICKER for the active card (reordered to sit
-      //    between the palette swatches and the Background/Text tiles). ──
+      //    between the palette swatches and the Background/Text tiles).
+      //    Eye-dropper + format-painter share a right-aligned tool
+      //    cluster so both affordances live at the picker's head. ──
       selection && activeRow && h('div', { className: 'tweaker-section tweaker-active-picker' },
         h('div', { className: 'tweaker-section-head' },
           h('span', null, 'Editing — ', h('strong', null, activeLabel)),
           activeRow.tokenName && h('span', { className: 'tweaker-token-badge' },
             scope === 'global' ? 'GLOBAL' : 'SCOPED'),
-          painter && h(PainterBrushButton, {
-            painter,
-            activeRow,
-            activeId,
-            activeLabel,
-          }),
+          h('span', { className: 'tweaker-section-head-tools' },
+            window.EyeDropper && h('button', {
+              type: 'button',
+              className: 'tweaker-dropper-btn',
+              title: 'Eye-dropper — pick any pixel on screen',
+              'aria-label': 'Eye-dropper',
+              onClick: async () => {
+                const picked = await pickWithEyeDropper();
+                if (!picked) return;
+                const alphaHex = normalizeHex(activeRow.value, true).slice(7, 9) || 'ff';
+                applyToRow(activeId, picked.toLowerCase() + alphaHex);
+              },
+            }, h('i', { className: 'fa-solid fa-eye-dropper', 'aria-hidden': 'true' })),
+            painter && h(PainterBrushButton, {
+              painter,
+              activeRow,
+              activeId,
+              activeLabel,
+            }),
+          ),
         ),
         h(ActivePicker, { row: activeRow, onChange: (hex) => applyToRow(activeId, hex) }),
       ),
@@ -1195,6 +1245,8 @@
   }
 
   // Full-width color picker panel for whichever card is currently active.
+  // Eye-dropper lives in the section head (next to the format painter),
+  // so this body only renders the pad + hex readout.
   function ActivePicker({ row, onChange }) {
     const hexWithAlpha = normalizeHex(row.value, true);
     const hexDisplay = hexWithAlpha.slice(0, 7).toUpperCase();
@@ -1210,14 +1262,6 @@
             if (/^#[0-9a-fA-F]{6}$/.test(v)) onChange(v.toLowerCase() + alphaHex);
           },
         }),
-        window.EyeDropper && h('button', {
-          className: 'tweaker-btn-icon',
-          title: 'Eye-dropper (pick any pixel)',
-          onClick: async () => {
-            const picked = await pickWithEyeDropper();
-            if (picked) onChange(picked.toLowerCase() + alphaHex);
-          },
-        }, h('i', { className: 'fa-solid fa-eye-dropper' })),
       ),
     );
   }
