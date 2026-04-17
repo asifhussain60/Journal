@@ -470,13 +470,14 @@ html{scroll-behavior:smooth}
   background:linear-gradient(135deg, color-mix(in srgb, var(--rose) 20%, transparent), color-mix(in srgb, var(--gold) 16%, transparent));
 }
 .day-header{
-  display:flex;
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto auto;
   align-items:center;
-  justify-content:space-between;
-  gap:1rem;
+  gap:1.25rem;
   padding:1.25rem 1.5rem;
   cursor:pointer;
 }
+.day-info{min-width:0;}
 .day-label{
   display:inline-block;
   color:var(--gold);
@@ -664,9 +665,10 @@ html{scroll-behavior:smooth}
 }
 .event-chip--drive.is-loading{opacity:.55;}
 
-/* Alt-venue slot — subtle pill at the bottom of the card */
+/* Alt-venue slot — spans full width below the info/weather grid */
 .event-alt{
-  margin-top:.7rem;padding:.55rem .75rem;border-radius:10px;
+  grid-area:alt;
+  margin-top:.35rem;padding:.55rem .75rem;border-radius:10px;
   background:rgba(255,255,255,.03);
   border:1px dashed var(--white-12);
   font-size:.78rem;color:rgba(241,220,231,.7);
@@ -802,8 +804,20 @@ html{scroll-behavior:smooth}
 }
 .event-icon--default     { background:var(--white-05); color:var(--text); }
 
-/* ─── Details column ────────────────────────────────────────────────── */
+/* ─── Details column — single-column stack: info → notes (full-width pull-quote) → alt */
 .event-details{
+  min-width:0;
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  grid-template-areas:
+    "info"
+    "notes"
+    "alt";
+  gap:.25rem;
+  align-items:start;
+}
+.event-info{
+  grid-area:info;
   min-width:0;
   display:flex;
   flex-direction:column;
@@ -953,6 +967,192 @@ html{scroll-behavior:smooth}
 .tag-celebration {
   background:linear-gradient(135deg, var(--rose-a18), var(--gold-a14));
   color:var(--gold);
+}
+
+/* ═══ DAY-HEADER WEATHER + SPEND DONUT ═══ */
+
+/* Weather tile — right side of .day-header. Shows icon · high/low ·
+   condition · wind · precip. Severity tints match the per-event glow. */
+.day-weather{
+  display:grid;
+  grid-template-columns:auto 1fr;
+  grid-template-rows:auto auto;
+  column-gap:.75rem;
+  row-gap:.25rem;
+  align-items:center;
+  padding:.7rem .9rem;
+  border-radius:14px;
+  background:linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent-primary, #c6a6ff) 10%, transparent) 0%,
+    color-mix(in srgb, var(--accent-primary, #c6a6ff) 3%, transparent) 100%
+  );
+  border:1px solid color-mix(in srgb, var(--accent-primary, #c6a6ff) 20%, transparent);
+  font-family:"Inter","SF Pro Display",system-ui,sans-serif;
+  min-width:200px;
+  transition:opacity .2s ease;
+}
+.day-weather.is-loading{opacity:.55;}
+.day-weather .weather-icon{
+  grid-row:1 / span 2;
+  font-size:2rem;
+  color:var(--gold,#f4d49c);
+  justify-self:center;
+  line-height:1;
+}
+.day-weather .weather-main{
+  display:flex;
+  flex-direction:column;
+  line-height:1.1;
+  min-width:0;
+}
+.day-weather .weather-hilo{
+  font-size:1.05rem;
+  font-weight:700;
+  color:var(--text);
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.01em;
+  display:inline-flex;
+  align-items:baseline;
+  gap:.1rem;
+}
+.day-weather .weather-hi{color:var(--text);}
+.day-weather .weather-lo{color:var(--muted);opacity:.8;}
+.day-weather .weather-sep{
+  color:var(--muted);
+  opacity:.55;
+  padding:0 .1rem;
+  font-weight:400;
+}
+.day-weather .weather-label{
+  font-size:.72rem;
+  color:var(--muted);
+  font-weight:500;
+  letter-spacing:.02em;
+  margin-top:.15rem;
+}
+.day-weather .weather-meta{
+  grid-column:2;
+  display:flex;
+  gap:.85rem;
+  font-size:.7rem;
+  color:var(--muted);
+  font-variant-numeric:tabular-nums;
+}
+.day-weather .weather-meta-item{
+  display:inline-flex;
+  align-items:center;
+  gap:.25rem;
+  opacity:.85;
+}
+.day-weather .weather-meta i{
+  font-size:.72rem;
+  opacity:.7;
+  color:var(--rose-2);
+}
+.day-weather[data-severity="warn"]{
+  background:linear-gradient(180deg, rgba(245,180,120,.16) 0%, rgba(245,180,120,.05) 100%);
+  border-color:rgba(245,180,120,.4);
+}
+.day-weather[data-severity="warn"] .weather-icon{color:rgb(245,180,120);}
+.day-weather[data-severity="alert"]{
+  background:linear-gradient(180deg, rgba(232,100,100,.2) 0%, rgba(232,100,100,.07) 100%);
+  border-color:rgba(232,100,100,.5);
+}
+.day-weather[data-severity="alert"] .weather-icon{color:rgb(232,100,100);}
+
+/* Spend donut — left side of .day-header. SVG + overlaid center text. */
+.day-spend{
+  position:relative;
+  width:76px;
+  height:76px;
+  display:grid;
+  place-items:center;
+  flex:0 0 auto;
+}
+.spend-donut{
+  transform:rotate(0deg);
+}
+.spend-donut-track{
+  stroke:var(--white-08);
+}
+.spend-donut-center{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  pointer-events:none;
+  line-height:1;
+  font-family:"Inter","SF Pro Display",system-ui,sans-serif;
+}
+.spend-donut-total{
+  font-size:.95rem;
+  font-weight:700;
+  color:var(--text);
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.01em;
+}
+.spend-donut-sub{
+  font-size:.56rem;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.14em;
+  font-weight:600;
+  margin-top:.18rem;
+  opacity:.75;
+}
+
+/* ═══ EVENT NOTES — full-width pull-quote below info ═══ */
+.event-notes{
+  grid-area:notes;
+  display:flex;
+  gap:.75rem;
+  padding:.7rem .1rem .15rem;
+  margin-top:.45rem;
+  border-top:1px dashed color-mix(in srgb, var(--rose) 22%, transparent);
+  min-width:0;
+}
+.event-notes-icon{
+  color:color-mix(in srgb, var(--rose) 70%, transparent);
+  font-size:.85rem;
+  margin-top:.35rem;
+  flex:0 0 auto;
+  opacity:.85;
+}
+.event-notes-text{
+  margin:0;
+  font-family:"Cormorant Garamond","Iowan Old Style",Georgia,serif;
+  font-style:italic;
+  font-size:1rem;
+  line-height:1.55;
+  color:rgba(241,220,231,.82);
+  letter-spacing:.005em;
+  overflow-wrap:break-word;
+}
+
+/* Warning glow on the card — only applied when weather severity ≠ none AND
+   the event is outdoor or has a long drive. Set by applyWeatherGlow() in JS. */
+.event.is-weather-warn > .event-card{
+  border-color:rgba(245,180,120,.7);
+  box-shadow:
+    inset 0 1px 0 0 var(--white-05),
+    0 2px 4px var(--shadow-a30),
+    0 12px 28px -14px rgba(0,0,0,.55),
+    0 0 0 1px rgba(245,180,120,.28),
+    0 0 24px -4px rgba(245,180,120,.45),
+    0 18px 40px -20px rgba(245,180,120,.35);
+}
+.event.is-weather-alert > .event-card{
+  border-color:rgba(232,100,100,.78);
+  box-shadow:
+    inset 0 1px 0 0 var(--white-05),
+    0 2px 4px var(--shadow-a30),
+    0 12px 28px -14px rgba(0,0,0,.55),
+    0 0 0 1px rgba(232,100,100,.36),
+    0 0 28px -4px rgba(232,100,100,.55),
+    0 18px 40px -20px rgba(232,100,100,.4);
 }
 
 /* ═══ DAY MAPS ═══ */

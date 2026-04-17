@@ -31,6 +31,8 @@
 //   POST /api/theme-swatches           — theme.js (tweaker)
 //   POST /api/theme-review             — theme.js (tweaker)
 //   POST /api/theme-save               — theme.js (tweaker)
+//   GET  /api/weather                  — weather.js (Open-Meteo)
+//   GET  /api/trip-spend                — trip-spend.js (YNAB)
 //
 // CORS is locked to ALLOWED_ORIGINS (defaults cover localhost + prod/dev Pages).
 
@@ -56,6 +58,8 @@ import { createReceiptsRouter } from "./routes/receipts.js";
 import { createUsageRouter } from "./routes/usage.js";
 import { createDistanceRouter } from "./routes/distance.js";
 import { createThemeRouter } from "./routes/theme.js";
+import { createWeatherRouter } from "./routes/weather.js";
+import { createTripSpendRouter } from "./routes/trip-spend.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -158,6 +162,8 @@ app.use(createReceiptsRouter({ anthropic, DEFAULT_MODEL, upload }));
 app.use(createUsageRouter({ MONTHLY_CAP }));
 app.use(createDistanceRouter());
 app.use(createThemeRouter({ anthropic, DEFAULT_MODEL, themeSaveValidator }));
+app.use(createWeatherRouter());
+app.use(createTripSpendRouter());
 
 // --- Start -------------------------------------------------------------------
 app.listen(PORT, "127.0.0.1", () => {
