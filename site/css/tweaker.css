@@ -593,25 +593,8 @@
   color: var(--text-muted);
 }
 
-/* ─── Toast ─── */
-.tweaker-toast {
-  position: fixed;
-  left: 50%;
-  top: var(--space-4);
-  transform: translateX(-50%);
-  padding: var(--space-3) var(--space-4);
-  background: var(--bg-2);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
-  color: var(--text);
-  font-family: var(--font-sans);
-  font-size: 0.85rem;
-  z-index: 9999999;
-  max-width: 480px;
-}
-.tweaker-toast-success { border-color: var(--success); }
-.tweaker-toast-error { border-color: var(--error); }
+/* Tweaker toasts now delegate to the shared Sonner layer (window.notify /
+   site/js/toast.js, themed via site/css/toast.css). */
 
 .tweaker-err { color: var(--error); font-size: 0.82rem; }
 .tweaker-muted { color: var(--text-muted); font-size: 0.82rem; }
@@ -899,7 +882,7 @@ body[data-tweak-mode="on"] [data-tweak-chrome] * {
   height: 22px;
 }
 
-/* ─── Active picker panel (below the cards) ─── */
+/* ─── Active picker panel (reordered: between swatches and Bg/Text tiles) ─── */
 .tweaker-active-picker-body {
   display: flex;
   flex-direction: column;
@@ -911,6 +894,108 @@ body[data-tweak-mode="on"] [data-tweak-chrome] * {
   border-radius: var(--radius-sm);
   overflow: hidden;
   box-shadow: inset 0 0 0 1px var(--white-08);
+}
+
+/* ─── Format-painter brush button (Word/Excel-style) ─────────────────
+   Lives in the picker section header. Single-click = one-shot; double
+   click = sticky. Pulsing glow when active, with a pin badge when sticky.
+   Follows Word/Excel convention: the button is the only UI affordance —
+   feedback comes from the cursor change on <body> and from toast notes.
+*/
+.tweaker-painter-btn {
+  position: relative;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px; height: 26px;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  background: var(--white-04);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color var(--motion-fast), background var(--motion-fast),
+              border-color var(--motion-fast), box-shadow var(--motion-fast);
+}
+.tweaker-painter-btn:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--white-08);
+  border-color: var(--border-default);
+}
+.tweaker-painter-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.tweaker-painter-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.tweaker-painter-btn.is-on {
+  color: var(--gold);
+  background: color-mix(in srgb, var(--gold) 16%, transparent);
+  border-color: color-mix(in srgb, var(--gold) 55%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 20%, transparent);
+  animation: tweaker-painter-pulse 1.6s ease-in-out infinite;
+}
+.tweaker-painter-btn.is-on.is-sticky {
+  animation-duration: 1.1s;
+}
+.tweaker-painter-sticky-pin {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  font-size: 8px;
+  background: var(--gold);
+  color: var(--contrast-dark, #1a1430);
+  border-radius: 50%;
+  padding: 2px;
+  line-height: 1;
+}
+@keyframes tweaker-painter-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 20%, transparent); }
+  50%      { box-shadow: 0 0 0 5px color-mix(in srgb, var(--gold) 30%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tweaker-painter-btn.is-on { animation: none; }
+}
+
+/* ─── Painter active body state — paintbrush cursor + focus ring ─────
+   When the painter is engaged, every element in the live view gets a
+   paintbrush cursor EXCEPT tweaker chrome (which must remain interactive
+   for Cancel/Esc/brush-toggle). The cursor is an inline SVG so there's
+   zero network cost; the SVG fill stays a fixed gold since data-URIs
+   cannot template CSS custom properties. All other painter visuals use
+   var(--gold) so they follow the active theme.
+*/
+body[data-tweak-painter="on"] *:not([data-tweak-chrome]):not([data-tweak-chrome] *) {
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path fill='%23ffd166' stroke='%231a1430' stroke-width='1' d='M17.1 2.9a2.5 2.5 0 0 1 3.5 3.5l-7.3 7.3-3.5-3.5 7.3-7.3zM8.8 12l3.5 3.5-2 2-2.8-.7-.7-2.8 2-2zM5.6 17.1a2 2 0 0 1 2.8 0c.8.8.8 2 0 2.8-.8.8-4 1-4 1s.2-3.2 1.2-3.8z'/></svg>") 4 20, crosshair !important;
+}
+body[data-tweak-painter="on"] [data-tweak-chrome],
+body[data-tweak-painter="on"] [data-tweak-chrome] * {
+  cursor: auto;
+}
+/* Subtle amber outline on the body perimeter so the user always knows
+   painter mode is engaged, even if their cursor drifts over chrome. */
+body[data-tweak-painter="on"]::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999997;
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--gold) 55%, transparent);
+  animation: tweaker-painter-frame-pulse 1.8s ease-in-out infinite;
+}
+body[data-tweak-painter="on"][data-tweak-painter-sticky="on"]::after {
+  animation-duration: 1.2s;
+  box-shadow: inset 0 0 0 2.5px color-mix(in srgb, var(--gold) 75%, transparent);
+}
+@keyframes tweaker-painter-frame-pulse {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body[data-tweak-painter="on"]::after { animation: none; opacity: 0.7; }
 }
 
 /* ─── Color property rows (legacy — kept for backward compat) ─── */

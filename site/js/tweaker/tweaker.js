@@ -318,6 +318,9 @@
 
     function onClick(ev) {
       if (!active) return;
+      // Defer to format-painter when it's engaged so a single click
+      // doesn't both re-select the element AND paint over it.
+      if (document.body.dataset.tweakPainter === 'on') return;
       const target = document.elementFromPoint(ev.clientX, ev.clientY);
       if (!target || target.closest(`[${CFG.chromeAttr}]`)) return;
       ev.preventDefault();
@@ -343,6 +346,126 @@
         document.body.removeAttribute('data-tweak-mode');
       },
       clear() { if (highlight) highlight.style.display = 'none'; },
+    };
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // §6b Format painter (Word/Excel parity)
+  //
+  // Single-click brush  → one-shot mode: paint once, auto-exit.
+  // Double-click brush  → sticky mode:   paint repeatedly, exit on Esc or
+  //                                       second brush click.
+  // Hovering an element highlights it in the painter-accent color; clicking
+  // copies the captured source hex into the target element's matching CSS
+  // role (background-color / color / border-color). Tweaker chrome and the
+  // palette swatches themselves are excluded from targeting.
+  // ══════════════════════════════════════════════════════════════════════════
+
+  function createPainter({ onPaint, onExit }) {
+    let active = false;
+    let sticky = false;
+    let source = null;  // { role, hex, property }
+    let highlight = null;
+
+    function makeHighlight() {
+      const el = document.createElement('div');
+      el.setAttribute(CFG.chromeAttr, '');
+      el.style.cssText = [
+        'position:fixed','pointer-events:none','z-index:9999998',
+        'border:2px dashed var(--tweaker-painter-accent, #ffd166)',
+        'background:color-mix(in srgb, var(--tweaker-painter-accent, #ffd166) 14%, transparent)',
+        'border-radius:4px','transition:all 70ms ease-out','display:none',
+      ].join(';');
+      document.body.appendChild(el);
+      return el;
+    }
+
+    function isValidTarget(target) {
+      if (!target) return false;
+      // Exclude tweaker chrome (inspector, swatch strip, palette chips, highlight, etc.)
+      if (target.closest(`[${CFG.chromeAttr}]`)) return false;
+      // Exclude the painter's own highlight overlay
+      if (target === highlight) return false;
+      return true;
+    }
+
+    function onMove(ev) {
+      if (!active || !highlight) return;
+      const target = document.elementFromPoint(ev.clientX, ev.clientY);
+      if (!isValidTarget(target)) {
+        highlight.style.display = 'none';
+        return;
+      }
+      const r = target.getBoundingClientRect();
+      highlight.style.display = 'block';
+      highlight.style.left = r.left + 'px';
+      highlight.style.top = r.top + 'px';
+      highlight.style.width = r.width + 'px';
+      highlight.style.height = r.height + 'px';
+    }
+
+    function onClick(ev) {
+      if (!active) return;
+      const target = document.elementFromPoint(ev.clientX, ev.clientY);
+      if (!isValidTarget(target)) return;
+      // Swallow the click so the picker (and any DOM handlers) don't fire.
+      ev.preventDefault();
+      ev.stopPropagation();
+      ev.stopImmediatePropagation();
+      try {
+        onPaint && onPaint(target, source);
+      } finally {
+        if (!sticky) stop('applied');
+      }
+    }
+
+    function onKey(ev) {
+      if (!active) return;
+      if (ev.key === 'Escape') {
+        ev.preventDefault();
+        stop('escape');
+      }
+    }
+
+    function start(src, opts) {
+      source = src;
+      sticky = !!(opts && opts.sticky);
+      if (active) {
+        // Repeat start = update source; refresh cursor/aria state.
+        document.body.dataset.tweakPainter = 'on';
+        document.body.dataset.tweakPainterSticky = sticky ? 'on' : '';
+        return;
+      }
+      active = true;
+      if (!highlight) highlight = makeHighlight();
+      document.addEventListener('mousemove', onMove, true);
+      // Capture phase so we run BEFORE the picker's click handler.
+      document.addEventListener('click', onClick, true);
+      document.addEventListener('keydown', onKey, true);
+      document.body.dataset.tweakPainter = 'on';
+      document.body.dataset.tweakPainterSticky = sticky ? 'on' : '';
+    }
+
+    function stop(reason) {
+      if (!active) return;
+      active = false;
+      sticky = false;
+      source = null;
+      document.removeEventListener('mousemove', onMove, true);
+      document.removeEventListener('click', onClick, true);
+      document.removeEventListener('keydown', onKey, true);
+      if (highlight) highlight.style.display = 'none';
+      delete document.body.dataset.tweakPainter;
+      delete document.body.dataset.tweakPainterSticky;
+      if (onExit) onExit(reason || 'manual');
+    }
+
+    return {
+      start,
+      stop,
+      isActive: () => active,
+      isSticky: () => sticky,
+      getSource: () => source,
     };
   }
 
@@ -530,7 +653,7 @@
   // §11 React: Inspector panel
   // ══════════════════════════════════════════════════════════════════════════
 
-  function Inspector({ selection, onClose, onEdit, activeTheme, pendingChanges, history, onApply, onCancel, onSaveAsNew, onReview, applying }) {
+  function Inspector({ selection, onClose, onEdit, activeTheme, pendingChanges, history, onApply, onCancel, onSaveAsNew, onReview, applying, painter }) {
     const [tab, setTab] = useState('colors');
     const [scope, setScope] = useState('global');
     const [activeProperty, setActiveProperty] = useState(null);
@@ -612,7 +735,7 @@
           h('i', { className: 'fa-regular fa-square' }), ' Box'),
       ),
       h('div', { className: 'tweaker-body' },
-        tab === 'colors' && h(ColorsTab, { selection, scope, tokens, onEdit }),
+        tab === 'colors' && h(ColorsTab, { selection, scope, tokens, onEdit, painter }),
         tab === 'type' && h(TypeTab, { selection, scope, tokens, onEdit }),
         tab === 'box' && h(BoxTab, { selection, scope, tokens, onEdit }),
       ),
@@ -799,7 +922,97 @@
     { id: 'border', property: 'borderColor',     label: 'Border',     cssProperty: 'border-color' },
   ];
 
-  function ColorsTab({ selection, scope, tokens, onEdit }) {
+  // Word/Excel-style format painter toggle. Click once = one-shot apply;
+  // double-click = sticky until Esc or a second click. Pressing the brush
+  // again while active exits without applying. The painter copies the
+  // CURRENT active row's color + role; the target's matching CSS role is
+  // overwritten via a scoped rule through the normal onEdit pipeline.
+  function PainterBrushButton({ painter, activeRow, activeId, activeLabel }) {
+    const [painterOn, setPainterOn] = useState(false);
+    const [painterSticky, setPainterSticky] = useState(false);
+    const clickTimer = useRef(null);
+
+    // Keep button state in sync with the painter controller (it can deactivate
+    // itself on Esc or after a one-shot apply).
+    useEffect(() => {
+      const id = setInterval(() => {
+        const on = painter && painter.isActive();
+        const sticky = painter && painter.isSticky();
+        setPainterOn(!!on);
+        setPainterSticky(!!sticky);
+      }, 120);
+      return () => clearInterval(id);
+    }, [painter]);
+
+    function begin(sticky) {
+      if (!painter || !activeRow) return;
+      painter.start({
+        role: activeId,
+        hex: normalizeHex(activeRow.value, true),
+        property: activeRow.cssProperty,
+        label: activeLabel,
+      }, { sticky });
+      setPainterOn(true);
+      setPainterSticky(!!sticky);
+      if (window.notify) {
+        window.notify.info(
+          sticky ? 'Painter: sticky mode' : 'Painter: one-shot',
+          {
+            description: sticky
+              ? `Click any element to paint ${activeLabel.toLowerCase()}. Esc or click brush to exit.`
+              : `Click an element to paint ${activeLabel.toLowerCase()} once.`,
+            duration: 2600,
+          }
+        );
+      }
+    }
+
+    function onClick() {
+      // Debounce so double-click doesn't fire two single-clicks.
+      if (clickTimer.current) { clearTimeout(clickTimer.current); clickTimer.current = null; }
+      if (painter && painter.isActive()) {
+        painter.stop('toggle');
+        setPainterOn(false);
+        setPainterSticky(false);
+        return;
+      }
+      clickTimer.current = setTimeout(() => {
+        clickTimer.current = null;
+        begin(false);
+      }, 220);
+    }
+
+    function onDoubleClick() {
+      if (clickTimer.current) { clearTimeout(clickTimer.current); clickTimer.current = null; }
+      begin(true);
+    }
+
+    const title = painterOn
+      ? (painterSticky
+          ? 'Painter (sticky) — Esc or click to exit'
+          : 'Painter (one-shot) — click a target')
+      : 'Format painter · single-click = once, double-click = sticky';
+
+    return h('button', {
+      type: 'button',
+      className: 'tweaker-painter-btn'
+        + (painterOn ? ' is-on' : '')
+        + (painterSticky ? ' is-sticky' : ''),
+      onClick, onDoubleClick,
+      title,
+      'aria-pressed': painterOn ? 'true' : 'false',
+      'aria-label': title,
+      disabled: !activeRow,
+    },
+      h('i', { className: 'fa-solid fa-paintbrush', 'aria-hidden': 'true' }),
+      painterSticky && h('i', {
+        className: 'fa-solid fa-thumbtack tweaker-painter-sticky-pin',
+        'aria-hidden': 'true',
+      }),
+    );
+  }
+
+  function ColorsTab({ selection, scope, tokens, onEdit, painter }) {
     const [activeId, setActiveId] = useState('bg');
 
     // Resolve current values from the element's computed style + any token match.
@@ -880,6 +1093,23 @@
         h('span', null, 'Click any element on the page to start editing its properties.'),
       ),
 
+      // ── Full-width PICKER for the active card (reordered to sit
+      //    between the palette swatches and the Background/Text tiles). ──
+      selection && activeRow && h('div', { className: 'tweaker-section tweaker-active-picker' },
+        h('div', { className: 'tweaker-section-head' },
+          h('span', null, 'Editing — ', h('strong', null, activeLabel)),
+          activeRow.tokenName && h('span', { className: 'tweaker-token-badge' },
+            scope === 'global' ? 'GLOBAL' : 'SCOPED'),
+          painter && h(PainterBrushButton, {
+            painter,
+            activeRow,
+            activeId,
+            activeLabel,
+          }),
+        ),
+        h(ActivePicker, { row: activeRow, onChange: (hex) => applyToRow(activeId, hex) }),
+      ),
+
       // ── TWO big side-by-side cards: Background | Text ──
       selection && h('div', { className: 'tweaker-section' },
         h('div', { className: 'tweaker-color-cards' },
@@ -901,16 +1131,6 @@
           onClick: () => setActiveId('border'),
           scope,
         }),
-      ),
-
-      // ── Full-width PICKER for the active card ──
-      selection && activeRow && h('div', { className: 'tweaker-section tweaker-active-picker' },
-        h('div', { className: 'tweaker-section-head' },
-          h('span', null, 'Editing — ', h('strong', null, activeLabel)),
-          activeRow.tokenName && h('span', { className: 'tweaker-token-badge' },
-            scope === 'global' ? 'GLOBAL' : 'SCOPED'),
-        ),
-        h(ActivePicker, { row: activeRow, onChange: (hex) => applyToRow(activeId, hex) }),
       ),
 
       // ── Contrast ──
@@ -1557,10 +1777,10 @@
     const [redoStack, setRedoStack] = useState([]);
     const [reviewOpen, setReviewOpen] = useState(false);
     const [saveOpen, setSaveOpen] = useState(false);
-    const [toast, setToast] = useState(null);
     const [baselineTokens, setBaselineTokens] = useState({});
     const [navMount, setNavMount] = useState(null);
     const pickerRef = useRef(null);
+    const painterRef = useRef(null);
     const activeThemeRef = useRef(activeThemeInfo());
 
     // On mount: snapshot baseline tokens and restore any pending-changes session
@@ -1626,6 +1846,51 @@
       return () => pickerRef.current && pickerRef.current.stop();
     }, [active]);
 
+    // Format painter — constructed once per TweakerRoot lifetime. Uses a
+    // ref indirection for applyChange so the painter's onPaint always sees
+    // the live closure without being re-created on every render.
+    const applyChangeRef = useRef(null);
+    if (!painterRef.current) {
+      painterRef.current = createPainter({
+        onPaint: (target, source) => {
+          if (!source || !target || !applyChangeRef.current) return;
+          const selector = generateSelector(target);
+          const computedProp = source.role === 'bg' ? 'backgroundColor'
+            : source.role === 'text' ? 'color' : 'borderColor';
+          applyChangeRef.current({
+            kind: 'scoped',
+            scope: 'scoped',
+            tokenName: null,
+            oldValue: getComputedStyle(target)[computedProp] || '',
+            newValue: source.hex,
+            selector,
+            property: source.property,
+            value: source.hex,
+            source: 'painter',
+            viaToken: null,
+          });
+          if (window.notify) {
+            window.notify.success('Painted ' + (source.label || '').toLowerCase(), {
+              description: selector + '  ←  ' + source.hex.toUpperCase(),
+              duration: 1800,
+            });
+          }
+        },
+        onExit: (reason) => {
+          if (reason === 'escape' && window.notify) {
+            window.notify.message('Painter off');
+          }
+        },
+      });
+    }
+    // Auto-stop painter when Tweak Mode exits.
+    useEffect(() => {
+      if (active) return;
+      if (painterRef.current && painterRef.current.isActive()) {
+        painterRef.current.stop('mode-exit');
+      }
+    }, [active]);
+
     // Keyboard: Cmd-Z / Cmd-Shift-Z only. Escape closes open modals but never
     // the main Tweak panel — the panel is persistent and only exits via the X
     // or a successful save.
@@ -1659,6 +1924,8 @@
       setUndoStack((s) => [...s, change]);
       setRedoStack([]);
     }
+    // Keep the painter's applyChange closure pointed at the latest version.
+    applyChangeRef.current = applyChange;
 
     function onEdit(change) {
       if (change.kind === 'token' && !change.tokenName) {
@@ -1708,8 +1975,14 @@
       setPendingChanges([]); setUndoStack([]); setRedoStack([]);
       clearSession();
       renderScopedOverrides([]);
-      setToast({ kind: 'success', msg: `Saved ${result.tokenMutations} token${result.tokenMutations === 1 ? '' : 's'} + ${result.scopedOverrides} override${result.scopedOverrides === 1 ? '' : 's'} to ${result.slug}.` });
-      setTimeout(() => setToast(null), 4000);
+      if (window.notify) {
+        const tokenWord = result.tokenMutations === 1 ? 'token' : 'tokens';
+        const ovrWord = result.scopedOverrides === 1 ? 'override' : 'overrides';
+        window.notify.success(
+          `Saved ${result.tokenMutations} ${tokenWord} + ${result.scopedOverrides} ${ovrWord}`,
+          { description: result.slug, duration: 4000 }
+        );
+      }
       if (result.mode === 'overwrite') {
         // Reload theme CSS to pick up persisted changes
         const link = document.getElementById(CFG.themeStylesheetId);
@@ -1720,9 +1993,13 @@
     }
 
     function onValidationFail(output) {
-      setToast({ kind: 'error', msg: 'Validator rejected save. See console for details.' });
       console.error('[tweaker] validator output:\n' + output);
-      setTimeout(() => setToast(null), 8000);
+      if (window.notify) {
+        window.notify.error('Validator rejected save', {
+          description: 'See console for details.',
+          duration: 8000,
+        });
+      }
     }
 
     function deactivate() {
@@ -1765,9 +2042,8 @@
         const validator = e.body && e.body.validator;
         if (validator) {
           onValidationFail(validator);
-        } else {
-          setToast({ kind: 'error', msg: 'Save failed: ' + (e.message || String(e)) });
-          setTimeout(() => setToast(null), 6000);
+        } else if (window.notify) {
+          window.notify.error('Save failed', { description: e.message || String(e), duration: 6000 });
         }
       } finally {
         setApplying(false);
@@ -1840,6 +2116,7 @@
           onSaveAsNew: openSaveAsNew,
           onReview: openReview,
           applying,
+          painter: painterRef.current,
         }),
         h(ReviewModal, {
           open: reviewOpen, onClose: () => setReviewOpen(false),
@@ -1865,7 +2142,6 @@
           onSaved, onValidationFail,
           initialMode: saveInitialMode,
         }),
-        toast && h('div', { className: `tweaker-toast tweaker-toast-${toast.kind}`, [CFG.chromeAttr]: '' }, toast.msg),
       ),
     );
   }

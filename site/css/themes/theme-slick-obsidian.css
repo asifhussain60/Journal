@@ -261,3 +261,18 @@ body::after {
   from { transform: translate3d(0, 0, 0) scale(1); }
   to   { transform: translate3d(-6rem, 3rem, 0) scale(1.08); }
 }
+
+/* ─── TWEAKER OVERRIDES (managed by theme-save; edit carefully) ─── */
+.trip-hero { font-size: 1.55rem; }
+.trip-hero { background-color: #262323; }
+div:nth-of-type(2).glass-card { opacity: 0.93; }
+.hero-names { color: #cabfe2; }
+.trip-hero { font-family: 'PT Serif', serif; }
+.hero-names { font-family: 'Lora', serif; }
+.hero-names { font-weight: 400; }
+.hero-names { margin-top: 0px; }
+.hero-names { margin-right: 0px; }
+.hero-names { margin-bottom: 12px; }
+.hero-names { border-radius: 4px; }
+.hero-names { box-shadow: 0px 0px 0px 0px #cf563b; }
+/* ─── END TWEAKER OVERRIDES ─── */
