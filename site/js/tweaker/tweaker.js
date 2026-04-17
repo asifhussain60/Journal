@@ -521,9 +521,6 @@
 
     if (!selection) return null;
     const tokens = selection.tokens || [];
-    const colorTokens = tokens.filter((t) => t.type === 'color');
-    const fontTokens = tokens.filter((t) => t.type === 'font' || ['fontSize','fontWeight','lineHeight'].includes(t.property));
-    const boxTokens = tokens.filter((t) => t.type === 'shadow' || ['borderRadius','padding','margin'].some(p => t.property.startsWith(p)));
 
     return h('div', {
       ref: panelRef,
@@ -539,23 +536,26 @@
         h('button', {
           className: scope === 'global' ? 'on' : '',
           onClick: () => setScope('global'),
-          title: 'Change the token everywhere it\'s used',
+          title: 'Change the underlying token (affects every element using it)',
         }, 'Global'),
         h('button', {
           className: scope === 'scoped' ? 'on' : '',
           onClick: () => setScope('scoped'),
-          title: 'Apply only to this selector',
+          title: 'Add a rule that only affects this selector',
         }, 'Scoped'),
       ),
       h('div', { className: 'tweaker-tabs' },
-        h('button', { className: tab === 'colors' ? 'on' : '', onClick: () => setTab('colors') }, 'Colors'),
-        h('button', { className: tab === 'type' ? 'on' : '', onClick: () => setTab('type') }, 'Type'),
-        h('button', { className: tab === 'box' ? 'on' : '', onClick: () => setTab('box') }, 'Box'),
+        h('button', { className: tab === 'colors' ? 'on' : '', onClick: () => setTab('colors') },
+          h('i', { className: 'fa-solid fa-palette' }), ' Colors'),
+        h('button', { className: tab === 'type' ? 'on' : '', onClick: () => setTab('type') },
+          h('i', { className: 'fa-solid fa-font' }), ' Type'),
+        h('button', { className: tab === 'box' ? 'on' : '', onClick: () => setTab('box') },
+          h('i', { className: 'fa-regular fa-square' }), ' Box'),
       ),
       h('div', { className: 'tweaker-body' },
-        tab === 'colors' && h(ColorsTab, { colorTokens, scope, selection, activeTheme, onEdit, activeProperty, setActiveProperty }),
-        tab === 'type' && h(TypeTab, { fontTokens, scope, selection, onEdit }),
-        tab === 'box' && h(BoxTab, { boxTokens, scope, selection, onEdit }),
+        tab === 'colors' && h(ColorsTab, { selection, scope, tokens, onEdit }),
+        tab === 'type' && h(TypeTab, { selection, scope, tokens, onEdit }),
+        tab === 'box' && h(BoxTab, { selection, scope, tokens, onEdit }),
       ),
       h('div', { className: 'tweaker-footer' },
         h('span', { className: 'tweaker-muted' }, `${pendingChanges.length} pending change${pendingChanges.length === 1 ? '' : 's'}`),
@@ -565,158 +565,521 @@
     );
   }
 
-  function ColorsTab({ colorTokens, scope, selection, activeTheme, onEdit, activeProperty, setActiveProperty }) {
-    if (!colorTokens.length) {
-      return h('div', { className: 'tweaker-empty' }, 'This element doesn\'t consume any color tokens directly. Try a parent element.');
-    }
-    return h('div', null,
-      colorTokens.map((t) =>
-        h(ColorEditRow, {
-          key: t.property, t, scope, selection, activeTheme, onEdit,
-          colorTokens,
-          expanded: activeProperty === t.property,
-          onToggle: () => setActiveProperty(activeProperty === t.property ? null : t.property),
-        })
+  // ──────────────────────────────────────────────────────────────────
+  // Shared components
+  // ──────────────────────────────────────────────────────────────────
+
+  // A compact grid of the theme's 12 featured palette tokens. Clicking a
+  // chip fires onApply(hex, tokenName) so the caller can apply it to the
+  // currently-active color property.
+  function SwatchGrid({ onApply }) {
+    const featured = useMemo(() => {
+      const snap = paletteSnapshot();
+      const order = [
+        '--bg', '--bg-secondary', '--bg-tertiary', '--accent',
+        '--rose', '--gold', '--mauve', '--lavender',
+        '--blush', '--success', '--warning', '--error',
+      ];
+      return order
+        .map((name) => ({ name, value: snap[name] }))
+        .filter((t) => t.value);
+    }, []);
+    return h('div', { className: 'tweaker-section' },
+      h('div', { className: 'tweaker-section-head' },
+        h('span', null, 'Theme palette'),
+      ),
+      h('div', { className: 'tweaker-swatch-grid' },
+        featured.map((t) => h('button', {
+          key: t.name,
+          className: 'tweaker-palette-chip',
+          style: { background: t.value },
+          title: `${t.name}  ${t.value}`,
+          onClick: () => onApply(normalizeHex(t.value), t.name),
+          'aria-label': t.name,
+        }))
       )
     );
   }
 
-  function ColorEditRow({ t, scope, selection, activeTheme, onEdit, colorTokens, expanded, onToggle }) {
-    const [color, setColor] = useState(() => normalizeHex(t.value));
-    const handleEdit = useCallback((hex, extra = {}) => {
-      setColor(hex);
+  // A number input that supports:
+  //   - direct typing
+  //   - ArrowUp/Down to adjust (shift = ×10)
+  //   - vertical drag-scrub on the value
+  function ScrubbableInput({ value, unit = 'px', min = 0, max = 9999, step = 1, onChange, label, className = '' }) {
+    const [local, setLocal] = useState(String(stripUnit(value)));
+    const [dragging, setDragging] = useState(false);
+    useEffect(() => { setLocal(String(stripUnit(value))); }, [value]);
+
+    function commit(n) {
+      const v = Math.max(min, Math.min(max, n));
+      const str = Number.isFinite(v) ? String(Number(v.toFixed(2))) : '0';
+      setLocal(str);
+      onChange(str + unit);
+    }
+    function onMouseDown(e) {
+      if (e.target.tagName === 'INPUT') return;
+      e.preventDefault();
+      setDragging(true);
+      const startY = e.clientY;
+      const startVal = parseFloat(local) || 0;
+      function move(ev) {
+        const delta = (startY - ev.clientY) * step;
+        commit(startVal + Math.round(delta * 10) / 10);
+      }
+      function up() {
+        setDragging(false);
+        document.removeEventListener('mousemove', move);
+        document.removeEventListener('mouseup', up);
+      }
+      document.addEventListener('mousemove', move);
+      document.addEventListener('mouseup', up);
+    }
+    function onKeyDown(e) {
+      const current = parseFloat(local) || 0;
+      const delta = e.shiftKey ? step * 10 : step;
+      if (e.key === 'ArrowUp') { e.preventDefault(); commit(current + delta); }
+      else if (e.key === 'ArrowDown') { e.preventDefault(); commit(current - delta); }
+    }
+    return h('div', {
+      className: 'tweaker-scrub' + (dragging ? ' is-dragging' : '') + ' ' + className,
+      onMouseDown,
+      title: 'Click + drag up/down, or type a value',
+    },
+      label && h('span', { className: 'tweaker-scrub-label' }, label),
+      h('input', {
+        type: 'text', inputMode: 'decimal', value: local,
+        onChange: (e) => setLocal(e.target.value),
+        onBlur: () => { const n = parseFloat(local); if (Number.isFinite(n)) commit(n); else setLocal(String(stripUnit(value))); },
+        onKeyDown,
+      }),
+    );
+  }
+
+  function stripUnit(v) {
+    if (v == null) return 0;
+    const m = String(v).match(/-?[\d.]+/);
+    return m ? parseFloat(m[0]) : 0;
+  }
+
+  // A continuous slider with label + live numeric readout.
+  function LabeledSlider({ label, min, max, step, value, format, onChange, unit = '' }) {
+    const display = format ? format(value) : `${value}${unit}`;
+    return h('div', { className: 'tweaker-slider-row' },
+      h('div', { className: 'tweaker-slider-head' },
+        h('span', { className: 'tweaker-slider-label' }, label),
+        h('span', { className: 'tweaker-slider-val' }, display),
+      ),
+      h('input', {
+        type: 'range', min, max, step, value,
+        className: 'tweaker-slider',
+        onInput: (e) => onChange(parseFloat(e.target.value)),
+      })
+    );
+  }
+
+  async function pickWithEyeDropper() {
+    if (!window.EyeDropper) return null;
+    try {
+      const picker = new window.EyeDropper();
+      const result = await picker.open();
+      return result?.sRGBHex || null;
+    } catch { return null; }
+  }
+
+  function ContrastChip({ fg, bg }) {
+    const r = contrastRatio(fg, bg);
+    const v = contrastVerdict(r);
+    if (r == null) return null;
+    return h('span', { className: 'tweaker-contrast-chip' },
+      h('strong', null, v.label),
+      h('span', { className: v.aa ? 'ok' : 'warn' }, v.aa ? ' AA ✓' : ' AA ✗'),
+      h('span', { className: v.aaa ? 'ok' : 'warn' }, v.aaa ? ' AAA ✓' : ' AAA ✗'),
+    );
+  }
+
+  // ──────────────────────────────────────────────────────────────────
+  // Colors tab — Figma-style: swatches up top, 4 property rows, opacity
+  // ──────────────────────────────────────────────────────────────────
+
+  const COLOR_PROPS = [
+    { id: 'bg',     property: 'backgroundColor', label: 'Background', cssProperty: 'background-color' },
+    { id: 'text',   property: 'color',           label: 'Text',       cssProperty: 'color' },
+    { id: 'border', property: 'borderColor',     label: 'Border',     cssProperty: 'border-color' },
+  ];
+
+  function ColorsTab({ selection, scope, tokens, onEdit }) {
+    const [activeId, setActiveId] = useState('bg');
+
+    // Resolve current values from the element's computed style + any token match.
+    const rows = useMemo(() => COLOR_PROPS.map((p) => {
+      const matched = tokens.find((t) => t.property === p.property);
+      const value = matched ? matched.value : getComputedStyle(selection.element)[p.property];
+      return { ...p, value: value || '', tokenName: matched ? matched.tokenName : null };
+    }), [selection.element, tokens]);
+
+    const bgRow = rows.find((r) => r.id === 'bg');
+    const textRow = rows.find((r) => r.id === 'text');
+
+    function handleApply(hex, tokenHint) {
+      const row = rows.find((r) => r.id === activeId);
+      if (!row) return;
+      const useGlobal = scope === 'global' && row.tokenName;
       onEdit({
-        kind: scope === 'global' && t.tokenName ? 'token' : 'scoped',
-        scope,
-        tokenName: t.tokenName,
-        oldValue: t.value,
+        kind: useGlobal ? 'token' : 'scoped',
+        scope: useGlobal ? 'global' : 'scoped',
+        tokenName: useGlobal ? row.tokenName : null,
+        oldValue: row.value,
         newValue: hex,
         selector: selection.selector,
-        property: t.cssProperty,
+        property: row.cssProperty,
         value: hex,
         source: 'user',
-        ...extra,
+        viaToken: tokenHint || null,
       });
-    }, [scope, t.tokenName, t.value, t.cssProperty, selection.selector, onEdit]);
-    return h('div', { className: 'tweaker-row' },
-      h('div', { className: 'tweaker-row-head', onClick: onToggle },
-        h('span', { className: 'tweaker-prop' }, t.cssProperty),
-        h('span', { className: 'tweaker-swatch-dot', style: { background: color } }),
-        h('span', { className: 'tweaker-tokname' }, t.tokenName || '(raw)'),
+    }
+
+    return h('div', { className: 'tweaker-tab-colors' },
+      h(SwatchGrid, { onApply: handleApply }),
+
+      h('div', { className: 'tweaker-section' },
+        h('div', { className: 'tweaker-section-head' },
+          h('span', null, 'Properties'),
+          h('span', { className: 'tweaker-hint' }, `Active: ${rows.find((r) => r.id === activeId).label}`),
+        ),
+        rows.map((row) => h(ColorRow, {
+          key: row.id, row, active: activeId === row.id,
+          onFocus: () => setActiveId(row.id),
+          onPickerChange: (hex) => {
+            setActiveId(row.id);
+            handleApply(hex);
+          },
+          scope,
+        }))
       ),
-      expanded && h('div', { className: 'tweaker-row-body' },
+
+      (bgRow && textRow) && h('div', { className: 'tweaker-section' },
+        h('div', { className: 'tweaker-section-head' },
+          h('span', null, 'Contrast (text vs background)'),
+        ),
+        h(ContrastChip, { fg: normalizeHex(textRow.value), bg: normalizeHex(bgRow.value) })
+      ),
+
+      h('div', { className: 'tweaker-section' },
+        h('div', { className: 'tweaker-section-head' }, h('span', null, 'Opacity')),
+        h(OpacityRow, { selection, onEdit, tokens })
+      ),
+    );
+  }
+
+  function ColorRow({ row, active, onFocus, onPickerChange, scope }) {
+    const [showPicker, setShowPicker] = useState(false);
+    const hex = normalizeHex(row.value);
+    return h('div', {
+      className: 'tweaker-color-row' + (active ? ' is-active' : '') + (showPicker ? ' is-expanded' : ''),
+    },
+      h('div', {
+        className: 'tweaker-color-row-head',
+        onClick: () => { onFocus(); setShowPicker((v) => !v); },
+      },
+        h('span', { className: 'tweaker-radio' + (active ? ' on' : '') }),
+        h('span', { className: 'tweaker-color-preview', style: { background: hex } }),
+        h('span', { className: 'tweaker-color-label' }, row.label),
+        h('span', { className: 'tweaker-color-hex' }, hex.toUpperCase()),
+        h('i', { className: 'fa-solid ' + (showPicker ? 'fa-chevron-up' : 'fa-chevron-down'), 'aria-hidden': 'true' }),
+      ),
+      showPicker && h('div', { className: 'tweaker-color-row-body' },
         LIBS.HexColorPicker && h(LIBS.HexColorPicker, {
-          color, onChange: handleEdit,
+          color: hex, onChange: onPickerChange,
         }),
-        h(AISwatchStrip, {
-          currentColor: color,
-          role: inferColorRole(t.cssProperty),
-          activeTheme,
-          onApply: (hex, swatch) => handleEdit(hex, { source: 'ai-swatch', aiRationale: swatch.rationale }),
-        }),
-        t.tokenName && renderContrastNote({ ...t, value: color }, colorTokens),
+        h('div', { className: 'tweaker-color-row-actions' },
+          h('input', {
+            type: 'text', className: 'tweaker-hex-input',
+            value: hex.toUpperCase(),
+            onChange: (e) => {
+              const v = e.target.value.trim();
+              if (/^#[0-9a-fA-F]{6}$/.test(v)) onPickerChange(v.toLowerCase());
+            },
+          }),
+          window.EyeDropper && h('button', {
+            className: 'tweaker-btn-icon',
+            title: 'Eye-dropper (pick any pixel)',
+            onClick: async () => {
+              const picked = await pickWithEyeDropper();
+              if (picked) onPickerChange(picked.toLowerCase());
+            },
+          }, h('i', { className: 'fa-solid fa-eye-dropper' })),
+          row.tokenName && h('span', { className: 'tweaker-token-badge', title: `Uses ${row.tokenName}` },
+            scope === 'global' ? '→ GLOBAL' : '→ SCOPED'
+          ),
+        ),
       ),
     );
   }
 
-  function renderContrastNote(activeT, allTokens) {
-    // Compare against a likely opposing color (bg vs text, or reverse).
-    const pair = (activeT.property.toLowerCase().includes('background'))
-      ? allTokens.find((x) => x.property === 'color')
-      : allTokens.find((x) => x.property === 'backgroundColor');
-    if (!pair) return null;
-    const r = contrastRatio(activeT.value, pair.value);
-    const v = contrastVerdict(r);
-    return h('div', { className: 'tweaker-contrast' },
-      h('span', null, 'Contrast vs ' + pair.cssProperty + ': '),
-      h('strong', null, v.label),
-      h('span', { className: v.aa ? 'ok' : 'warn' }, ` AA ${v.aa ? '✓' : '✗'}`),
-      h('span', { className: v.aaa ? 'ok' : 'warn' }, ` AAA ${v.aaa ? '✓' : '✗'}`),
+  function OpacityRow({ selection, onEdit, tokens }) {
+    const current = parseFloat(getComputedStyle(selection.element).opacity) || 1;
+    const [val, setVal] = useState(current);
+    useEffect(() => { setVal(parseFloat(getComputedStyle(selection.element).opacity) || 1); }, [selection.element]);
+    function onChange(v) {
+      setVal(v);
+      onEdit({
+        kind: 'scoped', scope: 'scoped',
+        selector: selection.selector, property: 'opacity', value: String(v), source: 'user',
+      });
+    }
+    return h(LabeledSlider, {
+      label: 'Element opacity', min: 0, max: 1, step: 0.01, value: val,
+      format: (v) => `${Math.round(v * 100)}%`,
+      onChange,
+    });
+  }
+
+  // ──────────────────────────────────────────────────────────────────
+  // Type tab — visual font dropdown + sliders + segmented weight
+  // ──────────────────────────────────────────────────────────────────
+
+  const FONT_CHOICES = [
+    { label: 'Serif (theme default)',  value: 'var(--font-serif)' },
+    { label: 'Sans (theme default)',   value: 'var(--font-sans)' },
+    { label: 'Mono',                   value: 'var(--font-mono)' },
+    { label: 'Script (Great Vibes)',   value: 'var(--font-script)' },
+    { label: 'Dance (Dancing Script)', value: 'var(--font-dance)' },
+    { label: 'Playfair Display',       value: "'Playfair Display', serif" },
+    { label: 'Lora',                   value: "'Lora', serif" },
+    { label: 'PT Serif',               value: "'PT Serif', serif" },
+    { label: 'Cormorant Garamond',     value: "'Cormorant Garamond', serif" },
+    { label: 'Inter',                  value: "'Inter', sans-serif" },
+    { label: 'Open Sans',              value: "'Open Sans', sans-serif" },
+    { label: 'Nunito Sans',            value: "'Nunito Sans', sans-serif" },
+    { label: 'Lato',                   value: "'Lato', sans-serif" },
+  ];
+
+  const WEIGHTS = [300, 400, 500, 600, 700, 800];
+
+  function TypeTab({ selection, scope, tokens, onEdit }) {
+    const cs = getComputedStyle(selection.element);
+    const fontSizePx = parseFloat(cs.fontSize) || 16;
+    const [family, setFamily] = useState(cs.fontFamily || 'var(--font-sans)');
+    const [size, setSize] = useState(fontSizePx / 16);
+    const [weight, setWeight] = useState(parseInt(cs.fontWeight) || 400);
+    const [lineH, setLineH] = useState(parseFloat(cs.lineHeight) / fontSizePx || 1.5);
+    const [letterSp, setLetterSp] = useState(parseFloat(cs.letterSpacing) || 0);
+
+    function emit(property, value) {
+      onEdit({
+        kind: 'scoped', scope: 'scoped',
+        selector: selection.selector, property, value, source: 'user',
+      });
+    }
+
+    return h('div', { className: 'tweaker-tab-type' },
+      // Sample preview
+      h('div', {
+        className: 'tweaker-type-preview',
+        style: {
+          fontFamily: family,
+          fontSize: `${size}rem`,
+          fontWeight: weight,
+          lineHeight: lineH,
+          letterSpacing: `${letterSp}px`,
+        },
+      }, 'The quick brown fox'),
+
+      // Family dropdown, each option rendered in its own font
+      h('div', { className: 'tweaker-section' },
+        h('div', { className: 'tweaker-section-head' }, h('span', null, 'Font family')),
+        h('select', {
+          className: 'tweaker-select',
+          value: family,
+          onChange: (e) => { setFamily(e.target.value); emit('font-family', e.target.value); },
+        },
+          FONT_CHOICES.map((f) => h('option', { key: f.value, value: f.value, style: { fontFamily: f.value } }, f.label))
+        )
+      ),
+
+      // Size slider
+      h('div', { className: 'tweaker-section' },
+        h(LabeledSlider, {
+          label: 'Font size', min: 0.5, max: 4, step: 0.05, value: size,
+          format: (v) => `${v.toFixed(2)}rem (${Math.round(v * 16)}px)`,
+          onChange: (v) => { setSize(v); emit('font-size', `${v}rem`); },
+        })
+      ),
+
+      // Weight — segmented control
+      h('div', { className: 'tweaker-section' },
+        h('div', { className: 'tweaker-section-head' },
+          h('span', null, 'Weight'),
+          h('span', { className: 'tweaker-hint' }, String(weight)),
+        ),
+        h('div', { className: 'tweaker-segmented' },
+          WEIGHTS.map((w) => h('button', {
+            key: w,
+            className: 'tweaker-segmented-btn' + (weight === w ? ' on' : ''),
+            style: { fontWeight: w, fontFamily: family },
+            onClick: () => { setWeight(w); emit('font-weight', String(w)); },
+          }, w))
+        ),
+      ),
+
+      // Line height
+      h('div', { className: 'tweaker-section' },
+        h(LabeledSlider, {
+          label: 'Line height', min: 1, max: 2.5, step: 0.05, value: lineH,
+          format: (v) => v.toFixed(2),
+          onChange: (v) => { setLineH(v); emit('line-height', String(v)); },
+        })
+      ),
+
+      // Letter spacing
+      h('div', { className: 'tweaker-section' },
+        h(LabeledSlider, {
+          label: 'Letter spacing', min: -2, max: 8, step: 0.1, value: letterSp,
+          format: (v) => `${v.toFixed(1)}px`,
+          onChange: (v) => { setLetterSp(v); emit('letter-spacing', `${v}px`); },
+        })
+      ),
     );
   }
 
-  function TypeTab({ fontTokens, scope, selection, onEdit }) {
-    if (!fontTokens.length) {
-      return h('div', { className: 'tweaker-empty' }, 'No typography tokens detected for this element.');
-    }
-    const commonFamilies = [
-      'var(--font-serif)','var(--font-sans)','var(--font-mono)','var(--font-script)','var(--font-dance)',
-    ];
-    return h('div', null,
-      fontTokens.map((t) => {
-        if (t.property === 'fontFamily') {
-          return h('div', { key: t.property, className: 'tweaker-row' },
-            h('div', { className: 'tweaker-row-head' }, h('span', { className: 'tweaker-prop' }, 'font-family')),
-            h('div', { className: 'tweaker-row-body' },
-              h('select', {
-                className: 'tweaker-select',
-                value: t.value,
-                onChange: (e) => onEdit({
-                  kind: 'scoped', scope: 'scoped',
-                  selector: selection.selector, property: 'font-family', value: e.target.value, source: 'user',
-                }),
-              },
-                h('option', { value: t.value }, t.value),
-                commonFamilies.map((f) => h('option', { key: f, value: f }, f))
-              )
-            )
-          );
-        }
-        if (t.property === 'fontSize' || t.property === 'lineHeight' || t.property === 'fontWeight') {
-          const prop = t.cssProperty;
-          const min = prop === 'font-weight' ? 100 : (prop === 'line-height' ? 1 : 0.5);
-          const max = prop === 'font-weight' ? 900 : (prop === 'line-height' ? 2.2 : 4);
-          const step = prop === 'font-weight' ? 100 : (prop === 'line-height' ? 0.05 : 0.05);
-          const num = parseFloat(t.value) || min;
-          const unit = (prop === 'font-size') ? 'rem' : (prop === 'line-height' ? '' : '');
-          return h('div', { key: prop, className: 'tweaker-row' },
-            h('div', { className: 'tweaker-row-head' },
-              h('span', { className: 'tweaker-prop' }, prop),
-              h('span', { className: 'tweaker-tokname' }, t.value),
-            ),
-            h('div', { className: 'tweaker-row-body' },
-              h('input', {
-                type: 'range', min, max, step, value: prop === 'font-size' ? num / 16 : num,
-                onInput: (e) => {
-                  const v = prop === 'font-size' ? `${e.target.value}rem` : String(e.target.value);
-                  onEdit({
-                    kind: 'scoped', scope: 'scoped',
-                    selector: selection.selector, property: prop, value: v, source: 'user',
-                  });
-                },
-              })
-            )
-          );
-        }
-        return null;
-      })
+  // ──────────────────────────────────────────────────────────────────
+  // Box tab — Figma-style cross for padding+margin, radius + shadow
+  // ──────────────────────────────────────────────────────────────────
+
+  function BoxTab({ selection, scope, tokens, onEdit }) {
+    const cs = getComputedStyle(selection.element);
+    const emit = (property, value) => onEdit({
+      kind: 'scoped', scope: 'scoped',
+      selector: selection.selector, property, value, source: 'user',
+    });
+
+    return h('div', { className: 'tweaker-tab-box' },
+      // Padding + margin nested cross
+      h('div', { className: 'tweaker-section' },
+        h('div', { className: 'tweaker-section-head' }, h('span', null, 'Spacing')),
+        h(BoxModelCross, {
+          marginTop: cs.marginTop, marginRight: cs.marginRight, marginBottom: cs.marginBottom, marginLeft: cs.marginLeft,
+          paddingTop: cs.paddingTop, paddingRight: cs.paddingRight, paddingBottom: cs.paddingBottom, paddingLeft: cs.paddingLeft,
+          onChange: (property, value) => emit(property, value),
+        })
+      ),
+
+      // Border radius
+      h('div', { className: 'tweaker-section' },
+        h(LabeledSlider, {
+          label: 'Border radius', min: 0, max: 48, step: 1, value: parseFloat(cs.borderTopLeftRadius) || 0,
+          format: (v) => `${v}px`,
+          onChange: (v) => emit('border-radius', `${v}px`),
+        }),
+        h('div', { className: 'tweaker-radius-preview', style: { borderRadius: `${parseFloat(cs.borderTopLeftRadius) || 0}px` } })
+      ),
+
+      // Shadow composer
+      h('div', { className: 'tweaker-section' }, h(ShadowComposer, { selection, onEdit })),
     );
   }
 
-  function BoxTab({ boxTokens, scope, selection, onEdit }) {
-    if (!boxTokens.length) {
-      return h('div', { className: 'tweaker-empty' }, 'No box tokens (radius, padding, shadow) detected.');
+  function BoxModelCross({ marginTop, marginRight, marginBottom, marginLeft, paddingTop, paddingRight, paddingBottom, paddingLeft, onChange }) {
+    const [linkMargin, setLinkMargin] = useState(false);
+    const [linkPadding, setLinkPadding] = useState(false);
+
+    function onMargin(side, v) {
+      if (linkMargin) {
+        onChange('margin-top', v); onChange('margin-right', v); onChange('margin-bottom', v); onChange('margin-left', v);
+      } else onChange(`margin-${side}`, v);
     }
-    return h('div', null,
-      boxTokens.map((t) => {
-        const prop = t.cssProperty;
-        return h('div', { key: prop, className: 'tweaker-row' },
-          h('div', { className: 'tweaker-row-head' },
-            h('span', { className: 'tweaker-prop' }, prop),
-            h('span', { className: 'tweaker-tokname' }, t.tokenName || t.value),
+    function onPadding(side, v) {
+      if (linkPadding) {
+        onChange('padding-top', v); onChange('padding-right', v); onChange('padding-bottom', v); onChange('padding-left', v);
+      } else onChange(`padding-${side}`, v);
+    }
+
+    return h('div', { className: 'tweaker-box-model' },
+      // Outer ring: margin
+      h('div', { className: 'tweaker-box-ring tweaker-box-margin' },
+        h('span', { className: 'tweaker-box-ring-label' }, 'margin',
+          h('button', {
+            className: 'tweaker-box-link' + (linkMargin ? ' on' : ''),
+            onClick: () => setLinkMargin((v) => !v),
+            title: 'Link all 4 sides',
+          }, h('i', { className: 'fa-solid fa-link' }))
+        ),
+        h(ScrubbableInput, { className: 'tweaker-box-top',    value: marginTop,    onChange: (v) => onMargin('top', v) }),
+        h(ScrubbableInput, { className: 'tweaker-box-right',  value: marginRight,  onChange: (v) => onMargin('right', v) }),
+        h(ScrubbableInput, { className: 'tweaker-box-bottom', value: marginBottom, onChange: (v) => onMargin('bottom', v) }),
+        h(ScrubbableInput, { className: 'tweaker-box-left',   value: marginLeft,   onChange: (v) => onMargin('left', v) }),
+
+        // Inner ring: padding
+        h('div', { className: 'tweaker-box-ring tweaker-box-padding' },
+          h('span', { className: 'tweaker-box-ring-label' }, 'padding',
+            h('button', {
+              className: 'tweaker-box-link' + (linkPadding ? ' on' : ''),
+              onClick: () => setLinkPadding((v) => !v),
+              title: 'Link all 4 sides',
+            }, h('i', { className: 'fa-solid fa-link' }))
           ),
-          h('div', { className: 'tweaker-row-body' },
-            h('input', {
-              type: 'text', defaultValue: t.value, className: 'tweaker-text',
-              onBlur: (e) => onEdit({
-                kind: 'scoped', scope: 'scoped',
-                selector: selection.selector, property: prop, value: e.target.value, source: 'user',
-              }),
-            })
-          )
-        );
-      })
+          h(ScrubbableInput, { className: 'tweaker-box-top',    value: paddingTop,    onChange: (v) => onPadding('top', v) }),
+          h(ScrubbableInput, { className: 'tweaker-box-right',  value: paddingRight,  onChange: (v) => onPadding('right', v) }),
+          h(ScrubbableInput, { className: 'tweaker-box-bottom', value: paddingBottom, onChange: (v) => onPadding('bottom', v) }),
+          h(ScrubbableInput, { className: 'tweaker-box-left',   value: paddingLeft,   onChange: (v) => onPadding('left', v) }),
+          h('span', { className: 'tweaker-box-center' }, 'content'),
+        )
+      )
     );
+  }
+
+  function ShadowComposer({ selection, onEdit }) {
+    const cs = getComputedStyle(selection.element);
+    const parsed = parseShadow(cs.boxShadow);
+    const [x, setX] = useState(parsed.x);
+    const [y, setY] = useState(parsed.y);
+    const [blur, setBlur] = useState(parsed.blur);
+    const [spread, setSpread] = useState(parsed.spread);
+    const [color, setColor] = useState(parsed.color || '#000000');
+    const [showPicker, setShowPicker] = useState(false);
+    function emit(nx = x, ny = y, nb = blur, ns = spread, nc = color) {
+      const v = `${nx}px ${ny}px ${nb}px ${ns}px ${nc}`;
+      onEdit({
+        kind: 'scoped', scope: 'scoped',
+        selector: selection.selector, property: 'box-shadow', value: v, source: 'user',
+      });
+    }
+    return h('div', null,
+      h('div', { className: 'tweaker-section-head' }, h('span', null, 'Box shadow')),
+      // Preview
+      h('div', { className: 'tweaker-shadow-preview' },
+        h('div', { className: 'tweaker-shadow-sample', style: { boxShadow: `${x}px ${y}px ${blur}px ${spread}px ${color}` } })
+      ),
+      h(LabeledSlider, { label: 'X offset', min: -40, max: 40, step: 1, value: x, format: (v) => `${v}px`, onChange: (v) => { setX(v); emit(v, y, blur, spread, color); } }),
+      h(LabeledSlider, { label: 'Y offset', min: -40, max: 40, step: 1, value: y, format: (v) => `${v}px`, onChange: (v) => { setY(v); emit(x, v, blur, spread, color); } }),
+      h(LabeledSlider, { label: 'Blur',     min: 0,   max: 80, step: 1, value: blur,   format: (v) => `${v}px`, onChange: (v) => { setBlur(v); emit(x, y, v, spread, color); } }),
+      h(LabeledSlider, { label: 'Spread',   min: -20, max: 40, step: 1, value: spread, format: (v) => `${v}px`, onChange: (v) => { setSpread(v); emit(x, y, blur, v, color); } }),
+      h('div', { className: 'tweaker-shadow-color' },
+        h('button', {
+          className: 'tweaker-color-preview-btn',
+          style: { background: color },
+          onClick: () => setShowPicker((v) => !v),
+        }),
+        h('span', { className: 'tweaker-color-hex' }, color.toUpperCase()),
+      ),
+      showPicker && LIBS.HexColorPicker && h(LIBS.HexColorPicker, {
+        color, onChange: (v) => { setColor(v); emit(x, y, blur, spread, v); },
+      }),
+    );
+  }
+
+  function parseShadow(css) {
+    if (!css || css === 'none') return { x: 0, y: 0, blur: 0, spread: 0, color: '#000000' };
+    // computed style is rgb(a,b,c) Xpx Ypx BLURpx SPREADpx (inset)
+    const m = css.match(/^(rgba?\([^)]+\)|#[0-9a-f]+)\s*(-?\d+(?:\.\d+)?)px\s+(-?\d+(?:\.\d+)?)px\s+(-?\d+(?:\.\d+)?)px(?:\s+(-?\d+(?:\.\d+)?)px)?/i);
+    if (!m) return { x: 0, y: 0, blur: 0, spread: 0, color: '#000000' };
+    const rgb = parseColor(m[1]);
+    const hex = rgb ? '#' + rgb.slice(0, 3).map((n) => n.toString(16).padStart(2, '0')).join('') : '#000000';
+    return {
+      color: hex,
+      x: parseFloat(m[2]), y: parseFloat(m[3]),
+      blur: parseFloat(m[4]), spread: m[5] ? parseFloat(m[5]) : 0,
+    };
   }
 
   function normalizeHex(value) {
