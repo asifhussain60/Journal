@@ -11,7 +11,7 @@
   ],
   "occasion": "Engagement party in Fresh Meadows, Queens",
   "theme": "Romantic couple's trip with family celebration",
-  "vibe": "Packed & purposeful \u2014 couple time, mid-range budget, halal dining",
+  "vibe": "Packed & purposeful — couple time, mid-range budget, halal dining",
   "dates": {
     "start": "2026-04-20",
     "end": "2026-04-28",
@@ -26,7 +26,7 @@
   "flights": {
     "inbound": {
       "flight": "UA 147",
-      "route": "LHR \u2192 EWR",
+      "route": "LHR → EWR",
       "date": "2026-04-20",
       "depart": "12:00 PM BST",
       "arrive": "2:55 PM ET",
@@ -34,7 +34,7 @@
     },
     "outbound": {
       "flight": "UA 16",
-      "route": "EWR \u2192 LHR",
+      "route": "EWR → LHR",
       "date": "2026-04-28",
       "depart": "5:25 PM ET",
       "arrive": "5:55 AM +1",
@@ -64,9 +64,9 @@
       "ch04-faith"
     ],
     "potential_incidents": [
-      "Ishrat's visit \u2014 couple reconnecting across continents",
-      "Engagement party \u2014 family celebration, new beginnings",
-      "Shalwar kameez shopping \u2014 cultural identity moment"
+      "Ishrat's visit — couple reconnecting across continents",
+      "Engagement party — family celebration, new beginnings",
+      "Shalwar kameez shopping — cultural identity moment"
     ]
   },
   "dayone": {
@@ -91,7 +91,7 @@
           "event": "UA 147 lands at EWR",
           "venue": "Newark Liberty International Airport, Terminal C, Newark, NJ 07114",
           "tag": "TRAVEL",
-          "notes": "Allow 30\u201345 min for customs & baggage. Meet at arrivals ~3:30\u20133:45 PM."
+          "notes": "Allow 30–45 min for customs & baggage. Meet at arrivals ~3:30–3:45 PM."
         },
         {
           "time": "~4:00 PM",
@@ -109,7 +109,9 @@
           "tag": "DINING",
           "phone": "(732) 549-5306",
           "rating": 4.5,
-          "notes": "South Asian sweets & dining (~10 min from hotel). She'll be on London time\u2014midnight by 7 PM ET. Warm meal, then early night."
+          "notes": "South Asian sweets & dining (~10 min from hotel). She'll be on London time—midnight by 7 PM ET. Warm meal, then early night.",
+          "category": "South Asian · Sweets & Savory",
+          "duration_min": 75
         }
       ]
     },
@@ -126,7 +128,9 @@
           "tag": "DINING",
           "phone": "(732) 777-7878",
           "rating": 4.4,
-          "notes": "Famous NJ diner featured on Diners, Drive-Ins & Dives (~12 min). Scratch kitchen, cage-free eggs, craft pancakes. Jet lag will have you both up early."
+          "notes": "Famous NJ diner featured on Diners, Drive-Ins & Dives (~12 min). Scratch kitchen, cage-free eggs, craft pancakes. Jet lag will have you both up early.",
+          "category": "American · Classic Diner",
+          "duration_min": 60
         },
         {
           "time": "11:00 AM",
@@ -135,7 +139,9 @@
           "tag": "DINING",
           "phone": "(732) 297-5300",
           "rating": 4.2,
-          "notes": "Pakistani grill (~5 min) \u2014 opens 11 AM. Hearty lunch before the advisor meeting."
+          "notes": "Pakistani grill (~5 min) — opens 11 AM. Hearty lunch before the advisor meeting.",
+          "category": "Pakistani · Desi Classics",
+          "duration_min": 60
         },
         {
           "time": "2:00 PM",
@@ -143,16 +149,20 @@
           "venue": "Chase Bank, 629 Route 18, East Brunswick, NJ 08816",
           "tag": "APPOINTMENT",
           "notes": "Afternoon appointment (~1 hour). She'll be alert by this time.",
-          "phone": "(732) 254-2181"
+          "phone": "(732) 254-2181",
+          "category": "Banking · Chase",
+          "duration_min": 45
         },
         {
           "time": "3:30 PM",
           "event": "Hotel Rest / Nap",
           "venue": "Home2 Suites by Hilton, 3 Jersey Ave, New Brunswick, NJ 08901",
           "tag": "REST",
-          "notes": "Back at hotel by 3:30 PM (~15 min drive from advisor). 90-min nap window to recharge before evening out. Ishrat naps 60\u201390 min.",
+          "notes": "Back at hotel by 3:30 PM (~15 min drive from advisor). 90-min nap window to recharge before evening out. Ishrat naps 60–90 min.",
           "phone": "(732) 729-0900",
-          "rating": 4.1
+          "rating": 4.1,
+          "category": "Hotel · Downtime",
+          "duration_min": 60
         },
         {
           "time": "5:20 PM",
@@ -161,7 +171,9 @@
           "tag": "CAFE",
           "phone": "(732) 993-4114",
           "rating": 4.6,
-          "notes": "Specialty coffee bar with proper loose-leaf tea selection and cozy sit-down seating (~5 min from hotel). Ishrat's English tea, Asif's pour-over. Unwind before Pho House."
+          "notes": "Specialty coffee bar with proper loose-leaf tea selection and cozy sit-down seating (~5 min from hotel). Ishrat's English tea, Asif's pour-over. Unwind before Pho House.",
+          "category": "Specialty Coffee House",
+          "duration_min": 30
         },
         {
           "time": "6:30 PM",
@@ -170,7 +182,9 @@
           "tag": "DINING",
           "phone": "(732) 225-8889",
           "rating": 4.6,
-          "notes": "Vietnamese pho and rice plates (~15 min) \u2014 light and perfect for evening."
+          "notes": "Vietnamese pho and rice plates (~15 min) — light and perfect for evening.",
+          "category": "Vietnamese · Pho & Rice Bowls",
+          "duration_min": 75
         },
         {
           "time": "7:30 PM",
@@ -179,7 +193,9 @@
           "tag": "DINING",
           "phone": "(732) 744-0123",
           "rating": 4.7,
-          "notes": "Walk over in the same plaza for Shark Tank-famous rotisserie dough cones with soft serve. Open till 11 PM."
+          "notes": "Walk over in the same plaza for Shark Tank-famous rotisserie dough cones with soft serve. Open till 11 PM.",
+          "category": "Ice Cream · Sweet Cones",
+          "duration_min": 30
         }
       ]
     },
@@ -196,7 +212,9 @@
           "tag": "DINING",
           "phone": "(732) 247-9330",
           "rating": 4.3,
-          "notes": "Classic 24-hour NJ diner (~15 min) \u2014 famous breakfast platters, fresh-made everything. Stephanie lunch at noon, so keep it light."
+          "notes": "Classic 24-hour NJ diner (~15 min) — famous breakfast platters, fresh-made everything. Stephanie lunch at noon, so keep it light.",
+          "category": "American · Classic Diner",
+          "duration_min": 60
         },
         {
           "time": "12:00 PM",
@@ -205,7 +223,9 @@
           "tag": "DINING",
           "phone": "(732) 238-5800",
           "rating": 4.4,
-          "notes": "Keep it light (~10 min) \u2014 share a soup and appetizer. Korean BBQ dinner at 4:30 PM, then movie at 7."
+          "notes": "Keep it light (~10 min) — share a soup and appetizer. Korean BBQ dinner at 4:30 PM, then movie at 7.",
+          "category": "Thai · Light Bites",
+          "duration_min": 75
         },
         {
           "time": "1:45 PM",
@@ -214,7 +234,9 @@
           "tag": "REST",
           "notes": "Back at hotel by 1:45 PM (~10 min from N-Thai). 90-min nap window before the Korean BBQ + IMAX evening. Critical rest so she's fresh for a 2.5-hr movie.",
           "phone": "(732) 729-0900",
-          "rating": 4.1
+          "rating": 4.1,
+          "category": "Hotel · Downtime",
+          "duration_min": 60
         },
         {
           "time": "4:30 PM",
@@ -223,7 +245,9 @@
           "tag": "DINING",
           "phone": "(732) 404-0077",
           "rating": 4.6,
-          "notes": "Prime No. 7 \u2014 Halal all-you-can-eat Korean BBQ. Eat early so you're ready for the 7 PM movie."
+          "notes": "Prime No. 7 — Halal all-you-can-eat Korean BBQ. Eat early so you're ready for the 7 PM movie.",
+          "category": "Korean BBQ · Tabletop Grill",
+          "duration_min": 90
         },
         {
           "time": "7:00 PM",
@@ -232,7 +256,9 @@
           "tag": "ENTERTAINMENT",
           "phone": "(888) 262-4386",
           "rating": 4.1,
-          "notes": "Starring Jaafar Jackson, directed by Antoine Fuqua. Runtime ~2.5 hrs. Out by ~9:30 PM. Book on Fandango. Perfect post-dinner date night."
+          "notes": "Starring Jaafar Jackson, directed by Antoine Fuqua. Runtime ~2.5 hrs. Out by ~9:30 PM. Book on Fandango. Perfect post-dinner date night.",
+          "category": "Cinema · IMAX Premiere",
+          "duration_min": 180
         }
       ]
     },
@@ -249,7 +275,9 @@
           "tag": "DINING",
           "phone": "(732) 549-9393",
           "rating": 4.2,
-          "notes": "Fresh-from-scratch breakfast (~12 min) \u2014 homemade bread, hearty omelettes, great portions. Fuel up before the shopping marathon."
+          "notes": "Fresh-from-scratch breakfast (~12 min) — homemade bread, hearty omelettes, great portions. Fuel up before the shopping marathon.",
+          "category": "American · Classic Diner",
+          "duration_min": 60
         },
         {
           "time": "10:00 AM",
@@ -258,7 +286,9 @@
           "tag": "SHOPPING",
           "phone": "(732) 762-5425",
           "rating": 4.5,
-          "notes": "Premier Pakistani boutique (~15 min) \u2014 men's shalwar kameez, kurtas, waistcoats."
+          "notes": "Premier Pakistani boutique (~15 min) — men's shalwar kameez, kurtas, waistcoats.",
+          "category": "South Asian Fashion · Bridal",
+          "duration_min": 75
         },
         {
           "time": "11:30 AM",
@@ -267,7 +297,9 @@
           "tag": "SHOPPING",
           "phone": "(732) 798-9900",
           "rating": 4.4,
-          "notes": "Multi-brand boutique since 2019 (~5 min) \u2014 carries MTJ, Gul Ahmed, Asim Jofa, and more. Great for comparing styles."
+          "notes": "Multi-brand boutique since 2019 (~5 min) — carries MTJ, Gul Ahmed, Asim Jofa, and more. Great for comparing styles.",
+          "category": "South Asian Fashion · Menswear",
+          "duration_min": 60
         },
         {
           "time": "12:00 PM",
@@ -276,34 +308,42 @@
           "tag": "SHOPPING",
           "phone": "(732) 940-6000",
           "rating": 4.6,
-          "notes": "Flagship Pakistani brand (~5 min) \u2014 premium men's shalwar kameez, kurtas, waistcoats. Start early \u2014 leave time for alterations and matching accessories."
+          "notes": "Flagship Pakistani brand (~5 min) — premium men's shalwar kameez, kurtas, waistcoats. Start early — leave time for alterations and matching accessories.",
+          "category": "Pakistani Designer · Tailored",
+          "duration_min": 60
         },
         {
           "time": "1:00 PM",
           "event": "Halal Lunch at Samosa House",
           "venue": "1000 US-9, Old Bridge, NJ 08857",
           "tag": "DINING",
-          "notes": "Light halal lunch close to the shops (~10 min). Candidates: Spice Rack (halal Indian, East Brunswick), Chaat Hut (Iselin, halal Indo-Chinese), or Chinese Mirch (East Brunswick, halal Chinese). Keep it light \u2014 Tabaq dinner is the main event. [Swapped from Amin's Union City to avoid a ~50-min each-way detour.]",
+          "notes": "Light halal lunch close to the shops (~10 min). Candidates: Spice Rack (halal Indian, East Brunswick), Chaat Hut (Iselin, halal Indo-Chinese), or Chinese Mirch (East Brunswick, halal Chinese). Keep it light — Tabaq dinner is the main event. [Swapped from Amin's Union City to avoid a ~50-min each-way detour.]",
           "phone": "(732) 525-2770",
-          "rating": 4.3
+          "rating": 4.3,
+          "category": "Pakistani · Halal Street Food",
+          "duration_min": 60
         },
         {
           "time": "3:40 PM",
-          "event": "Tea & Coffee Break \u2014 Hidden Grounds",
+          "event": "Tea & Coffee Break — Hidden Grounds",
           "venue": "106 Church St, New Brunswick, NJ 08901",
           "tag": "CAFE",
           "phone": "(732) 993-4114",
           "rating": 4.6,
-          "notes": "Mid-shopping sit-down pause (~5 min from hotel, ~5 min from J. Junaid). Ishrat's English tea, Asif's pour-over, scones optional. Recharge before the final shop visits."
+          "notes": "Mid-shopping sit-down pause (~5 min from hotel, ~5 min from J. Junaid). Ishrat's English tea, Asif's pour-over, scones optional. Recharge before the final shop visits.",
+          "category": "Specialty Coffee House",
+          "duration_min": 30
         },
         {
           "time": "5:15 PM",
           "event": "Hotel Rest / Nap",
           "venue": "Home2 Suites by Hilton, 3 Jersey Ave, New Brunswick, NJ 08901",
           "tag": "REST",
-          "notes": "Back at hotel by ~5:00 PM. 90-min nap window \u2014 critical rest after a long shopping day and before tomorrow's heavy engagement party.",
+          "notes": "Back at hotel by ~5:00 PM. 90-min nap window — critical rest after a long shopping day and before tomorrow's heavy engagement party.",
           "phone": "(732) 729-0900",
-          "rating": 4.1
+          "rating": 4.1,
+          "category": "Hotel · Downtime",
+          "duration_min": 60
         },
         {
           "time": "7:30 PM",
@@ -312,7 +352,9 @@
           "tag": "DINING",
           "phone": "(732) 549-9777",
           "rating": 4.5,
-          "notes": "Pakistani & Chinese halal (~15 min) \u2014 great vegetarian (Palak Paneer, Chana Masala) and meat (tandoori, biryani). Big parking lot. [Shifted from 7:00 PM to 7:30 PM to accommodate hotel nap.]"
+          "notes": "Pakistani & Chinese halal (~15 min) — great vegetarian (Palak Paneer, Chana Masala) and meat (tandoori, biryani). Big parking lot. [Shifted from 7:00 PM to 7:30 PM to accommodate hotel nap.]",
+          "category": "Pakistani · Charcoal BBQ",
+          "duration_min": 90
         }
       ]
     },
@@ -329,23 +371,27 @@
           "tag": "DINING",
           "phone": "(732) 246-1444",
           "rating": 4.3,
-          "notes": "Classic American diner (~5 min) \u2014 light eggs, toast, tea. Keep it easy; the engagement party tonight will be a heavy dinner."
+          "notes": "Classic American diner (~5 min) — light eggs, toast, tea. Keep it easy; the engagement party tonight will be a heavy dinner.",
+          "category": "American · Classic Diner",
+          "duration_min": 60
         },
         {
           "time": "10:00 AM",
           "event": "Final Preparations",
           "venue": "",
           "tag": "PREPARATION",
-          "notes": "Hair and nails appointment (~2\u20133 hours). Final outfit check, steam dress, pack essentials."
+          "notes": "Hair and nails appointment (~2–3 hours). Final outfit check, steam dress, pack essentials."
         },
         {
           "time": "1:00 PM",
           "event": "Light Post-Salon Lunch at Nirvana Indian",
           "venue": "80 NJ-18, East Brunswick, NJ 08816",
           "tag": "DINING",
-          "notes": "Salon wraps ~12:45 PM. Quick light lunch (soup + salad or light sandwich) within 5 min of the hotel \u2014 protects appetite for the heavy party dinner tonight. Panera or a nearby local cafe works.",
+          "notes": "Salon wraps ~12:45 PM. Quick light lunch (soup + salad or light sandwich) within 5 min of the hotel — protects appetite for the heavy party dinner tonight. Panera or a nearby local cafe works.",
           "phone": "(732) 418-0020",
-          "rating": 4.4
+          "rating": 4.4,
+          "category": "Indian · Light Lunch",
+          "duration_min": 60
         },
         {
           "time": "2:00 PM",
@@ -359,7 +405,7 @@
           "event": "Drive to Fresh Meadows, Queens",
           "venue": "183-10 Horace Harding Expy, NY 11365",
           "tag": "TRAVEL",
-          "notes": "ETA ~4:45\u20135:15 PM via Holland Tunnel \u2192 LIE. Friday evening traffic adds 20\u201330 min. Leave by 3:30 PM sharp\u2014no later."
+          "notes": "ETA ~4:45–5:15 PM via Holland Tunnel → LIE. Friday evening traffic adds 20–30 min. Leave by 3:30 PM sharp—no later."
         },
         {
           "time": "~5:30 PM",
@@ -367,7 +413,9 @@
           "venue": "Ganesh Temple Society Banquet Hall, 183-10 Horace Harding Expy, Fresh Meadows, NY 11365",
           "tag": "ENGAGEMENT_HIGHLIGHT",
           "notes": "An unforgettable evening of family, love, and new beginnings.",
-          "phone": "(718) 460-8484"
+          "phone": "(718) 460-8484",
+          "category": "Engagement Celebration",
+          "duration_min": 360
         }
       ]
     },
@@ -384,23 +432,27 @@
           "tag": "DINING",
           "phone": "(732) 257-4455",
           "rating": 4,
-          "notes": "Post-party recovery breakfast (~10 min) \u2014 bakery-fresh muffins, hearty plates, and strong coffee. Opens 8 AM, perfect for sleeping in a bit after the party."
+          "notes": "Post-party recovery breakfast (~10 min) — bakery-fresh muffins, hearty plates, and strong coffee. Opens 8 AM, perfect for sleeping in a bit after the party.",
+          "category": "American · Family Breakfast",
+          "duration_min": 60
         },
         {
           "time": "1:00 PM",
           "event": "Drive to Holland Ridge Farms",
           "venue": "",
           "tag": "TRAVEL",
-          "notes": "Head south to Cream Ridge, NJ (~40 min). New Jersey's premier tulip destination \u2014 peak bloom in late April."
+          "notes": "Head south to Cream Ridge, NJ (~40 min). New Jersey's premier tulip destination — peak bloom in late April."
         },
         {
           "time": "1:45 PM",
-          "event": "Holland Ridge Farms \u2014 Tulip Fields",
+          "event": "Holland Ridge Farms — Tulip Fields",
           "venue": "2 Savannah Rd, Cream Ridge, NJ 08514",
           "tag": "NATURE",
           "phone": "(609) 758-0909",
           "rating": 4.7,
-          "notes": "Millions of tulips across rolling fields. U-pick flowers, stunning photo ops, and a relaxed walk through the colours. Allow ~2 hours to soak it in. Buy tickets online in advance \u2014 late April weekends sell out. Wear comfortable shoes (fields can be soft)."
+          "notes": "Millions of tulips across rolling fields. U-pick flowers, stunning photo ops, and a relaxed walk through the colours. Allow ~2 hours to soak it in. Buy tickets online in advance — late April weekends sell out. Wear comfortable shoes (fields can be soft).",
+          "category": "Nature · Tulip Fields",
+          "duration_min": 150
         },
         {
           "time": "~3:45 PM",
@@ -409,7 +461,9 @@
           "tag": "NATURE",
           "phone": "(732) 542-5404",
           "rating": 4.6,
-          "notes": "Quick stop on the way back (~10 min from Holland Ridge). Fresh local produce, baked goods, honey, and seasonal treats. A lovely farm-stand experience."
+          "notes": "Quick stop on the way back (~10 min from Holland Ridge). Fresh local produce, baked goods, honey, and seasonal treats. A lovely farm-stand experience.",
+          "category": "Nature · Orchard Market",
+          "duration_min": 60
         },
         {
           "time": "4:20 PM",
@@ -418,7 +472,9 @@
           "tag": "CAFE",
           "phone": "(732) 462-1989",
           "rating": 4.7,
-          "notes": "Rustic NJ farm-market institution (~5 min from Eastmont) with full bakery, loose-leaf tea, proper coffee, and comfortable sit-down. Ishrat's English-tea moment paired with a fresh scone, Asif's espresso. Perfect cafe complement to the tulip day."
+          "notes": "Rustic NJ farm-market institution (~5 min from Eastmont) with full bakery, loose-leaf tea, proper coffee, and comfortable sit-down. Ishrat's English-tea moment paired with a fresh scone, Asif's espresso. Perfect cafe complement to the tulip day.",
+          "category": "Farm Cafe · Pies & Tea",
+          "duration_min": 45
         },
         {
           "time": "5:40 PM",
@@ -427,7 +483,9 @@
           "tag": "REST",
           "notes": "Back at hotel by ~5:30 PM (~40 min drive from Colts Neck). 60-min brief recharge before dinner.",
           "phone": "(732) 729-0900",
-          "rating": 4.1
+          "rating": 4.1,
+          "category": "Hotel · Downtime",
+          "duration_min": 60
         },
         {
           "time": "7:00 PM",
@@ -436,7 +494,9 @@
           "tag": "DINING",
           "phone": "(732) 549-2500",
           "rating": 4.4,
-          "notes": "Indian & Pakistani (~10 min) \u2014 relaxed meal close to home to debrief about the party. [Shifted from 6:30 PM to 7:00 PM to accommodate cafe + nap.]"
+          "notes": "Indian & Pakistani (~10 min) — relaxed meal close to home to debrief about the party. [Shifted from 6:30 PM to 7:00 PM to accommodate cafe + nap.]",
+          "category": "Indian · North Indian",
+          "duration_min": 90
         }
       ]
     },
@@ -453,7 +513,9 @@
           "tag": "DINING",
           "phone": "(732) 247-0900",
           "rating": 4.5,
-          "notes": "Beloved local gem (~10 min) \u2014 famous omelettes, generous portions, very affordable. Quick fuel-up before the long drive to Brandywine Valley."
+          "notes": "Beloved local gem (~10 min) — famous omelettes, generous portions, very affordable. Quick fuel-up before the long drive to Brandywine Valley.",
+          "category": "American · Classic Diner",
+          "duration_min": 60
         },
         {
           "time": "10:30 AM",
@@ -462,7 +524,9 @@
           "tag": "NATURE",
           "phone": "(610) 388-1000",
           "rating": 4.8,
-          "notes": "One of the world's great botanical gardens \u2014 1,077 acres of spring blooms, fountains, conservatories, and scenic walking paths. Absolutely stunning in late April. Book timed-entry tickets in advance. Opens 10 AM Sundays. Allow ~2 hours. Wear comfortable walking shoes."
+          "notes": "One of the world's great botanical gardens — 1,077 acres of spring blooms, fountains, conservatories, and scenic walking paths. Absolutely stunning in late April. Book timed-entry tickets in advance. Opens 10 AM Sundays. Allow ~2 hours. Wear comfortable walking shoes.",
+          "category": "Historic Garden · Conservatory",
+          "duration_min": 180
         },
         {
           "time": "12:30 PM",
@@ -471,14 +535,16 @@
           "tag": "CAFE",
           "phone": "(610) 388-6771",
           "rating": 4.5,
-          "notes": "Proper afternoon tea service with garden-conservatory views (45 min). Ishrat's English-tea moment with scones/sandwiches, Asif gets espresso. Reserve in advance \u2014 limited sittings and sells out on spring weekends."
+          "notes": "Proper afternoon tea service with garden-conservatory views (45 min). Ishrat's English-tea moment with scones/sandwiches, Asif gets espresso. Reserve in advance — limited sittings and sells out on spring weekends.",
+          "category": "Garden Tea Room",
+          "duration_min": 75
         },
         {
           "time": "1:15 PM",
           "event": "Scenic Brandywine Valley Drive",
           "venue": "",
           "tag": "SCENIC_DRIVE",
-          "notes": "Wind through the Brandywine Valley on Route 52 & Creek Road \u2014 rolling hills, historic estates, stone bridges, and creek-side views. One of the prettiest drives in the Mid-Atlantic. ~30 min to Christiana."
+          "notes": "Wind through the Brandywine Valley on Route 52 & Creek Road — rolling hills, historic estates, stone bridges, and creek-side views. One of the prettiest drives in the Mid-Atlantic. ~30 min to Christiana."
         },
         {
           "time": "1:45 PM",
@@ -487,7 +553,9 @@
           "tag": "SHOPPING",
           "phone": "(302) 731-9815",
           "rating": 4.3,
-          "notes": "Delaware's premier mall \u2014 tax-free shopping! Nordstrom, Apple, Coach, Michael Kors, H&M, and 130+ stores. Grab lunch at the food court or sit-down restaurants inside. Tax-free shopping saves 6\u20137% on everything. Plan ~2.5 hours here. Mall closes at 6 PM on Sundays."
+          "notes": "Delaware's premier mall — tax-free shopping! Nordstrom, Apple, Coach, Michael Kors, H&M, and 130+ stores. Grab lunch at the food court or sit-down restaurants inside. Tax-free shopping saves 6–7% on everything. Plan ~2.5 hours here. Mall closes at 6 PM on Sundays.",
+          "category": "Outlet Mall · Tax-Free DE",
+          "duration_min": 120
         },
         {
           "time": "4:15 PM",
@@ -496,14 +564,16 @@
           "tag": "NATURE",
           "phone": "(302) 577-3534",
           "rating": 4.7,
-          "notes": "A quick scenic walk along Brandywine Creek (~15 min north of mall) \u2014 gentle trails, creek views, and a beautiful stone-arch bridge. Perfect stretch after the mall. The Indian Springs Trail (1.2 mi loop) is flat and pretty \u2014 ideal for a 30\u201340 min stroll."
+          "notes": "A quick scenic walk along Brandywine Creek (~15 min north of mall) — gentle trails, creek views, and a beautiful stone-arch bridge. Perfect stretch after the mall. The Indian Springs Trail (1.2 mi loop) is flat and pretty — ideal for a 30–40 min stroll.",
+          "category": "Nature · Creek Trails",
+          "duration_min": 60
         },
         {
           "time": "4:55 PM",
-          "event": "Drive to Red Bank, NJ \u2014 Ishrat's car-nap leg",
+          "event": "Drive to Red Bank, NJ — Ishrat's car-nap leg",
           "venue": "",
           "tag": "TRAVEL",
-          "notes": "Head back east via I-95 & NJ Turnpike (~1 hr 30 min). \ud83d\ude97 Ishrat reclines for a 60-min car nap \u2014 recliner seat, pillow + blanket, quiet playlist. Arrive Red Bank ~6:25 PM with time to stroll downtown before dinner."
+          "notes": "Head back east via I-95 & NJ Turnpike (~1 hr 30 min). 🚗 Ishrat reclines for a 60-min car nap — recliner seat, pillow + blanket, quiet playlist. Arrive Red Bank ~6:25 PM with time to stroll downtown before dinner."
         },
         {
           "time": "7:00 PM",
@@ -512,7 +582,9 @@
           "tag": "DINING",
           "phone": "(732) 475-9222",
           "rating": 4.5,
-          "notes": "Fondue date night \u2014 cheese, entr\u00e9es, and chocolate fondue. The perfect end to a big day out. Book ahead online. Red Bank is on the way home from Delaware, so the route works."
+          "notes": "Fondue date night — cheese, entrées, and chocolate fondue. The perfect end to a big day out. Book ahead online. Red Bank is on the way home from Delaware, so the route works.",
+          "category": "Fondue · Date Night",
+          "duration_min": 120
         }
       ]
     },
@@ -529,7 +601,9 @@
           "tag": "DINING",
           "phone": "(732) 249-4467",
           "rating": 4.1,
-          "notes": "Opens 6 AM \u2014 quick pancakes and coffee (~5 min) before packing. Start organizing luggage when you get back."
+          "notes": "Opens 6 AM — quick pancakes and coffee (~5 min) before packing. Start organizing luggage when you get back.",
+          "category": "American · Pancake House",
+          "duration_min": 60
         },
         {
           "time": "9:30 AM",
@@ -540,21 +614,25 @@
         },
         {
           "time": "10:30 AM",
-          "event": "Ocean Place Spa \u2014 Full Day",
+          "event": "Ocean Place Spa — Full Day",
           "venue": "1 Ocean Blvd, Long Branch, NJ 07740",
           "tag": "SPA",
           "phone": "(732) 571-4000",
           "rating": 4.4,
-          "notes": "Oceanfront spa with indoor pool, sauna, steam room, and treatment rooms. Couples massage available. Ocean views from the deck. Book ahead online. Plan lunch at the spa (in-facility). Leave by ~4:00 PM."
+          "notes": "Oceanfront spa with indoor pool, sauna, steam room, and treatment rooms. Couples massage available. Ocean views from the deck. Book ahead online. Plan lunch at the spa (in-facility). Leave by ~4:00 PM.",
+          "category": "Resort Spa · Full Day Package",
+          "duration_min": 360
         },
         {
           "time": "4:15 PM",
-          "event": "Ocean-view Coffee at Booskerdoo \u2014 Pier Village",
+          "event": "Ocean-view Coffee at Booskerdoo — Pier Village",
           "venue": "18 Laird St, Long Branch, NJ 07740",
           "tag": "CAFE",
           "notes": "Post-spa wind-down with boardwalk views (~5 min from Ocean Place). Recommended: Booskerdoo Coffee (local NJ roaster) or a sit-down cafe along Ocean Ave. Swap to a preferred local spot if you know a better one. ~45 min before the drive to Baba Grill.",
           "phone": "(732) 483-6772",
-          "rating": 4.5
+          "rating": 4.5,
+          "category": "Specialty Coffee · Oceanview",
+          "duration_min": 30
         },
         {
           "time": "6:30 PM",
@@ -563,7 +641,9 @@
           "tag": "DINING",
           "phone": "(732) 543-6800",
           "rating": 4.5,
-          "notes": "Middle Eastern halal. Easy drive back from the Shore (~25 min to home)."
+          "notes": "Middle Eastern halal. Easy drive back from the Shore (~25 min to home).",
+          "category": "Pakistani BBQ · Farewell",
+          "duration_min": 90
         }
       ]
     },
@@ -580,7 +660,9 @@
           "tag": "DINING",
           "phone": "(732) 254-2003",
           "rating": 4.3,
-          "notes": "Classic NJ diner since 1959 (~10 min) \u2014 last breakfast together before the flight. Famous omelettes and comfort food."
+          "notes": "Classic NJ diner since 1959 (~10 min) — last breakfast together before the flight. Famous omelettes and comfort food.",
+          "category": "American · Classic Diner",
+          "duration_min": 45
         },
         {
           "time": "12:00 PM",
@@ -594,7 +676,7 @@
           "event": "Drive to EWR",
           "venue": "Newark Liberty International Airport, Terminal C, Newark, NJ 07114",
           "tag": "TRAVEL",
-          "notes": "~40 min to Terminal C (United hub). Arrive ~2:40 PM \u2014 2 hrs 45 min before departure for international check-in."
+          "notes": "~40 min to Terminal C (United hub). Arrive ~2:40 PM — 2 hrs 45 min before departure for international check-in."
         },
         {
           "time": "5:25 PM",

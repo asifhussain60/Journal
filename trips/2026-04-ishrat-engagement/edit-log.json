@@ -447,5 +447,16 @@
     "actor": "cowork",
     "status": "applied",
     "notes": "After server restart, the chat should research venues before proposing edits (e.g. 'add Chase to financial advisor' now triggers web_search for real branch data). If info is genuinely ambiguous (e.g. which of 3 nearby branches), the model returns intent=needs_info with a clarifying question rendered as a chat bubble. Server-side validator rejects any patch producing a destination event missing venue/phone/rating."
+  },
+  {
+    "schemaVersion": "1",
+    "id": "5f623d45-4e26-4c1e-a787-f48a2551ea65",
+    "createdAt": "2026-04-17T01:39:56.476Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml + site/itinerary HTML/CSS + server prompts/validators",
+    "intent": "Map-below-events redesign: numbered destination badges, per-day route header with Open-in-Google-Maps deep link, numbered Leaflet pins, card-filler chips (category + duration + live drive-to-next), alt-venue slot with Find-alternative CTA, /api/distance-matrix proxy, trip-edit prompt teaches duration_min + category + alt_venue, floating chat widened 480x740 with single-row chips. Enriched 41 destination events with duration_min + category.",
+    "patch": [],
+    "author": "cowork-redesign-pass",
+    "notes": "All 41 destination events enriched. Validator green. Distance Matrix degrades gracefully when no GOOGLE_MAPS_API_KEY is set (Keychain service: google-maps-key)."
   }
 ]
