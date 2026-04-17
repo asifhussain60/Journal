@@ -306,66 +306,94 @@ select.input {
    Shell naming: .nav / .page / .container / .section are
    the stable primitives — do not rename per page.
 
-   Historical alias: itinerary views currently use
-   `.itn-nav*` (defined in itinerary-dark.css). This is a
-   pre-consolidation holdover and will merge into `.nav*`
-   once the dark-theme token split (Step 5) completes.
+   Shell nav variants (pick one per view, not both):
+     • `.nav` (this file) — centered floating pill, tokenized, the
+       default for site-shell pages. Dashboard uses this.
+     • `.itn-nav` (itinerary-dark.css) — full-width sticky bar, dark
+       gradient background. A deliberate design variant for the
+       immersive dark itinerary, not a rename of `.nav`.
 
    Standalone share artifacts (e.g. trips/<slug>/itinerary.html)
-   may omit `.nav` — they are explicitly scoped as printable
+   may omit both — they are explicitly scoped as printable
    or shareable static snapshots, not site-shell views.
    ═══════════════════════════════════════════════════ */
 
-/* ─── Navigation ─── */
+/* ─── Canonical pill Navigation ─── */
+/* Fully tokenized — every visual property resolves via theme tokens
+   declared in themes/<theme>.css. Dark itineraries currently opt into
+   a distinct full-width bar (`.itn-nav` in itinerary-dark.css); see the
+   PAGE-SHELL CONTRACT comment above for when to use which. */
 .nav {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  top: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: var(--z-nav);
+  background: var(--glass-bg);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-  background: rgba(15, 15, 20, 0.8);
-  border-bottom: 1px solid var(--border-default);
-}
-.nav-inner {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 1.5rem;
-  height: 60px;
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: var(--radius-full);
+  padding: 0.5rem 1rem;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 1.5rem;
+  width: 90%;
+  max-width: 1000px;
 }
 .nav-brand {
   font-family: var(--font-script);
-  font-size: 1.75rem;
-  color: var(--accent);
-  letter-spacing: 0.02em;
+  font-size: 2rem;
+  background: linear-gradient(135deg, var(--accent), var(--rose));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  padding: 0 1rem;
+  font-weight: 600;
 }
 .nav-links {
   display: flex;
   gap: 0.25rem;
+  flex: 1;
+  justify-content: flex-end;
 }
 .nav-link {
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-md);
-  color: var(--text-secondary);
-  font-size: 0.875rem;
+  padding: 0.6rem 1.25rem;
+  border-radius: var(--radius-full);
+  color: var(--text-muted);
+  font-size: 0.95rem;
   font-weight: 500;
   transition: all var(--transition-fast);
   cursor: pointer;
   border: none;
-  background: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-family: var(--font-sans);
 }
 .nav-link:hover {
   color: var(--text-primary);
-  background: var(--accent-soft);
+  background: var(--glass-bg-hover);
 }
 .nav-link.active {
   color: var(--accent);
-  background: var(--accent-soft);
+  background: var(--bg-card-solid);
+  box-shadow: var(--shadow-sm);
+}
+
+@media (max-width: 768px) {
+  .nav {
+    width: 95%;
+    padding: 0.5rem;
+    gap: 0.5rem;
+  }
+  .nav-brand {
+    font-size: 1.5rem;
+  }
+  .nav-link span {
+    display: none;
+  }
 }
 
 /* ─── Page Layout ─── */

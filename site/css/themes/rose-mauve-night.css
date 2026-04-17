@@ -17,6 +17,9 @@
   --bg-primary: #2b2240;
   --bg-secondary: #3a3050;
   --bg-tertiary: #322a4a;
+  --bg-card: rgba(255, 255, 255, 0.08);
+  --bg-card-hover: rgba(255, 255, 255, 0.12);
+  --bg-card-solid: rgba(255, 255, 255, 0.18);   /* active-state surfaces */
 
   /* ─── Panels + lines (itinerary vocab) ─── */
   --panel: rgba(255, 255, 255, 0.12);
