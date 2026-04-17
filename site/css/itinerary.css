@@ -804,20 +804,116 @@ html{scroll-behavior:smooth}
 }
 .event-icon--default     { background:var(--white-05); color:var(--text); }
 
-/* ─── Details column — single-column stack: info → notes (full-width pull-quote) → alt */
+/* ─── Details column — accordion-style: a summary row (always visible)
+       stacked on top of a collapsible body. Grid-template-rows 0fr → 1fr
+       animates height cleanly without max-height guessing games. ─── */
 .event-details{
   min-width:0;
-  display:grid;
-  grid-template-columns:minmax(0,1fr);
-  grid-template-areas:
-    "info"
-    "notes"
-    "alt";
-  gap:.25rem;
-  align-items:start;
+  display:flex;
+  flex-direction:column;
+  gap:0;
 }
-.event-info{
-  grid-area:info;
+
+/* Summary row: tag + title + caret. The entire .event-card is the click
+   target (see onclick in renderEventCard); the caret is purely visual. */
+.event-summary{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:.75rem;
+  padding:.1rem 0;
+  min-width:0;
+}
+.event-summary-text{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:.35rem;
+  flex:1 1 auto;
+}
+.event-caret{
+  flex:0 0 auto;
+  margin-top:.35rem;
+  width:22px;height:22px;
+  display:grid;place-items:center;
+  border-radius:50%;
+  color:var(--rose-2);
+  background:transparent;
+  font-size:.7rem;
+  opacity:.55;
+  transition:transform .3s cubic-bezier(.34,1.2,.64,1),
+             opacity .22s ease,
+             background-color .22s ease,
+             color .22s ease;
+}
+.event-card:hover .event-caret{ opacity:.85; }
+.event-card.is-expanded .event-caret{
+  transform:rotate(180deg);
+  opacity:1;
+  color:var(--rose);
+  background:color-mix(in srgb, var(--rose) 16%, transparent);
+}
+
+/* Collapsible body — grid trick smoothly animates 0 → intrinsic height. */
+.event-body{
+  display:grid;
+  grid-template-rows:0fr;
+  transition:grid-template-rows .4s cubic-bezier(.22,1,.36,1),
+             opacity .25s ease,
+             margin-top .3s ease;
+  opacity:0;
+  margin-top:0;
+}
+.event-body > .event-body-inner{
+  min-height:0;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  gap:.55rem;
+}
+.event-card.is-expanded .event-body{
+  grid-template-rows:1fr;
+  opacity:1;
+  margin-top:.7rem;
+}
+
+/* Hairline separator at the top of the open body — a visual cue distinct
+   from the day-card's chevron-only accordion. Uses the current rose token
+   at low alpha so it harmonizes with every theme. */
+.event-card.is-expanded .event-body > .event-body-inner{
+  padding-top:.65rem;
+  border-top:1px solid color-mix(in srgb, var(--rose) 18%, transparent);
+}
+
+/* Event-card itself needs to advertise clickability + a soft open state.
+   Visual differentiator from the day-card accordion: the day uses a right
+   chevron + max-height on the body; the event uses a grid-rows transition
+   on the body + a left accent line that slides in when open. Two distinct
+   motion languages keep the hierarchy obvious at a glance. */
+.event-card{ cursor:pointer; position:relative; }
+.event-card::after{
+  content:"";
+  position:absolute;
+  left:0;top:14px;bottom:14px;
+  width:2px;
+  border-radius:0 2px 2px 0;
+  background:linear-gradient(to bottom, var(--rose-2), var(--accent));
+  opacity:0;
+  transform:scaleY(.3);
+  transform-origin:top;
+  transition:opacity .25s ease, transform .35s cubic-bezier(.22,1,.36,1);
+  pointer-events:none;
+}
+.event-card.is-expanded::after{ opacity:.9; transform:scaleY(1); }
+.event-card:hover:not(.is-expanded){
+  background:linear-gradient(
+    180deg,
+    rgba(255,255,255,.055) 0%,
+    rgba(255,255,255,.02) 100%
+  );
+}
+
+.event-info-body{
   min-width:0;
   display:flex;
   flex-direction:column;

@@ -1297,41 +1297,53 @@
         // Rail (line + dot rendered via CSS pseudos)
         parts.push('  <div class="event-rail" aria-hidden="true"></div>');
 
-        // Card
-        parts.push('  <div class="event-card">');
+        // Card — accordion-style. Click toggles .is-expanded; interactive
+        // children (links, buttons) bail out via toggleEventCard's closest()
+        // check so tel: links and alt-find button still work.
+        parts.push('  <div class="event-card" onclick="event.stopPropagation(); toggleEventCard(event, this)" aria-expanded="false">');
         parts.push('    <div class="event-icon event-icon--' + key + '">');
         parts.push('      <i class="fa-solid ' + icon + '" aria-hidden="true"></i>');
         if (num) parts.push('      <span class="event-num-badge" aria-label="Stop ' + num + '">' + num + '</span>');
         parts.push('    </div>');
         parts.push('    <div class="event-details">');
 
-        // Left 75% — venue info column
-        parts.push('      <div class="event-info">');
+        // ── Summary row — title only (with its embedded venue). Matches the
+        //     spec: collapsed view shows only "<activity> at <venue>". Tag,
+        //     rating, and everything else live in the body. ──
+        parts.push('      <div class="event-summary">');
+        parts.push('        <div class="event-summary-text">');
+        parts.push('          <h4 class="event-title">' + escHtml(ev.event) + '</h4>');
+        parts.push('        </div>');
+        parts.push('        <i class="event-caret fa-solid fa-chevron-down" aria-hidden="true"></i>');
+        parts.push('      </div>');
+
+        // ── Collapsible body — grid-template-rows 0fr→1fr animates height. ──
+        parts.push('      <div class="event-body">');
+        parts.push('        <div class="event-body-inner">');
+        // Info body (tag + rating + contact + chips) + optional notes aside, then alt-venue row below.
+        parts.push('          <div class="event-info-body">');
 
         if (ev.tag) {
-          parts.push('        <div class="event-meta-top">');
-          parts.push('          <span class="tag tag-' + key + '">' + escHtml(ev.tag) + '</span>');
-          parts.push('        </div>');
+          parts.push('            <div class="event-meta-top">');
+          parts.push('              <span class="tag tag-' + key + '">' + escHtml(ev.tag) + '</span>');
+          parts.push('            </div>');
         }
 
-        parts.push('        <h4 class="event-title">' + escHtml(ev.event) + '</h4>');
-
         if (ev.rating) {
-          parts.push('        <div class="event-rating">');
-          parts.push('          <span class="event-rating-stars" aria-label="Rated ' + escHtml(String(ev.rating)) + ' out of 5">' + renderStars(ev.rating) + '</span>');
-          parts.push('          <span class="event-rating-num">' + escHtml(String(ev.rating)) + '</span>');
-          parts.push('        </div>');
+          parts.push('            <div class="event-rating">');
+          parts.push('              <span class="event-rating-stars" aria-label="Rated ' + escHtml(String(ev.rating)) + ' out of 5">' + renderStars(ev.rating) + '</span>');
+          parts.push('              <span class="event-rating-num">' + escHtml(String(ev.rating)) + '</span>');
+          parts.push('            </div>');
         }
 
         var hasContact = address || ev.phone;
         if (hasContact) {
-          parts.push('        <div class="event-contact">');
-          if (address) parts.push('          <span class="event-addr">' + escHtml(address) + '</span>');
-          if (ev.phone) parts.push('          <span class="event-phone"><i class="fa-solid fa-phone" aria-hidden="true"></i><a href="' + telHref(ev.phone) + '">' + escHtml(ev.phone) + '</a></span>');
-          parts.push('        </div>');
+          parts.push('            <div class="event-contact">');
+          if (address) parts.push('              <span class="event-addr">' + escHtml(address) + '</span>');
+          if (ev.phone) parts.push('              <span class="event-phone"><i class="fa-solid fa-phone" aria-hidden="true"></i><a href="' + telHref(ev.phone) + '" onclick="event.stopPropagation()">' + escHtml(ev.phone) + '</a></span>');
+          parts.push('            </div>');
         }
 
-        // Left chips — category, duration, drive (drive returned from weather aside now that weather lives in the day header).
         var leftChips = [];
         if (ev.category) {
           leftChips.push('<span class="event-chip event-chip--category"><i class="fa-solid fa-tag" aria-hidden="true"></i>' + escHtml(ev.category) + '</span>');
@@ -1344,44 +1356,46 @@
           leftChips.push('<span class="event-chip event-chip--drive" data-drive-from="' + num + '"><i class="fa-solid fa-car" aria-hidden="true"></i><span class="drive-val">' + driveTxt + '</span></span>');
         }
         if (leftChips.length) {
-          parts.push('        <div class="event-chips">' + leftChips.join('') + '</div>');
+          parts.push('            <div class="event-chips">' + leftChips.join('') + '</div>');
         }
 
-        parts.push('      </div>'); // .event-info
+        parts.push('          </div>'); // .event-info-body
 
-        // Right 25% — notes / tips card (surfaces rich context from trip.yaml).
         if (noteText) {
-          parts.push('      <aside class="event-notes" aria-label="Notes">');
-          parts.push('        <i class="event-notes-icon fa-solid fa-quote-left" aria-hidden="true"></i>');
-          parts.push('        <p class="event-notes-text">' + escHtml(noteText) + '</p>');
-          parts.push('      </aside>');
+          parts.push('          <aside class="event-notes" aria-label="Notes">');
+          parts.push('            <i class="event-notes-icon fa-solid fa-quote-left" aria-hidden="true"></i>');
+          parts.push('            <p class="event-notes-text">' + escHtml(noteText) + '</p>');
+          parts.push('          </aside>');
         }
 
-        // Alternate-venue slot — full width under the 75/25 grid, only on numbered stops
+        // Alt-venue slot — spans the full width within the body.
         if (num) {
           if (ev.alt_venue && ev.alt_venue.name) {
             var alt = ev.alt_venue;
-            parts.push('      <div class="event-alt event-alt--filled">');
-            parts.push('        <span class="alt-label"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>Nearby alternative</span>');
-            parts.push('        <div class="alt-body">');
-            parts.push('          <span class="alt-name">' + escHtml(alt.name) + '</span>');
+            parts.push('          <div class="event-alt event-alt--filled">');
+            parts.push('            <span class="alt-label"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>Nearby alternative</span>');
+            parts.push('            <div class="alt-body">');
+            parts.push('              <span class="alt-name">' + escHtml(alt.name) + '</span>');
             var meta = [];
             if (alt.distance) meta.push(escHtml(String(alt.distance)));
             if (alt.rating) meta.push('&#9733; ' + escHtml(String(alt.rating)));
             if (alt.drive_min) meta.push(escHtml(String(alt.drive_min)) + ' min');
-            if (meta.length) parts.push('          <span class="alt-meta">' + meta.join(' &middot; ') + '</span>');
-            parts.push('        </div>');
-            parts.push('      </div>');
+            if (meta.length) parts.push('              <span class="alt-meta">' + meta.join(' &middot; ') + '</span>');
+            parts.push('            </div>');
+            parts.push('          </div>');
           } else {
             var label = String(ev.event || '').replace(/'/g, "\\'");
-            parts.push('      <div class="event-alt">');
-            parts.push('        <button type="button" class="alt-find-btn" onclick="event.stopPropagation(); findAlternate(' + dayIdx + ',' + eventIdx + ',\'' + escHtml(label) + '\')"><i class="fa-solid fa-shuffle" aria-hidden="true"></i>Find an alternative nearby</button>');
-            parts.push('      </div>');
+            parts.push('          <div class="event-alt">');
+            parts.push('            <button type="button" class="alt-find-btn" onclick="event.stopPropagation(); findAlternate(' + dayIdx + ',' + eventIdx + ',\'' + escHtml(label) + '\')"><i class="fa-solid fa-shuffle" aria-hidden="true"></i>Find an alternative nearby</button>');
+            parts.push('          </div>');
           }
         }
 
-        parts.push('    </div>');
-        parts.push('  </div>');
+        parts.push('        </div>'); // .event-body-inner
+        parts.push('      </div>'); // .event-body
+
+        parts.push('    </div>'); // .event-details
+        parts.push('  </div>'); // .event-card
         parts.push('</div>');
         return parts.join('\n');
       }
@@ -1916,6 +1930,20 @@
 
   <script>
     // Accordion Toggle for Timeline
+    // Toggle an event accordion. Called from the inline onclick on each
+    // .event-card. Interactive children (links, buttons) bail out so they
+    // keep their native behavior. `event.stopPropagation()` in the inline
+    // attribute prevents the click from bubbling up to the parent day-card,
+    // which would close the day.
+    function toggleEventCard(e, card) {
+      if (e && e.target && e.target.closest('a, button')) return;
+      if (!card) return;
+      var next = !card.classList.contains('is-expanded');
+      card.classList.toggle('is-expanded', next);
+      card.setAttribute('aria-expanded', next ? 'true' : 'false');
+    }
+    window.toggleEventCard = toggleEventCard;
+
     function toggleCard(card) {
       var isOpen = card.classList.contains('open');
 
