@@ -104,13 +104,13 @@
         },
         {
           "time": "6:30 PM",
-          "event": "Dinner at Mithaas",
-          "venue": "1655 Oak Tree Rd, Edison, NJ 08820",
+          "event": "Mithaas North Brunswick",
+          "venue": "1463 Finnegans Ln, North Brunswick, NJ 08902",
           "tag": "DINING",
-          "phone": "(732) 549-5306",
-          "rating": 4.5,
-          "notes": "South Asian sweets & dining (~10 min from hotel). She'll be on London time—midnight by 7 PM ET. Warm meal, then early night.",
-          "category": "South Asian · Sweets & Savory",
+          "phone": "(732) 658-3880",
+          "rating": 3.8,
+          "notes": "Indian street food, chaat, sweets & Indo-Chinese (~10 min from hotel). She'll be on London time—midnight by 7 PM ET. Vegetarian-friendly; great for a warm, light arrival meal. Early night after.",
+          "category": "Indian · Street Food & Mithai",
           "duration_min": 75
         }
       ]
@@ -207,11 +207,11 @@
       "events": [
         {
           "time": "7:30 AM",
-          "event": "Breakfast at Somerset Diner",
-          "venue": "1045 Easton Ave, Somerset, NJ 08873",
+          "event": "J&G South Bound Brook Diner",
+          "venue": "10 Cherry St, South Bound Brook, NJ 08880",
           "tag": "DINING",
-          "phone": "(732) 247-9330",
-          "rating": 4.3,
+          "phone": "(732) 667-5890",
+          "rating": 4.8,
           "notes": "Classic 24-hour NJ diner (~15 min) — famous breakfast platters, fresh-made everything. Stephanie lunch at noon, so keep it light.",
           "category": "American · Classic Diner",
           "duration_min": 60

@@ -65,7 +65,7 @@
     "createdAt": "2026-04-17T00:16:12.891Z",
     "tripSlug": "2026-04-ishrat-engagement",
     "target": "trip.yaml",
-    "intent": "Add a ~4:00 PM outdoor caf\u00e9/walk event on Day 2 between the Financial Advisor Meeting and dinner",
+    "intent": "Add a ~4:00 PM outdoor café/walk event on Day 2 between the Financial Advisor Meeting and dinner",
     "patch": [
       {
         "op": "add",
@@ -75,7 +75,7 @@
           "event": "Afternoon Stroll & Coffee",
           "venue": "Boyd Park, 625 River Rd, New Brunswick, NJ 08901",
           "tag": "LEISURE",
-          "notes": "A relaxing post-meeting wind-down. Stroll along the Raritan River at Boyd Park \u2014 flat, scenic waterfront path. Grab a coffee or tea at Caf\u00e9 12 Ounce (112 Albany St, New Brunswick, ~5 min away) and sit outside if the weather's nice. Easy, unhurried, and a lovely way to decompress before dinner. Allow ~1.5 hours."
+          "notes": "A relaxing post-meeting wind-down. Stroll along the Raritan River at Boyd Park — flat, scenic waterfront path. Grab a coffee or tea at Café 12 Ounce (112 Albany St, New Brunswick, ~5 min away) and sit outside if the weather's nice. Easy, unhurried, and a lovely way to decompress before dinner. Allow ~1.5 hours."
         }
       }
     ],
@@ -117,7 +117,7 @@
       {
         "op": "replace",
         "path": "/days/1/events/3/notes",
-        "value": "Vietnamese pho and rice plates (~15 min) \u2014 light and perfect for evening."
+        "value": "Vietnamese pho and rice plates (~15 min) — light and perfect for evening."
       },
       {
         "op": "replace",
@@ -176,7 +176,7 @@
       {
         "op": "replace",
         "path": "/days/1/events/4/notes",
-        "value": "Vietnamese pho and rice plates (~15 min) \u2014 light and perfect for evening."
+        "value": "Vietnamese pho and rice plates (~15 min) — light and perfect for evening."
       },
       {
         "op": "replace",
@@ -206,7 +206,7 @@
       {
         "op": "replace",
         "path": "/days/1/events/3/notes",
-        "value": "A relaxing post-meeting wind-down. Stroll along the Raritan River at Boyd Park \u2014 flat, scenic waterfront path. Grab a coffee or tea at Caf\u00e9 12 Ounce (112 Albany St, New Brunswick, ~5 min away) and sit outside if the weather's nice. Easy, unhurried, and a lovely way to decompress before dinner. Allow ~1.5 hours."
+        "value": "A relaxing post-meeting wind-down. Stroll along the Raritan River at Boyd Park — flat, scenic waterfront path. Grab a coffee or tea at Café 12 Ounce (112 Albany St, New Brunswick, ~5 min away) and sit outside if the weather's nice. Easy, unhurried, and a lovely way to decompress before dinner. Allow ~1.5 hours."
       },
       {
         "op": "remove",
@@ -354,12 +354,12 @@
         "changes": [
           "Stripped website field from 12 events",
           "Stripped reviews field from 40 events",
-          "Day 1 4:00 PM: upgraded 'Drive to Home2 Suites' \u2192 'Arrive & Check In at Home2 Suites' with full venue+phone+rating",
+          "Day 1 4:00 PM: upgraded 'Drive to Home2 Suites' → 'Arrive & Check In at Home2 Suites' with full venue+phone+rating",
           "Days 2/3/4/6: all Hotel Rest/Nap events enriched with Home2 Suites venue+phone+rating",
-          "Day 4 1:00 PM: 'Halal Lunch East Brunswick/Milltown' \u2192 'Halal Lunch at Samosa House' (specific venue+phone+rating)",
-          "Day 5 1:00 PM: 'Light Post-Salon Lunch' \u2192 'Light Post-Salon Lunch at Nirvana Indian' (specific venue+phone+rating)",
+          "Day 4 1:00 PM: 'Halal Lunch East Brunswick/Milltown' → 'Halal Lunch at Samosa House' (specific venue+phone+rating)",
+          "Day 5 1:00 PM: 'Light Post-Salon Lunch' → 'Light Post-Salon Lunch at Nirvana Indian' (specific venue+phone+rating)",
           "Day 5 5:30 PM: Celebration venue upgraded to 'Ganesh Temple Society Banquet Hall' with phone",
-          "Day 8 4:15 PM: 'Pier Village cafe' \u2192 'Ocean-view Coffee at Booskerdoo \u2014 Pier Village' (specific venue+phone+rating)"
+          "Day 8 4:15 PM: 'Pier Village cafe' → 'Ocean-view Coffee at Booskerdoo — Pier Village' (specific venue+phone+rating)"
         ]
       }
     ],
@@ -417,10 +417,10 @@
         "op": "summary",
         "scope": "server/src/index.js POST /api/trip-edit",
         "changes": [
-          "Enabled tools: web_search_20250305 (max_uses: 3) \u2014 was intentionally disabled",
-          "Bumped max_tokens 2048 \u2192 4096 to accommodate tool use + research",
+          "Enabled tools: web_search_20250305 (max_uses: 3) — was intentionally disabled",
+          "Bumped max_tokens 2048 → 4096 to accommodate tool use + research",
           "Added citation extraction from web_search_tool_result blocks (threaded to response)",
-          "Added needs_info intent handler \u2014 returns question to UI without applying patch"
+          "Added needs_info intent handler — returns question to UI without applying patch"
         ]
       },
       {
@@ -430,7 +430,7 @@
           "Added validateDestinationEvents(): enforces venue+phone+rating on destination-tagged events",
           "Rejects events with deprecated website or reviews fields",
           "ENGAGEMENT_HIGHLIGHT / CELEBRATION exempt from rating requirement (private events)",
-          "Runs as final check in validateTrip() \u2014 last line of defense if AI misbehaves"
+          "Runs as final check in validateTrip() — last line of defense if AI misbehaves"
         ]
       },
       {
@@ -458,5 +458,185 @@
     "patch": [],
     "author": "cowork-redesign-pass",
     "notes": "All 41 destination events enriched. Validator green. Distance Matrix degrades gracefully when no GOOGLE_MAPS_API_KEY is set (Keychain service: google-maps-key)."
+  },
+  {
+    "schemaVersion": "1",
+    "id": "d1df1c5c-e7e1-46c4-80cf-cf893d76c4a8",
+    "createdAt": "2026-04-17T18:09:24.083Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "Swap event 3.1 → J&G South Bound Brook Diner",
+    "patch": [
+      {
+        "op": "replace",
+        "path": "/days/2/events/0/event",
+        "value": "J&G South Bound Brook Diner"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/0/venue",
+        "value": "10 Cherry St, South Bound Brook, NJ 08880"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/0/phone",
+        "value": "(732) 667-5890"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/0/rating",
+        "value": 4.8
+      }
+    ],
+    "inversePatch": [
+      {
+        "op": "replace",
+        "path": "/days/2/events/0/rating",
+        "value": 4.3
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/0/phone",
+        "value": "(732) 247-9330"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/0/venue",
+        "value": "1045 Easton Ave, Somerset, NJ 08873"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/0/event",
+        "value": "Breakfast at Somerset Diner"
+      }
+    ],
+    "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-d1df1c5c-e7e1-46c4-80cf-cf893d76c4a8.yaml",
+    "actor": "app",
+    "status": "applied"
+  },
+  {
+    "schemaVersion": "1",
+    "id": "f8281911-15cb-4e95-814a-d7216faa39bc",
+    "createdAt": "2026-04-17T18:10:19.508Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "Swap event 1.3 → Jasmine's Indian Fusion Restaurant",
+    "patch": [
+      {
+        "op": "replace",
+        "path": "/days/0/events/2/event",
+        "value": "Jasmine's Indian Fusion Restaurant"
+      },
+      {
+        "op": "replace",
+        "path": "/days/0/events/2/venue",
+        "value": "365 George St, New Brunswick, NJ 08901"
+      },
+      {
+        "op": "replace",
+        "path": "/days/0/events/2/phone",
+        "value": "(848) 202-9009"
+      },
+      {
+        "op": "replace",
+        "path": "/days/0/events/2/rating",
+        "value": 4.5
+      }
+    ],
+    "inversePatch": [
+      {
+        "op": "replace",
+        "path": "/days/0/events/2/phone",
+        "value": "(732) 549-5306"
+      },
+      {
+        "op": "replace",
+        "path": "/days/0/events/2/venue",
+        "value": "1655 Oak Tree Rd, Edison, NJ 08820"
+      },
+      {
+        "op": "replace",
+        "path": "/days/0/events/2/event",
+        "value": "Dinner at Mithaas"
+      }
+    ],
+    "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-f8281911-15cb-4e95-814a-d7216faa39bc.yaml",
+    "actor": "app",
+    "status": "applied"
+  },
+  {
+    "schemaVersion": "1",
+    "id": "5b1e1463-7b6e-4ca0-9acb-f6468c66f6b6",
+    "createdAt": "2026-04-17T18:12:33.375Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "Replaced Jasmine's Indian Fusion on Day 1 with Mithaas North Brunswick, fully populated with verified address, phone, rating, category, and duration.",
+    "patch": [
+      {
+        "op": "replace",
+        "path": "/days/0/events/2/event",
+        "value": "Mithaas North Brunswick"
+      },
+      {
+        "op": "replace",
+        "path": "/days/0/events/2/venue",
+        "value": "1463 Finnegans Ln, North Brunswick, NJ 08902"
+      },
+      {
+        "op": "replace",
+        "path": "/days/0/events/2/phone",
+        "value": "(732) 658-3880"
+      },
+      {
+        "op": "replace",
+        "path": "/days/0/events/2/rating",
+        "value": 3.8
+      },
+      {
+        "op": "replace",
+        "path": "/days/0/events/2/category",
+        "value": "Indian · Street Food & Mithai"
+      },
+      {
+        "op": "replace",
+        "path": "/days/0/events/2/notes",
+        "value": "Indian street food, chaat, sweets & Indo-Chinese (~10 min from hotel). She'll be on London time—midnight by 7 PM ET. Vegetarian-friendly; great for a warm, light arrival meal. Early night after."
+      }
+    ],
+    "inversePatch": [
+      {
+        "op": "replace",
+        "path": "/days/0/events/2/category",
+        "value": "South Asian · Sweets & Savory"
+      },
+      {
+        "op": "replace",
+        "path": "/days/0/events/2/notes",
+        "value": "South Asian sweets & dining (~10 min from hotel). She'll be on London time—midnight by 7 PM ET. Warm meal, then early night."
+      },
+      {
+        "op": "replace",
+        "path": "/days/0/events/2/rating",
+        "value": 4.5
+      },
+      {
+        "op": "replace",
+        "path": "/days/0/events/2/phone",
+        "value": "(848) 202-9009"
+      },
+      {
+        "op": "replace",
+        "path": "/days/0/events/2/venue",
+        "value": "365 George St, New Brunswick, NJ 08901"
+      },
+      {
+        "op": "replace",
+        "path": "/days/0/events/2/event",
+        "value": "Jasmine's Indian Fusion Restaurant"
+      }
+    ],
+    "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-5b1e1463-7b6e-4ca0-9acb-f6468c66f6b6.yaml",
+    "actor": "app",
+    "status": "applied"
   }
 ]
