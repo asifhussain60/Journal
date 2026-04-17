@@ -6,40 +6,68 @@
    token — validator check 2 requires this.
    ═══════════════════════════════════════════════════ */
 
-/* ─── Floating nav wrench (activation toggle) ─── */
+/* ─── Nav-mounted wrench (default: portaled next to theme switcher) ─── */
 .tweaker-nav-btn {
-  position: fixed;
-  right: var(--space-4);
-  top: calc(var(--space-4) + 44px);
-  z-index: 9999990;
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
+  gap: 0.5rem;
+  padding: 0.45rem 0.85rem 0.45rem 0.75rem;
+  margin-right: 0.5rem;
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-pill);
-  color: var(--text);
+  color: var(--text-primary);
   font-family: var(--font-sans);
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-weight: 500;
   cursor: pointer;
-  backdrop-filter: blur(16px) saturate(160%);
-  box-shadow: var(--shadow-md);
-  transition: transform var(--motion-fast), border-color var(--motion-fast);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--motion-fast), border-color var(--motion-fast),
+              background var(--motion-fast), box-shadow var(--motion-fast);
+  vertical-align: middle;
+  line-height: 1;
+  white-space: nowrap;
 }
 .tweaker-nav-btn:hover {
   transform: translateY(-1px);
   border-color: var(--border-accent);
+  background: var(--glass-bg-hover);
+  box-shadow: var(--shadow-md);
+}
+.tweaker-nav-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 .tweaker-nav-btn.is-on {
-  background: color-mix(in srgb, var(--accent) 20%, var(--bg));
+  background: color-mix(in srgb, var(--accent) 22%, var(--bg));
   border-color: var(--accent);
   color: var(--text);
 }
-.tweaker-nav-btn i { font-size: 0.9rem; color: var(--accent); }
+.tweaker-nav-btn i {
+  font-size: 0.88rem;
+  color: var(--accent);
+  transition: color var(--motion-fast);
+}
 .tweaker-nav-btn.is-on i { color: var(--text); }
 .tweaker-nav-btn-label { letter-spacing: 0.02em; }
+
+/* ─── Floating fallback (for pages without a nav, e.g. trips/itinerary share) ─── */
+.tweaker-nav-btn.tweaker-nav-btn--floating {
+  position: fixed;
+  right: var(--space-4);
+  top: var(--space-4);
+  z-index: 9999990;
+  margin-right: 0;
+  padding: var(--space-2) var(--space-3);
+  backdrop-filter: blur(16px) saturate(160%);
+  box-shadow: var(--shadow-md);
+}
+
+/* Hide label on narrow viewports (matches theme-switcher behavior). */
+@media (max-width: 640px) {
+  .tweaker-nav-btn-label { display: none; }
+  .tweaker-nav-btn { padding: 0.45rem 0.55rem; }
+}
 
 /* ─── Hover highlight overlay ─── */
 #tweaker-hover-highlight {

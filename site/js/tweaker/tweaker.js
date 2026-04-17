@@ -893,14 +893,9 @@
   // ══════════════════════════════════════════════════════════════════════════
 
   function TweakerRoot() {
-    // Visibility (is the wrench rendered at all) is separate from active (is
-    // tweak mode engaged). Hidden entirely for normal readers.
-    const [visible, setVisible] = useState(() => {
-      try {
-        const url = new URL(window.location.href);
-        return url.searchParams.get('tweak') === '1' || localStorage.getItem(CFG.modeKey) === 'on';
-      } catch { return false; }
-    });
+    // The wrench button is always rendered — prominent in the nav next to the
+    // theme switcher. `active` controls whether Tweak Mode is engaged (picker
+    // running, inspector mounting on clicks).
     const [active, setActive] = useState(false);
     const [selection, setSelection] = useState(null);
     const [pendingChanges, setPendingChanges] = useState([]);
@@ -910,24 +905,57 @@
     const [saveOpen, setSaveOpen] = useState(false);
     const [toast, setToast] = useState(null);
     const [baselineTokens, setBaselineTokens] = useState({});
+    const [navMount, setNavMount] = useState(null);
     const pickerRef = useRef(null);
     const activeThemeRef = useRef(activeThemeInfo());
 
-    // Restore session on mount (only when visible).
+    // On mount: snapshot baseline tokens, restore session, auto-activate if the
+    // URL carries ?tweak=1 or a prior session is still live.
     useEffect(() => {
-      if (!visible) return;
+      setBaselineTokens(paletteSnapshot());
       const s = loadSession();
-      if (s && s.pending) {
+      if (s && s.pending && s.pending.length) {
         setPendingChanges(s.pending);
         setUndoStack(s.undoStack || []);
         setRedoStack(s.redoStack || []);
       }
-      setBaselineTokens(paletteSnapshot());
-      // Persist the flag so a ?tweak=1 visit survives reload without the query.
-      localStorage.setItem(CFG.modeKey, 'on');
-      // Load libs up-front so the first click is snappy.
-      loadLibs().then(() => setActive(true));
-    }, [visible]);
+      try {
+        const url = new URL(window.location.href);
+        const autoActivate =
+          url.searchParams.get('tweak') === '1' ||
+          localStorage.getItem(CFG.modeKey) === 'on';
+        if (autoActivate) {
+          localStorage.setItem(CFG.modeKey, 'on');
+          loadLibs().then(() => setActive(true));
+        }
+      } catch {}
+    }, []);
+
+    // Find or create the nav mount point (a span next to the theme-switcher).
+    // On pages without a [data-theme-switcher], fall back to a fixed-position
+    // floater in the top-right corner.
+    useEffect(() => {
+      function findOrCreateMount() {
+        const ts = document.querySelector('[data-theme-switcher]');
+        if (ts && ts.parentElement) {
+          let mount = ts.parentElement.querySelector('[data-tweaker-mount]');
+          if (!mount) {
+            mount = document.createElement('span');
+            mount.setAttribute('data-tweaker-mount', '');
+            mount.setAttribute(CFG.chromeAttr, '');
+            ts.parentElement.insertBefore(mount, ts);
+          }
+          setNavMount(mount);
+          return true;
+        }
+        return false;
+      }
+      if (findOrCreateMount()) return;
+      // Observe for the theme-switcher to be created (React-rendered nav).
+      const obs = new MutationObserver(() => { if (findOrCreateMount()) obs.disconnect(); });
+      obs.observe(document.body, { childList: true, subtree: true });
+      return () => obs.disconnect();
+    }, []);
 
     // Re-apply pending changes to the page when they change.
     useEffect(() => {
@@ -1054,7 +1082,6 @@
       if (pickerRef.current) pickerRef.current.stop();
       setActive(false);
       setSelection(null);
-      setVisible(false);
     }
 
     function activate() {
@@ -1062,21 +1089,21 @@
       loadLibs().then(() => setActive(true));
     }
 
-    if (!visible) return null;
-
-    // Nav wrench button (always visible; labels change based on state)
+    // Nav wrench button — prominently placed next to the theme switcher when
+    // a nav is present; floating top-right otherwise.
     const navBtn = h('button', {
-      className: 'tweaker-nav-btn' + (active ? ' is-on' : ''),
+      className: 'tweaker-nav-btn' + (active ? ' is-on' : '') + (navMount ? '' : ' tweaker-nav-btn--floating'),
       [CFG.chromeAttr]: '',
       onClick: active ? deactivate : activate,
-      title: active ? 'Exit Tweak Mode (Esc)' : 'Enter Tweak Mode',
+      title: active ? 'Exit Tweak Mode (Esc)' : 'Enter Tweak Mode — edit the current theme',
+      'aria-pressed': active ? 'true' : 'false',
     },
-      h('i', { className: 'fa-solid ' + (active ? 'fa-xmark' : 'fa-wrench') }),
+      h('i', { className: 'fa-solid ' + (active ? 'fa-xmark' : 'fa-wrench'), 'aria-hidden': 'true' }),
       h('span', { className: 'tweaker-nav-btn-label' }, active ? 'Exit' : 'Tweak'),
     );
 
     return h(React.Fragment, null,
-      navBtn,
+      navMount ? ReactDOM.createPortal(navBtn, navMount) : navBtn,
       active && h(React.Fragment, null,
         selection && h(Inspector, {
           selection,
