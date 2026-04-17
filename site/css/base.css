@@ -302,16 +302,12 @@ select.input {
    If a second theme is ever added, convert :root → [data-theme]
    and set the attribute on <html>; no markup changes needed.
 
-   Shell nav:
-     • `.nav` (this file) — full-bleed sticky header, gutter-padded,
-       glass background. Site-shell default.
-     • `.itn-nav` (itinerary.css) — older itinerary header bar with
-       slightly different styling; kept for backward compatibility
-       on existing itinerary markup. New pages should use `.nav`.
-
-   Standalone share artifacts (e.g. trips/<slug>/itinerary.html)
-   may omit both — they are explicitly scoped as printable
-   or shareable static snapshots, not site-shell views.
+   Shell nav: `.nav` (this file) is the only implementation.
+   Full-bleed sticky header, gutter-padded, glass background.
+   Dashboard and itinerary both use it. Standalone share artifacts
+   (e.g. trips/<slug>/itinerary.html) may omit it — they are
+   explicitly scoped as printable or shareable static snapshots,
+   not site-shell views.
    ═══════════════════════════════════════════════════ */
 
 /* ─── Canonical full-width Navigation ─── */
