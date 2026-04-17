@@ -665,7 +665,8 @@ body::after{
 
 /* ─── Card visual (applies to both new-renderer .event-card and legacy
        static-HTML .event without a wrapper). Shared so the visual is
-       consistent whichever code path rendered the page. ──────────────── */
+       consistent whichever code path rendered the page.
+       Prominent 2px darker-lavender border + tinted drop shadow. ────── */
 .event-card,
 .event:not(:has(.event-card)){
   display:grid;
@@ -678,11 +679,14 @@ body::after{
     rgba(255,255,255,.035) 0%,
     rgba(255,255,255,.015) 100%
   );
-  border:1px solid rgba(255,255,255,.08);
+  /* Darker-lavender (muted version of --lavender #c6a6ff). 2px for presence. */
+  border:2px solid rgba(139, 111, 201, .55);
   box-shadow:
-    inset 0 1px 0 0 rgba(255,255,255,.04),
-    0 1px 2px rgba(0,0,0,.25),
-    0 8px 20px -14px rgba(0,0,0,.5);
+    inset 0 1px 0 0 rgba(255,255,255,.05),
+    0 2px 4px rgba(0,0,0,.30),
+    0 12px 28px -14px rgba(0,0,0,.55),
+    0 0 0 1px rgba(139, 111, 201, .10),           /* faint outer ring */
+    0 18px 40px -20px rgba(139, 111, 201, .35);   /* soft lavender bloom */
   transition:transform .22s cubic-bezier(.34,1.2,.64,1),
              background-color .22s ease,
              border-color .22s ease,
@@ -693,14 +697,16 @@ body::after{
   transform:translateY(-2px);
   background:linear-gradient(
     180deg,
-    rgba(255,255,255,.055) 0%,
+    rgba(255,255,255,.06) 0%,
     rgba(255,255,255,.025) 100%
   );
-  border-color:rgba(255,255,255,.14);
+  border-color:rgba(180, 150, 240, .78);          /* brighten toward lavender */
   box-shadow:
-    inset 0 1px 0 0 rgba(255,255,255,.06),
-    0 2px 4px rgba(0,0,0,.28),
-    0 18px 36px -16px rgba(0,0,0,.55);
+    inset 0 1px 0 0 rgba(255,255,255,.07),
+    0 4px 8px rgba(0,0,0,.32),
+    0 22px 44px -18px rgba(0,0,0,.60),
+    0 0 0 1px rgba(180, 150, 240, .18),
+    0 26px 54px -20px rgba(180, 150, 240, .45);
 }
 
 /* ─── Timeline wrapper (new renderer only) ─────────────────────────── */
@@ -1734,4 +1740,35 @@ body::after{
 
 @media (max-width:560px){
   .alt-modal-panel{ width:calc(100vw - 1rem); border-radius:14px; }
+}
+
+/* Google-verified badge on alternative option cards */
+.alt-option-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:.3rem;
+  margin-left:.55rem;
+  padding:.15rem .5rem;
+  border-radius:999px;
+  font-size:.68rem;
+  font-weight:600;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  background:rgba(110,231,183,.14);
+  color:#8eecc3;
+  border:1px solid rgba(110,231,183,.28);
+  vertical-align:middle;
+  white-space:nowrap;
+}
+.alt-option-badge i{ font-size:.72rem; }
+.alt-option-badge--warn{
+  background:rgba(244,212,156,.14);
+  color:var(--gold);
+  border-color:rgba(244,212,156,.32);
+}
+.alt-option--verified{
+  border-color:rgba(110,231,183,.22);
+}
+.alt-option--verified:hover{
+  border-color:rgba(110,231,183,.45);
 }
