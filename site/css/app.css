@@ -3197,52 +3197,94 @@ select.input-field {
 .mood-chips--mb { margin-bottom: 1.5rem; }
 
 /* --- Entry card with stagger-delay var --- */
-.entry-card--delayed { animation-delay: var(--stagger-delay, 0s); }
+/* --- Mood palette classes (used by entry-mood + mood-chip) ---
+   Each mood renders through token pairs declared in themes/theme.css. */
+.mood-romantic     { background: var(--mood-romantic-bg);     color: var(--mood-romantic-fg); }
+.mood-adventure    { background: var(--mood-adventure-bg);    color: var(--mood-adventure-fg); }
+.mood-cultural     { background: var(--mood-cultural-bg);     color: var(--mood-cultural-fg); }
+.mood-relaxed      { background: var(--mood-relaxed-bg);      color: var(--mood-relaxed-fg); }
+.mood-celebration  { background: var(--mood-celebration-bg);  color: var(--mood-celebration-fg); }
+.mood-bittersweet  { background: var(--mood-bittersweet-bg);  color: var(--mood-bittersweet-fg); }
+.mood-anticipation { background: var(--mood-anticipation-bg); color: var(--mood-anticipation-fg); }
+.mood-reflective   { background: var(--mood-reflective-bg);   color: var(--mood-reflective-fg); }
+.mood-spiritual    { background: var(--mood-spiritual-bg);    color: var(--mood-spiritual-fg); }
+.mood-playful      { background: var(--mood-playful-bg);      color: var(--mood-playful-fg); }
 
-/* --- Entry mood (dynamic bg/color via vars) --- */
-.entry-mood--dyn {
-  background: var(--mood-bg);
-  color: var(--mood-fg);
-}
+/* Mood-chip selected state: border picks up the mood's foreground color. */
+.mood-chip { border-color: transparent; }
+.mood-chip.mood-romantic.selected     { border-color: var(--mood-romantic-fg); }
+.mood-chip.mood-adventure.selected    { border-color: var(--mood-adventure-fg); }
+.mood-chip.mood-cultural.selected     { border-color: var(--mood-cultural-fg); }
+.mood-chip.mood-relaxed.selected      { border-color: var(--mood-relaxed-fg); }
+.mood-chip.mood-celebration.selected  { border-color: var(--mood-celebration-fg); }
+.mood-chip.mood-bittersweet.selected  { border-color: var(--mood-bittersweet-fg); }
+.mood-chip.mood-anticipation.selected { border-color: var(--mood-anticipation-fg); }
+.mood-chip.mood-reflective.selected   { border-color: var(--mood-reflective-fg); }
+.mood-chip.mood-spiritual.selected    { border-color: var(--mood-spiritual-fg); }
+.mood-chip.mood-playful.selected      { border-color: var(--mood-playful-fg); }
 
-/* --- Book spine card dynamic fill (memoir) --- */
-.book-spine-card--dyn {
-  background-color: var(--book-bg);
-  border-left-color: var(--book-border);
-}
+/* --- Book spine palette (memoir chapter cards) --- */
+.book-ch00    { background-color: var(--book-ch00-bg);    border-left-color: var(--book-ch00-border); }
+.book-ch01    { background-color: var(--book-ch01-bg);    border-left-color: var(--book-ch01-border); }
+.book-ch02    { background-color: var(--book-ch02-bg);    border-left-color: var(--book-ch02-border); }
+.book-ch03    { background-color: var(--book-ch03-bg);    border-left-color: var(--book-ch03-border); }
+.book-ch04    { background-color: var(--book-ch04-bg);    border-left-color: var(--book-ch04-border); }
+.book-ch05    { background-color: var(--book-ch05-bg);    border-left-color: var(--book-ch05-border); }
+.book-ch06    { background-color: var(--book-ch06-bg);    border-left-color: var(--book-ch06-border); }
+.book-ch07    { background-color: var(--book-ch07-bg);    border-left-color: var(--book-ch07-border); }
+.book-default { background-color: var(--book-default-bg); border-left-color: var(--book-default-border); }
 
-/* --- Mood chip dynamic swatches --- */
-.mood-chip--dyn {
-  background: var(--chip-bg);
-  border-color: var(--chip-border, transparent);
-}
-.mood-chip--dyn .chip-label { color: var(--chip-fg); }
+/* --- Note-type palette (memoir reader sidebar) --- */
+.note-edit       { color: var(--note-edit-color); }
+.note-reflection { color: var(--note-reflection-color); }
+.note-research   { color: var(--note-research-color); }
+.note-continuity { color: var(--note-continuity-color); }
+.note-voice      { color: var(--note-voice-color); }
 
-/* --- Note type chip (sidebar) dynamic color --- */
-.note-type-chip--dyn {
-  border-color: var(--nt-color);
-  background: var(--nt-tint);
-}
-.note-card-type--dyn { color: var(--nt-color); }
+/* Note-type chip active state: border + tint pulled from the same color. */
+.note-type-chip.active.note-edit       { border-color: var(--note-edit-color);       background: color-mix(in srgb, var(--note-edit-color) 10%, transparent); }
+.note-type-chip.active.note-reflection { border-color: var(--note-reflection-color); background: color-mix(in srgb, var(--note-reflection-color) 10%, transparent); }
+.note-type-chip.active.note-research   { border-color: var(--note-research-color);   background: color-mix(in srgb, var(--note-research-color) 10%, transparent); }
+.note-type-chip.active.note-continuity { border-color: var(--note-continuity-color); background: color-mix(in srgb, var(--note-continuity-color) 10%, transparent); }
+.note-type-chip.active.note-voice      { border-color: var(--note-voice-color);      background: color-mix(in srgb, var(--note-voice-color) 10%, transparent); }
 
-/* --- Reader font-scale + line-spacing (dynamic) --- */
-.chapter-reader-body--dyn {
-  font-size: calc(1.2rem * var(--font-scale, 1));
-  font-family: var(--reader-font, inherit);
-  line-height: var(--line-spacing, 1.65);
-}
+/* --- Reader font-family variants (article body + picker pills) --- */
+[data-reader-font="lato"]     { font-family: 'Lato', 'Inter', sans-serif; }
+[data-reader-font="inter"]    { font-family: 'Inter', 'Lato', sans-serif; }
+[data-reader-font="georgia"]  { font-family: 'Georgia', 'Garamond', serif; }
+[data-reader-font="dyslexic"] { font-family: 'OpenDyslexic', 'Comic Sans MS', sans-serif; }
 
-/* --- Reader font-scale fill --- */
-.rc-size-fill--dyn { width: var(--fill-pct, 0%); }
+/* --- Reader font-scale variants (0.8 → 1.5 in 0.1 steps) --- */
+.chapter-reader-body[data-font-scale="0.8"] { font-size: 0.96rem; }
+.chapter-reader-body[data-font-scale="0.9"] { font-size: 1.08rem; }
+.chapter-reader-body[data-font-scale="1.0"] { font-size: 1.20rem; }
+.chapter-reader-body[data-font-scale="1.1"] { font-size: 1.32rem; }
+.chapter-reader-body[data-font-scale="1.2"] { font-size: 1.44rem; }
+.chapter-reader-body[data-font-scale="1.3"] { font-size: 1.56rem; }
+.chapter-reader-body[data-font-scale="1.4"] { font-size: 1.68rem; }
+.chapter-reader-body[data-font-scale="1.5"] { font-size: 1.80rem; }
 
-/* --- Reader font-picker pills (dynamic family) --- */
-.rc-pill--dyn { font-family: var(--pill-font, inherit); }
+/* --- Reader line-spacing variants (4 presets) --- */
+.chapter-reader-body[data-line-spacing="1.6"]  { line-height: 1.6; }
+.chapter-reader-body[data-line-spacing="1.75"] { line-height: 1.75; }
+.chapter-reader-body[data-line-spacing="1.85"] { line-height: 1.85; }
+.chapter-reader-body[data-line-spacing="2.1"]  { line-height: 2.1; }
+
+/* --- Reader font-size slider fill (matches scale steps) --- */
+.rc-size-fill[data-font-scale="0.8"] { width: 0%; }
+.rc-size-fill[data-font-scale="0.9"] { width: 14.29%; }
+.rc-size-fill[data-font-scale="1.0"] { width: 28.57%; }
+.rc-size-fill[data-font-scale="1.1"] { width: 42.86%; }
+.rc-size-fill[data-font-scale="1.2"] { width: 57.14%; }
+.rc-size-fill[data-font-scale="1.3"] { width: 71.43%; }
+.rc-size-fill[data-font-scale="1.4"] { width: 85.71%; }
+.rc-size-fill[data-font-scale="1.5"] { width: 100%; }
 
 /* --- Reader controls glyphs --- */
 .rc-glyph { font-size: 0.85em; font-weight: 700; }
 
-/* --- Paragraph stagger via index --- */
-.chapter-paragraph { animation-delay: var(--stagger-delay, 0ms); }
+/* (Paragraph stagger via index removed — per-paragraph animation
+   delay was the last remaining inline-style bridge on the reader.) */
 
 /* --- Section-0 anchor (invisible) --- */
 .section-anchor { position: absolute; top: 0; }
@@ -3323,19 +3365,47 @@ select.input-field {
 .usage-bar-fill {
   position: absolute;
   inset: 0;
-  width: var(--pct-width, 0%);
   background: var(--pct-color, var(--accent));
   transition: width 200ms;
 }
+/* Width via 5% buckets — 21 steps is plenty for a usage indicator. */
+.usage-bar-fill[data-pct-bucket="0"]   { width: 0%; }
+.usage-bar-fill[data-pct-bucket="5"]   { width: 5%; }
+.usage-bar-fill[data-pct-bucket="10"]  { width: 10%; }
+.usage-bar-fill[data-pct-bucket="15"]  { width: 15%; }
+.usage-bar-fill[data-pct-bucket="20"]  { width: 20%; }
+.usage-bar-fill[data-pct-bucket="25"]  { width: 25%; }
+.usage-bar-fill[data-pct-bucket="30"]  { width: 30%; }
+.usage-bar-fill[data-pct-bucket="35"]  { width: 35%; }
+.usage-bar-fill[data-pct-bucket="40"]  { width: 40%; }
+.usage-bar-fill[data-pct-bucket="45"]  { width: 45%; }
+.usage-bar-fill[data-pct-bucket="50"]  { width: 50%; }
+.usage-bar-fill[data-pct-bucket="55"]  { width: 55%; }
+.usage-bar-fill[data-pct-bucket="60"]  { width: 60%; }
+.usage-bar-fill[data-pct-bucket="65"]  { width: 65%; }
+.usage-bar-fill[data-pct-bucket="70"]  { width: 70%; }
+.usage-bar-fill[data-pct-bucket="75"]  { width: 75%; }
+.usage-bar-fill[data-pct-bucket="80"]  { width: 80%; }
+.usage-bar-fill[data-pct-bucket="85"]  { width: 85%; }
+.usage-bar-fill[data-pct-bucket="90"]  { width: 90%; }
+.usage-bar-fill[data-pct-bucket="95"]  { width: 95%; }
+.usage-bar-fill[data-pct-bucket="100"] { width: 100%; }
+
 .usage-bar-tick {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: var(--tick-pos, 0%);
   width: 1px;
   background: var(--text-muted, #777);
   opacity: 0.6;
 }
+.usage-bar-tick[data-tick="75"] { left: 75%; }
+.usage-bar-tick[data-tick="90"] { left: 90%; }
+
+/* Status → color mapping (bar fill, throttle text, budget pill). */
+[data-status="ok"]     { --pct-color: var(--success); }
+[data-status="warn"]   { --pct-color: var(--warning); }
+[data-status="danger"] { --pct-color: var(--error); }
 .usage-scale-row {
   display: flex;
   justify-content: space-between;
@@ -3349,7 +3419,7 @@ select.input-field {
   color: var(--text-muted);
   margin-top: 0.75rem;
 }
-.usage-throttle-state--dyn { color: var(--pct-color); }
+.usage-throttle-state { color: var(--pct-color, var(--text-primary)); }
 
 .usage-breakdown { overflow-x: auto; }
 .usage-table {
@@ -3413,8 +3483,21 @@ select.input-field {
   box-shadow: 0 0 6px var(--pct-color, currentColor);
 }
 
-/* --- Icon convenience (when size/color are dynamic from props) --- */
-.dash-icon {
-  font-size: var(--icon-size, 1em);
-  color: var(--icon-color, inherit);
-}
+/* --- Icon sizing (enumerated em-scale to avoid inline font-size) ---
+   The Icon component maps its `size` prop to one of these classes. */
+.icon-em-55  { font-size: 0.55em; }
+.icon-em-60  { font-size: 0.60em; }
+.icon-em-65  { font-size: 0.65em; }
+.icon-em-70  { font-size: 0.70em; }
+.icon-em-75  { font-size: 0.75em; }
+.icon-em-80  { font-size: 0.80em; }
+.icon-em-85  { font-size: 0.85em; }
+.icon-em-90  { font-size: 0.90em; }
+.icon-em-120 { font-size: 1.20em; }
+.icon-em-180 { font-size: 1.80em; }
+.icon-em-200 { font-size: 2.00em; }
+.icon-em-350 { font-size: 3.50em; }
+.icon-em-440 { font-size: 4.40em; }
+
+/* Accent-colored inline wrapper (replaces <Icon color="var(--accent)">). */
+.inline-accent { color: var(--accent); }

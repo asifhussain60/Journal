@@ -271,7 +271,13 @@ select.input {
 .animate-in { animation: fadeIn 0.4s var(--transition-slow) both; }
 .animate-slide { animation: slideIn 0.3s var(--transition-slow) both; }
 
-/* Stagger children */
+/* Stagger children — parent `.stagger` triggers a cascading fade-in on
+   direct children. Uses fadeSlideUp from the component layer; cap at
+   child #9 so very long lists don't delay forever. */
+.stagger > * {
+  opacity: 0;
+  animation: fadeSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
 .stagger > *:nth-child(1) { animation-delay: 0ms; }
 .stagger > *:nth-child(2) { animation-delay: 60ms; }
 .stagger > *:nth-child(3) { animation-delay: 120ms; }
@@ -281,6 +287,7 @@ select.input {
 .stagger > *:nth-child(7) { animation-delay: 360ms; }
 .stagger > *:nth-child(8) { animation-delay: 420ms; }
 .stagger > *:nth-child(9) { animation-delay: 480ms; }
+.stagger > *:nth-child(n+10) { animation-delay: 540ms; }
 
 /* ═══════════════════════════════════════════════════
    PAGE-SHELL CONTRACT (canonical)

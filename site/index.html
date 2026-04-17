@@ -120,8 +120,10 @@
     // UTILITIES
     // =================================================================
 
-    function Icon({ name, size = '1em', color = 'inherit' }) {
-      return <i className={`fa-solid ${name} dash-icon`} style={{ '--icon-size': size, '--icon-color': color }}></i>;
+    function Icon({ name, size }) {
+      // size → className (e.g. "0.75em" → "icon-em-75"). No inline style.
+      const sizeClass = size ? `icon-em-${Math.round(parseFloat(size) * 100)}` : '';
+      return <i className={`fa-solid ${name} ${sizeClass}`.trim()}></i>;
     }
 
     function showToast(message) {
@@ -151,7 +153,7 @@
       return (
         <div className="glass-card glass-card--pad fade-enter stagger-2">
           <div className="dayone-preview-head">
-            <span><Icon name="fa-markdown" color="var(--accent)" /> Markdown Export</span>
+            <span className="inline-accent"><Icon name="fa-markdown" /> Markdown Export</span>
           </div>
           <div className="dayone-preview-body">
             {md}
@@ -285,8 +287,7 @@
                         return (
                           <div
                             key={ch.id}
-                            className={`book-spine-card book-spine-card--dyn ${isPlanned ? 'has-lock planned' : ''} ${isClickable ? 'clickable' : ''} ${ch.status === 'active' ? 'active-chapter' : ''}`}
-                            style={{ '--book-bg': meta.bg, '--book-border': meta.border }}
+                            className={`book-spine-card book-${ch.id || 'default'} ${isPlanned ? 'has-lock planned' : ''} ${isClickable ? 'clickable' : ''} ${ch.status === 'active' ? 'active-chapter' : ''}`}
                             onClick={() => isClickable && onOpenChapter && onOpenChapter(ch)}
                           >
                             <div className="book-binding-top"></div>
@@ -441,14 +442,14 @@
               <p className="meta-mono-inline-muted">
                 {selectedTrip.displayDate} &middot; {selectedTrip.country} &middot; {selectedTrip.entries.length} entries
               </p>
-              <div className="grid-cards stagger-1">
+              <div className="grid-cards stagger stagger-1">
                 {selectedTrip.entries.map((entry, idx) => {
                   const color = MOOD_COLORS[entry.mood] || MOOD_COLORS.reflective;
                   return (
-                    <div key={entry.uuid} className="glass-card entry-card entry-card--delayed" onClick={() => setSelectedEntry(entry)} style={{ '--stagger-delay': `${idx * 0.06}s` }}>
+                    <div key={entry.uuid} className="glass-card entry-card" onClick={() => setSelectedEntry(entry)}>
                       <div className="entry-header">
                         <span className="entry-date">Day {idx + 1} &middot; {entry.date}</span>
-                        <span className="entry-mood entry-mood--dyn" style={{ '--mood-bg': color.bg, '--mood-fg': color.text }}>
+                        <span className={`entry-mood mood-${entry.mood}`}>
                           <Icon name={color.icon} /> {entry.mood}
                         </span>
                       </div>
@@ -504,8 +505,7 @@
                     {MOODS.map(mood => {
                       const color = MOOD_COLORS[mood] || MOOD_COLORS.reflective;
                       return (
-                        <div key={mood} className={`mood-chip mood-chip--dyn ${newMood === mood ? 'selected' : ''}`} onClick={() => setNewMood(mood)}
-                          style={{ '--chip-bg': color.bg, '--chip-fg': color.text, '--chip-border': newMood === mood ? color.text : 'transparent' }}>
+                        <div key={mood} className={`mood-chip mood-${mood} ${newMood === mood ? 'selected' : ''}`} onClick={() => setNewMood(mood)}>
                           <Icon name={color.icon} size="0.9em" />
                           <span className="chip-label">{mood}</span>
                         </div>
@@ -912,9 +912,8 @@
                       {Object.entries(NOTE_TYPES).map(([key, t]) => (
                         <button
                           key={key}
-                          className={`note-type-chip ${noteType === key ? 'active note-type-chip--dyn' : ''}`}
+                          className={`note-type-chip note-${key} ${noteType === key ? 'active' : ''}`}
                           onClick={() => setNoteType(key)}
-                          style={noteType === key ? { '--nt-color': t.color, '--nt-tint': t.color + '18' } : {}}
                           title={t.label}
                         >
                           <Icon name={t.icon} size="0.65em" />
@@ -952,7 +951,7 @@
                       return (
                         <div key={note.id} className="note-card">
                           <div className="note-card-header">
-                            <span className="note-card-type note-card-type--dyn" style={{ '--nt-color': nt.color }}>
+                            <span className={`note-card-type note-${note.type}`}>
                               <Icon name={nt.icon} size="0.6em" /> {nt.label}
                             </span>
                             <button className="note-card-remove" onClick={() => removeNote(note.id)} title="Delete note">
@@ -1024,7 +1023,7 @@
                         <span className="rc-glyph">&minus;</span>
                       </button>
                       <div className="rc-size-track">
-                        <div className="rc-size-fill rc-size-fill--dyn" style={{ '--fill-pct': ((fontScale - 0.8) / 0.7 * 100) + '%' }}></div>
+                        <div className="rc-size-fill" data-font-scale={fontScale.toFixed(1)}></div>
                       </div>
                       <button className="rc-circle-btn" onClick={() => setFontScale(s => Math.min(1.5, +(s + 0.1).toFixed(1)))}>
                         <span className="rc-glyph">+</span>
@@ -1037,8 +1036,7 @@
                     <div className="rc-label">Font</div>
                     <div className="rc-btn-row">
                       {Object.keys(FONT_MAP).map(f => (
-                        <button key={f} className={`rc-pill rc-pill--dyn ${fontFamily === f ? 'active' : ''}`} onClick={() => setFontFamily(f)}
-                          style={{ '--pill-font': FONT_MAP[f] }}>
+                        <button key={f} className={`rc-pill ${fontFamily === f ? 'active' : ''}`} data-reader-font={f} onClick={() => setFontFamily(f)}>
                           {FONT_LABELS[f]}
                         </button>
                       ))}
@@ -1089,7 +1087,7 @@
             </div>
 
             {/* Content body */}
-            <article ref={articleRef} className="chapter-reader-body chapter-reader-body--dyn" data-reading-theme={readingTheme} style={{ '--font-scale': fontScale, '--reader-font': FONT_MAP[fontFamily], '--line-spacing': lineSpacing }}>
+            <article ref={articleRef} className="chapter-reader-body" data-reading-theme={readingTheme} data-reader-font={fontFamily} data-font-scale={fontScale.toFixed(1)} data-line-spacing={lineSpacing}>
               {loading && (
                 <div className="chapter-loading">
                   <div className="chapter-loading-pulse"></div>
@@ -1154,7 +1152,7 @@
                           {paraNotes.length > 1 && <span className="note-count-badge">{paraNotes.length}</span>}
                         </span>
                       )}
-                      <p className={`chapter-paragraph ${isShort ? 'chapter-emphasis' : ''}`} style={{ '--stagger-delay': `${Math.min(i * 30, 600)}ms` }}>
+                      <p className={`chapter-paragraph ${isShort ? 'chapter-emphasis' : ''}`}>
                         {trimmed}
                       </p>
                     </div>
@@ -1244,7 +1242,7 @@
     // PHASE 8: BUDGET PILL & USAGE MODAL
     // =================================================================
 
-    const budgetColor = pct => pct >= 90 ? 'var(--error)' : pct >= 75 ? 'var(--warning)' : 'var(--success)';
+    const budgetStatus = pct => pct >= 90 ? 'danger' : pct >= 75 ? 'warn' : 'ok';
     const fetchSummary = () => {
       console.log('[API:REQ]', 'http://localhost:3001/api/usage/summary');
       return fetch('http://localhost:3001/api/usage/summary')
@@ -1297,7 +1295,8 @@
       }, []);
       const s = state.summary || { spentThisMonth: 0, monthlyCAP: 50, percentageUsed: 0, throttleState: 'normal', byEndpoint: [] };
       const pct = Math.max(0, Math.min(100, Number(s.percentageUsed || 0)));
-      const color = budgetColor(pct);
+      const status = budgetStatus(pct);
+      const pctBucket = Math.round(pct / 5) * 5;
       return (
         <div className="usage-modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
           <div className="usage-modal-window">
@@ -1309,12 +1308,12 @@
             {!state.loading && tab === 'summary' && (
               <div>
                 <div className="usage-bar-track">
-                  <div className="usage-bar-fill" style={{ '--pct-width': `${pct}%`, '--pct-color': color }} />
-                  {[75, 90].map(th => <div key={th} className="usage-bar-tick" style={{ '--tick-pos': `${th}%` }} aria-hidden />)}
+                  <div className="usage-bar-fill" data-status={status} data-pct-bucket={pctBucket} />
+                  {[75, 90].map(th => <div key={th} className="usage-bar-tick" data-tick={th} aria-hidden />)}
                 </div>
                 <div className="usage-scale-row"><span>0</span><span>75%</span><span>90%</span><span>100%</span></div>
                 <div className="usage-throttle-text">
-                  Throttle state: <strong className="usage-throttle-state--dyn" style={{ '--pct-color': color }}>{s.throttleState || 'normal'}</strong>.
+                  Throttle state: <strong className="usage-throttle-state" data-status={status}>{s.throttleState || 'normal'}</strong>.
                   {s.throttleState === 'soft' && ' Edit intents are throttled to clarify-only until usage drops below 75%.'}
                   {s.throttleState === 'hard' && ' Non-essential endpoints return 429 until the next billing month or cap increase.'}
                 </div>
@@ -1361,11 +1360,10 @@
       const cap = Number(s.monthlyCAP || monthlyCAP);
       const spent = Number(s.spentThisMonth || 0);
       const pct = cap > 0 ? (spent / cap) * 100 : 0;
-      const color = budgetColor(pct);
+      const status = budgetStatus(pct);
       const label = state.loading || !state.summary ? '—' : `$${spent.toFixed(2)} / $${cap.toFixed(2)}`;
       return (
-        <button type="button" className="budget-pill" onClick={onOpen} aria-label={`Monthly budget: ${label} (${pct.toFixed(0)}%)`} title={`Monthly spend: ${pct.toFixed(0)}% of $${cap.toFixed(2)}`}
-          style={{ '--pct-color': color }}>
+        <button type="button" className="budget-pill" data-status={status} onClick={onOpen} aria-label={`Monthly budget: ${label} (${pct.toFixed(0)}%)`} title={`Monthly spend: ${pct.toFixed(0)}% of $${cap.toFixed(2)}`}>
           <span className="budget-pill-dot" /><span>{label}</span>
         </button>
       );

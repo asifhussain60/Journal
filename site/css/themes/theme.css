@@ -101,6 +101,46 @@
   --font-mono: 'JetBrains Mono', 'Fira Code', 'DM Mono', monospace;
   --font-script: 'Great Vibes', cursive;
   --font-dance: 'Dancing Script', cursive;
+
+  /* ─── Mood palette (DayOne entries + chips) ─── */
+  --mood-romantic-bg:     rgba(244, 114, 182, 0.18);
+  --mood-romantic-fg:     #F8B4D0;
+  --mood-adventure-bg:    rgba(16, 185, 129, 0.18);
+  --mood-adventure-fg:    #6EE7B7;
+  --mood-cultural-bg:     rgba(245, 158, 11, 0.18);
+  --mood-cultural-fg:     #FCD34D;
+  --mood-relaxed-bg:      rgba(139, 92, 246, 0.18);
+  --mood-relaxed-fg:      #C4B5FD;
+  --mood-celebration-bg:  rgba(230, 160, 60, 0.18);
+  --mood-celebration-fg:  #FCD9A0;
+  --mood-bittersweet-bg:  rgba(107, 90, 122, 0.22);
+  --mood-bittersweet-fg:  #C4B5CF;
+  --mood-anticipation-bg: rgba(200, 120, 100, 0.18);
+  --mood-anticipation-fg: #F5B7A0;
+  --mood-reflective-bg:   rgba(59, 130, 246, 0.18);
+  --mood-reflective-fg:   #93C5FD;
+  --mood-spiritual-bg:    rgba(120, 160, 140, 0.18);
+  --mood-spiritual-fg:    #A7E8BF;
+  --mood-playful-bg:      rgba(210, 100, 140, 0.18);
+  --mood-playful-fg:      #F5A8C4;
+
+  /* ─── Book-spine palette (memoir chapter cards) ─── */
+  --book-ch00-bg: #5e3d7a;  --book-ch00-border: #4a2d64;
+  --book-ch01-bg: #6e4580;  --book-ch01-border: #5a3568;
+  --book-ch02-bg: #4a4280;  --book-ch02-border: #38327a;
+  --book-ch03-bg: #7a5085;  --book-ch03-border: #643e6e;
+  --book-ch04-bg: #3f4068;  --book-ch04-border: #2c2c4f;
+  --book-ch05-bg: #58335b;  --book-ch05-border: #442347;
+  --book-ch06-bg: #363554;  --book-ch06-border: #24233c;
+  --book-ch07-bg: #60425c;  --book-ch07-border: #4a3047;
+  --book-default-bg: #4d3a62;  --book-default-border: #3b2a4a;
+
+  /* ─── Note-type palette (memoir reader sidebar) ─── */
+  --note-edit-color:        var(--accent);
+  --note-reflection-color:  var(--gold);
+  --note-research-color:    #34d399;
+  --note-continuity-color:  var(--rose);
+  --note-voice-color:       #93c5fd;
 }
 
 /* ─── Body ambience ─── */
