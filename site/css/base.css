@@ -287,6 +287,35 @@ select.input {
 .stagger > *:nth-child(8) { animation-delay: 420ms; }
 .stagger > *:nth-child(9) { animation-delay: 480ms; }
 
+/* ═══════════════════════════════════════════════════
+   PAGE-SHELL CONTRACT (canonical)
+   Every active view is expected to compose from:
+
+     <html data-theme="...">
+       <body>
+         <div class="bg-mesh"></div>      ← decorative layer (optional)
+         <nav class="nav">…</nav>         ← pill header (see below)
+         <main class="page">
+           <div class="container">
+             <section>…</section>        ← page-specific content
+           </div>
+         </main>
+       </body>
+
+   Visual theming: data-theme on <html> swaps token files.
+   Shell naming: .nav / .page / .container / .section are
+   the stable primitives — do not rename per page.
+
+   Historical alias: itinerary views currently use
+   `.itn-nav*` (defined in itinerary-dark.css). This is a
+   pre-consolidation holdover and will merge into `.nav*`
+   once the dark-theme token split (Step 5) completes.
+
+   Standalone share artifacts (e.g. trips/<slug>/itinerary.html)
+   may omit `.nav` — they are explicitly scoped as printable
+   or shareable static snapshots, not site-shell views.
+   ═══════════════════════════════════════════════════ */
+
 /* ─── Navigation ─── */
 .nav {
   position: fixed;

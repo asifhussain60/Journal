@@ -1,47 +1,12 @@
 /* ═══════════════════════════════════════════════════
    APP DARK — Command Center (Rose & Mauve Night)
-   Self-contained dark stylesheet for the dashboard.
-   Replaces base + lavender-romance + app.css.
-   Palette matched to itinerary-dark.css.
+   Dashboard-specific dark component styles.
+
+   Token contract: consumes tokens declared in
+   themes/rose-mauve-night.css. Do not declare :root
+   tokens here — keep this file components-only so
+   future theme swaps are pure token replacements.
    ═══════════════════════════════════════════════════ */
-
-/* ─── Tokens ─── */
-:root {
-  --bg: #2b2240;
-  --bg-2: #3a3050;
-  --text: #fff7fb;
-  --text-secondary: #eddfe8;
-  --text-muted: #c9b8d4;
-  --rose: #ffb0cc;
-  --rose-2: #ffd0de;
-  --blush: #ffe8ef;
-  --mauve: #e2c4ff;
-  --lavender: #c6a6ff;
-  --gold: #f4d49c;
-  --accent: #c6a6ff;
-  --wisteria: #b094c4;
-
-  --glass-bg: linear-gradient(135deg, rgba(255,255,255,.16) 0%, rgba(255,255,255,.08) 100%);
-  --glass-bg-hover: linear-gradient(135deg, rgba(255,255,255,.22) 0%, rgba(255,255,255,.12) 100%);
-  --glass-border: rgba(255,255,255,.18);
-  --glass-border-light: rgba(255,255,255,.24);
-  --glass-shadow: 0 10px 40px rgba(0,0,0,.16);
-  --glass-shadow-hover: 0 16px 50px rgba(0,0,0,.22);
-
-  --bg-mesh-1: rgba(198,166,255,.18);
-  --bg-mesh-2: rgba(255,176,204,.14);
-  --bg-mesh-3: rgba(226,196,255,.12);
-  --bg-mesh-4: rgba(244,212,156,.08);
-
-  /* Compat aliases for inline JSX styles */
-  --text-main: var(--text);
-  --text-primary: var(--text);
-
-  --font-serif: 'Cormorant Garamond', serif;
-  --font-sans: 'Inter', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
-  --font-script: 'Great Vibes', cursive;
-}
 
 /* ─── Reset & Body ─── */
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }

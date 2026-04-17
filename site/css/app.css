@@ -2,79 +2,12 @@
    APP — Command Center Page Components
    Glass cards, navigation, memoir/dayone modules,
    trip hero, entry cards, mood chips.
-   Requires base.css + a theme (lavender-romance).
+
+   Token contract: consumed only via CSS vars declared
+   in themes/lavender-romance.css. Do not declare
+   :root tokens or body/reset rules here — those live
+   in base.css (shared reset) and the active theme.
    ═══════════════════════════════════════════════════ */
-
-/* ─── Glass Tokens ─── */
-:root {
-  /* Mesh blobs — soft and airy, NOT dark */
-  --bg-mesh-1: rgba(200, 170, 225, 0.18);
-  --bg-mesh-2: rgba(180, 150, 210, 0.14);
-  --bg-mesh-3: rgba(225, 180, 200, 0.12);
-  --bg-mesh-4: rgba(170, 200, 220, 0.10);
-
-  /* Glass surfaces — high white for light theme */
-  --glass-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.55) 100%);
-  --glass-bg-hover: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.75) 100%);
-  --glass-border: rgba(255, 255, 255, 0.75);
-  --glass-border-light: rgba(255, 255, 255, 0.95);
-  --glass-shadow: 0 10px 40px rgba(74, 51, 88, 0.06);
-  --glass-shadow-hover: 0 16px 50px rgba(74, 51, 88, 0.10);
-
-  /* ─── Light theme overrides (prevent base.css dark defaults) ─── */
-  --bg-primary: #FAF7FC;
-  --bg-secondary: #F5F0FA;
-  --bg-tertiary: #EDE6F4;
-  --bg-card: rgba(255, 255, 255, 0.85);
-  --bg-card-hover: rgba(255, 255, 255, 0.95);
-
-  --text-primary: #3D2E4A;
-  --text-secondary: #7E6B8A;
-  --text-muted: #A396AC;
-
-  --border-default: rgba(180, 150, 196, 0.2);
-  --border-subtle: rgba(180, 150, 196, 0.1);
-
-  /* Romantic palette tokens (used in JSX) */
-  --purple-deep: #5A4763;
-  --purple-mid: #8B7394;
-  --purple-light: #A48DB2;
-  --lavender: #C4B0D0;
-  --lavender-soft: #E8DCF0;
-  --wisteria: #B094C4;
-  --gold: #C4A87A;
-  --rose: #C48A9A;
-
-  /* Backward-compat aliases for JSX inline styles */
-  --bg-main: #FAF7FC;
-  --text-main: #3D2E4A;
-  --text-soft: #9A8CA8;
-
-  /* Accent — vibrant purple for interactive elements */
-  --accent: #8B5CF6;
-
-  /* App-page font stack (matches Google Fonts loaded in HTML) */
-  --font-serif: 'Cormorant Garamond', serif;
-  --font-sans: 'Inter', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
-  --font-script: 'Great Vibes', cursive;
-}
-
-/* ─── Reset & Body ─── */
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
-body {
-  font-family: var(--font-sans);
-  background-color: var(--bg-main);
-  background-image:
-    radial-gradient(ellipse at 20% 0%, rgba(200, 170, 220, 0.08) 0%, transparent 60%),
-    radial-gradient(ellipse at 80% 100%, rgba(196, 168, 122, 0.05) 0%, transparent 60%);
-  color: var(--text-main);
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-  min-height: 100vh;
-  overflow-x: hidden;
-}
 
 /* ─── Animated Mesh Background ─── */
 .bg-mesh {
@@ -787,4 +720,333 @@ textarea.input-field {
   .hero-dates {
     font-size: 1rem;
   }
+}
+
+/* ═══════════════════════════════════════════════════
+   DASHBOARD UTILITY CLASSES
+   Extracted from inline styles in site/index.html.
+   Dynamic values (mood colors, font scale, animation
+   delays, progress bar widths) still use narrow
+   style={{ '--var': value }} patterns that classes
+   below consume via var().
+   ═══════════════════════════════════════════════════ */
+
+/* --- Layout stacks --- */
+.stack { display: flex; flex-direction: column; gap: 2rem; }
+.stack-sm { display: flex; flex-direction: column; gap: 1rem; }
+
+/* --- Glass-card size modifiers --- */
+.glass-card--pad { padding: 2rem; }
+.glass-card--pad-lg { padding: 2.5rem; }
+.glass-card--pad-narrow { padding: 2rem; max-width: 600px; }
+
+/* --- Page title modifier (home hero) --- */
+.page-title--hero { font-size: 3.2rem; margin-bottom: 2rem; text-align: center; }
+
+/* --- Grid modifier --- */
+.grid-cards--wide { grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); }
+
+/* --- Button modifiers --- */
+.btn--block { width: 100%; }
+.btn--mt { margin-top: 1.5rem; }
+.btn--mb { margin-bottom: 2rem; }
+.btn--mb-sm { margin-bottom: 1.5rem; }
+
+/* --- Input-field modifiers --- */
+.input-field--mb { margin-bottom: 1rem; }
+.input-field--search { margin-bottom: 1.5rem; max-width: 400px; }
+
+/* --- Meta / mono typography --- */
+.meta-label {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+.meta-mono-sm {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.meta-mono-inline-muted {
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+  font-size: 0.85rem;
+}
+
+/* --- DayOne preview component --- */
+.dayone-preview-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.dayone-preview-body {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 1.7;
+  color: var(--text-main);
+  white-space: pre-wrap;
+  margin-bottom: 1.5rem;
+}
+
+/* --- Serif headings for card detail views --- */
+.h-serif-lg { font-family: var(--font-serif); font-size: 2rem; margin-bottom: 0.5rem; }
+.h-serif-lg-tight { font-family: var(--font-serif); font-size: 2rem; margin-bottom: 0.25rem; }
+.h-serif-md { font-family: var(--font-serif); font-size: 1.5rem; margin-bottom: 1.5rem; }
+.h-serif-sm { font-family: var(--font-serif); font-size: 1.3rem; margin-bottom: 1.5rem; }
+
+/* --- Module variants --- */
+.module-icon--trip { background: linear-gradient(135deg, rgba(244,114,182,0.2), rgba(139,92,246,0.2)); }
+.module-title--md { font-size: 1.8rem; }
+
+/* --- Tag/badge row --- */
+.tag-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+/* --- Form layout --- */
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.form-actions { display: flex; gap: 1rem; margin-top: 1.5rem; }
+.mood-chips--mb { margin-bottom: 1.5rem; }
+
+/* --- Entry card with stagger-delay var --- */
+.entry-card--delayed { animation-delay: var(--stagger-delay, 0s); }
+
+/* --- Entry mood (dynamic bg/color via vars) --- */
+.entry-mood--dyn {
+  background: var(--mood-bg);
+  color: var(--mood-fg);
+}
+
+/* --- Book spine card dynamic fill (memoir) --- */
+.book-spine-card--dyn {
+  background-color: var(--book-bg);
+  border-left-color: var(--book-border);
+}
+
+/* --- Mood chip dynamic swatches --- */
+.mood-chip--dyn {
+  background: var(--chip-bg);
+  border-color: var(--chip-border, transparent);
+}
+.mood-chip--dyn .chip-label { color: var(--chip-fg); }
+
+/* --- Note type chip (sidebar) dynamic color --- */
+.note-type-chip--dyn {
+  border-color: var(--nt-color);
+  background: var(--nt-tint);
+}
+.note-card-type--dyn { color: var(--nt-color); }
+
+/* --- Reader font-scale + line-spacing (dynamic) --- */
+.chapter-reader-body--dyn {
+  font-size: calc(1.2rem * var(--font-scale, 1));
+  font-family: var(--reader-font, inherit);
+  line-height: var(--line-spacing, 1.65);
+}
+
+/* --- Reader font-scale fill --- */
+.rc-size-fill--dyn { width: var(--fill-pct, 0%); }
+
+/* --- Reader font-picker pills (dynamic family) --- */
+.rc-pill--dyn { font-family: var(--pill-font, inherit); }
+
+/* --- Reader controls glyphs --- */
+.rc-glyph { font-size: 0.85em; font-weight: 700; }
+
+/* --- Paragraph stagger via index --- */
+.chapter-paragraph { animation-delay: var(--stagger-delay, 0ms); }
+
+/* --- Section-0 anchor (invisible) --- */
+.section-anchor { position: absolute; top: 0; }
+
+/* --- Chapter nav right label --- */
+.chapter-nav-label--right { text-align: right; }
+
+/* --- TOC header spacing --- */
+.toc-header--spaced { margin-top: 0.6rem; }
+
+/* ═══════════════════════════════════════════════════
+   BUDGET ADVISOR + USAGE MODAL (debug UI)
+   ═══════════════════════════════════════════════════ */
+
+.budget-advisor {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.85rem;
+  margin-top: 1rem;
+  border-radius: 8px;
+}
+.budget-advisor-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.5rem; }
+.budget-advisor-text { font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+.budget-advisor-toggle {
+  margin-top: 0.4rem;
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 0;
+}
+.budget-advisor-details {
+  margin-top: 0.5rem;
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.75rem;
+  font-family: var(--font-mono, monospace);
+  color: var(--text-muted, #aaa);
+}
+
+.usage-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.usage-modal-window {
+  background: var(--bg-primary);
+  border-radius: 12px;
+  width: 900px;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 1.5rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+}
+.usage-modal-title {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+}
+.usage-tab-row { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; }
+.usage-loading {
+  height: 2rem;
+  background: var(--accent-soft);
+  border-radius: 4px;
+  animation: pulse 2s infinite;
+}
+.usage-bar-track {
+  position: relative;
+  height: 1rem;
+  background: var(--accent-soft);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.usage-bar-fill {
+  position: absolute;
+  inset: 0;
+  width: var(--pct-width, 0%);
+  background: var(--pct-color, var(--accent));
+  transition: width 200ms;
+}
+.usage-bar-tick {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--tick-pos, 0%);
+  width: 1px;
+  background: var(--text-muted, #777);
+  opacity: 0.6;
+}
+.usage-scale-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.25rem;
+  font-size: 0.7rem;
+  font-family: var(--font-mono, monospace);
+  color: var(--text-muted, #aaa);
+}
+.usage-throttle-text {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-top: 0.75rem;
+}
+.usage-throttle-state--dyn { color: var(--pct-color); }
+
+.usage-breakdown { overflow-x: auto; }
+.usage-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.usage-table th,
+.usage-table td { padding: 0.4rem 0.5rem; }
+.usage-table thead tr { text-align: left; color: var(--text-muted, #aaa); }
+.usage-table tbody tr { border-top: 1px solid var(--border, #333); }
+.usage-table .cell-mono {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.78rem;
+}
+.usage-table .cell-mono-num { font-family: var(--font-mono, monospace); }
+.usage-table .cell-muted-sm {
+  color: var(--text-muted, #aaa);
+  font-size: 0.78rem;
+}
+.usage-empty-cell {
+  padding: 0.75rem;
+  text-align: center;
+  color: var(--text-muted, #aaa);
+}
+.usage-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+.usage-done-btn {
+  background: var(--accent);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+}
+
+/* --- Budget pill (header) --- */
+.budget-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.7rem;
+  margin-left: 0.75rem;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  border: 1px solid var(--pct-color, var(--border-default));
+  color: var(--text-primary);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.78rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.budget-pill-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--pct-color, currentColor);
+  box-shadow: 0 0 6px var(--pct-color, currentColor);
+}
+
+/* --- Icon convenience (when size/color are dynamic from props) --- */
+.dash-icon {
+  font-size: var(--icon-size, 1em);
+  color: var(--icon-color, inherit);
 }
