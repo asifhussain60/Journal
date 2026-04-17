@@ -10,9 +10,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Nunito+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Great+Vibes&family=Dancing+Script:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700&family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 
-  <!-- Journal Design System — swap the theme <link> below to restyle.
-       Alternates: theme.css (default) | theme-daylight.css | theme-tales-dark.css (ACTIVE) -->
-  <link rel="stylesheet" href="../css/themes/theme-tales-dark.css">
+  <!-- Journal Design System — theme is runtime-swappable via the header widget.
+       The <link id="theme-stylesheet"> below is mutated by js/theme-switcher.js. -->
+  <link rel="stylesheet" id="theme-stylesheet" href="../css/themes/theme-tales-dark.css">
   <link rel="stylesheet" href="../css/base.css">
   <link rel="stylesheet" href="../css/itinerary.css">
 
@@ -39,6 +39,7 @@
       <a href="../index.html#dayone" class="nav-link">
         <i class="fa-solid fa-feather-pointed"></i> <span>DayOne</span>
       </a>
+      <div data-theme-switcher></div>
     </div>
   </nav>
 
@@ -1079,6 +1080,9 @@
       </div>
     </div>
   </div>
+
+  <!-- Theme switcher (renders the header widget) -->
+  <script src="../js/theme-switcher.js"></script>
 
   <!-- BabuAI client + Trip Context + Floating Chat -->
   <script src="../js/claude-client.js"></script>

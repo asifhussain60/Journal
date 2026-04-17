@@ -15,12 +15,12 @@
   <link href="https://fonts.cdnfonts.com/css/opendyslexic" rel="stylesheet">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F4D6;</text></svg>">
 
-  <!-- Design System — single-theme stack.
-       To swap themes, change the one <link> below. Alternates:
-         css/themes/theme.css            Rose & Mauve Night (default)
-         css/themes/theme-daylight.css   Warm light demo
-         css/themes/theme-tales-dark.css WrapBootstrap Tales (dark green) — ACTIVE -->
-  <link rel="stylesheet" href="css/themes/theme-tales-dark.css">
+  <!-- Design System — theme is runtime-swappable via the header widget.
+       The <link id="theme-stylesheet"> below is mutated by
+       site/js/theme-switcher.js when the user picks a theme. The href
+       here is the default; site/js/theme-switcher.js restores any
+       previously-saved choice from localStorage on boot. -->
+  <link rel="stylesheet" id="theme-stylesheet" href="css/themes/theme-tales-dark.css">
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/app.css">
   <link rel="stylesheet" href="css/ai-drawer.css">
@@ -1415,6 +1415,7 @@
               <button className={`nav-link ${page === 'memoir' || page === 'chapter' ? 'active' : ''}`} onClick={() => { setPage('memoir'); setActiveChapter(null); }}><Icon name="fa-book-open" /> <span>Memoir</span></button>
               <button className={`nav-link ${page === 'dayone' ? 'active' : ''}`} onClick={() => { setPage('dayone'); setActiveChapter(null); }}><Icon name="fa-feather-pointed" /> <span>DayOne</span></button>
               <BudgetPill onOpen={() => setUsageOpen(true)} />
+              <div data-theme-switcher=""></div>
             </div>
           </nav>
 
@@ -1443,6 +1444,7 @@
 
   <div id="ai-drawer-root"></div>
   <script crossorigin src="https://cdn.jsdelivr.net/npm/diff@5.2.0/dist/diff.min.js"></script>
+  <script src="js/theme-switcher.js"></script>
   <script src="js/claude-client.js"></script>
   <script type="text/babel" src="js/voice-refiner.jsx"></script>
 

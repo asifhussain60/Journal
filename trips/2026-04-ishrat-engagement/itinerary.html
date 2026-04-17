@@ -16,11 +16,12 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 
-<!-- Journal Design System — swap the theme <link> below to restyle.
-     Alternates: theme.css (default) | theme-daylight.css | theme-tales-dark.css (ACTIVE) -->
-<link rel="stylesheet" href="../../site/css/themes/theme-tales-dark.css">
+<!-- Journal Design System — theme honours whatever the main app last
+     selected (syncs via localStorage through site/js/theme-switcher.js). -->
+<link rel="stylesheet" id="theme-stylesheet" href="../../site/css/themes/theme-tales-dark.css">
 <link rel="stylesheet" href="../../site/css/base.css">
 <link rel="stylesheet" href="../../site/css/itinerary.css">
+<script src="../../site/js/theme-switcher.js" defer></script>
 </head>
 <body>
 
