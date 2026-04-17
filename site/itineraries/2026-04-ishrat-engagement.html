@@ -1433,10 +1433,16 @@
         body.innerHTML = '';
         alts.forEach(function(alt) {
           var opt = document.createElement('div');
-          opt.className = 'alt-option';
+          opt.className = 'alt-option' + (alt.verified ? ' alt-option--verified' : '');
           var htmlParts = [];
           htmlParts.push('<div class="alt-option-header">');
-          htmlParts.push('  <span class="alt-option-name">' + escHtml(alt.name || 'Unknown') + '</span>');
+          htmlParts.push('  <span class="alt-option-name">' + escHtml(alt.name || 'Unknown'));
+          if (alt.verified) {
+            htmlParts.push('    <span class="alt-option-badge" title="Verified via Google Search"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Verified</span>');
+          } else if (alt.verified === false) {
+            htmlParts.push('    <span class="alt-option-badge alt-option-badge--warn" title="' + escHtml(alt.verifyNote || 'Not corroborated by Google') + '"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Unverified</span>');
+          }
+          htmlParts.push('  </span>');
           if (typeof alt.rating === 'number') {
             htmlParts.push('  <span class="alt-option-rating"><i class="fa-solid fa-star" aria-hidden="true"></i> ' + escHtml(String(alt.rating)) + '</span>');
           }

@@ -65,6 +65,11 @@ import {
 } from "./dead-letter.js";
 import { shadow } from "./middleware/shadow-write.js";
 import { accessAuth, accessAuthStatus } from "./middleware/access-auth.js";
+import {
+  verifyVenue as geminiVerifyVenue,
+  isAvailable as geminiAvailable,
+  status as geminiStatus,
+} from "./gemini-client.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -235,6 +240,7 @@ app.get("/health", (_req, res) => {
     port: PORT,
     allowedOrigins: ALLOWED_ORIGINS,
     access: accessAuthStatus(),
+    gemini: geminiStatus(),
     ts: new Date().toISOString(),
   });
 });
@@ -816,10 +822,64 @@ app.post("/api/find-alternatives", async (req, res) => {
     if (!parsed || !Array.isArray(parsed.alternatives)) {
       return res.json({ ok: false, model: msg.model, usage: msg.usage, error: "model did not return alternatives", rawText: raw });
     }
-    res.json({ ok: true, model: msg.model, usage: msg.usage, tripSlug: slug, alternatives: parsed.alternatives });
+
+    // Post-process with Gemini's Google-Search grounding. For each
+    // alternative Sonnet proposed, ask Gemini to corroborate against live
+    // Google data. When it does, prefer Google's canonical phone/address/
+    // rating over the model's. When it doesn't find the venue at all,
+    // mark it `verified: false` so the client can render a soft warning.
+    // The whole fan-out is parallel — adds ~1s worst-case, not 3s.
+    let alternatives = parsed.alternatives;
+    if (geminiAvailable()) {
+      alternatives = await Promise.all(parsed.alternatives.map(async (alt) => {
+        const v = await geminiVerifyVenue({ name: alt.name, address: alt.venue, nearTo: active.venue });
+        if (!v.ok || !v.found) {
+          return { ...alt, verified: false, verifiedBy: "gemini", verifyNote: v.error || "not found on Google" };
+        }
+        return {
+          ...alt,
+          // Google data wins when present; Sonnet's stays as fallback.
+          name:    v.verified.name    ?? alt.name,
+          venue:   v.verified.venue   ?? alt.venue,
+          phone:   v.verified.phone   ?? alt.phone,
+          rating:  typeof v.verified.rating === "number" ? v.verified.rating : alt.rating,
+          mapsUrl: v.verified.mapsUrl ?? null,
+          verified: true,
+          verifiedBy: "gemini",
+          sources: v.sources || [],
+        };
+      }));
+    }
+
+    res.json({
+      ok: true,
+      model: msg.model,
+      usage: msg.usage,
+      tripSlug: slug,
+      alternatives,
+      groundingProvider: geminiAvailable() ? "gemini-google-search" : null,
+    });
   } catch (err) {
     res.status(502).json({ ok: false, error: err?.message ?? String(err) });
   }
+});
+
+// --- Verify a single venue against Google Search (Gemini-grounded) -----------
+// Body: { name, address?, nearTo? }
+// Returns: { ok, found, verified: {name, venue, phone, rating, mapsUrl}, sources }
+// Independent of find-alternatives — exposed so UI features like a "verify
+// data" button on any card can check Google's canonical record.
+app.post("/api/verify-venue", async (req, res) => {
+  const { name, address, nearTo } = req.body ?? {};
+  if (typeof name !== "string" || !name.trim()) {
+    return res.status(400).json({ ok: false, error: "name is required" });
+  }
+  if (!geminiAvailable()) {
+    return res.status(503).json({ ok: false, error: "Gemini not configured. Store a key via: security add-generic-password -U -a \"$USER\" -s gemini_api_key -w" });
+  }
+  const result = await geminiVerifyVenue({ name, address, nearTo });
+  if (!result.ok) return res.status(502).json(result);
+  res.json(result);
 });
 
 // --- Swap an event's venue with a chosen alternative -------------------------
