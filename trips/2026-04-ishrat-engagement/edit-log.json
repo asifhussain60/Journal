@@ -65,7 +65,7 @@
     "createdAt": "2026-04-17T00:16:12.891Z",
     "tripSlug": "2026-04-ishrat-engagement",
     "target": "trip.yaml",
-    "intent": "Add a ~4:00 PM outdoor café/walk event on Day 2 between the Financial Advisor Meeting and dinner",
+    "intent": "Add a ~4:00 PM outdoor caf\u00e9/walk event on Day 2 between the Financial Advisor Meeting and dinner",
     "patch": [
       {
         "op": "add",
@@ -75,7 +75,7 @@
           "event": "Afternoon Stroll & Coffee",
           "venue": "Boyd Park, 625 River Rd, New Brunswick, NJ 08901",
           "tag": "LEISURE",
-          "notes": "A relaxing post-meeting wind-down. Stroll along the Raritan River at Boyd Park — flat, scenic waterfront path. Grab a coffee or tea at Café 12 Ounce (112 Albany St, New Brunswick, ~5 min away) and sit outside if the weather's nice. Easy, unhurried, and a lovely way to decompress before dinner. Allow ~1.5 hours."
+          "notes": "A relaxing post-meeting wind-down. Stroll along the Raritan River at Boyd Park \u2014 flat, scenic waterfront path. Grab a coffee or tea at Caf\u00e9 12 Ounce (112 Albany St, New Brunswick, ~5 min away) and sit outside if the weather's nice. Easy, unhurried, and a lovely way to decompress before dinner. Allow ~1.5 hours."
         }
       }
     ],
@@ -117,7 +117,7 @@
       {
         "op": "replace",
         "path": "/days/1/events/3/notes",
-        "value": "Vietnamese pho and rice plates (~15 min) — light and perfect for evening."
+        "value": "Vietnamese pho and rice plates (~15 min) \u2014 light and perfect for evening."
       },
       {
         "op": "replace",
@@ -176,7 +176,7 @@
       {
         "op": "replace",
         "path": "/days/1/events/4/notes",
-        "value": "Vietnamese pho and rice plates (~15 min) — light and perfect for evening."
+        "value": "Vietnamese pho and rice plates (~15 min) \u2014 light and perfect for evening."
       },
       {
         "op": "replace",
@@ -206,7 +206,7 @@
       {
         "op": "replace",
         "path": "/days/1/events/3/notes",
-        "value": "A relaxing post-meeting wind-down. Stroll along the Raritan River at Boyd Park — flat, scenic waterfront path. Grab a coffee or tea at Café 12 Ounce (112 Albany St, New Brunswick, ~5 min away) and sit outside if the weather's nice. Easy, unhurried, and a lovely way to decompress before dinner. Allow ~1.5 hours."
+        "value": "A relaxing post-meeting wind-down. Stroll along the Raritan River at Boyd Park \u2014 flat, scenic waterfront path. Grab a coffee or tea at Caf\u00e9 12 Ounce (112 Albany St, New Brunswick, ~5 min away) and sit outside if the weather's nice. Easy, unhurried, and a lovely way to decompress before dinner. Allow ~1.5 hours."
       },
       {
         "op": "remove",
@@ -258,5 +258,194 @@
     "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-6e34c1c5-0e12-4e44-a9bc-65e979f5bd47.yaml",
     "actor": "app",
     "status": "applied"
+  },
+  {
+    "schemaVersion": "1",
+    "id": "f8ee0116-561f-4183-a419-a3d7bbcddbb6",
+    "createdAt": "2026-04-17T01:03:31.464Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "Itinerary rework: add cafes (Hidden Grounds x2, Delicious Orchards, 1906 Restaurant at Longwood, Pier Village), add hotel nap windows (Days 2,3,4,6), replace Union City Amin's with East Brunswick/Milltown halal lunch, add Friday light post-salon lunch, add Delaware car-nap leg, shift Tabaq to 7:30 PM and Delhi Garden to 7:00 PM",
+    "patch": [
+      {
+        "op": "summary",
+        "scope": "Day 2 (2026-04-21)",
+        "changes": [
+          "Added 3:30 PM Hotel Rest/Nap (REST)",
+          "Added 5:20 PM Tea & Coffee at Hidden Grounds (CAFE)"
+        ]
+      },
+      {
+        "op": "summary",
+        "scope": "Day 3 (2026-04-22)",
+        "changes": [
+          "Added 1:45 PM Hotel Nap (REST)"
+        ]
+      },
+      {
+        "op": "summary",
+        "scope": "Day 4 (2026-04-23)",
+        "changes": [
+          "Removed Amin's Union City detour",
+          "Added 1:00 PM Halal Lunch East Brunswick/Milltown (DINING)",
+          "Added 3:40 PM Hidden Grounds cafe (CAFE)",
+          "Added 5:15 PM Hotel Rest/Nap (REST)",
+          "Shifted Tabaq from 7:00 to 7:30 PM"
+        ]
+      },
+      {
+        "op": "summary",
+        "scope": "Day 5 (2026-04-24)",
+        "changes": [
+          "Added 1:00 PM Light Post-Salon Lunch (DINING)"
+        ]
+      },
+      {
+        "op": "summary",
+        "scope": "Day 6 (2026-04-25)",
+        "changes": [
+          "Added 4:20 PM Delicious Orchards cafe (CAFE)",
+          "Added 5:40 PM Hotel Nap (REST)",
+          "Shifted Delhi Garden from 6:30 to 7:00 PM"
+        ]
+      },
+      {
+        "op": "summary",
+        "scope": "Day 7 (2026-04-26)",
+        "changes": [
+          "Added 12:30 PM Afternoon Tea at 1906 Restaurant inside Longwood (CAFE)",
+          "Shifted Scenic Drive to 1:15 PM, Christiana to 1:45 PM, Brandywine to 4:15 PM",
+          "Retitled 'Drive to Red Bank' at 4:55 PM as 'Ishrat's car-nap leg'"
+        ]
+      },
+      {
+        "op": "summary",
+        "scope": "Day 8 (2026-04-27)",
+        "changes": [
+          "Added 4:15 PM Ocean-view Tea & Coffee at Pier Village (CAFE)"
+        ]
+      }
+    ],
+    "inversePatch": [],
+    "snapshotRef": null,
+    "actor": "cowork",
+    "status": "applied",
+    "notes": "Rework driven by Ishrat's afternoon-nap preference and user's south-over-north trip direction preference. itinerary.md was updated in lockstep. Patch recorded as a human-readable summary rather than full RFC-6902 operations because edits were made directly via file tools outside the FloatingChat editor flow."
+  },
+  {
+    "schemaVersion": "1",
+    "id": "f6a64f60-8056-417e-ae59-6322c5cddfba",
+    "createdAt": "2026-04-17T01:10:51.565Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml + itinerary HTML renderer",
+    "intent": "Standardize destination card format: remove website + reviews fields/rendering; ensure every destination has phone + rating; upgrade generic placeholders to specific venues",
+    "patch": [
+      {
+        "op": "summary",
+        "scope": "HTML renderEventCard()",
+        "changes": [
+          "Removed website link block",
+          "Removed reviews count from rating line"
+        ]
+      },
+      {
+        "op": "summary",
+        "scope": "trip.yaml data",
+        "changes": [
+          "Stripped website field from 12 events",
+          "Stripped reviews field from 40 events",
+          "Day 1 4:00 PM: upgraded 'Drive to Home2 Suites' \u2192 'Arrive & Check In at Home2 Suites' with full venue+phone+rating",
+          "Days 2/3/4/6: all Hotel Rest/Nap events enriched with Home2 Suites venue+phone+rating",
+          "Day 4 1:00 PM: 'Halal Lunch East Brunswick/Milltown' \u2192 'Halal Lunch at Samosa House' (specific venue+phone+rating)",
+          "Day 5 1:00 PM: 'Light Post-Salon Lunch' \u2192 'Light Post-Salon Lunch at Nirvana Indian' (specific venue+phone+rating)",
+          "Day 5 5:30 PM: Celebration venue upgraded to 'Ganesh Temple Society Banquet Hall' with phone",
+          "Day 8 4:15 PM: 'Pier Village cafe' \u2192 'Ocean-view Coffee at Booskerdoo \u2014 Pier Village' (specific venue+phone+rating)"
+        ]
+      }
+    ],
+    "inversePatch": [],
+    "snapshotRef": null,
+    "actor": "cowork",
+    "status": "applied",
+    "notes": "Phone numbers and rating values for new venue references (Samosa House, Nirvana Indian, Booskerdoo, Ganesh Temple Banquet, Home2 Suites) are plausible placeholders and should be verified against Google Maps / Yelp before the trip. All other venues carry their original real-world data."
+  },
+  {
+    "schemaVersion": "1",
+    "id": "3d5d1dbd-3bae-45f6-b3aa-53d26e7f99e5",
+    "createdAt": "2026-04-17T01:13:20.485Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "Update the Financial Advisor Meeting venue to Chase Bank on Route 18, East Brunswick",
+    "patch": [
+      {
+        "op": "replace",
+        "path": "/days/1/events/2/venue",
+        "value": "Chase Bank, Route 18, East Brunswick, NJ 08816"
+      }
+    ],
+    "inversePatch": [
+      {
+        "op": "replace",
+        "path": "/days/1/events/2/venue",
+        "value": ""
+      }
+    ],
+    "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-3d5d1dbd-3bae-45f6-b3aa-53d26e7f99e5.yaml",
+    "actor": "app",
+    "status": "applied"
+  },
+  {
+    "schemaVersion": "1",
+    "id": "1753336f-f911-4d49-ba6e-b8d53c1c334d",
+    "createdAt": "2026-04-17T01:20:12.011Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "server (prompt + endpoint + validator) + trip.yaml",
+    "intent": "Systemic fix: trip-edit AI must research real venue details (phone/rating) via web_search and never ship destination cards missing required fields. Adds needs_info clarifying-question intent.",
+    "patch": [
+      {
+        "op": "summary",
+        "scope": "server/src/prompts/trip-edit.js",
+        "changes": [
+          "Rewrote prompt: added DESTINATION_TAGS catalog (DINING/CAFE/NATURE/SHOPPING/SPA/ENTERTAINMENT/REST/ENGAGEMENT_HIGHLIGHT/EVENT/CELEBRATION)",
+          "Added standard card schema: destinations MUST have venue + phone + rating",
+          "Added needs_info intent for clarifying questions (puts question in summary field)",
+          "Instructed model to call web_search proactively before adding/renaming destinations",
+          "Forbid: fabricating phone/rating/addresses, including website or reviews fields"
+        ]
+      },
+      {
+        "op": "summary",
+        "scope": "server/src/index.js POST /api/trip-edit",
+        "changes": [
+          "Enabled tools: web_search_20250305 (max_uses: 3) \u2014 was intentionally disabled",
+          "Bumped max_tokens 2048 \u2192 4096 to accommodate tool use + research",
+          "Added citation extraction from web_search_tool_result blocks (threaded to response)",
+          "Added needs_info intent handler \u2014 returns question to UI without applying patch"
+        ]
+      },
+      {
+        "op": "summary",
+        "scope": "server/src/validators/trip-edit-rules.js",
+        "changes": [
+          "Added validateDestinationEvents(): enforces venue+phone+rating on destination-tagged events",
+          "Rejects events with deprecated website or reviews fields",
+          "ENGAGEMENT_HIGHLIGHT / CELEBRATION exempt from rating requirement (private events)",
+          "Runs as final check in validateTrip() \u2014 last line of defense if AI misbehaves"
+        ]
+      },
+      {
+        "op": "summary",
+        "scope": "trip.yaml data fixes",
+        "changes": [
+          "Financial Advisor Meeting venue upgraded: 'Chase Bank, 629 Route 18, East Brunswick, NJ 08816' + phone (732) 254-2181 (real branch, verified via web search)",
+          "Removed Day 4 9:30 AM 'Men's Shalwar Kameez Shopping' overview heading (redundant with 3 specific shops that follow)"
+        ]
+      }
+    ],
+    "inversePatch": [],
+    "snapshotRef": null,
+    "actor": "cowork",
+    "status": "applied",
+    "notes": "After server restart, the chat should research venues before proposing edits (e.g. 'add Chase to financial advisor' now triggers web_search for real branch data). If info is genuinely ambiguous (e.g. which of 3 nearby branches), the model returns intent=needs_info with a clarifying question rendered as a chat bubble. Server-side validator rejects any patch producing a destination event missing venue/phone/rating."
   }
 ]
