@@ -65,14 +65,9 @@ html {
   scroll-behavior: smooth;
 }
 
-body {
-  font-family: var(--font-sans);
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  line-height: 1.6;
-  min-height: 100vh;
-  overflow-x: hidden;
-}
+/* Body styling (font, background, color, line-height) lives in
+   themes/theme.css — the theme file is the single source of visual
+   truth. Keep this file reset + primitives only. */
 
 a { color: var(--accent); text-decoration: none; transition: color var(--transition-fast); }
 a:hover { color: var(--text-primary); }

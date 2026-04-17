@@ -11,12 +11,8 @@
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 
-/* Body background + driftOne/driftTwo keyframes come from
-   themes/theme.css. This rule just sets the itinerary's
-   preferred sans stack. */
-body{
-  font-family:"Nunito Sans",system-ui,sans-serif;
-}
+/* Body (font-family, background, ambience, keyframes) lives entirely
+   in themes/theme.css. Nothing page-specific is needed here. */
 
 /* ═══ ANIMATIONS ═══ */
 

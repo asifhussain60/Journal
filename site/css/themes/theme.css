@@ -111,8 +111,12 @@ body {
     radial-gradient(circle at 50% 100%, rgba(255, 212, 156, 0.06), transparent 25%),
     linear-gradient(180deg, #27203c 0%, #322a4a 28%, #2b2240 100%);
   color: var(--text);
+  font-family: var(--font-sans);
   min-height: 100vh;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
 }
 body::before,
 body::after {
