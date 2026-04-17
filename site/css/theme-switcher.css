@@ -75,7 +75,9 @@
   right: 0;
   min-width: 320px;
   max-width: 380px;
-  background: var(--bg-card-solid, var(--bg-secondary));
+  /* Opaque base uses --bg-2 (a solid theme surface) so content behind the
+     dropdown is fully obscured. --glass-bg layered on top adds a subtle highlight. */
+  background-color: var(--bg-2);
   background-image: var(--glass-bg);
   backdrop-filter: blur(28px) saturate(160%);
   -webkit-backdrop-filter: blur(28px) saturate(160%);
