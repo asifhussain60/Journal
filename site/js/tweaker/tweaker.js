@@ -38,13 +38,25 @@
   // §1 Config + constants
   // ══════════════════════════════════════════════════════════════════════════
 
+  // Resolve the proxy URL the same way claude-client.js does: use the already-
+  // loaded window.BabuAI.baseUrl when available; otherwise derive from the host
+  // (localhost → :3001; deployed → tunnel URL). Override via window.BABU_AI_PROXY_URL.
+  function resolveApiBase() {
+    if (window.BabuAI && window.BabuAI.baseUrl) return String(window.BabuAI.baseUrl).replace(/\/+$/, '');
+    if (window.BABU_AI_PROXY_URL) return String(window.BABU_AI_PROXY_URL).replace(/\/+$/, '');
+    if (window.CLAUDE_API_BASE) return String(window.CLAUDE_API_BASE).replace(/\/+$/, '');
+    const host = (typeof window !== 'undefined' && window.location && window.location.hostname) || '';
+    if (host === 'localhost' || host === '127.0.0.1' || host === '') return 'http://localhost:3001';
+    return 'https://journal-api.kashkole.com';
+  }
+
   const CFG = {
     storageKey: 'journal:tweaker:session',
     modeKey: 'journal:tweaker:mode',
     scopedStyleId: 'tweaker-scoped-style',
     chromeAttr: 'data-tweak-chrome',
     highlightId: 'tweaker-hover-highlight',
-    apiBase: (window.CLAUDE_API_BASE || '').replace(/\/$/, ''),
+    apiBase: resolveApiBase(),
     themeStylesheetId: 'theme-stylesheet',
     navSelector: '.nav',
   };
