@@ -110,6 +110,8 @@ html{scroll-behavior:smooth}
 .p4{left:86%;bottom:-2.5rem;font-size:1.1rem;animation-duration:16s;animation-delay:4s}
 .p5{left:58%;bottom:-3rem;font-size:.95rem;animation-duration:13s;animation-delay:3s}
 .hero-badge{
+  /* Pill hidden but still occupies its slot — preserves hero spacing */
+  visibility:hidden;
   display:inline-flex;
   align-items:center;
   gap:.55rem;
