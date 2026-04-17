@@ -177,13 +177,13 @@
           "duration_min": 75
         },
         {
-          "time": "7:30 PM",
+          "time": "8:00 PM",
           "event": "Dessert at Crispy Cones",
           "venue": "Wick Plaza, 1199 Amboy Ave, Edison, NJ 08837",
           "tag": "DINING",
           "phone": "(732) 744-0123",
           "rating": 4.7,
-          "notes": "Walk over in the same plaza for Shark Tank-famous rotisserie dough cones with soft serve. Open till 11 PM.",
+          "notes": "Walk over in the same plaza for Shark Tank-famous rotisserie dough cones with soft serve. Open till 11 PM. [Shifted from 7:30 PM so it starts after Pho House dinner ends at ~7:45 PM.]",
           "category": "Ice Cream · Sweet Cones",
           "duration_min": 30
         }
@@ -218,15 +218,15 @@
           "duration_min": 75
         },
         {
-          "time": "1:45 PM",
+          "time": "1:30 PM",
           "event": "Hotel Nap",
           "venue": "Home2 Suites by Hilton, 3 Jersey Ave, New Brunswick, NJ 08901",
           "tag": "REST",
-          "notes": "Back at hotel by 1:45 PM (~10 min from N-Thai). 90-min nap window before the Korean BBQ + IMAX evening. Critical rest so she's fresh for a 2.5-hr movie.",
+          "notes": "Lunch ends ~1:15 PM; 10-min drive back puts us at hotel by 1:25 PM. 90-min nap window before the Korean BBQ + IMAX evening. Critical rest so she's fresh for a 2.5-hr movie.",
           "phone": "(732) 729-0900",
           "rating": 4.1,
           "category": "Hotel · Downtime",
-          "duration_min": 60
+          "duration_min": 90
         },
         {
           "time": "4:30 PM",
@@ -292,67 +292,67 @@
           "duration_min": 60
         },
         {
-          "time": "12:00 PM",
+          "time": "12:15 PM",
           "event": "Financial Advisor Meeting",
           "venue": "Chase Bank, 629 Route 18, East Brunswick, NJ 08816",
           "tag": "APPOINTMENT",
-          "notes": "Chase advisor meeting (~45 min). Midday slot sits between boutique runs so energy is still fresh; drive from East Avenue ~10 min.",
+          "notes": "Chase advisor meeting — full hour booked. Midday slot sits between boutique runs so energy is still fresh; drive from East Avenue ~10 min. [Shifted from 12:00 PM and extended from 45 to 60 min so the meeting gets a real hour, not a rushed slot.]",
           "phone": "(732) 254-2181",
           "category": "Banking · Chase",
-          "duration_min": 45
+          "duration_min": 60
         },
         {
-          "time": "1:00 PM",
+          "time": "1:30 PM",
           "event": "J. Junaid Jamshed",
           "venue": "2421 US Hwy 1 S, North Brunswick, NJ 08902",
           "tag": "SHOPPING",
           "phone": "(732) 940-6000",
           "rating": 4.6,
-          "notes": "Flagship Pakistani brand (~10 min from Chase) — premium men's shalwar kameez, kurtas, waistcoats. Last boutique stop before lunch; leave time for alterations and matching accessories.",
+          "notes": "Flagship Pakistani brand (~10 min from Chase). Chase wraps 1:15 PM, 10-min drive puts us here by 1:25 PM. Premium men's shalwar kameez, kurtas, waistcoats — last boutique stop before lunch. Leave time for alterations and matching accessories.",
           "category": "Pakistani Designer · Tailored",
           "duration_min": 60
         },
         {
-          "time": "2:15 PM",
+          "time": "2:45 PM",
           "event": "Halal Lunch at Samosa House",
           "venue": "1000 US-9, Old Bridge, NJ 08857",
           "tag": "DINING",
-          "notes": "Light halal lunch close to the shops (~10 min). Candidates: Spice Rack (halal Indian, East Brunswick), Chaat Hut (Iselin, halal Indo-Chinese), or Chinese Mirch (East Brunswick, halal Chinese). Keep it light — Tabaq dinner is the main event. [Swapped from Amin's Union City to avoid a ~50-min each-way detour.]",
+          "notes": "Light halal lunch close to the shops (~10 min from J. Junaid). JJ ends 2:30 PM, 10-min drive puts us here by 2:40 PM. Candidates: Spice Rack (halal Indian, East Brunswick), Chaat Hut (Iselin, halal Indo-Chinese), or Chinese Mirch (East Brunswick, halal Chinese). Keep it light — Tabaq dinner is the main event. [Swapped from Amin's Union City to avoid a ~50-min each-way detour.]",
           "phone": "(732) 525-2770",
           "rating": 4.3,
           "category": "Pakistani · Halal Street Food",
           "duration_min": 60
         },
         {
-          "time": "3:40 PM",
+          "time": "4:15 PM",
           "event": "Tea & Coffee Break — Hidden Grounds",
           "venue": "106 Church St, New Brunswick, NJ 08901",
           "tag": "CAFE",
           "phone": "(732) 993-4114",
           "rating": 4.6,
-          "notes": "Mid-shopping sit-down pause (~5 min from hotel, ~5 min from J. Junaid). Ishrat's English tea, Asif's pour-over, scones optional. Recharge before the final shop visits.",
+          "notes": "Mid-shopping sit-down pause (~15 min from Samosa House, ~5 min from hotel). Ishrat's English tea, Asif's pour-over, scones optional. Recharge before hotel nap.",
           "category": "Specialty Coffee House",
           "duration_min": 30
         },
         {
-          "time": "5:15 PM",
+          "time": "5:00 PM",
           "event": "Hotel Rest / Nap",
           "venue": "Home2 Suites by Hilton, 3 Jersey Ave, New Brunswick, NJ 08901",
           "tag": "REST",
-          "notes": "Back at hotel by ~5:00 PM. 90-min nap window — critical rest after a long shopping day and before tomorrow's heavy engagement party.",
+          "notes": "Tea ends 4:45 PM, 5-min drive puts us at hotel by 4:50 PM. 90-min nap — critical rest after a long shopping day and before tomorrow's heavy engagement party.",
           "phone": "(732) 729-0900",
           "rating": 4.1,
           "category": "Hotel · Downtime",
-          "duration_min": 60
+          "duration_min": 90
         },
         {
-          "time": "7:30 PM",
+          "time": "7:00 PM",
           "event": "Dinner at Tabaq",
           "venue": "1625 Oak Tree Rd, Edison, NJ 08820",
           "tag": "DINING",
           "phone": "(732) 549-9777",
           "rating": 4.5,
-          "notes": "Pakistani & Chinese halal (~15 min) — great vegetarian (Palak Paneer, Chana Masala) and meat (tandoori, biryani). Big parking lot. [Shifted from 7:00 PM to 7:30 PM to accommodate hotel nap.]",
+          "notes": "Pakistani & Chinese halal (~15 min). Nap ends 6:30 PM, 15-min drive arrives 6:45 PM with buffer. Great vegetarian (Palak Paneer, Chana Masala) and meat (tandoori, biryani). Big parking lot.",
           "category": "Pakistani · Charcoal BBQ",
           "duration_min": 90
         }
@@ -380,7 +380,8 @@
           "event": "Final Preparations",
           "venue": "",
           "tag": "PREPARATION",
-          "notes": "Hair and nails appointment (~2–3 hours). Final outfit check, steam dress, pack essentials."
+          "notes": "Hair and nails appointment — allow the full 2h 45m window. Final outfit check, steam dress, pack essentials. Salon wraps ~12:45 PM.",
+          "duration_min": 165
         },
         {
           "time": "1:00 PM",
@@ -394,18 +395,20 @@
           "duration_min": 60
         },
         {
-          "time": "2:00 PM",
+          "time": "2:15 PM",
           "event": "Get Ready & Load the Car",
           "venue": "",
           "tag": "PREPARATION",
-          "notes": "Get dressed, final touch-ups, fill gas, load car. Be road-ready by 3:15 PM."
+          "notes": "Lunch ends 2:00 PM, 5-min drive puts us at hotel by 2:10 PM. Get dressed, final touch-ups, fill gas, load car. Be road-ready by 3:30 PM.",
+          "duration_min": 75
         },
         {
           "time": "3:30 PM",
           "event": "Drive to Fresh Meadows, Queens",
           "venue": "183-10 Horace Harding Expy, NY 11365",
           "tag": "TRAVEL",
-          "notes": "ETA ~4:45–5:15 PM via Holland Tunnel → LIE. Friday evening traffic adds 20–30 min. Leave by 3:30 PM sharp—no later."
+          "notes": "ETA ~4:45–5:15 PM via Holland Tunnel → LIE. Friday evening traffic adds 20–30 min. Leave by 3:30 PM sharp—no later.",
+          "duration_min": 105
         },
         {
           "time": "~5:30 PM",
@@ -437,14 +440,15 @@
           "duration_min": 60
         },
         {
-          "time": "1:00 PM",
+          "time": "12:00 PM",
           "event": "Drive to Holland Ridge Farms",
           "venue": "",
           "tag": "TRAVEL",
-          "notes": "Head south to Cream Ridge, NJ (~40 min). New Jersey's premier tulip destination — peak bloom in late April."
+          "notes": "Head south to Cream Ridge, NJ (~40 min). New Jersey's premier tulip destination — peak bloom in late April. [Shifted earlier from 1:00 PM so the afternoon fits tulip fields + two farm stops + nap before dinner.]",
+          "duration_min": 40
         },
         {
-          "time": "1:45 PM",
+          "time": "12:45 PM",
           "event": "Holland Ridge Farms — Tulip Fields",
           "venue": "2 Savannah Rd, Cream Ridge, NJ 08514",
           "tag": "NATURE",
@@ -452,21 +456,21 @@
           "rating": 4.7,
           "notes": "Millions of tulips across rolling fields. U-pick flowers, stunning photo ops, and a relaxed walk through the colours. Allow ~2 hours to soak it in. Buy tickets online in advance — late April weekends sell out. Wear comfortable shoes (fields can be soft).",
           "category": "Nature · Tulip Fields",
-          "duration_min": 150
+          "duration_min": 120
         },
         {
-          "time": "~3:45 PM",
+          "time": "3:00 PM",
           "event": "Eastmont Orchards Farm Market",
           "venue": "223 Route 537, Colts Neck, NJ 07722",
           "tag": "NATURE",
           "phone": "(732) 542-5404",
           "rating": 4.6,
-          "notes": "Quick stop on the way back (~10 min from Holland Ridge). Fresh local produce, baked goods, honey, and seasonal treats. A lovely farm-stand experience.",
+          "notes": "Quick farm-stand stop on the way back (~10 min from Holland Ridge). Fresh local produce, baked goods, honey, and seasonal treats. Keep it brisk — cafe is the sit-down moment.",
           "category": "Nature · Orchard Market",
-          "duration_min": 60
+          "duration_min": 30
         },
         {
-          "time": "4:20 PM",
+          "time": "3:40 PM",
           "event": "Tea & Baked Goods at Delicious Orchards",
           "venue": "36 Route 34, Colts Neck, NJ 07722",
           "tag": "CAFE",
@@ -477,15 +481,15 @@
           "duration_min": 45
         },
         {
-          "time": "5:40 PM",
+          "time": "5:15 PM",
           "event": "Hotel Nap",
           "venue": "Home2 Suites by Hilton, 3 Jersey Ave, New Brunswick, NJ 08901",
           "tag": "REST",
-          "notes": "Back at hotel by ~5:30 PM (~40 min drive from Colts Neck). 60-min brief recharge before dinner.",
+          "notes": "Cafe ends 4:25 PM, 40-min drive back from Colts Neck puts us at hotel by ~5:05 PM. 90-min full nap before dinner — much better recovery than the old 60-min window.",
           "phone": "(732) 729-0900",
           "rating": 4.1,
           "category": "Hotel · Downtime",
-          "duration_min": 60
+          "duration_min": 90
         },
         {
           "time": "7:00 PM",
@@ -494,7 +498,7 @@
           "tag": "DINING",
           "phone": "(732) 549-2500",
           "rating": 4.4,
-          "notes": "Indian & Pakistani (~10 min) — relaxed meal close to home to debrief about the party. [Shifted from 6:30 PM to 7:00 PM to accommodate cafe + nap.]",
+          "notes": "Indian & Pakistani (~10 min). Nap ends 6:45 PM, 10-min drive arrives 6:55 PM. Relaxed meal close to home to debrief about the party.",
           "category": "Indian · North Indian",
           "duration_min": 90
         }
@@ -524,56 +528,47 @@
           "tag": "NATURE",
           "phone": "(610) 388-1000",
           "rating": 4.8,
-          "notes": "One of the world's great botanical gardens — 1,077 acres of spring blooms, fountains, conservatories, and scenic walking paths. Absolutely stunning in late April. Book timed-entry tickets in advance. Opens 10 AM Sundays. Allow ~2 hours. Wear comfortable walking shoes.",
+          "notes": "One of the world's great botanical gardens — 1,077 acres of spring blooms, fountains, conservatories, and scenic walking paths. Absolutely stunning in late April. Book timed-entry tickets in advance. Opens 10 AM Sundays. 2-hr tour covers the highlights; wear comfortable walking shoes. [Duration tightened from 3 hrs to 2 hrs so tea at 12:45 PM fits.]",
           "category": "Historic Garden · Conservatory",
-          "duration_min": 180
+          "duration_min": 120
         },
         {
-          "time": "12:30 PM",
+          "time": "12:45 PM",
           "event": "Afternoon Tea at 1906 Restaurant",
           "venue": "1906 Restaurant (inside Longwood Gardens), 1001 Longwood Rd, Kennett Square, PA 19348",
           "tag": "CAFE",
           "phone": "(610) 388-6771",
           "rating": 4.5,
-          "notes": "Proper afternoon tea service with garden-conservatory views (45 min). Ishrat's English-tea moment with scones/sandwiches, Asif gets espresso. Reserve in advance — limited sittings and sells out on spring weekends.",
+          "notes": "Proper afternoon tea service with garden-conservatory views. Ishrat's English-tea moment with scones/sandwiches, Asif gets espresso. Reserve in advance — limited sittings and sells out on spring weekends. Inside Longwood so no drive between.",
           "category": "Garden Tea Room",
           "duration_min": 75
         },
         {
-          "time": "1:15 PM",
+          "time": "2:00 PM",
           "event": "Scenic Brandywine Valley Drive",
           "venue": "",
           "tag": "SCENIC_DRIVE",
-          "notes": "Wind through the Brandywine Valley on Route 52 & Creek Road — rolling hills, historic estates, stone bridges, and creek-side views. One of the prettiest drives in the Mid-Atlantic. ~30 min to Christiana."
+          "notes": "Wind through the Brandywine Valley on Route 52 & Creek Road — rolling hills, historic estates, stone bridges, and creek-side views. One of the prettiest drives in the Mid-Atlantic. ~30 min to Christiana.",
+          "duration_min": 30
         },
         {
-          "time": "1:45 PM",
+          "time": "2:30 PM",
           "event": "Christiana Mall",
           "venue": "132 Christiana Mall, Newark, DE 19702",
           "tag": "SHOPPING",
           "phone": "(302) 731-9815",
           "rating": 4.3,
-          "notes": "Delaware's premier mall — tax-free shopping! Nordstrom, Apple, Coach, Michael Kors, H&M, and 130+ stores. Grab lunch at the food court or sit-down restaurants inside. Tax-free shopping saves 6–7% on everything. Plan ~2.5 hours here. Mall closes at 6 PM on Sundays.",
+          "notes": "Delaware's premier mall — tax-free shopping! Nordstrom, Apple, Coach, Michael Kors, H&M, and 130+ stores. Tax-free saves 6–7% on everything. Plan ~2 hours here. Mall closes at 6 PM on Sundays.",
           "category": "Outlet Mall · Tax-Free DE",
           "duration_min": 120
         },
         {
-          "time": "4:15 PM",
-          "event": "Brandywine Creek State Park",
-          "venue": "41 Adams Dam Rd, Wilmington, DE 19807",
-          "tag": "NATURE",
-          "phone": "(302) 577-3534",
-          "rating": 4.7,
-          "notes": "A quick scenic walk along Brandywine Creek (~15 min north of mall) — gentle trails, creek views, and a beautiful stone-arch bridge. Perfect stretch after the mall. The Indian Springs Trail (1.2 mi loop) is flat and pretty — ideal for a 30–40 min stroll.",
-          "category": "Nature · Creek Trails",
-          "duration_min": 60
-        },
-        {
-          "time": "4:55 PM",
+          "time": "4:45 PM",
           "event": "Drive to Red Bank, NJ — Ishrat's car-nap leg",
           "venue": "",
           "tag": "TRAVEL",
-          "notes": "Head back east via I-95 & NJ Turnpike (~1 hr 30 min). 🚗 Ishrat reclines for a 60-min car nap — recliner seat, pillow + blanket, quiet playlist. Arrive Red Bank ~6:25 PM with time to stroll downtown before dinner."
+          "notes": "Head back east via I-95 & NJ Turnpike (~1 hr 30 min). 🚗 Ishrat reclines for a 60-min car nap — recliner seat, pillow + blanket, quiet playlist. Arrive Red Bank ~6:15 PM with 45 min to stroll downtown before dinner. [Dropped Brandywine Creek State Park to give the drive real buffer and a true dinner arrival window.]",
+          "duration_min": 90
         },
         {
           "time": "7:00 PM",
@@ -610,7 +605,8 @@
           "event": "Drive to Ocean Place Resort & Spa",
           "venue": "1 Ocean Blvd, Long Branch, NJ 07740",
           "tag": "TRAVEL",
-          "notes": "~40 min south. Arrive ~10:10 AM."
+          "notes": "~40 min south. Arrive ~10:10 AM.",
+          "duration_min": 40
         },
         {
           "time": "10:30 AM",
@@ -619,16 +615,16 @@
           "tag": "SPA",
           "phone": "(732) 571-4000",
           "rating": 4.4,
-          "notes": "Oceanfront spa with indoor pool, sauna, steam room, and treatment rooms. Couples massage available. Ocean views from the deck. Book ahead online. Plan lunch at the spa (in-facility). Leave by ~4:00 PM.",
+          "notes": "Oceanfront spa with indoor pool, sauna, steam room, and treatment rooms. Couples massage available. Ocean views from the deck. Book ahead online. 6-hour block encompasses treatments + lounging + spa lunch — no separate nap needed. Leave by ~4:30 PM.",
           "category": "Resort Spa · Full Day Package",
           "duration_min": 360
         },
         {
-          "time": "4:15 PM",
+          "time": "4:45 PM",
           "event": "Ocean-view Coffee at Booskerdoo — Pier Village",
           "venue": "18 Laird St, Long Branch, NJ 07740",
           "tag": "CAFE",
-          "notes": "Post-spa wind-down with boardwalk views (~5 min from Ocean Place). Recommended: Booskerdoo Coffee (local NJ roaster) or a sit-down cafe along Ocean Ave. Swap to a preferred local spot if you know a better one. ~45 min before the drive to Baba Grill.",
+          "notes": "Post-spa wind-down with boardwalk views (~5 min from Ocean Place). Spa wraps 4:30 PM, 5-min drive arrives 4:40 PM. Recommended: Booskerdoo Coffee (local NJ roaster) or a sit-down cafe along Ocean Ave. Swap to a preferred local spot if you know a better one. [Shifted from 4:15 PM to land after the spa day ends.]",
           "phone": "(732) 483-6772",
           "rating": 4.5,
           "category": "Specialty Coffee · Oceanview",
@@ -641,7 +637,7 @@
           "tag": "DINING",
           "phone": "(732) 543-6800",
           "rating": 4.5,
-          "notes": "Middle Eastern halal. Easy drive back from the Shore (~25 min to home).",
+          "notes": "Middle Eastern halal. Easy drive back from the Shore (~25 min to home). Coffee ends 5:15 PM, 25-min drive puts us near New Brunswick by ~5:45 PM with buffer.",
           "category": "Pakistani BBQ · Farewell",
           "duration_min": 90
         }
@@ -669,14 +665,16 @@
           "event": "Final Packing & Check Out",
           "venue": "",
           "tag": "PREPARATION",
-          "notes": "Double-check luggage, confirm online check-in, and say goodbye to Home2 Suites."
+          "notes": "Double-check luggage, confirm online check-in, and say goodbye to Home2 Suites.",
+          "duration_min": 90
         },
         {
           "time": "2:00 PM",
           "event": "Drive to EWR",
           "venue": "Newark Liberty International Airport, Terminal C, Newark, NJ 07114",
           "tag": "TRAVEL",
-          "notes": "~40 min to Terminal C (United hub). Arrive ~2:40 PM — 2 hrs 45 min before departure for international check-in."
+          "notes": "~40 min to Terminal C (United hub). Arrive ~2:40 PM — 2 hrs 45 min before departure for international check-in.",
+          "duration_min": 40
         },
         {
           "time": "5:25 PM",
@@ -689,7 +687,7 @@
     }
   ],
   "created": "2026-04-14",
-  "last_updated": "2026-04-16",
+  "last_updated": "2026-04-17",
   "photo_count": 0,
   "journal_entries": 9
 }

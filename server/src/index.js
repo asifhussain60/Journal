@@ -60,6 +60,7 @@ import { createDistanceRouter } from "./routes/distance.js";
 import { createThemeRouter } from "./routes/theme.js";
 import { createWeatherRouter } from "./routes/weather.js";
 import { createTripSpendRouter } from "./routes/trip-spend.js";
+import { createHolidayBudgetRouter } from "./routes/holiday-budget.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -164,6 +165,7 @@ app.use(createDistanceRouter());
 app.use(createThemeRouter({ anthropic, DEFAULT_MODEL, themeSaveValidator }));
 app.use(createWeatherRouter());
 app.use(createTripSpendRouter());
+app.use(createHolidayBudgetRouter({ anthropic }));
 
 // --- Start -------------------------------------------------------------------
 app.listen(PORT, "127.0.0.1", () => {

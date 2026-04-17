@@ -933,135 +933,44 @@
   </div> <!-- /itn-container -->
   </div> <!-- /main-content -->
 
-  <!-- BUDGET PANEL -->
+  <!-- BUDGET PANEL — populated dynamically from /api/holiday-budget -->
   <aside class="budget-panel" id="budgetPanel">
     <div class="budget-panel-header">
       <div class="overline">YNAB &bull; Piggy Bank</div>
-      <h3>Holiday Budget</h3>
-      <div class="budget-summary">
-        <div class="budget-stat">
-          <div class="budget-stat-value">$1,953</div>
-          <div class="budget-stat-label">Budgeted (Apr)</div>
-        </div>
-        <div class="budget-stat">
-          <div class="budget-stat-value">$1,957</div>
-          <div class="budget-stat-label">Spent</div>
-        </div>
-        <div class="budget-stat full-width">
-          <div class="budget-stat-value">$9,967</div>
-          <div class="budget-stat-label">Available Balance</div>
-        </div>
+      <div class="budget-title-row">
+        <h3>Holiday Budget</h3>
+        <button type="button"
+                class="budget-refresh-btn"
+                id="budgetRefreshBtn"
+                aria-label="Refresh from YNAB"
+                title="Refresh from YNAB">
+          <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i>
+        </button>
+      </div>
+      <div class="budget-summary" id="budgetSummary">
+        <div class="budget-stat budget-stat--skeleton"><div class="budget-stat-value">—</div><div class="budget-stat-label">Spent</div></div>
+        <div class="budget-stat budget-stat--skeleton"><div class="budget-stat-value">—</div><div class="budget-stat-label">Available</div></div>
       </div>
     </div>
 
-    <div class="budget-categories">
-
-      <!-- Entertainment -->
-      <div class="budget-cat">
-        <div class="budget-cat-header" onclick="toggleBudgetCat(this)">
-          <span class="budget-cat-icon">🎬</span>
-          <span class="budget-cat-name">Entertainment</span>
-          <span class="budget-cat-total">$32.72</span>
-          <span class="budget-cat-chevron">▼</span>
-        </div>
-        <div class="budget-cat-body">
-          <div class="budget-txn">
-            <span class="budget-txn-date">Apr 13</span>
-            <span class="budget-txn-payee">Fandango</span>
-            <span class="budget-txn-amount">$32.72</span>
-            <span class="budget-txn-card">SAPPHIRE</span>
-          </div>
+    <div class="budget-controls" id="budgetControls" hidden>
+      <div class="budget-sort">
+        <span class="budget-sort-label">Sort</span>
+        <div class="budget-sort-group" role="tablist" aria-label="Sort categories">
+          <button type="button" class="budget-sort-btn is-active" data-sort="total" role="tab" aria-selected="true">By total</button>
+          <button type="button" class="budget-sort-btn" data-sort="name" role="tab" aria-selected="false">A–Z</button>
         </div>
       </div>
-
-      <!-- Flights -->
-      <div class="budget-cat">
-        <div class="budget-cat-header" onclick="toggleBudgetCat(this)">
-          <span class="budget-cat-icon">✈</span>
-          <span class="budget-cat-name">Flights</span>
-          <span class="budget-cat-total">$913.51</span>
-          <span class="budget-cat-chevron">▼</span>
-        </div>
-        <div class="budget-cat-body">
-          <div class="budget-txn">
-            <span class="budget-txn-date">Mar 16</span>
-            <span class="budget-txn-payee">United Airlines</span>
-            <span class="budget-txn-amount">$803.53</span>
-            <span class="budget-txn-card">UNITED</span>
-          </div>
-          <div class="budget-txn">
-            <span class="budget-txn-date">Mar 16</span>
-            <span class="budget-txn-payee">United Airlines — Seat</span>
-            <span class="budget-txn-amount">$54.99</span>
-            <span class="budget-txn-card">UNITED</span>
-          </div>
-          <div class="budget-txn">
-            <span class="budget-txn-date">Mar 16</span>
-            <span class="budget-txn-payee">United Airlines — Seat</span>
-            <span class="budget-txn-amount">$54.99</span>
-            <span class="budget-txn-card">UNITED</span>
-          </div>
-        </div>
+      <div class="budget-verify" id="budgetVerify" hidden>
+        <i class="fa-solid fa-shield-check" aria-hidden="true"></i>
+        <span class="budget-verify-text">Totals verified</span>
       </div>
-
-      <!-- Transport -->
-      <div class="budget-cat">
-        <div class="budget-cat-header" onclick="toggleBudgetCat(this)">
-          <span class="budget-cat-icon">🚕</span>
-          <span class="budget-cat-name">Transport</span>
-          <span class="budget-cat-total">$579.12</span>
-          <span class="budget-cat-chevron">▼</span>
-        </div>
-        <div class="budget-cat-body">
-          <div class="budget-txn">
-            <span class="budget-txn-date">Mar 30</span>
-            <span class="budget-txn-payee">Britanica Airport Taxi</span>
-            <span class="budget-txn-amount">$579.12</span>
-            <span class="budget-txn-card">SAPPHIRE</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Shopping -->
-      <div class="budget-cat">
-        <div class="budget-cat-header" onclick="toggleBudgetCat(this)">
-          <span class="budget-cat-icon">🛍</span>
-          <span class="budget-cat-name">Shopping</span>
-          <span class="budget-cat-total">$358.50</span>
-          <span class="budget-cat-chevron">&#9660;</span>
-        </div>
-        <div class="budget-cat-body">
-          <div class="budget-txn">
-            <span class="budget-txn-date">Mar 23</span>
-            <span class="budget-txn-payee">BE Store</span>
-            <span class="budget-txn-amount">$358.50</span>
-            <span class="budget-txn-card">PREMIER</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Travel Insurance -->
-      <div class="budget-cat">
-        <div class="budget-cat-header" onclick="toggleBudgetCat(this)">
-          <span class="budget-cat-icon">🛡</span>
-          <span class="budget-cat-name">Travel Insurance</span>
-          <span class="budget-cat-total">$72.66</span>
-          <span class="budget-cat-chevron">▼</span>
-        </div>
-        <div class="budget-cat-body">
-          <div class="budget-txn">
-            <span class="budget-txn-date">Mar 15</span>
-            <span class="budget-txn-payee">Travel Guard Group</span>
-            <span class="budget-txn-amount">$72.66</span>
-            <span class="budget-txn-card">UNITED</span>
-          </div>
-        </div>
-      </div>
-
     </div>
 
-    <div class="budget-panel-footer">
-      Synced from <span>YNAB</span> &bull; April 15, 2026 &bull; 7:58 PM
+    <div class="budget-categories" id="budgetCategories"></div>
+
+    <div class="budget-panel-footer" id="budgetPanelFooter">
+      <span class="budget-footer-text">Press refresh to sync from YNAB</span>
     </div>
   </aside>
 
@@ -1140,6 +1049,10 @@
         if (host === 'localhost' || host === '127.0.0.1' || host === '') return 'http://localhost:3001';
         return 'https://journal-api.kashkole.com';
       })();
+      // Expose for cross-script use: hydrateDriveTimes, hydrateDaySpend,
+      // fetchWeather, etc. live in a separate <script> block and can't see
+      // this IIFE's local var. Without this, they throw ReferenceError.
+      window.__API_BASE = API_BASE;
 
       // Track live Leaflet instances keyed by container id, so we can destroy
       // cleanly before re-rendering (otherwise Leaflet leaks handlers).
@@ -1307,12 +1220,27 @@
         parts.push('    </div>');
         parts.push('    <div class="event-details">');
 
-        // ── Summary row — title only (with its embedded venue). Matches the
-        //     spec: collapsed view shows only "<activity> at <venue>". Tag,
-        //     rating, and everything else live in the body. ──
+        // ── Summary row — title + "what is this?" meta pills (category,
+        //     rating, duration). Pills let you scan a day without expanding
+        //     every card. Everything else (tag, address, phone, drive,
+        //     notes) lives in the body. ──
+        var summaryPills = [];
+        if (ev.category) {
+          summaryPills.push('<span class="event-pill event-pill--category"><i class="fa-solid fa-tag" aria-hidden="true"></i>' + escHtml(ev.category) + '</span>');
+        }
+        if (ev.rating) {
+          summaryPills.push('<span class="event-pill event-pill--rating"><i class="fa-solid fa-star" aria-hidden="true"></i>' + escHtml(String(ev.rating)) + '</span>');
+        }
+        if (ev.duration_min) {
+          summaryPills.push('<span class="event-pill event-pill--duration"><i class="fa-regular fa-clock" aria-hidden="true"></i>' + escHtml(String(ev.duration_min)) + ' min</span>');
+        }
+
         parts.push('      <div class="event-summary">');
         parts.push('        <div class="event-summary-text">');
         parts.push('          <h4 class="event-title">' + escHtml(ev.event) + '</h4>');
+        if (summaryPills.length) {
+          parts.push('          <div class="event-summary-meta">' + summaryPills.join('') + '</div>');
+        }
         parts.push('        </div>');
         parts.push('        <i class="event-caret fa-solid fa-chevron-down" aria-hidden="true"></i>');
         parts.push('      </div>');
@@ -1329,13 +1257,6 @@
           parts.push('            </div>');
         }
 
-        if (ev.rating) {
-          parts.push('            <div class="event-rating">');
-          parts.push('              <span class="event-rating-stars" aria-label="Rated ' + escHtml(String(ev.rating)) + ' out of 5">' + renderStars(ev.rating) + '</span>');
-          parts.push('              <span class="event-rating-num">' + escHtml(String(ev.rating)) + '</span>');
-          parts.push('            </div>');
-        }
-
         var hasContact = address || ev.phone;
         if (hasContact) {
           parts.push('            <div class="event-contact">');
@@ -1344,13 +1265,11 @@
           parts.push('            </div>');
         }
 
+        // Drive chip lives here (in body) because drive times are about the
+        // transition to the NEXT stop — only relevant when you're looking
+        // at the full card context. Category/rating/duration moved up to
+        // the summary pills so "what is this place?" is answerable at a glance.
         var leftChips = [];
-        if (ev.category) {
-          leftChips.push('<span class="event-chip event-chip--category"><i class="fa-solid fa-tag" aria-hidden="true"></i>' + escHtml(ev.category) + '</span>');
-        }
-        if (ev.duration_min) {
-          leftChips.push('<span class="event-chip event-chip--duration"><i class="fa-regular fa-clock" aria-hidden="true"></i>' + escHtml(String(ev.duration_min)) + ' min here</span>');
-        }
         if (num) {
           var driveTxt = (ev.drive_min_to_next ? escHtml(String(ev.drive_min_to_next)) + ' min drive' : '— drive');
           leftChips.push('<span class="event-chip event-chip--drive" data-drive-from="' + num + '"><i class="fa-solid fa-car" aria-hidden="true"></i><span class="drive-val">' + driveTxt + '</span></span>');
@@ -1549,9 +1468,10 @@
         m.innerHTML =
           '<div class="alt-modal-backdrop"></div>' +
           '<div class="alt-modal-panel" role="dialog" aria-modal="true" aria-labelledby="alt-modal-title">' +
+          '  <button type="button" class="alt-modal-close" aria-label="Close"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>' +
           '  <div class="alt-modal-header">' +
-          '    <h3 class="alt-modal-title" id="alt-modal-title">Alternatives to <span id="alt-modal-target"></span></h3>' +
-          '    <button type="button" class="alt-modal-close" aria-label="Close">\u00d7</button>' +
+          '    <div class="alt-modal-eyebrow"><span class="alt-modal-eyebrow-line"></span><span class="alt-modal-eyebrow-text">Alternatives to</span><span class="alt-modal-eyebrow-line"></span></div>' +
+          '    <h3 class="alt-modal-title" id="alt-modal-title"><span id="alt-modal-target"></span></h3>' +
           '  </div>' +
           '  <div class="alt-modal-body" id="alt-modal-body"></div>' +
           '</div>';
@@ -1634,12 +1554,6 @@
       function renderAltConstraintsBar(ctx) {
         var c = ctx.constraints || {};
         var cuisines = ['any', 'vegetarian', 'vegan', 'seafood', 'korean', 'italian', 'mexican'];
-        var tiers = [
-          { id: '',   label: 'Any price' },
-          { id: '$',  label: '$' },
-          { id: '$$', label: '$$' },
-          { id: '$$$',label: '$$$' },
-        ];
         var drives = [
           { id: null, label: 'Any drive' },
           { id: 10,   label: '≤10 min' },
@@ -1647,17 +1561,12 @@
           { id: 30,   label: '≤30 min' },
         ];
         var parts = ['<div class="alt-constraints" role="group" aria-label="Refine alternatives">'];
+        parts.push('<div class="alt-constraints-row">');
         parts.push('<label class="alt-constraint-group"><span>Cuisine</span><select data-constraint="cuisine">');
         cuisines.forEach(function (v) {
           var val = v === 'any' ? '' : v;
           var sel = (c.cuisine || '') === val ? ' selected' : '';
           parts.push('<option value="' + escHtml(val) + '"' + sel + '>' + escHtml(v) + '</option>');
-        });
-        parts.push('</select></label>');
-        parts.push('<label class="alt-constraint-group"><span>Price</span><select data-constraint="priceTier">');
-        tiers.forEach(function (t) {
-          var sel = (c.priceTier || '') === t.id ? ' selected' : '';
-          parts.push('<option value="' + escHtml(t.id) + '"' + sel + '>' + escHtml(t.label) + '</option>');
         });
         parts.push('</select></label>');
         parts.push('<label class="alt-constraint-group"><span>Drive</span><select data-constraint="maxDriveMin">');
@@ -1669,6 +1578,17 @@
         parts.push('</select></label>');
         parts.push('<button type="button" class="alt-constraint-apply">Regenerate</button>');
         parts.push('</div>');
+        // Free-form steering input. Feeds constraints.notes on the API —
+        // hitting Enter triggers the same re-fetch path as the Regenerate
+        // button so a typed refinement runs immediately, holistically, with
+        // whatever dropdown constraints are already set.
+        var notesVal = c.notes || '';
+        parts.push('<div class="alt-constraints-notes">');
+        parts.push('  <i class="alt-constraints-notes-icon fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>');
+        parts.push('  <input type="text" class="alt-constraints-notes-input" data-constraint="notes" placeholder="Refine \u2014 e.g. vegetarian only, quieter spot, outdoor seating\u2026" value="' + escHtml(notesVal) + '" autocomplete="off" spellcheck="false" />');
+        parts.push('  <kbd class="alt-constraints-notes-hint">Enter</kbd>');
+        parts.push('</div>');
+        parts.push('</div>');
         return parts.join('');
       }
 
@@ -1676,9 +1596,15 @@
         var bar = document.querySelector('.alt-constraints');
         if (!bar) return {};
         var out = {};
-        bar.querySelectorAll('[data-constraint]').forEach(function (sel) {
-          var key = sel.getAttribute('data-constraint');
-          var v = sel.value;
+        bar.querySelectorAll('[data-constraint]').forEach(function (el) {
+          var key = el.getAttribute('data-constraint');
+          var v = el.value;
+          if (v == null) return;
+          if (key === 'notes') {
+            var trimmed = String(v).trim();
+            if (trimmed) out.notes = trimmed;
+            return;
+          }
           if (!v) return;
           if (key === 'maxDriveMin') out[key] = Number(v);
           else out[key] = v;
@@ -1701,19 +1627,29 @@
       function openAltModal(ctx) {
         altModalCtx = ctx;
         var m = document.getElementById('alt-modal') || buildAltModal();
-        document.getElementById('alt-modal-target').textContent = '\u201c' + ctx.eventName + '\u201d';
+        document.getElementById('alt-modal-target').textContent = ctx.eventName || '';
         var body = document.getElementById('alt-modal-body');
         body.innerHTML = renderAltConstraintsBar(ctx) + renderAltLoadingBody();
         m.hidden = false;
-        // Wire the Regenerate button so a constraint change can drive a
-        // fresh fetch without closing the modal.
+        // Wire the Regenerate button + notes-Enter so a constraint change
+        // can drive a fresh fetch without closing the modal. Both paths call
+        // the same applyConstraints() so a typed refinement runs holistically
+        // with whatever dropdowns are already set.
+        function applyConstraints() {
+          var next = readConstraintsFromBar();
+          altConstraintsByKey[constraintsKey(ctx.dayIdx, ctx.eventIdx)] = next;
+          altModalCtx = Object.assign({}, ctx, { constraints: next });
+          runFindAlternatives(altModalCtx);
+        }
         var applyBtn = body.querySelector('.alt-constraint-apply');
-        if (applyBtn) {
-          applyBtn.addEventListener('click', function () {
-            var next = readConstraintsFromBar();
-            altConstraintsByKey[constraintsKey(ctx.dayIdx, ctx.eventIdx)] = next;
-            altModalCtx = Object.assign({}, ctx, { constraints: next });
-            runFindAlternatives(altModalCtx);
+        if (applyBtn) applyBtn.addEventListener('click', applyConstraints);
+        var notesInput = body.querySelector('.alt-constraints-notes-input');
+        if (notesInput) {
+          notesInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.isComposing) {
+              e.preventDefault();
+              applyConstraints();
+            }
           });
         }
         startAltStatusCycle();
@@ -1758,10 +1694,14 @@
         stopAltStatus();
         var body = document.getElementById('alt-modal-body');
         if (!alts || !alts.length) {
-          body.innerHTML = '<div class="alt-modal-error">No alternatives found nearby.</div>';
+          updateAltResultsArea('<div class="alt-modal-error">No alternatives found nearby.</div>');
           return;
         }
+        // Keep the constraints bar intact so the notes input + dropdowns
+        // stay visible alongside results. updateAltResultsArea preserves it.
+        var bar = body.querySelector('.alt-constraints');
         body.innerHTML = '';
+        if (bar) body.appendChild(bar);
         alts.forEach(function(alt) {
           var opt = document.createElement('div');
           opt.className = 'alt-option' + (alt.verified ? ' alt-option--verified' : '');
@@ -2102,7 +2042,7 @@
         });
         if (waypoints.length < 2) continue;
         try {
-          var resp = await fetch(API_BASE + '/api/distance-matrix', {
+          var resp = await fetch(window.__API_BASE + '/api/distance-matrix', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ waypoints: waypoints })
@@ -2196,7 +2136,7 @@
     }
 
     async function fetchWeather(lat, lng, date) {
-      var url = API_BASE + '/api/weather?lat=' + lat + '&lng=' + lng + '&date=' + encodeURIComponent(date);
+      var url = window.__API_BASE + '/api/weather?lat=' + lat + '&lng=' + lng + '&date=' + encodeURIComponent(date);
       var ctl = (typeof AbortController === 'function') ? new AbortController() : null;
       var to = ctl ? setTimeout(function () { ctl.abort(); }, 10000) : null;
       try {
@@ -2311,7 +2251,7 @@
       var since = dates[0];
       var until = dates[dates.length - 1];
       try {
-        var resp = await fetch(API_BASE + '/api/trip-spend?since=' + since + '&until=' + until);
+        var resp = await fetch(window.__API_BASE + '/api/trip-spend?since=' + since + '&until=' + until);
         if (!resp.ok) return;
         var j = await resp.json();
         if (!j.ok) return;
@@ -2389,6 +2329,253 @@
       var panel = document.getElementById('budgetPanel');
       panel.classList.toggle('mobile-open');
     }
+
+    // ─── Holiday Budget panel — live YNAB data ───────────────────────
+    // Click the refresh button → force-fresh fetch from /api/holiday-budget.
+    // Initial page load also fetches (cache-friendly) so the panel isn't
+    // stuck on skeletons. Sort toggle re-renders in place.
+    (function() {
+      var API_BASE = (function() {
+        if (window.BabuAI && window.BabuAI.baseUrl) return String(window.BabuAI.baseUrl).replace(/\/+$/, '');
+        if (window.BABU_AI_PROXY_URL) return String(window.BABU_AI_PROXY_URL).replace(/\/+$/, '');
+        var host = (window.location && window.location.hostname) || '';
+        if (host === 'localhost' || host === '127.0.0.1' || host === '') return 'http://localhost:3001';
+        return 'https://journal-api.kashkole.com';
+      })();
+
+      var state = { data: null, sort: 'total', loading: false };
+
+      function fmtMoney(n) {
+        var v = Number(n) || 0;
+        return '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      }
+      function fmtShortDate(iso) {
+        if (!iso) return '';
+        var d = new Date(iso + 'T12:00:00');
+        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        return months[d.getMonth()] + ' ' + d.getDate();
+      }
+      function esc(s) {
+        if (s == null) return '';
+        var d = document.createElement('div');
+        d.textContent = String(s);
+        return d.innerHTML;
+      }
+
+      // Color-coded Available tile — thresholds from availableShare.
+      //   >= 25%  green   .is-ok
+      //   15–25%  orange  .is-warn
+      //   < 15%   red     .is-danger
+      function availableTone(percentLeft) {
+        if (percentLeft < 0.15) return 'is-danger';
+        if (percentLeft < 0.25) return 'is-warn';
+        return 'is-ok';
+      }
+
+      function renderSummary(totals) {
+        var host = document.getElementById('budgetSummary');
+        if (!host) return;
+        var pct = Number(totals.percentLeft) || 0;
+        var tone = availableTone(pct);
+        host.innerHTML =
+          '<div class="budget-stat">' +
+          '  <div class="budget-stat-value">' + esc(fmtMoney(totals.spent)) + '</div>' +
+          '  <div class="budget-stat-label">Spent</div>' +
+          '</div>' +
+          '<div class="budget-stat budget-stat--available ' + tone + '">' +
+          '  <div class="budget-stat-value">' + esc(fmtMoney(totals.available)) + '</div>' +
+          '  <div class="budget-stat-label">Available <span class="budget-stat-pct">' + Math.round(pct * 100) + '% left</span></div>' +
+          '</div>';
+      }
+
+      function sortCategories(cats, mode) {
+        var copy = (cats || []).slice();
+        if (mode === 'name') {
+          copy.sort(function(a, b) { return a.name.localeCompare(b.name); });
+        } else {
+          copy.sort(function(a, b) { return (b.total || 0) - (a.total || 0); });
+        }
+        return copy;
+      }
+
+      function renderCategories() {
+        var host = document.getElementById('budgetCategories');
+        if (!host || !state.data) return;
+        var cats = sortCategories(state.data.categories, state.sort);
+        if (!cats.length) {
+          host.innerHTML = '<div class="budget-empty">No Holiday transactions yet. Press the refresh button after YNAB sync.</div>';
+          return;
+        }
+        var html = '';
+        cats.forEach(function(c, idx) {
+          html += '<div class="budget-cat' + (idx === 0 ? ' open' : '') + '">';
+          html += '  <div class="budget-cat-header" onclick="toggleBudgetCat(this)">';
+          html += '    <span class="budget-cat-icon">' + esc(c.icon) + '</span>';
+          html += '    <span class="budget-cat-name">' + esc(c.name) + '</span>';
+          html += '    <span class="budget-cat-total">' + esc(fmtMoney(c.total)) + '</span>';
+          html += '    <span class="budget-cat-chevron">\u25BC</span>';
+          html += '  </div>';
+          html += '  <div class="budget-cat-body">';
+          (c.transactions || []).forEach(function(t) {
+            var payee = t.payee || 'Unknown';
+            if (t.memo) payee += ' \u2014 ' + t.memo;
+            html += '<div class="budget-txn" title="' + esc(t.reason || '') + '">';
+            html += '  <span class="budget-txn-date">' + esc(fmtShortDate(t.date)) + '</span>';
+            html += '  <span class="budget-txn-payee">' + esc(payee) + '</span>';
+            html += '  <span class="budget-txn-amount">' + esc(fmtMoney(t.amount)) + '</span>';
+            if (t.card) html += '<span class="budget-txn-card">' + esc(t.card) + '</span>';
+            html += '</div>';
+          });
+          html += '  </div>';
+          html += '</div>';
+        });
+        host.innerHTML = html;
+      }
+
+      function renderVerify(data) {
+        var el = document.getElementById('budgetVerify');
+        if (!el) return;
+        el.hidden = false;
+        el.classList.remove('is-warn');
+        var txt = el.querySelector('.budget-verify-text');
+        var icon = el.querySelector('i');
+        if (data.verified) {
+          txt.textContent = 'Totals verified';
+          icon.className = 'fa-solid fa-shield-check';
+        } else {
+          el.classList.add('is-warn');
+          txt.textContent = 'Drift: ' + fmtMoney(data.discrepancy);
+          icon.className = 'fa-solid fa-triangle-exclamation';
+        }
+        if (data.unclassified > 0) {
+          txt.textContent += ' \u00b7 ' + data.unclassified + ' unclassified \u2192 Misc';
+        }
+      }
+
+      function renderFooter(data) {
+        var el = document.getElementById('budgetPanelFooter');
+        if (!el) return;
+        var when = data.syncedAt ? new Date(data.syncedAt) : new Date();
+        var time = when.toLocaleString('en-US', {
+          month: 'long', day: 'numeric', year: 'numeric',
+          hour: 'numeric', minute: '2-digit'
+        });
+        el.innerHTML = 'Synced from <span>YNAB</span> \u00b7 ' + esc(time) + (data.cached ? ' \u00b7 cached' : '');
+      }
+
+      function renderAll() {
+        if (!state.data) return;
+        renderSummary(state.data.totals);
+        renderCategories();
+        renderVerify(state.data);
+        renderFooter(state.data);
+        var controls = document.getElementById('budgetControls');
+        if (controls) controls.hidden = false;
+      }
+
+      function setLoading(on) {
+        state.loading = on;
+        var btn = document.getElementById('budgetRefreshBtn');
+        if (!btn) return;
+        btn.classList.toggle('is-loading', !!on);
+        btn.disabled = !!on;
+        if (on) {
+          var summary = document.getElementById('budgetSummary');
+          if (summary) summary.classList.add('is-refreshing');
+          var cats = document.getElementById('budgetCategories');
+          if (cats && !state.data) {
+            cats.innerHTML =
+              '<div class="budget-cat-skeleton"></div>' +
+              '<div class="budget-cat-skeleton"></div>' +
+              '<div class="budget-cat-skeleton"></div>';
+          }
+        } else {
+          var s = document.getElementById('budgetSummary');
+          if (s) s.classList.remove('is-refreshing');
+        }
+      }
+
+      // Trip-window dates — pull from window.__tripData if the itinerary
+      // script has already populated it. Poll briefly on first call since
+      // that script loads in parallel. Falls through to no params (server
+      // defaults to last 90 days) so refresh always works.
+      function readTripWindow() {
+        var t = window.__tripData;
+        if (!t) return null;
+        var start = t.dates && t.dates.start;
+        var end = t.dates && t.dates.end;
+        if ((!start || !end) && Array.isArray(t.days) && t.days.length) {
+          var ds = t.days.map(function(d) { return d.date; }).filter(Boolean).sort();
+          start = start || ds[0];
+          end = end || ds[ds.length - 1];
+        }
+        if (!start || !end) return null;
+        return { since: start, until: end };
+      }
+      function waitForTripWindow(timeoutMs) {
+        var deadline = Date.now() + (timeoutMs || 2500);
+        return new Promise(function(resolve) {
+          (function tick() {
+            var w = readTripWindow();
+            if (w) return resolve(w);
+            if (Date.now() >= deadline) return resolve(null);
+            setTimeout(tick, 100);
+          })();
+        });
+      }
+
+      function fetchBudget(fresh) {
+        setLoading(true);
+        return waitForTripWindow(fresh ? 0 : 2500).then(function(win) {
+          var qs = [];
+          if (win) {
+            qs.push('since=' + encodeURIComponent(win.since));
+            qs.push('until=' + encodeURIComponent(win.until));
+          }
+          if (fresh) qs.push('fresh=1');
+          var url = API_BASE + '/api/holiday-budget' + (qs.length ? '?' + qs.join('&') : '');
+          return fetch(url)
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+              if (!data.ok) throw new Error(data.error || 'Budget fetch failed');
+              state.data = data;
+              renderAll();
+            })
+            .catch(function(err) {
+              console.warn('[HOLIDAY-BUDGET]', err);
+              var host = document.getElementById('budgetCategories');
+              if (host) host.innerHTML = '<div class="budget-empty budget-empty--error">Couldn\u2019t load budget: ' + esc(err.message || String(err)) + '</div>';
+            })
+            .finally(function() { setLoading(false); });
+        });
+      }
+
+      function wireControls() {
+        var btn = document.getElementById('budgetRefreshBtn');
+        if (btn) btn.addEventListener('click', function() { if (!state.loading) fetchBudget(true); });
+        var sortGroup = document.querySelector('.budget-sort-group');
+        if (sortGroup) {
+          sortGroup.addEventListener('click', function(e) {
+            var target = e.target.closest('.budget-sort-btn');
+            if (!target) return;
+            var mode = target.getAttribute('data-sort');
+            if (!mode || mode === state.sort) return;
+            state.sort = mode;
+            sortGroup.querySelectorAll('.budget-sort-btn').forEach(function(b) {
+              var active = b.getAttribute('data-sort') === mode;
+              b.classList.toggle('is-active', active);
+              b.setAttribute('aria-selected', active ? 'true' : 'false');
+            });
+            renderCategories();
+          });
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+        wireControls();
+        fetchBudget(false);
+      });
+    })();
   </script>
 
 </body>

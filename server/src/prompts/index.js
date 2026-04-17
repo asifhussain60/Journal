@@ -18,6 +18,7 @@ import tripEditPrompt from "./trip-edit.js";
 import findAlternativesPrompt from "./find-alternatives.js";
 import themeSwatchesPrompt from "./theme-swatches.js";
 import themeReviewPrompt from "./theme-review.js";
+import classifyHolidayTxnsPrompt from "./classify-holiday-txns.js";
 
 /**
  * Registry of all prompts known at startup time. Extend by importing the new
@@ -33,6 +34,7 @@ const REGISTRY = Object.freeze({
   [findAlternativesPrompt.name]: findAlternativesPrompt,
   [themeSwatchesPrompt.name]: themeSwatchesPrompt,
   [themeReviewPrompt.name]: themeReviewPrompt,
+  [classifyHolidayTxnsPrompt.name]: classifyHolidayTxnsPrompt,
 });
 
 /**
