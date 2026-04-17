@@ -1111,7 +1111,10 @@ html{scroll-behavior:smooth}
 
 .budget-panel{
   position:sticky;
-  top:4.5rem;
+  /* 6.5rem = nav height (~4.5rem) + 2rem visual breathing room,
+     so when the panel pins to the viewport there's a dark gap below
+     the nav instead of the panel sitting flush against it. */
+  top:6.5rem;
   border-radius:var(--radius-xl);
   padding:1.5rem 1.35rem;
   background:
@@ -1119,7 +1122,7 @@ html{scroll-behavior:smooth}
     linear-gradient(135deg, rgba(255,176,204,.04), transparent 45%);
   border:1px solid var(--white-10);
   box-shadow:var(--shadow);
-  max-height:calc(100vh - 5.5rem);
+  max-height:calc(100vh - 7.5rem);
   overflow:auto;
 }
 .budget-panel::-webkit-scrollbar{width:6px}
