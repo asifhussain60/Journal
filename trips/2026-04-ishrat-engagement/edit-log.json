@@ -638,5 +638,221 @@
     "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-5b1e1463-7b6e-4ca0-9acb-f6468c66f6b6.yaml",
     "actor": "app",
     "status": "applied"
+  },
+  {
+    "schemaVersion": "1",
+    "id": "b409b6eb-0b2d-44b0-b40f-c572b07bf10c",
+    "createdAt": "2026-04-17T19:15:25.133Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "Moved the Chase Financial Advisor appointment from Day 2 (Apr 21, 2:00 PM) to Day 3 (Apr 23, 12:00 PM).",
+    "patch": [
+      {
+        "op": "remove",
+        "path": "/days/1/events/2"
+      },
+      {
+        "op": "add",
+        "path": "/days/2/events/-",
+        "value": {
+          "time": "12:00 PM",
+          "event": "Financial Advisor Meeting",
+          "venue": "Chase Bank, 629 Route 18, East Brunswick, NJ 08816",
+          "tag": "APPOINTMENT",
+          "notes": "Afternoon appointment (~1 hour). She'll be alert by this time.",
+          "phone": "(732) 254-2181",
+          "category": "Banking · Chase",
+          "duration_min": 45
+        }
+      }
+    ],
+    "inversePatch": [
+      {
+        "op": "remove",
+        "path": "/days/2/events/5"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/5/duration_min",
+        "value": 75
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/5/category",
+        "value": "Vietnamese · Pho & Rice Bowls"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/5/notes",
+        "value": "Vietnamese pho and rice plates (~15 min) — light and perfect for evening."
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/5/rating",
+        "value": 4.6
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/5/phone",
+        "value": "(732) 225-8889"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/5/event",
+        "value": "Dinner at The Pho House"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/5/time",
+        "value": "6:30 PM"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/4/duration_min",
+        "value": 30
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/4/category",
+        "value": "Specialty Coffee House"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/4/notes",
+        "value": "Specialty coffee bar with proper loose-leaf tea selection and cozy sit-down seating (~5 min from hotel). Ishrat's English tea, Asif's pour-over. Unwind before Pho House."
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/4/phone",
+        "value": "(732) 993-4114"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/4/tag",
+        "value": "CAFE"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/4/venue",
+        "value": "106 Church St, New Brunswick, NJ 08901"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/4/event",
+        "value": "Tea & Coffee at Hidden Grounds Coffee Co."
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/4/time",
+        "value": "5:20 PM"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/duration_min",
+        "value": 60
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/category",
+        "value": "Hotel · Downtime"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/notes",
+        "value": "Back at hotel by 3:30 PM (~15 min drive from advisor). 90-min nap window to recharge before evening out. Ishrat naps 60–90 min."
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/rating",
+        "value": 4.1
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/phone",
+        "value": "(732) 729-0900"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/tag",
+        "value": "REST"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/venue",
+        "value": "Home2 Suites by Hilton, 3 Jersey Ave, New Brunswick, NJ 08901"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/event",
+        "value": "Hotel Rest / Nap"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/time",
+        "value": "3:30 PM"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/2/duration_min",
+        "value": 45
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/2/category",
+        "value": "Banking · Chase"
+      },
+      {
+        "op": "remove",
+        "path": "/days/1/events/2/rating"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/2/phone",
+        "value": "(732) 254-2181"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/2/notes",
+        "value": "Afternoon appointment (~1 hour). She'll be alert by this time."
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/2/tag",
+        "value": "APPOINTMENT"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/2/venue",
+        "value": "Chase Bank, 629 Route 18, East Brunswick, NJ 08816"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/2/event",
+        "value": "Financial Advisor Meeting"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/2/time",
+        "value": "2:00 PM"
+      },
+      {
+        "op": "add",
+        "path": "/days/1/events/6",
+        "value": {
+          "time": "7:30 PM",
+          "event": "Dessert at Crispy Cones",
+          "venue": "Wick Plaza, 1199 Amboy Ave, Edison, NJ 08837",
+          "tag": "DINING",
+          "phone": "(732) 744-0123",
+          "rating": 4.7,
+          "notes": "Walk over in the same plaza for Shark Tank-famous rotisserie dough cones with soft serve. Open till 11 PM.",
+          "category": "Ice Cream · Sweet Cones",
+          "duration_min": 30
+        }
+      }
+    ],
+    "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-b409b6eb-0b2d-44b0-b40f-c572b07bf10c.yaml",
+    "actor": "app",
+    "status": "applied"
   }
 ]

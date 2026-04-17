@@ -144,16 +144,6 @@
           "duration_min": 60
         },
         {
-          "time": "2:00 PM",
-          "event": "Financial Advisor Meeting",
-          "venue": "Chase Bank, 629 Route 18, East Brunswick, NJ 08816",
-          "tag": "APPOINTMENT",
-          "notes": "Afternoon appointment (~1 hour). She'll be alert by this time.",
-          "phone": "(732) 254-2181",
-          "category": "Banking · Chase",
-          "duration_min": 45
-        },
-        {
           "time": "3:30 PM",
           "event": "Hotel Rest / Nap",
           "venue": "Home2 Suites by Hilton, 3 Jersey Ave, New Brunswick, NJ 08901",
@@ -259,6 +249,16 @@
           "notes": "Starring Jaafar Jackson, directed by Antoine Fuqua. Runtime ~2.5 hrs. Out by ~9:30 PM. Book on Fandango. Perfect post-dinner date night.",
           "category": "Cinema · IMAX Premiere",
           "duration_min": 180
+        },
+        {
+          "time": "12:00 PM",
+          "event": "Financial Advisor Meeting",
+          "venue": "Chase Bank, 629 Route 18, East Brunswick, NJ 08816",
+          "tag": "APPOINTMENT",
+          "notes": "Afternoon appointment (~1 hour). She'll be alert by this time.",
+          "phone": "(732) 254-2181",
+          "category": "Banking · Chase",
+          "duration_min": 45
         }
       ]
     },
