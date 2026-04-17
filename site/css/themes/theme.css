@@ -263,3 +263,4 @@ body::after {
 /* Component styling (cards, buttons, nav, timeline, etc.) lives in
    app.css (dashboard) and itinerary.css (itinerary pages). Both
    consume the tokens and keyframes above via var() / animation names. */
+

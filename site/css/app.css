@@ -3337,10 +3337,10 @@ select.input-field {
 .usage-modal-window {
   background: var(--bg-primary);
   border-radius: 12px;
-  width: 900px;
+  width: min(900px, 92vw);
   max-height: 90vh;
   overflow: auto;
-  padding: 1.5rem;
+  padding: clamp(1rem, 2.5vw, 1.5rem);
   box-shadow: 0 20px 25px -5px var(--shadow-a30);
 }
 .usage-modal-title {
