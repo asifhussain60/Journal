@@ -1,18 +1,13 @@
 /* ═══════════════════════════════════════════════════
-   TWEAKER LOADER — conditional bootstrap.
-   Included on every theme-consuming HTML page. Zero cost
-   when the tweak flag is off; otherwise loads React (if
-   missing) then tweaker.js.
+   TWEAKER LOADER — unconditional bootstrap.
+   Loaded on every theme-consuming HTML page. Always mounts
+   the wrench button in the nav; the heavy esm.sh deps
+   (Leva, floating-ui, css-selector-generator) stay lazy
+   inside tweaker.js and only fetch when the user clicks
+   Tweak Mode on.
    ═══════════════════════════════════════════════════ */
 (function () {
   'use strict';
-  try {
-    const url = new URL(window.location.href);
-    const flag =
-      url.searchParams.get('tweak') === '1' ||
-      localStorage.getItem('journal:tweaker:mode') === 'on';
-    if (!flag) return;
-  } catch { return; }
 
   // Resolve the /site/ base path relative to this HTML file.
   // site/index.html            → ''            (css at 'css/...', js at 'js/...')
@@ -38,7 +33,8 @@
     document.head.appendChild(s);
   }
 
-  // Always inject the tweaker stylesheet when activating. Minimal cost.
+  // Always inject the tweaker stylesheet — ~5kb, needed for the wrench pill
+  // to render correctly in the nav.
   addLink(base + 'css/tweaker.css');
 
   function loadTweaker() {
