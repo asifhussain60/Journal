@@ -1428,29 +1428,78 @@
         return m;
       }
 
+      // Rotating status text paired with the progress bar. The backend
+      // (Sonnet + web_search) can take 15–30s; these phases reassure
+      // the user that work is still happening even though we have no
+      // real per-step progress to surface.
+      var ALT_STATUS_STEPS = [
+        'Searching nearby venues\u2026',
+        'Reading recent reviews\u2026',
+        'Cross-checking with Google Search\u2026',
+        'Ranking by proximity and rating\u2026',
+        'Almost there \u2014 hang tight\u2026',
+      ];
+      var altStatusTimer = null;
+
+      function stopAltStatus() {
+        if (altStatusTimer) { clearInterval(altStatusTimer); altStatusTimer = null; }
+      }
+
+      function startAltStatusCycle() {
+        stopAltStatus();
+        var i = 0;
+        altStatusTimer = setInterval(function() {
+          var el = document.getElementById('alt-modal-status');
+          if (!el) { stopAltStatus(); return; }
+          i = Math.min(i + 1, ALT_STATUS_STEPS.length - 1);
+          el.classList.add('alt-status-fade');
+          setTimeout(function() {
+            el.textContent = ALT_STATUS_STEPS[i];
+            el.classList.remove('alt-status-fade');
+          }, 180);
+        }, 2600);
+      }
+
+      function altSkeletonHtml() {
+        var card =
+          '<div class="alt-skel-card">' +
+          '  <span class="alt-skel-line alt-skel-line--title"></span>' +
+          '  <span class="alt-skel-line alt-skel-line--venue"></span>' +
+          '  <span class="alt-skel-line alt-skel-line--meta"></span>' +
+          '</div>';
+        return '<div class="alt-skel-stack" aria-hidden="true">' + card + card + card + '</div>';
+      }
+
       function openAltModal(eventName) {
         var m = document.getElementById('alt-modal') || buildAltModal();
         document.getElementById('alt-modal-target').textContent = '\u201c' + eventName + '\u201d';
         var body = document.getElementById('alt-modal-body');
         body.innerHTML =
-          '<div class="alt-modal-loading">' +
-          '  <div class="alt-modal-spinner" aria-hidden="true"></div>' +
-          '  <span>Searching nearby venues\u2026</span>' +
-          '</div>';
+          '<div class="alt-modal-loading" role="status" aria-live="polite">' +
+          '  <div class="alt-modal-progress" aria-hidden="true">' +
+          '    <div class="alt-modal-progress-bar"></div>' +
+          '  </div>' +
+          '  <div class="alt-modal-status" id="alt-modal-status">' + ALT_STATUS_STEPS[0] + '</div>' +
+          '</div>' +
+          altSkeletonHtml();
         m.hidden = false;
+        startAltStatusCycle();
       }
 
       function closeAltModal() {
+        stopAltStatus();
         var m = document.getElementById('alt-modal');
         if (m) m.hidden = true;
       }
 
       function renderAltError(message) {
+        stopAltStatus();
         var body = document.getElementById('alt-modal-body');
         if (body) body.innerHTML = '<div class="alt-modal-error">' + escHtml(message) + '</div>';
       }
 
       function renderAltOptions(dayIdx, eventIdx, alts) {
+        stopAltStatus();
         var body = document.getElementById('alt-modal-body');
         if (!alts || !alts.length) {
           body.innerHTML = '<div class="alt-modal-error">No alternatives found nearby.</div>';
@@ -1490,11 +1539,14 @@
       }
 
       function doSwap(dayIdx, eventIdx, alt) {
+        stopAltStatus();
         var body = document.getElementById('alt-modal-body');
         body.innerHTML =
-          '<div class="alt-modal-loading">' +
-          '  <div class="alt-modal-spinner" aria-hidden="true"></div>' +
-          '  <span>Swapping in\u2026</span>' +
+          '<div class="alt-modal-loading" role="status" aria-live="polite">' +
+          '  <div class="alt-modal-progress" aria-hidden="true">' +
+          '    <div class="alt-modal-progress-bar"></div>' +
+          '  </div>' +
+          '  <div class="alt-modal-status">Swapping in\u2026</div>' +
           '</div>';
         fetch(API_BASE + '/api/swap-event', {
           method: 'POST',
