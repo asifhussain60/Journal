@@ -31,6 +31,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import multer from "multer";
 import Ajv from "ajv";
 import addFormats from "ajv-formats";
@@ -776,6 +777,90 @@ app.get("/api/edit-log", async (_req, res) => {
   }
 });
 
+// --- Find alternatives for a specific destination event ----------------------
+// Body: { tripSlug, dayIndex, eventIndex }
+// Returns: { ok, alternatives: [{ name, venue, phone, rating, driveMinutes, rationale }, ...] }
+// The dayIndex/eventIndex are 0-based array positions into trip.days[].events[].
+app.post("/api/find-alternatives", async (req, res) => {
+  const { tripSlug, dayIndex, eventIndex } = req.body ?? {};
+  if (!Number.isInteger(dayIndex) || !Number.isInteger(eventIndex)) {
+    return res.status(400).json({ ok: false, error: "dayIndex and eventIndex (integers) are required" });
+  }
+  req.body.promptName = "find-alternatives";
+  try {
+    const slug = tripSlug || (await getActiveTripSlug());
+    const trip = await readTripObj(slug);
+    const day = trip?.days?.[dayIndex];
+    if (!day) return res.status(404).json({ ok: false, error: `day ${dayIndex} not found` });
+    const active = day.events?.[eventIndex];
+    if (!active) return res.status(404).json({ ok: false, error: `event ${eventIndex} not found` });
+
+    const prompt = loadPrompt("find-alternatives");
+    const userMsg = JSON.stringify({
+      active: { event: active.event, venue: active.venue, tag: active.tag, rating: active.rating ?? null },
+      anchors: {
+        previous: day.events[eventIndex - 1] ? { event: day.events[eventIndex - 1].event, venue: day.events[eventIndex - 1].venue } : null,
+        next: day.events[eventIndex + 1] ? { event: day.events[eventIndex + 1].event, venue: day.events[eventIndex + 1].venue } : null,
+      },
+    }, null, 2);
+
+    const msg = await anthropic.messages.create({
+      model: prompt.model ?? DEFAULT_MODEL,
+      max_tokens: 2048,
+      system: prompt.system,
+      messages: [{ role: "user", content: userMsg }],
+      tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 4 }],
+    });
+    const raw = msg.content.filter((b) => b.type === "text").map((b) => b.text).join("").trim();
+    const parsed = extractJsonObject(raw);
+    if (!parsed || !Array.isArray(parsed.alternatives)) {
+      return res.json({ ok: false, model: msg.model, usage: msg.usage, error: "model did not return alternatives", rawText: raw });
+    }
+    res.json({ ok: true, model: msg.model, usage: msg.usage, tripSlug: slug, alternatives: parsed.alternatives });
+  } catch (err) {
+    res.status(502).json({ ok: false, error: err?.message ?? String(err) });
+  }
+});
+
+// --- Swap an event's venue with a chosen alternative -------------------------
+// Body: { tripSlug, dayIndex, eventIndex, replacement: { name, venue, phone, rating } }
+// Builds a deterministic JSON Patch and applies via the same pipeline as
+// /api/trip-edit, so validator rules (destination card standard) still run.
+app.post("/api/swap-event", async (req, res) => {
+  const { tripSlug, dayIndex, eventIndex, replacement } = req.body ?? {};
+  if (!Number.isInteger(dayIndex) || !Number.isInteger(eventIndex)) {
+    return res.status(400).json({ ok: false, error: "dayIndex and eventIndex (integers) are required" });
+  }
+  if (!replacement || typeof replacement !== "object") {
+    return res.status(400).json({ ok: false, error: "replacement object is required" });
+  }
+  try {
+    const slug = tripSlug || (await getActiveTripSlug());
+    const basePath = `/days/${dayIndex}/events/${eventIndex}`;
+    const patch = [];
+    if (typeof replacement.name === "string")   patch.push({ op: "replace", path: `${basePath}/event`,  value: replacement.name });
+    if (typeof replacement.venue === "string")  patch.push({ op: "replace", path: `${basePath}/venue`,  value: replacement.venue });
+    if (typeof replacement.phone === "string")  patch.push({ op: "replace", path: `${basePath}/phone`,  value: replacement.phone });
+    if (typeof replacement.rating === "number") patch.push({ op: "replace", path: `${basePath}/rating`, value: replacement.rating });
+    if (patch.length === 0) {
+      return res.status(400).json({ ok: false, error: "replacement has no swappable fields (name/venue/phone/rating)" });
+    }
+
+    const applied = await applyTripEdit(slug, {
+      intent: `Swap event ${dayIndex + 1}.${eventIndex + 1} → ${replacement.name || "alternative"}`,
+      patch,
+    });
+    if (!applied.ok) {
+      shadow("edit-log", { id: applied.id || `swap-fail-${Date.now()}`, tripSlug: slug, intent: "swap-event", appliedPatch: patch, status: "failed", error: applied.error });
+      return res.status(400).json({ ok: false, error: applied.error, errors: applied.errors });
+    }
+    shadow("edit-log", { id: applied.id, tripSlug: slug, intent: "swap-event", appliedPatch: patch, status: "applied", snapshotId: applied.snapshotId });
+    res.json({ ok: true, tripSlug: slug, ...applied });
+  } catch (err) {
+    res.status(502).json({ ok: false, error: err?.message ?? String(err) });
+  }
+});
+
 app.get("/api/trip/:slug/full", async (req, res) => {
   const { slug } = req.params;
   if (!slug || !/^[a-z0-9-]+$/.test(slug)) {
@@ -844,6 +929,69 @@ app.get("/api/usage/summary", async (_req, res) => {
     const summary = await getUsageSummary({ monthlyCAP: MONTHLY_CAP });
     res.set("X-Budget-State", summary.throttleState);
     res.json(summary);
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err?.message ?? String(err) });
+  }
+});
+
+// --- Phase 6b: Google Distance Matrix proxy ---------------------------------
+// Client sends ordered `waypoints: [addr, addr, ...]` for a single day; server
+// returns an array of { from, to, duration_min, distance_mi } for adjacent
+// pairs. If no key is configured the endpoint degrades to `{ ok:true, key:false, pairs:[] }`
+// and the client renders "—" for the drive chip.
+function loadGoogleMapsKey() {
+  // 1) macOS Keychain under service "google-maps-key"
+  try {
+    const key = execFileSync(
+      "/usr/bin/security",
+      ["find-generic-password", "-s", "google-maps-key", "-w"],
+      { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }
+    ).trim();
+    if (key && key.length > 20) return { key, source: "keychain" };
+  } catch { /* fall through */ }
+  // 2) env var
+  const envKey = process.env.GOOGLE_MAPS_API_KEY;
+  if (envKey && envKey.length > 20) return { key: envKey, source: "env" };
+  return { key: null, source: null };
+}
+
+app.post("/api/distance-matrix", async (req, res) => {
+  try {
+    const { waypoints } = req.body ?? {};
+    if (!Array.isArray(waypoints) || waypoints.length < 2) {
+      return res.status(400).json({ ok: false, error: "waypoints[] must have at least 2 addresses" });
+    }
+    const { key } = loadGoogleMapsKey();
+    if (!key) {
+      return res.json({ ok: true, key: false, pairs: [] });
+    }
+    const pairs = [];
+    for (let i = 0; i + 1 < waypoints.length; i += 1) {
+      const origin = String(waypoints[i] ?? "").trim();
+      const destination = String(waypoints[i + 1] ?? "").trim();
+      if (!origin || !destination) continue;
+      const url = new URL("https://maps.googleapis.com/maps/api/distancematrix/json");
+      url.searchParams.set("origins", origin);
+      url.searchParams.set("destinations", destination);
+      url.searchParams.set("mode", "driving");
+      url.searchParams.set("units", "imperial");
+      url.searchParams.set("key", key);
+      const r = await fetch(url);
+      if (!r.ok) { pairs.push({ from: origin, to: destination, error: "http_" + r.status }); continue; }
+      const j = await r.json();
+      const cell = j?.rows?.[0]?.elements?.[0];
+      if (!cell || cell.status !== "OK") {
+        pairs.push({ from: origin, to: destination, error: cell?.status || "unknown" });
+        continue;
+      }
+      pairs.push({
+        from: origin,
+        to: destination,
+        duration_min: Math.round((cell.duration?.value ?? 0) / 60),
+        distance_mi: Number((((cell.distance?.value ?? 0) / 1609.344)).toFixed(1)),
+      });
+    }
+    res.json({ ok: true, key: true, pairs });
   } catch (err) {
     res.status(500).json({ ok: false, error: err?.message ?? String(err) });
   }

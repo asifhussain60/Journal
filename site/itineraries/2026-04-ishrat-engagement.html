@@ -1170,7 +1170,7 @@
         return { head: m[1].trim(), period: m[2].toUpperCase() };
       }
 
-      function renderEventCard(ev) {
+      function renderEventCard(ev, num, dayIdx, eventIdx) {
         // Accept both `venue` (canonical yaml) and `address` (legacy static HTML).
         var address = ev.address || ev.venue || '';
         var key = tagKey(ev.tag);
@@ -1178,7 +1178,7 @@
         var t = splitTime(ev.time);
 
         var parts = [];
-        parts.push('<div class="event">');
+        parts.push('<div class="event"' + (num ? ' data-stop-num="' + num + '"' : '') + '>');
 
         // Time column (outside the card, left of the rail)
         parts.push('  <div class="event-time-col">');
@@ -1193,6 +1193,7 @@
         parts.push('  <div class="event-card">');
         parts.push('    <div class="event-icon event-icon--' + key + '">');
         parts.push('      <i class="fa-solid ' + icon + '" aria-hidden="true"></i>');
+        if (num) parts.push('      <span class="event-num-badge" aria-label="Stop ' + num + '">' + num + '</span>');
         parts.push('    </div>');
         parts.push('    <div class="event-details">');
 
@@ -1219,13 +1220,80 @@
           parts.push('      </div>');
         }
 
+        // Chip row: category | duration at venue | drive to next stop
+        var chips = [];
+        if (ev.category) {
+          chips.push('<span class="event-chip event-chip--category"><i class="fa-solid fa-tag" aria-hidden="true"></i>' + escHtml(ev.category) + '</span>');
+        }
+        if (ev.duration_min) {
+          chips.push('<span class="event-chip event-chip--duration"><i class="fa-regular fa-clock" aria-hidden="true"></i>' + escHtml(String(ev.duration_min)) + ' min here</span>');
+        }
+        if (num) {
+          // Placeholder; hydrated by hydrateDriveTimes() once distance matrix resolves.
+          var driveTxt = (ev.drive_min_to_next ? escHtml(String(ev.drive_min_to_next)) + ' min drive' : '— drive');
+          chips.push('<span class="event-chip event-chip--drive" data-drive-from="' + num + '"><i class="fa-solid fa-car" aria-hidden="true"></i><span class="drive-val">' + driveTxt + '</span></span>');
+        }
+        if (chips.length) {
+          parts.push('      <div class="event-chips">' + chips.join('') + '</div>');
+        }
+
         if (ev.tip) parts.push('      <div class="event-tip">' + escHtml(ev.tip) + '</div>');
         if (ev.desc) parts.push('      <div class="event-desc">' + escHtml(ev.desc) + '</div>');
+
+        // Alternate-venue slot — only on numbered destination cards
+        if (num) {
+          if (ev.alt_venue && ev.alt_venue.name) {
+            var alt = ev.alt_venue;
+            parts.push('      <div class="event-alt event-alt--filled">');
+            parts.push('        <span class="alt-label"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>Nearby alternative</span>');
+            parts.push('        <div class="alt-body">');
+            parts.push('          <span class="alt-name">' + escHtml(alt.name) + '</span>');
+            var meta = [];
+            if (alt.distance) meta.push(escHtml(String(alt.distance)));
+            if (alt.rating) meta.push('&#9733; ' + escHtml(String(alt.rating)));
+            if (alt.drive_min) meta.push(escHtml(String(alt.drive_min)) + ' min');
+            if (meta.length) parts.push('          <span class="alt-meta">' + meta.join(' &middot; ') + '</span>');
+            parts.push('        </div>');
+            parts.push('      </div>');
+          } else {
+            var label = String(ev.event || '').replace(/'/g, "\\'");
+            parts.push('      <div class="event-alt">');
+            parts.push('        <button type="button" class="alt-find-btn" onclick="event.stopPropagation(); findAlternate(' + dayIdx + ',' + eventIdx + ',\'' + escHtml(label) + '\')"><i class="fa-solid fa-shuffle" aria-hidden="true"></i>Find an alternative nearby</button>');
+            parts.push('      </div>');
+          }
+        }
 
         parts.push('    </div>');
         parts.push('  </div>');
         parts.push('</div>');
         return parts.join('\n');
+      }
+
+      // Tags whose events are mapped + numbered. APPOINTMENT included —
+      // an address-bearing appointment (Chase, doctor, tailor) is a stop on
+      // the day even though it's not a "destination" in the validator sense.
+      var NUMBERED_TAGS = {
+        DINING:1, CAFE:1, NATURE:1, SHOPPING:1, SPA:1,
+        ENTERTAINMENT:1, REST:1, ENGAGEMENT_HIGHLIGHT:1,
+        EVENT:1, CELEBRATION:1, APPOINTMENT:1
+      };
+
+      function isNumberedStop(ev) {
+        if (!ev) return false;
+        var tag = String(ev.tag || '').toUpperCase();
+        if (!NUMBERED_TAGS[tag]) return false;
+        return !!(ev.venue || ev.address);
+      }
+
+      function buildGmapsDeeplink(stops) {
+        if (!stops || stops.length < 1) return '';
+        var enc = stops.map(function(s) { return encodeURIComponent(s); });
+        var origin = enc[0];
+        var destination = enc[enc.length - 1];
+        var waypoints = enc.slice(1, -1).join('|');
+        var url = 'https://www.google.com/maps/dir/?api=1&travelmode=driving&origin=' + origin + '&destination=' + destination;
+        if (waypoints) url += '&waypoints=' + waypoints;
+        return url;
       }
 
       function renderItinerary(trip) {
@@ -1236,9 +1304,12 @@
 
         // Build new HTML for all day cards
         var html = '';
-        trip.days.forEach(function(day) {
+        trip.days.forEach(function(day, dayIdx) {
           var isOpen = day.day === 1 ? ' open' : '';
-          html += '<div class="day-card' + isOpen + '" onclick="toggleCard(this)">';
+          var stopAddresses = [];
+          var stopIdx = 0;
+
+          html += '<div class="day-card' + isOpen + '" data-day="' + day.day + '" onclick="toggleCard(this)">';
           html += '  <div class="day-header">';
           html += '    <div class="day-info">';
           html += '      <span class="day-label">Day ' + day.day + ' &bullet; ' + formatDayDate(day.date) + '</span>';
@@ -1250,15 +1321,33 @@
           html += '    <div class="event-list">';
 
           if (day.events && day.events.length) {
-            day.events.forEach(function(ev) {
-              html += renderEventCard(ev);
+            day.events.forEach(function(ev, eventIdx) {
+              var num = null;
+              if (isNumberedStop(ev)) {
+                stopIdx += 1;
+                num = stopIdx;
+                stopAddresses.push(ev.venue || ev.address);
+              }
+              html += renderEventCard(ev, num, dayIdx, eventIdx);
             });
           } else {
             html += '      <div class="event"><div class="event-details"><p class="event-desc" style="opacity:0.5">No events planned yet — use the Trip Assistant to add activities.</p></div></div>';
           }
 
           html += '    </div>'; // .event-list
-          html += '    <div class="day-map" id="map' + day.day + '"></div>';
+
+          // Full-width map block beneath the event list, with route header + Gmaps deeplink
+          var gmapsHref = buildGmapsDeeplink(stopAddresses);
+          html += '    <div class="day-map-block">';
+          html += '      <div class="day-map-head">';
+          html += '        <span class="day-map-title"><i class="fa-solid fa-route" aria-hidden="true"></i>Day ' + day.day + ' route &bullet; ' + stopAddresses.length + ' stops</span>';
+          if (gmapsHref) {
+            html += '        <a class="gmaps-deeplink" href="' + gmapsHref + '" target="_blank" rel="noopener" onclick="event.stopPropagation()"><i class="fa-brands fa-google" aria-hidden="true"></i>Open in Google Maps</a>';
+          }
+          html += '      </div>';
+          html += '      <div class="day-map" id="map' + day.day + '"></div>';
+          html += '    </div>';
+
           html += '  </div>'; // .day-body
           html += '</div>'; // .day-card
         });
@@ -1277,6 +1366,141 @@
         timeline.querySelectorAll('.day-card.open .day-map').forEach(function(el) {
           if (el.id && !el._leaflet_id) initMap(el.id);
         });
+
+        // Kick off async drive-time hydration once cards are painted.
+        if (typeof hydrateDriveTimes === 'function') {
+          try { hydrateDriveTimes(trip); } catch (e) { console.warn('[DRIVE-TIMES]', e); }
+        }
+      }
+
+      // ─── Find-alternatives modal ─────────────────────────────────────
+      // Opens a dark-themed popup, fetches 3 real nearby alternatives from
+      // /api/find-alternatives (Sonnet + web_search), and lets the user
+      // click one to swap via /api/swap-event. No free-text chat step —
+      // this is a focused, point-and-shoot flow.
+
+      function buildAltModal() {
+        var m = document.createElement('div');
+        m.id = 'alt-modal';
+        m.className = 'alt-modal';
+        m.hidden = true;
+        m.innerHTML =
+          '<div class="alt-modal-backdrop"></div>' +
+          '<div class="alt-modal-panel" role="dialog" aria-modal="true" aria-labelledby="alt-modal-title">' +
+          '  <div class="alt-modal-header">' +
+          '    <h3 class="alt-modal-title" id="alt-modal-title">Alternatives to <span id="alt-modal-target"></span></h3>' +
+          '    <button type="button" class="alt-modal-close" aria-label="Close">\u00d7</button>' +
+          '  </div>' +
+          '  <div class="alt-modal-body" id="alt-modal-body"></div>' +
+          '</div>';
+        document.body.appendChild(m);
+        m.querySelector('.alt-modal-backdrop').addEventListener('click', closeAltModal);
+        m.querySelector('.alt-modal-close').addEventListener('click', closeAltModal);
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape' && !m.hidden) closeAltModal();
+        });
+        return m;
+      }
+
+      function openAltModal(eventName) {
+        var m = document.getElementById('alt-modal') || buildAltModal();
+        document.getElementById('alt-modal-target').textContent = '\u201c' + eventName + '\u201d';
+        var body = document.getElementById('alt-modal-body');
+        body.innerHTML =
+          '<div class="alt-modal-loading">' +
+          '  <div class="alt-modal-spinner" aria-hidden="true"></div>' +
+          '  <span>Searching nearby venues\u2026</span>' +
+          '</div>';
+        m.hidden = false;
+      }
+
+      function closeAltModal() {
+        var m = document.getElementById('alt-modal');
+        if (m) m.hidden = true;
+      }
+
+      function renderAltError(message) {
+        var body = document.getElementById('alt-modal-body');
+        if (body) body.innerHTML = '<div class="alt-modal-error">' + escHtml(message) + '</div>';
+      }
+
+      function renderAltOptions(dayIdx, eventIdx, alts) {
+        var body = document.getElementById('alt-modal-body');
+        if (!alts || !alts.length) {
+          body.innerHTML = '<div class="alt-modal-error">No alternatives found nearby.</div>';
+          return;
+        }
+        body.innerHTML = '';
+        alts.forEach(function(alt) {
+          var opt = document.createElement('div');
+          opt.className = 'alt-option';
+          var htmlParts = [];
+          htmlParts.push('<div class="alt-option-header">');
+          htmlParts.push('  <span class="alt-option-name">' + escHtml(alt.name || 'Unknown') + '</span>');
+          if (typeof alt.rating === 'number') {
+            htmlParts.push('  <span class="alt-option-rating"><i class="fa-solid fa-star" aria-hidden="true"></i> ' + escHtml(String(alt.rating)) + '</span>');
+          }
+          htmlParts.push('</div>');
+          if (alt.venue) htmlParts.push('<div class="alt-option-venue">' + escHtml(alt.venue) + '</div>');
+          var metaBits = [];
+          if (alt.phone) metaBits.push('<i class="fa-solid fa-phone" aria-hidden="true"></i> ' + escHtml(alt.phone));
+          if (typeof alt.driveMinutes === 'number') metaBits.push('<i class="fa-solid fa-car" aria-hidden="true"></i> ~' + escHtml(String(alt.driveMinutes)) + ' min drive');
+          if (metaBits.length) htmlParts.push('<div class="alt-option-meta">' + metaBits.join('<span class="alt-option-sep">\u00b7</span>') + '</div>');
+          if (alt.rationale) htmlParts.push('<div class="alt-option-rationale">' + escHtml(alt.rationale) + '</div>');
+          htmlParts.push('<button type="button" class="alt-option-swap">Use this <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>');
+          opt.innerHTML = htmlParts.join('');
+          opt.querySelector('.alt-option-swap').addEventListener('click', function(e) {
+            e.stopPropagation();
+            doSwap(dayIdx, eventIdx, alt);
+          });
+          body.appendChild(opt);
+        });
+      }
+
+      function doSwap(dayIdx, eventIdx, alt) {
+        var body = document.getElementById('alt-modal-body');
+        body.innerHTML =
+          '<div class="alt-modal-loading">' +
+          '  <div class="alt-modal-spinner" aria-hidden="true"></div>' +
+          '  <span>Swapping in\u2026</span>' +
+          '</div>';
+        fetch(API_BASE + '/api/swap-event', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tripSlug: SLUG,
+            dayIndex: dayIdx,
+            eventIndex: eventIdx,
+            replacement: {
+              name: alt.name,
+              venue: alt.venue,
+              phone: alt.phone,
+              rating: typeof alt.rating === 'number' ? alt.rating : undefined,
+            },
+          }),
+        })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (!data.ok) throw new Error(data.error || 'Swap failed');
+            closeAltModal();
+            refreshItinerary();
+          })
+          .catch(function(err) { renderAltError(err.message || String(err)); });
+      }
+
+      function findAlternate(dayIdx, eventIdx, eventName) {
+        openAltModal(eventName);
+        fetch(API_BASE + '/api/find-alternatives', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tripSlug: SLUG, dayIndex: dayIdx, eventIndex: eventIdx }),
+        })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (!data.ok) throw new Error(data.error || 'No alternatives returned');
+            renderAltOptions(dayIdx, eventIdx, data.alternatives);
+          })
+          .catch(function(err) { renderAltError(err.message || String(err)); });
       }
 
       function formatDayDate(dateStr) {
@@ -1315,6 +1539,10 @@
           });
       }
       window.__refreshItinerary = refreshItinerary;
+      // Expose findAlternate to the global scope so inline onclick handlers
+      // on the generated .alt-find-btn buttons can reach it. Everything else
+      // in this IIFE is internal.
+      window.findAlternate = findAlternate;
 
       document.addEventListener('DOMContentLoaded', refreshItinerary);
     })();
@@ -1430,6 +1658,16 @@
       ]
     };
 
+    function makeNumberedPin(n) {
+      return L.divIcon({
+        className: 'map-pin-num',
+        html: String(n),
+        iconSize: [28, 28],
+        iconAnchor: [14, 28],
+        popupAnchor: [0, -22]
+      });
+    }
+
     function initMap(id) {
       var stops = dayStops[id];
       if (!stops) return;
@@ -1442,14 +1680,55 @@
         attribution: '&copy; OpenStreetMap'
       }).addTo(map);
       var bounds = [];
-      stops.forEach(function(s) {
-        L.marker([s[0], s[1]], { icon: pinIcon }).addTo(map).bindPopup('<b>' + s[2] + '</b>');
+      stops.forEach(function(s, i) {
+        var icon = makeNumberedPin(i + 1);
+        L.marker([s[0], s[1]], { icon: icon })
+          .addTo(map)
+          .bindPopup('<b>' + (i + 1) + '. ' + s[2] + '</b>');
         bounds.push([s[0], s[1]]);
       });
       L.polyline(bounds, { color: '#9B72CF', weight: 2, dashArray: '6,8', opacity: 0.6 }).addTo(map);
       map.fitBounds(bounds, { padding: [30, 30] });
       // Track so renderItinerary() can destroy before re-rendering.
       (window.__leafletMaps = window.__leafletMaps || {})[id] = map;
+    }
+
+    // Populate `.event-chip--drive` cells with live Google Distance Matrix
+    // values. Quiet no-op when the server reports no key configured
+    // (key:false) — the chip keeps its "— drive" placeholder.
+    async function hydrateDriveTimes(trip) {
+      if (!trip || !Array.isArray(trip.days)) return;
+      var NUMBERED = { DINING:1, CAFE:1, NATURE:1, SHOPPING:1, SPA:1, ENTERTAINMENT:1, REST:1, ENGAGEMENT_HIGHLIGHT:1, EVENT:1, CELEBRATION:1, APPOINTMENT:1 };
+      for (var di = 0; di < trip.days.length; di += 1) {
+        var day = trip.days[di];
+        var waypoints = [];
+        (day.events || []).forEach(function(ev) {
+          var tag = String(ev.tag || '').toUpperCase();
+          if (NUMBERED[tag] && (ev.venue || ev.address)) waypoints.push(ev.venue || ev.address);
+        });
+        if (waypoints.length < 2) continue;
+        try {
+          var resp = await fetch('http://localhost:3001/api/distance-matrix', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ waypoints: waypoints })
+          });
+          if (!resp.ok) continue;
+          var data = await resp.json();
+          if (!data.ok || !data.key || !Array.isArray(data.pairs)) continue;
+          // pair[i] = drive from stop i+1 to stop i+2. Apply to [data-stop-num=i+1].
+          data.pairs.forEach(function(pair, idx) {
+            if (pair.duration_min == null) return;
+            var sel = '.day-card[data-day="' + day.day + '"] .event[data-stop-num="' + (idx + 1) + '"] .event-chip--drive .drive-val';
+            var node = document.querySelector(sel);
+            if (node) {
+              node.textContent = pair.duration_min + ' min drive' + (pair.distance_mi ? ' · ' + pair.distance_mi + ' mi' : '');
+            }
+          });
+        } catch (err) {
+          console.warn('[DRIVE-TIMES] day', day.day, err);
+        }
+      }
     }
 
     // Compact To-Do Toggle

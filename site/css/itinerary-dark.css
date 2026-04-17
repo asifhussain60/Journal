@@ -610,19 +610,46 @@ body::after{
   background:rgba(255,176,204,.12);
   color:#fff;
 }
+/* Map sits full-width below the event list instead of in a right sidebar.
+   Gives cards room to breathe and puts the map where the eye goes after
+   reading the day's flow. */
 .day-body{
   max-height:0;
   overflow:hidden;
   display:grid;
-  grid-template-columns:1.25fr .95fr;
-  gap:1.25rem;
+  grid-template-columns:1fr;
+  gap:1.5rem;
   padding:0 1.5rem;
   transition:max-height .75s ease, padding .45s ease;
 }
 .day-card.open .day-body{
-  max-height:2200px;
+  max-height:3400px;
   padding:0 1.5rem 1.5rem;
 }
+/* Map block: header row (title + Open-in-Google-Maps link) above the map */
+.day-map-block{display:flex;flex-direction:column;gap:.65rem;}
+.day-map-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.25rem .15rem .1rem;
+}
+.day-map-head .day-map-title{
+  font-family:var(--font-display,serif);
+  font-size:1.05rem;letter-spacing:.02em;color:var(--text-primary,#f1dce7);
+  display:flex;align-items:center;gap:.55rem;
+}
+.day-map-head .day-map-title .dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--accent-primary,#e88bb8);box-shadow:0 0 10px var(--accent-primary,#e88bb8);
+}
+.gmaps-deeplink{
+  display:inline-flex;align-items:center;gap:.45rem;
+  padding:.45rem .85rem;border-radius:999px;
+  background:rgba(232,139,184,.12);border:1px solid rgba(232,139,184,.35);
+  color:#ffd6e8;font-size:.82rem;font-weight:500;text-decoration:none;
+  transition:background .18s ease, transform .18s ease;
+}
+.gmaps-deeplink:hover{background:rgba(232,139,184,.22);transform:translateY(-1px);}
+.gmaps-deeplink i{font-size:.78rem;}
 /* Snap-close variant: suppress the max-height + padding transition so the
    old card collapses instantly when a different card is being opened. Keeps
    scroll-to-top math stable. toggleCard() adds this class for ~2 frames. */
@@ -686,6 +713,84 @@ body::after{
   padding:0;
   box-shadow:none;
 }
+
+/* ═══ NEW CARD FILLERS — numbered badge, chips, drive-time, alt-venue ═══ */
+
+/* Numbered destination badge — sits in the top-right corner of the icon tile.
+   Matches the numbered pin on the Leaflet map so the eye can trace stops. */
+.event-num-badge{
+  position:absolute;top:-6px;right:-6px;
+  width:22px;height:22px;border-radius:50%;
+  background:linear-gradient(145deg,#f4a6c8,#d4699a);
+  color:#2a1438;font-weight:700;font-size:.78rem;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 6px rgba(0,0,0,.45), 0 0 0 2px rgba(255,255,255,.9);
+  font-variant-numeric:tabular-nums;
+  z-index:2;
+}
+.event-icon{position:relative;}
+
+/* Chip row sits under the rating/contact block, before tip/desc */
+.event-chips{
+  display:flex;flex-wrap:wrap;gap:.4rem;
+  margin-top:.55rem;
+}
+.event-chip{
+  display:inline-flex;align-items:center;gap:.35rem;
+  padding:.25rem .6rem;border-radius:999px;
+  font-size:.74rem;font-weight:500;letter-spacing:.02em;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.09);
+  color:rgba(241,220,231,.85);
+  line-height:1;
+}
+.event-chip i{font-size:.72rem;opacity:.75;}
+.event-chip--category{
+  background:rgba(180,130,220,.12);
+  border-color:rgba(180,130,220,.28);
+  color:#e8d4f5;
+}
+.event-chip--duration{
+  background:rgba(130,190,200,.12);
+  border-color:rgba(130,190,200,.28);
+  color:#cfeef3;
+}
+.event-chip--drive{
+  background:rgba(245,180,120,.12);
+  border-color:rgba(245,180,120,.32);
+  color:#ffd9b0;
+}
+.event-chip--drive.is-loading{opacity:.55;}
+
+/* Alt-venue slot — subtle pill at the bottom of the card */
+.event-alt{
+  margin-top:.7rem;padding:.55rem .75rem;border-radius:10px;
+  background:rgba(255,255,255,.03);
+  border:1px dashed rgba(255,255,255,.12);
+  font-size:.78rem;color:rgba(241,220,231,.7);
+  display:flex;align-items:center;gap:.55rem;
+}
+.event-alt--filled{
+  border-style:solid;
+  border-color:rgba(232,139,184,.28);
+  background:rgba(232,139,184,.08);
+  color:rgba(255,214,232,.92);
+}
+.event-alt .alt-label{
+  font-size:.64rem;font-weight:700;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--accent-primary,#e88bb8);
+  opacity:.85;white-space:nowrap;
+}
+.event-alt .alt-body{flex:1;min-width:0;}
+.event-alt .alt-name{font-weight:500;color:inherit;}
+.event-alt .alt-meta{opacity:.7;font-size:.72rem;}
+.event-alt .alt-find-btn{
+  background:none;border:1px solid rgba(232,139,184,.35);
+  color:#ffd6e8;font-size:.72rem;padding:.3rem .65rem;
+  border-radius:999px;cursor:pointer;white-space:nowrap;
+  transition:background .18s ease;
+}
+.event-alt .alt-find-btn:hover{background:rgba(232,139,184,.18);}
 
 /* Time column — right-aligned, sits outside the card */
 .event-time-col{
@@ -951,11 +1056,27 @@ body::after{
 /* ═══ DAY MAPS ═══ */
 
 .day-map{
-  min-height:340px;
+  min-height:440px;
   border-radius:var(--radius-md);
   overflow:hidden;
   box-shadow:var(--shadow-card);
   filter:saturate(.88) hue-rotate(-8deg);
+}
+/* Numbered map pin — matches the sequential badge on each destination card.
+   Rendered by Leaflet.divIcon so the pin number is a real DOM element. */
+.map-pin-num{
+  width:30px;height:30px;border-radius:50%;
+  background:linear-gradient(145deg,#f4a6c8,#d4699a);
+  color:#2a1438;font-weight:700;font-size:.95rem;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 10px rgba(0,0,0,.45), 0 0 0 2px #fff;
+  font-family:var(--font-body,sans-serif);
+}
+.map-pin-num::after{
+  content:"";position:absolute;left:50%;bottom:-7px;
+  width:10px;height:10px;background:#d4699a;
+  transform:translateX(-50%) rotate(45deg);border-radius:2px;
+  box-shadow:2px 2px 3px rgba(0,0,0,.3);
 }
 .leaflet-control-attribution{
   background:rgba(39,32,55,.80)!important;
@@ -1413,4 +1534,204 @@ body::after{
     transition:none !important;
     scroll-behavior:auto !important;
   }
+}
+
+/* ═══ ALT-FINDER MODAL ═══════════════════════════════════════════════════════
+   Popup shown when the user clicks "Find an alternative nearby" on an event
+   card. Fetches 3 real venues via /api/find-alternatives; clicking a card
+   hits /api/swap-event and refreshes the itinerary in place. */
+.alt-modal{
+  position:fixed;
+  inset:0;
+  z-index:9500;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  animation:alt-fade-in .18s ease;
+}
+.alt-modal[hidden]{ display:none; }
+@keyframes alt-fade-in{ from{ opacity:0; } to{ opacity:1; } }
+.alt-modal-backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(18,12,30,.72);
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+}
+.alt-modal-panel{
+  position:relative;
+  width:min(580px, calc(100vw - 2rem));
+  max-height:calc(100vh - 4rem);
+  background:linear-gradient(180deg, #342950 0%, #2a2140 100%);
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:16px;
+  box-shadow:
+    0 40px 80px rgba(0,0,0,.55),
+    0 12px 24px rgba(0,0,0,.35),
+    inset 0 1px 0 0 rgba(255,255,255,.05);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  animation:alt-rise .25s cubic-bezier(.34,1.4,.64,1);
+}
+@keyframes alt-rise{
+  from{ opacity:0; transform:translateY(10px) scale(.98); }
+  to  { opacity:1; transform:translateY(0) scale(1); }
+}
+.alt-modal-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:1rem 1.25rem;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.alt-modal-title{
+  margin:0;
+  font-family:"Cormorant Garamond",serif;
+  font-size:1.3rem;
+  font-weight:500;
+  color:var(--text);
+  letter-spacing:.01em;
+}
+.alt-modal-title span{ color:var(--rose-2); }
+.alt-modal-close{
+  background:none;
+  border:none;
+  color:var(--muted);
+  font-size:1.5rem;
+  line-height:1;
+  cursor:pointer;
+  padding:.15rem .5rem;
+  border-radius:6px;
+  transition:background-color .15s, color .15s;
+}
+.alt-modal-close:hover{ background:rgba(255,255,255,.08); color:var(--text); }
+.alt-modal-body{
+  padding:1rem 1.25rem 1.25rem;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  gap:.75rem;
+}
+.alt-modal-loading{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:.7rem;
+  padding:2.5rem 0;
+  color:var(--muted);
+  font-size:.95rem;
+}
+.alt-modal-spinner{
+  width:20px;
+  height:20px;
+  border:2px solid rgba(255,176,204,.22);
+  border-top-color:var(--rose-2);
+  border-radius:50%;
+  animation:alt-spin .9s linear infinite;
+}
+@keyframes alt-spin{ to{ transform:rotate(360deg); } }
+.alt-modal-error{
+  padding:1rem 1.1rem;
+  border-radius:10px;
+  background:rgba(255,110,110,.10);
+  border:1px solid rgba(255,110,110,.28);
+  color:#ffc5c5;
+  font-size:.92rem;
+  line-height:1.5;
+}
+
+.alt-option{
+  padding:.95rem 1.05rem;
+  border-radius:12px;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.08);
+  display:flex;
+  flex-direction:column;
+  gap:.4rem;
+  transition:transform .18s cubic-bezier(.34,1.2,.64,1),
+             background-color .18s ease,
+             border-color .18s ease,
+             box-shadow .18s ease;
+}
+.alt-option:hover{
+  transform:translateY(-1px);
+  background:rgba(255,255,255,.055);
+  border-color:rgba(255,176,204,.30);
+  box-shadow:0 10px 24px -14px rgba(0,0,0,.5);
+}
+.alt-option-header{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:.75rem;
+}
+.alt-option-name{
+  color:#fff;
+  font-weight:600;
+  font-size:1.02rem;
+  font-family:"Inter","SF Pro Display",system-ui,sans-serif;
+  letter-spacing:-.005em;
+}
+.alt-option-rating{
+  display:inline-flex;
+  align-items:center;
+  gap:.3rem;
+  color:var(--gold);
+  font-weight:600;
+  font-size:.88rem;
+  white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+  flex-shrink:0;
+}
+.alt-option-venue{
+  color:var(--muted);
+  font-size:.86rem;
+  line-height:1.45;
+  opacity:.85;
+}
+.alt-option-meta{
+  display:flex;
+  align-items:center;
+  gap:.55rem;
+  color:var(--muted);
+  font-size:.82rem;
+  opacity:.8;
+  flex-wrap:wrap;
+}
+.alt-option-meta i{ color:var(--rose-2); opacity:.7; margin-right:.15rem; }
+.alt-option-sep{ opacity:.45; }
+.alt-option-rationale{
+  color:var(--text);
+  opacity:.78;
+  font-size:.88rem;
+  font-style:italic;
+  line-height:1.5;
+}
+.alt-option-swap{
+  align-self:flex-start;
+  margin-top:.3rem;
+  padding:.45rem .95rem;
+  border:none;
+  border-radius:8px;
+  background:linear-gradient(135deg, var(--rose) 0%, var(--lavender) 100%);
+  color:#2b2240;
+  font-weight:600;
+  font-size:.82rem;
+  letter-spacing:.02em;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:.45rem;
+  box-shadow:0 2px 10px -2px rgba(255,176,204,.45);
+  transition:transform .15s, box-shadow .15s;
+}
+.alt-option-swap:hover{
+  transform:translateY(-1px);
+  box-shadow:0 4px 14px -2px rgba(255,176,204,.6);
+}
+.alt-option-swap:active{ transform:translateY(0); }
+
+@media (max-width:560px){
+  .alt-modal-panel{ width:calc(100vw - 1rem); border-radius:14px; }
 }
