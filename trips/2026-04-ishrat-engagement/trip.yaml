@@ -119,7 +119,7 @@
       "day": 2,
       "date": "2026-04-21",
       "title": "Settle In & Planning",
-      "notes": "Jet lag management day. Breakfast early, main advisor meeting, light meals.",
+      "notes": "Jet lag management day. Breakfast early, extended afternoon rest, light meals. Advisor meeting moved to Thu Apr 23.",
       "events": [
         {
           "time": "7:30 AM",
@@ -139,20 +139,20 @@
           "tag": "DINING",
           "phone": "(732) 297-5300",
           "rating": 4.2,
-          "notes": "Pakistani grill (~5 min) — opens 11 AM. Hearty lunch before the advisor meeting.",
+          "notes": "Pakistani grill (~5 min) — opens 11 AM. Hearty lunch to anchor the jet lag recovery day.",
           "category": "Pakistani · Desi Classics",
           "duration_min": 60
         },
         {
-          "time": "3:30 PM",
-          "event": "Hotel Rest / Nap",
+          "time": "12:30 PM",
+          "event": "Hotel Rest / Long Nap",
           "venue": "Home2 Suites by Hilton, 3 Jersey Ave, New Brunswick, NJ 08901",
           "tag": "REST",
-          "notes": "Back at hotel by 3:30 PM (~15 min drive from advisor). 90-min nap window to recharge before evening out. Ishrat naps 60–90 min.",
+          "notes": "Straight back to hotel after lunch (~5 min drive). Extended 3-hour nap — jet lag recovery is today's priority with no afternoon appointment. Ishrat can sleep deep through this window.",
           "phone": "(732) 729-0900",
           "rating": 4.1,
           "category": "Hotel · Downtime",
-          "duration_min": 60
+          "duration_min": 180
         },
         {
           "time": "5:20 PM",
@@ -249,16 +249,6 @@
           "notes": "Starring Jaafar Jackson, directed by Antoine Fuqua. Runtime ~2.5 hrs. Out by ~9:30 PM. Book on Fandango. Perfect post-dinner date night.",
           "category": "Cinema · IMAX Premiere",
           "duration_min": 180
-        },
-        {
-          "time": "12:00 PM",
-          "event": "Financial Advisor Meeting",
-          "venue": "Chase Bank, 629 Route 18, East Brunswick, NJ 08816",
-          "tag": "APPOINTMENT",
-          "notes": "Afternoon appointment (~1 hour). She'll be alert by this time.",
-          "phone": "(732) 254-2181",
-          "category": "Banking · Chase",
-          "duration_min": 45
         }
       ]
     },
@@ -280,40 +270,50 @@
           "duration_min": 60
         },
         {
-          "time": "10:00 AM",
+          "time": "9:30 AM",
           "event": "Rangreza",
           "venue": "137 NJ-27, Edison, NJ 08820",
           "tag": "SHOPPING",
           "phone": "(732) 762-5425",
           "rating": 4.5,
-          "notes": "Premier Pakistani boutique (~15 min) — men's shalwar kameez, kurtas, waistcoats.",
+          "notes": "Premier Pakistani boutique (~15 min) — men's shalwar kameez, kurtas, waistcoats. Start early to protect the 12 PM Chase appointment window.",
           "category": "South Asian Fashion · Bridal",
           "duration_min": 75
         },
         {
-          "time": "11:30 AM",
+          "time": "10:45 AM",
           "event": "East Avenue",
           "venue": "1647 NJ-27, North Brunswick, NJ 08902",
           "tag": "SHOPPING",
           "phone": "(732) 798-9900",
           "rating": 4.4,
-          "notes": "Multi-brand boutique since 2019 (~5 min) — carries MTJ, Gul Ahmed, Asim Jofa, and more. Great for comparing styles.",
+          "notes": "Multi-brand boutique since 2019 (~5 min) — carries MTJ, Gul Ahmed, Asim Jofa, and more. Compare styles quickly; wrap by 11:45 so we can reach Chase by noon.",
           "category": "South Asian Fashion · Menswear",
           "duration_min": 60
         },
         {
           "time": "12:00 PM",
+          "event": "Financial Advisor Meeting",
+          "venue": "Chase Bank, 629 Route 18, East Brunswick, NJ 08816",
+          "tag": "APPOINTMENT",
+          "notes": "Chase advisor meeting (~45 min). Midday slot sits between boutique runs so energy is still fresh; drive from East Avenue ~10 min.",
+          "phone": "(732) 254-2181",
+          "category": "Banking · Chase",
+          "duration_min": 45
+        },
+        {
+          "time": "1:00 PM",
           "event": "J. Junaid Jamshed",
           "venue": "2421 US Hwy 1 S, North Brunswick, NJ 08902",
           "tag": "SHOPPING",
           "phone": "(732) 940-6000",
           "rating": 4.6,
-          "notes": "Flagship Pakistani brand (~5 min) — premium men's shalwar kameez, kurtas, waistcoats. Start early — leave time for alterations and matching accessories.",
+          "notes": "Flagship Pakistani brand (~10 min from Chase) — premium men's shalwar kameez, kurtas, waistcoats. Last boutique stop before lunch; leave time for alterations and matching accessories.",
           "category": "Pakistani Designer · Tailored",
           "duration_min": 60
         },
         {
-          "time": "1:00 PM",
+          "time": "2:15 PM",
           "event": "Halal Lunch at Samosa House",
           "venue": "1000 US-9, Old Bridge, NJ 08857",
           "tag": "DINING",

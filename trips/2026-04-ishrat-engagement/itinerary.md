@@ -18,15 +18,12 @@
 
 ---
 
-### Tuesday, April 21 — Settle In + Errands
+### Tuesday, April 21 — Settle In + Jet Lag Recovery
 - **~9:00am** — Jet lag will have her up early — let her body adjust naturally
 - **10:45am** — Leave hotel (5 min drive)
-- **11:00am** — **Brunch at Baithakh** (1980 NJ-27, North Brunswick, ~5 min). Pakistani grill — opens 11 AM. Hearty brunch before the advisor meeting.
-- **12:30pm** — Back to hotel to relax / freshen up (5 min drive)
-- **1:45pm** — Leave for advisor (~15 min drive with buffer)
-- **2:00pm** — **Financial Advisor Meeting** (~1 hour, she'll be alert by this time)
-- **3:15pm** — Drive back to hotel (~15 min)
-- **3:30–5:00pm** — 🛌 **Hotel rest / nap** (90 min — recharge before the evening)
+- **11:00am** — **Brunch at Baithakh** (1980 NJ-27, North Brunswick, ~5 min). Pakistani grill — opens 11 AM. Hearty brunch to anchor the recovery day.
+- **12:30pm** — Back to hotel (~5 min drive)
+- **12:30–3:30pm** — 🛌 **Extended hotel rest / long nap** (3-hour window — jet lag recovery is today's priority now that the advisor meeting has moved to Thu Apr 23)
 - **5:15pm** — Leave hotel (5 min drive)
 - **5:20–6:15pm** — ☕ **Tea + coffee at Hidden Grounds Coffee Co.** (106 Church St, New Brunswick) — specialty coffee bar with proper loose-leaf tea selection and cozy sit-down seating. Ishrat's English tea, Asif's pour-over.
 - **6:15pm** — Drive to Pho House (~15 min)
@@ -50,16 +47,18 @@
 
 ---
 
-### Thursday, April 23 — Shalwar Kameez Shopping 🧥
+### Thursday, April 23 — Shalwar Kameez Shopping + Chase Meeting 🧥🏦
 - **8:30am** — Light breakfast at hotel
-- **9:30am** — Leave for first shop (~15 min drive)
-- **9:45–11:30am** — **Rangreza** (137 NJ-27, Edison, ~15 min) — Premier Pakistani boutique. Men's shalwar kameez, kurtas, waistcoats. ☎ (732) 762-5425
-- **11:30am** — Drive to East Avenue (~10 min)
-- **11:45am–12:45pm** — **East Avenue** (1647 NJ-27, North Brunswick, NJ 08902, ~5 min from hotel) — Multi-brand premium boutique. MTJ, Gul Ahmed, Asim Jofa, and more.
-- **12:45pm** — Drive to lunch (~10 min)
-- **1:00–2:00pm** — **Halal lunch in East Brunswick / Milltown vicinity** (10 min from shops). Candidates: Spice Rack (halal Indian), Chaat Hut (Iselin, halal Indo-Chinese), or Chinese Mirch (East Brunswick, halal Chinese). Keep it light — Tabaq dinner is the main event.
-- **2:00pm** — Drive to J. Junaid (~5 min)
-- **2:15–3:30pm** — **J. Junaid Jamshed** (2421 US Hwy 1 S, North Brunswick, ~5 min) — Flagship Pakistani brand. Premium men's shalwar kameez, kurtas, waistcoats. ☎ (732) 940-6000 | [us.junaidjamshed.com](https://us.junaidjamshed.com/pages/store-locator)
+- **9:15am** — Leave for first shop (~15 min drive)
+- **9:30–10:30am** — **Rangreza** (137 NJ-27, Edison) — Premier Pakistani boutique. Men's shalwar kameez, kurtas, waistcoats. ☎ (732) 762-5425
+- **10:30am** — Drive to East Avenue (~10 min)
+- **10:45–11:45am** — **East Avenue** (1647 NJ-27, North Brunswick) — Multi-brand premium boutique. MTJ, Gul Ahmed, Asim Jofa, and more. Wrap by 11:45 to make the 12 PM Chase appointment.
+- **11:45am** — Drive to Chase (~10 min)
+- **12:00–12:45pm** — 🏦 **Financial Advisor Meeting at Chase Bank** (629 Route 18, East Brunswick) — ~45 min. Midday slot keeps energy fresh between boutique runs. ☎ (732) 254-2181
+- **12:45pm** — Drive to J. Junaid Jamshed (~10 min)
+- **1:00–2:00pm** — **J. Junaid Jamshed** (2421 US Hwy 1 S, North Brunswick) — Flagship Pakistani brand. Premium men's shalwar kameez, kurtas, waistcoats. Last boutique stop before lunch. ☎ (732) 940-6000 | [us.junaidjamshed.com](https://us.junaidjamshed.com/pages/store-locator)
+- **2:00pm** — Drive to lunch (~10 min)
+- **2:15–3:15pm** — **Halal lunch in East Brunswick / Milltown vicinity** (10 min from shops). Candidates: Spice Rack (halal Indian), Chaat Hut (Iselin, halal Indo-Chinese), or Chinese Mirch (East Brunswick, halal Chinese). Keep it light — Tabaq dinner is the main event.
 - **3:30pm** — Drive to cafe (~5 min)
 - **3:40–4:25pm** — ☕ **Tea + coffee break at Hidden Grounds Coffee Co.** (106 Church St, New Brunswick) — mid-shopping sit-down pause. Proper English tea + pour-over, scones optional.
 - **4:25pm** — Final shop visits — alterations, accessories, shoes, pickup (~30 min)
@@ -149,7 +148,7 @@
 
 | Item | Action | Deadline |
 |------|--------|----------|
-| Financial advisor | Confirm appointment for **Tue April 21** | ASAP |
+| Financial advisor | Confirm Chase appointment for **Thu April 23, 12 PM** | ASAP |
 | Stephanie lunch | **Confirmed — Wed April 22, N-Thai Palace, East Brunswick** | ✅ Done |
 | Michael movie tickets | Book **April 22, 7:00 PM screening** on Fandango | As soon as tickets go on sale |
 | Engagement party logistics | Confirm dress code; venue is 183-10 Horace Harding Expy, Fresh Meadows, NY 11365 | Before April 23 |

@@ -1,7 +1,7 @@
 # Day 2 — Tuesday, April 21
 ## Settling In
 
-**Planned:** Jet lag recovery morning. Brunch at Baithakh. Financial advisor meeting at 2 PM. Dinner at The Pho House, dessert at Crispy Cones.
+**Planned:** Jet lag recovery day. Brunch at Baithakh. Extended afternoon rest at the hotel (advisor meeting moved to Thu Apr 23). Dinner at The Pho House, dessert at Crispy Cones.
 
 **What Actually Happened:**
 
@@ -9,7 +9,7 @@
 
 **Highlights:**
 - Brunch at Baithakh
-- Financial advisor meeting
+- Long jet lag recovery nap
 - Pho House dinner and Crispy Cones dessert
 
 **Mood:** [to be filled]
