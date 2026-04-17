@@ -168,6 +168,17 @@
         }
       });
 
+      // Click outside the panel (or the bubble) closes the chat. Uses
+      // `mousedown` so the close fires before focus changes — feels snappier.
+      // Guards: ignore when already closed, and ignore clicks on the bubble
+      // itself (which has its own open/close logic).
+      document.addEventListener('mousedown', (e) => {
+        if (!this.isOpen) return;
+        if (this.panel.contains(e.target)) return;
+        if (this.bubble.contains(e.target)) return;
+        this.close();
+      });
+
       // Auto-scroll on new messages
       const observer = new MutationObserver(() => {
         this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;

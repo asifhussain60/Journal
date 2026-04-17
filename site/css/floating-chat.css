@@ -72,6 +72,9 @@
 .fc-open .fc-bubble { display: none; }
 
 /* ─── Panel (expanded chat) ─────────────────────────────────────────────── */
+/* Uses visibility + pointer-events rather than display:none so both enter
+   and exit can animate. visibility transition is delayed on close so the
+   panel stays hit-testable during the slide-out, then disappears. */
 .fc-panel {
   position: fixed;
   right: 1.5rem;
@@ -82,9 +85,10 @@
   max-width: calc(100vw - 3rem);
   z-index: 9000;
 
-  display: none;
+  display: flex;
   flex-direction: column;
   overflow: hidden;
+  transform-origin: bottom right;
 
   background: var(--fc-cream);
   border: 2px solid var(--fc-plum-900);
@@ -93,17 +97,25 @@
     0 25px 60px rgba(74, 4, 78, 0.30),
     0 8px 20px rgba(74, 4, 78, 0.18);
 
+  visibility: hidden;
   opacity: 0;
-  transform: translateY(12px) scale(0.97);
+  transform: translateY(16px) scale(0.94);
+  pointer-events: none;
   transition:
-    opacity 0.25s ease,
-    transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    opacity 0.22s ease,
+    transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
+    visibility 0s linear 0.28s;           /* hide AFTER slide completes */
 }
 
 .fc-open .fc-panel {
-  display: flex;
+  visibility: visible;
   opacity: 1;
   transform: translateY(0) scale(1);
+  pointer-events: auto;
+  transition:
+    opacity 0.22s ease,
+    transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
+    visibility 0s;                        /* show immediately on open */
 }
 
 /* ─── Header (plum bar) ─────────────────────────────────────────────────── */

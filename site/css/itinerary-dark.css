@@ -623,16 +623,67 @@ body::after{
   max-height:2200px;
   padding:0 1.5rem 1.5rem;
 }
-
-/* ═══ EVENT CARDS — modern icon-column layout ═══ */
-.event-list{
-  display:grid;
-  gap:.75rem;
+/* Snap-close variant: suppress the max-height + padding transition so the
+   old card collapses instantly when a different card is being opened. Keeps
+   scroll-to-top math stable. toggleCard() adds this class for ~2 frames. */
+.day-card.no-anim .day-body{
+  transition:none !important;
 }
 
-/* Card shell: icon | details grid, visible border + soft shadow at rest,
-   stronger lift + ring on hover. No color shift — just elevation. */
-.event{
+/* ─── View Transitions (Chrome 111+, Safari 18+, Firefox 139+) ──────────
+   Fires whenever renderItinerary re-runs (e.g. after FloatingChat edits an
+   event). Each .event has a unique view-transition-name, so the browser
+   animates insertions, deletions, and moves independently rather than
+   cross-fading the whole timeline. Root is tuned faster than per-event so
+   the overall page doesn't linger. */
+::view-transition-old(root),
+::view-transition-new(root){
+  animation-duration:.32s;
+  animation-timing-function:cubic-bezier(.4,0,.2,1);
+}
+/* Default per-item animations (applies to every named view-transition group
+   that doesn't have a more specific rule). Slight stagger baked into the
+   timing function so cards feel like they arrive with momentum. */
+::view-transition-group(*){
+  animation-duration:.45s;
+  animation-timing-function:cubic-bezier(.34,1.2,.64,1);
+}
+::view-transition-old(*){
+  animation:fade-slide-out .28s cubic-bezier(.4,0,1,1) both;
+}
+::view-transition-new(*){
+  animation:fade-slide-in .42s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes fade-slide-out{
+  from{ opacity:1; transform:translateY(0); }
+  to  { opacity:0; transform:translateY(-6px) scale(.98); }
+}
+@keyframes fade-slide-in{
+  from{ opacity:0; transform:translateY(10px) scale(.98); }
+  to  { opacity:1; transform:translateY(0) scale(1); }
+}
+@media (prefers-reduced-motion:reduce){
+  ::view-transition-old(root),
+  ::view-transition-new(root),
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*){
+    animation-duration:.01ms !important;
+    animation:none !important;
+  }
+}
+
+/* ═══ EVENT CARDS — timeline rail + card ═══ */
+.event-list{
+  display:grid;
+  gap:1.25rem;
+}
+
+/* ─── Card visual (applies to both new-renderer .event-card and legacy
+       static-HTML .event without a wrapper). Shared so the visual is
+       consistent whichever code path rendered the page. ──────────────── */
+.event-card,
+.event:not(:has(.event-card)){
   display:grid;
   grid-template-columns:64px minmax(0,1fr);
   gap:1rem;
@@ -653,7 +704,8 @@ body::after{
              border-color .22s ease,
              box-shadow .22s ease;
 }
-.event:hover{
+.event:has(.event-card):hover > .event-card,
+.event:not(:has(.event-card)):hover{
   transform:translateY(-2px);
   background:linear-gradient(
     180deg,
@@ -665,6 +717,95 @@ body::after{
     inset 0 1px 0 0 rgba(255,255,255,.06),
     0 2px 4px rgba(0,0,0,.28),
     0 18px 36px -16px rgba(0,0,0,.55);
+}
+
+/* ─── Timeline wrapper (new renderer only) ─────────────────────────── */
+.event:has(.event-card){
+  display:grid;
+  grid-template-columns:68px 24px minmax(0,1fr);
+  gap:0;
+  background:none;
+  border:none;
+  padding:0;
+  box-shadow:none;
+}
+
+/* Time column — right-aligned, sits outside the card */
+.event-time-col{
+  padding-top:1rem;
+  padding-right:.85rem;
+  text-align:right;
+  font-family:"Inter","SF Pro Display","Helvetica Neue",system-ui,sans-serif;
+  color:var(--rose-2);
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.005em;
+  line-height:1.2;
+  white-space:nowrap;
+}
+.event-time-col .event-time-head{
+  display:block;
+  font-size:.95rem;
+  font-weight:600;
+}
+.event-time-col .event-time-period{
+  display:block;
+  font-size:.58rem;
+  font-weight:700;
+  letter-spacing:.18em;
+  color:var(--muted);
+  opacity:.55;
+  margin-top:.2rem;
+}
+
+/* Rail column: vertical hairline + node dot per event, aligned with card top */
+.event-rail{
+  position:relative;
+}
+.event-rail::before{  /* the continuous vertical line */
+  content:"";
+  position:absolute;
+  top:0;
+  bottom:-1.25rem;  /* extend into .event-list gap so segments connect */
+  left:50%;
+  transform:translateX(-50%);
+  width:2px;
+  background:linear-gradient(
+    to bottom,
+    rgba(255,176,204,.15) 0%,
+    rgba(255,255,255,.10) 50%,
+    rgba(255,176,204,.15) 100%
+  );
+}
+.event-list > .event:first-child .event-rail::before{
+  top:1.35rem;  /* start the rail at the first dot */
+}
+.event-list > .event:last-child .event-rail::before{
+  bottom:auto;
+  height:1.35rem;  /* end the rail at the last dot */
+}
+.event-rail::after{  /* the node dot */
+  content:"";
+  position:absolute;
+  top:1.15rem;  /* aligns with the tag/time meta row inside the card */
+  left:50%;
+  transform:translateX(-50%);
+  width:12px;
+  height:12px;
+  border-radius:50%;
+  background:var(--rose-2, #ffb0cc);
+  box-shadow:
+    0 0 0 4px var(--bg, #1d1630),        /* halo cutting through the line */
+    0 0 0 5px rgba(255,176,204,.25),     /* outer glow ring */
+    0 0 8px rgba(255,176,204,.35);
+  transition:transform .22s cubic-bezier(.34,1.56,.64,1),
+             box-shadow .22s ease;
+}
+.event:hover .event-rail::after{
+  transform:translateX(-50%) scale(1.15);
+  box-shadow:
+    0 0 0 4px var(--bg, #1d1630),
+    0 0 0 5px rgba(255,176,204,.45),
+    0 0 14px rgba(255,176,204,.55);
 }
 
 /* ─── Icon column ───────────────────────────────────────────────────── */
@@ -1278,11 +1419,26 @@ body::after{
   .day-title{font-size:1.5rem}
   .day-header{padding:1rem 1.15rem}
   .day-card.open .day-body{padding:0 1.15rem 1.15rem}
-  .event{
+  .event:not(:has(.event-card)){
     grid-template-columns:48px minmax(0,1fr);
     gap:.75rem;
     padding:.8rem .85rem;
   }
+  .event:has(.event-card){
+    grid-template-columns:54px 20px minmax(0,1fr);
+  }
+  .event-card{
+    grid-template-columns:48px minmax(0,1fr);
+    gap:.75rem;
+    padding:.8rem .85rem;
+  }
+  .event-time-col{ padding-right:.55rem; padding-top:.8rem; }
+  .event-time-col .event-time-head{ font-size:.82rem; }
+  .event-time-col .event-time-period{ font-size:.55rem; }
+  .event-rail::after{ width:10px; height:10px; top:.95rem; }
+  .event-rail::before,
+  .event-list > .event:first-child .event-rail::before{ top:1.2rem; }
+  .event-list > .event:last-child .event-rail::before{ height:1.2rem; }
   .event-icon{ width:44px; height:44px; font-size:1.1rem; border-radius:12px; }
   .event-title{ font-size:1rem; }
   .event-meta-top{ gap:.4rem; }

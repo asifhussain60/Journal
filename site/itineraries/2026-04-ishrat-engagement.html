@@ -1160,52 +1160,81 @@
         return 'tel:' + (phone || '').replace(/[^0-9+]/g, '');
       }
 
+      // Split "7:30 AM" or "~4:00 PM" into a numeric head + AM/PM period so the
+      // time column can stack them. Returns { head, period }.
+      function splitTime(raw) {
+        if (!raw) return { head: '', period: '' };
+        var s = String(raw).trim();
+        var m = s.match(/^(.*?)\s*(AM|PM|am|pm)\s*$/);
+        if (!m) return { head: s, period: '' };
+        return { head: m[1].trim(), period: m[2].toUpperCase() };
+      }
+
+      // Stable per-event key for view-transition-name, so adds/removes/moves
+      // animate individually instead of the whole timeline cross-fading.
+      function eventTxName(ev) {
+        var key = (ev.time || '') + '|' + (ev.event || '') + '|' + (ev.tag || '');
+        var h = 5381;
+        for (var i = 0; i < key.length; i++) h = (((h << 5) + h) + key.charCodeAt(i)) | 0;
+        return 'ev-' + Math.abs(h).toString(36);
+      }
+
       function renderEventCard(ev) {
         // Accept both `venue` (canonical yaml) and `address` (legacy static HTML).
         var address = ev.address || ev.venue || '';
         var key = tagKey(ev.tag);
         var icon = pickEventIcon(ev.tag, ev.event);
+        var t = splitTime(ev.time);
+        var txName = eventTxName(ev);
 
         var parts = [];
-        parts.push('<div class="event">');
-        parts.push('  <div class="event-icon event-icon--' + key + '">');
-        parts.push('    <i class="fa-solid ' + icon + '" aria-hidden="true"></i>');
+        parts.push('<div class="event" style="view-transition-name:' + txName + ';">');
+
+        // Time column (outside the card, left of the rail)
+        parts.push('  <div class="event-time-col">');
+        if (t.head) parts.push('    <span class="event-time-head">' + escHtml(t.head) + '</span>');
+        if (t.period) parts.push('    <span class="event-time-period">' + escHtml(t.period) + '</span>');
         parts.push('  </div>');
-        parts.push('  <div class="event-details">');
 
-        // Meta row: TAG · TIME
-        parts.push('    <div class="event-meta-top">');
-        if (ev.tag) parts.push('      <span class="tag tag-' + key + '">' + escHtml(ev.tag) + '</span>');
-        if (ev.tag && ev.time) parts.push('      <span class="event-meta-sep"></span>');
-        if (ev.time) parts.push('      <span class="event-time">' + escHtml(ev.time) + '</span>');
+        // Rail (line + dot rendered via CSS pseudos)
+        parts.push('  <div class="event-rail" aria-hidden="true"></div>');
+
+        // Card
+        parts.push('  <div class="event-card">');
+        parts.push('    <div class="event-icon event-icon--' + key + '">');
+        parts.push('      <i class="fa-solid ' + icon + '" aria-hidden="true"></i>');
         parts.push('    </div>');
+        parts.push('    <div class="event-details">');
 
-        // Title
-        parts.push('    <h4 class="event-title">' + escHtml(ev.event) + '</h4>');
-
-        // Rating row (only if present)
-        if (ev.rating) {
-          parts.push('    <div class="event-rating">');
-          parts.push('      <span class="event-rating-stars" aria-label="Rated ' + escHtml(String(ev.rating)) + ' out of 5">' + renderStars(ev.rating) + '</span>');
-          parts.push('      <span class="event-rating-num">' + escHtml(String(ev.rating)) + '</span>');
-          if (ev.reviews) parts.push('      <span class="event-rating-count">· ' + escHtml(String(ev.reviews)) + ' reviews</span>');
-          parts.push('    </div>');
+        if (ev.tag) {
+          parts.push('      <div class="event-meta-top">');
+          parts.push('        <span class="tag tag-' + key + '">' + escHtml(ev.tag) + '</span>');
+          parts.push('      </div>');
         }
 
-        // Contact block
+        parts.push('      <h4 class="event-title">' + escHtml(ev.event) + '</h4>');
+
+        if (ev.rating) {
+          parts.push('      <div class="event-rating">');
+          parts.push('        <span class="event-rating-stars" aria-label="Rated ' + escHtml(String(ev.rating)) + ' out of 5">' + renderStars(ev.rating) + '</span>');
+          parts.push('        <span class="event-rating-num">' + escHtml(String(ev.rating)) + '</span>');
+          if (ev.reviews) parts.push('        <span class="event-rating-count">· ' + escHtml(String(ev.reviews)) + ' reviews</span>');
+          parts.push('      </div>');
+        }
+
         var hasContact = address || ev.phone || ev.website;
         if (hasContact) {
-          parts.push('    <div class="event-contact">');
-          if (address) parts.push('      <span class="event-addr"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>' + escHtml(address) + '</span>');
-          if (ev.phone) parts.push('      <span class="event-phone"><i class="fa-solid fa-phone" aria-hidden="true"></i><a href="' + telHref(ev.phone) + '">' + escHtml(ev.phone) + '</a></span>');
-          if (ev.website) parts.push('      <a class="event-website" href="' + escHtml(ev.website) + '" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>Website</a>');
-          parts.push('    </div>');
+          parts.push('      <div class="event-contact">');
+          if (address) parts.push('        <span class="event-addr"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>' + escHtml(address) + '</span>');
+          if (ev.phone) parts.push('        <span class="event-phone"><i class="fa-solid fa-phone" aria-hidden="true"></i><a href="' + telHref(ev.phone) + '">' + escHtml(ev.phone) + '</a></span>');
+          if (ev.website) parts.push('        <a class="event-website" href="' + escHtml(ev.website) + '" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>Website</a>');
+          parts.push('      </div>');
         }
 
-        // Preserve tip in DOM (hidden) so Phase 6 edits can still target it.
-        if (ev.tip) parts.push('    <div class="event-tip">' + escHtml(ev.tip) + '</div>');
-        if (ev.desc) parts.push('    <div class="event-desc">' + escHtml(ev.desc) + '</div>');
+        if (ev.tip) parts.push('      <div class="event-tip">' + escHtml(ev.tip) + '</div>');
+        if (ev.desc) parts.push('      <div class="event-desc">' + escHtml(ev.desc) + '</div>');
 
+        parts.push('    </div>');
         parts.push('  </div>');
         parts.push('</div>');
         return parts.join('\n');
@@ -1216,10 +1245,6 @@
 
         var timeline = document.querySelector('.timeline');
         if (!timeline || !trip.days || !trip.days.length) return;
-
-        // Destroy any existing maps before swapping DOM — Leaflet holds refs
-        // to detached containers otherwise.
-        destroyAllMaps();
 
         // Build new HTML for all day cards
         var html = '';
@@ -1250,27 +1275,31 @@
           html += '</div>'; // .day-card
         });
 
-        timeline.innerHTML = html;
+        // Apply the DOM swap. Wrapped in the View Transitions API where
+        // available so added/removed/moved events animate (each .event has
+        // its own view-transition-name). Falls back to an instant swap.
+        var applyRender = function() {
+          // Destroy existing Leaflet maps right before the DOM swap — old
+          // references would otherwise leak handlers on detached containers.
+          destroyAllMaps();
+          timeline.innerHTML = html;
 
-        // Auto-open day 1
-        var firstCard = timeline.querySelector('.day-card');
-        if (firstCard) firstCard.classList.add('open');
+          // Auto-open day 1
+          var firstCard = timeline.querySelector('.day-card');
+          if (firstCard) firstCard.classList.add('open');
 
-        // Entrance animation: stagger each card slightly for a smooth SPA feel.
-        timeline.querySelectorAll('.day-card').forEach(function(el, i) {
-          el.classList.add('fc-enter');
-          el.style.animationDelay = (i * 40) + 'ms';
-          el.addEventListener('animationend', function() {
-            el.classList.remove('fc-enter');
-            el.style.animationDelay = '';
-          }, { once: true });
-        });
+          // Initialize map for every currently-open day card. Collapsed maps
+          // are lazy-initialized on first open by toggleCard().
+          timeline.querySelectorAll('.day-card.open .day-map').forEach(function(el) {
+            if (el.id && !el._leaflet_id) initMap(el.id);
+          });
+        };
 
-        // Initialize map for every currently-open day card. Collapsed maps are
-        // lazy-initialized on first open by toggleCard().
-        timeline.querySelectorAll('.day-card.open .day-map').forEach(function(el) {
-          if (el.id && !el._leaflet_id) initMap(el.id);
-        });
+        if (typeof document.startViewTransition === 'function') {
+          document.startViewTransition(applyRender);
+        } else {
+          applyRender();
+        }
       }
 
       function formatDayDate(dateStr) {
@@ -1318,18 +1347,41 @@
     // Accordion Toggle for Timeline
     function toggleCard(card) {
       var isOpen = card.classList.contains('open');
-      // Collapse all cards first
-      document.querySelectorAll('.day-card.open').forEach(function(c) {
-        c.classList.remove('open');
-      });
-      // If it wasn't open, open it
-      if (!isOpen) {
-        card.classList.add('open');
-        var mapEl = card.querySelector('.day-map');
-        if (mapEl && !mapEl._leaflet_id) {
-          setTimeout(function(){ initMap(mapEl.id); }, 100);
-        }
+
+      // Same card → just close.
+      if (isOpen) {
+        card.classList.remove('open');
+        return;
       }
+
+      // Snap-close any other open cards without animation so the layout is
+      // stable the instant we measure-and-scroll. Without this the collapse
+      // transition (750ms) runs concurrently, pulling the clicked card up
+      // while the browser is trying to scroll to it.
+      document.querySelectorAll('.day-card.open').forEach(function(c) {
+        c.classList.add('no-anim');
+        c.classList.remove('open');
+        // Re-enable transitions after layout settles so the *next* toggle
+        // animates normally.
+        requestAnimationFrame(function() {
+          requestAnimationFrame(function() { c.classList.remove('no-anim'); });
+        });
+      });
+
+      card.classList.add('open');
+
+      var mapEl = card.querySelector('.day-map');
+      if (mapEl && !mapEl._leaflet_id) {
+        setTimeout(function(){ initMap(mapEl.id); }, 100);
+      }
+
+      // Scroll header to top of viewport (with a small breathing offset).
+      // Wait one frame so the browser recomputes layout after the class toggles.
+      requestAnimationFrame(function() {
+        var rect = card.getBoundingClientRect();
+        var target = rect.top + window.pageYOffset - 16;
+        window.scrollTo({ top: target, behavior: 'smooth' });
+      });
     }
 
     // Lavender marker icon
