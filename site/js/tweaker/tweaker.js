@@ -85,6 +85,8 @@
     ]);
     LIBS.HexColorPicker = colorfulMod.HexColorPicker;
     LIBS.HexAlphaColorPicker = colorfulMod.HexAlphaColorPicker;
+    // Prefer alpha-aware picker so users can edit opacity per-color.
+    LIBS.Picker = colorfulMod.HexAlphaColorPicker || colorfulMod.HexColorPicker;
     LIBS.computePosition = floatingMod.computePosition;
     LIBS.autoUpdate = floatingMod.autoUpdate;
     LIBS.offset = floatingMod.offset;
@@ -383,6 +385,25 @@
 
   function uuid() { return 'c' + Math.random().toString(36).slice(2, 10); }
 
+  function clamp(n, min, max) { return Math.max(min, Math.min(n, max)); }
+
+  function loadPanelPos(key) {
+    try {
+      const raw = localStorage.getItem(`journal:tweaker:pos:${key}`);
+      if (!raw) return null;
+      const { x, y } = JSON.parse(raw);
+      if (typeof x !== 'number' || typeof y !== 'number') return null;
+      // Clamp to current viewport so a smaller window after restore doesn't hide the panel.
+      const maxX = Math.max(0, window.innerWidth - 200);
+      const maxY = Math.max(0, window.innerHeight - 80);
+      return { x: clamp(x, 0, maxX), y: clamp(y, 0, maxY) };
+    } catch { return null; }
+  }
+
+  function savePanelPos(key, pos) {
+    try { localStorage.setItem(`journal:tweaker:pos:${key}`, JSON.stringify(pos)); } catch {}
+  }
+
   // ══════════════════════════════════════════════════════════════════════════
   // §9 API client
   // ══════════════════════════════════════════════════════════════════════════
@@ -497,19 +518,47 @@
     const [tab, setTab] = useState('colors');
     const [scope, setScope] = useState('global');
     const [activeProperty, setActiveProperty] = useState(null);
+    const [pos, setPos] = useState(() => loadPanelPos('inspector'));
     const panelRef = useRef(null);
 
-    // Panel is a persistent right-edge drawer — stays open for the entire
-    // Tweak Mode session regardless of which element (if any) is selected.
-    // It closes only via the X (which exits Tweak Mode) or Review & Save.
+    // Panel is a persistent, draggable floating panel — stays open for the
+    // entire Tweak Mode session regardless of element selection. Position
+    // persists to localStorage; clamped to viewport on restore.
     const tokens = (selection && selection.tokens) || [];
+
+    function onDragStart(e) {
+      // Allow drag from the header bar except when clicking the X button.
+      if (e.target.closest('button')) return;
+      if (e.target.closest('input, select, textarea')) return;
+      e.preventDefault();
+      const rect = panelRef.current.getBoundingClientRect();
+      const offsetX = e.clientX - rect.left;
+      const offsetY = e.clientY - rect.top;
+      let nx = rect.left, ny = rect.top;
+      function move(ev) {
+        nx = clamp(ev.clientX - offsetX, 0, window.innerWidth - rect.width);
+        ny = clamp(ev.clientY - offsetY, 0, window.innerHeight - 60);
+        setPos({ x: nx, y: ny });
+      }
+      function up() {
+        document.removeEventListener('mousemove', move);
+        document.removeEventListener('mouseup', up);
+        savePanelPos('inspector', { x: nx, y: ny });
+      }
+      document.addEventListener('mousemove', move);
+      document.addEventListener('mouseup', up);
+    }
+
+    const panelStyle = pos ? { left: `${pos.x}px`, top: `${pos.y}px`, right: 'auto' } : undefined;
 
     return h('div', {
       ref: panelRef,
       className: 'tweaker-inspector',
       [CFG.chromeAttr]: '',
+      style: panelStyle,
     },
-      h('div', { className: 'tweaker-inspector-header' },
+      h('div', { className: 'tweaker-inspector-header', onMouseDown: onDragStart, title: 'Drag to move' },
+        h('i', { className: 'fa-solid fa-grip-lines tweaker-drag-handle', 'aria-hidden': 'true' }),
         h('span', { className: 'tweaker-inspector-selector' },
           selection && selection.selector ? selection.selector : 'Tweak — click any element'),
         h('button', { className: 'tweaker-x', onClick: onClose, 'aria-label': 'Exit Tweak Mode', title: 'Exit Tweak Mode' }, '×'),
@@ -704,6 +753,22 @@
       });
     }, [selection, tokens]);
 
+    // Auto-pick the most relevant color property when the selection changes:
+    //   - text-ish element (has color but no solid bg) → 'text'
+    //   - element with a solid/painted bg             → 'bg'
+    //   - otherwise                                   → 'bg' (default)
+    useEffect(() => {
+      if (!selection || !rows.length) return;
+      const bgRow = rows.find((r) => r.id === 'bg');
+      const textRow = rows.find((r) => r.id === 'text');
+      const tag = (selection.element.tagName || '').toLowerCase();
+      const isTextish = ['h1','h2','h3','h4','h5','h6','p','span','a','li','em','strong','blockquote','label'].includes(tag);
+      const bgIsTransparent = !bgRow || !bgRow.value || /rgba\(0, 0, 0, 0\)|transparent/.test(bgRow.value);
+      if (isTextish && textRow) setActiveId('text');
+      else if (bgIsTransparent && textRow && textRow.value) setActiveId('text');
+      else setActiveId('bg');
+    }, [selection]);
+
     const bgRow = rows.find((r) => r.id === 'bg');
     const textRow = rows.find((r) => r.id === 'text');
 
@@ -765,32 +830,37 @@
   }
 
   function ColorRow({ row, active, onFocus, onPickerChange, scope }) {
-    const [showPicker, setShowPicker] = useState(false);
-    const hex = normalizeHex(row.value);
+    // Active === expanded. A single source of truth: clicking this row makes
+    // it active, which auto-expands the picker. Clicking another row collapses
+    // this one. No separate "showPicker" state.
+    const hexWithAlpha = normalizeHex(row.value, true);
+    const hexDisplay = hexWithAlpha.slice(0, 7).toUpperCase();
+    const alphaHex = hexWithAlpha.slice(7, 9) || 'ff';
+    const alphaPct = Math.round((parseInt(alphaHex, 16) || 255) / 255 * 100);
     return h('div', {
-      className: 'tweaker-color-row' + (active ? ' is-active' : '') + (showPicker ? ' is-expanded' : ''),
+      className: 'tweaker-color-row' + (active ? ' is-active is-expanded' : ''),
     },
       h('div', {
         className: 'tweaker-color-row-head',
-        onClick: () => { onFocus(); setShowPicker((v) => !v); },
+        onClick: onFocus,
       },
         h('span', { className: 'tweaker-radio' + (active ? ' on' : '') }),
-        h('span', { className: 'tweaker-color-preview', style: { background: hex } }),
+        h('span', { className: 'tweaker-color-preview', style: { background: hexWithAlpha } }),
         h('span', { className: 'tweaker-color-label' }, row.label),
-        h('span', { className: 'tweaker-color-hex' }, hex.toUpperCase()),
-        h('i', { className: 'fa-solid ' + (showPicker ? 'fa-chevron-up' : 'fa-chevron-down'), 'aria-hidden': 'true' }),
+        h('span', { className: 'tweaker-color-hex' }, hexDisplay + (alphaPct < 100 ? ` · ${alphaPct}%` : '')),
+        h('i', { className: 'fa-solid ' + (active ? 'fa-chevron-up' : 'fa-chevron-down'), 'aria-hidden': 'true' }),
       ),
-      showPicker && h('div', { className: 'tweaker-color-row-body' },
-        LIBS.HexColorPicker && h(LIBS.HexColorPicker, {
-          color: hex, onChange: onPickerChange,
+      active && h('div', { className: 'tweaker-color-row-body' },
+        LIBS.Picker && h(LIBS.Picker, {
+          color: hexWithAlpha, onChange: onPickerChange,
         }),
         h('div', { className: 'tweaker-color-row-actions' },
           h('input', {
             type: 'text', className: 'tweaker-hex-input',
-            value: hex.toUpperCase(),
+            value: hexDisplay,
             onChange: (e) => {
               const v = e.target.value.trim();
-              if (/^#[0-9a-fA-F]{6}$/.test(v)) onPickerChange(v.toLowerCase());
+              if (/^#[0-9a-fA-F]{6}$/.test(v)) onPickerChange(v.toLowerCase() + alphaHex);
             },
           }),
           window.EyeDropper && h('button', {
@@ -798,7 +868,7 @@
             title: 'Eye-dropper (pick any pixel)',
             onClick: async () => {
               const picked = await pickWithEyeDropper();
-              if (picked) onPickerChange(picked.toLowerCase());
+              if (picked) onPickerChange(picked.toLowerCase() + alphaHex);
             },
           }, h('i', { className: 'fa-solid fa-eye-dropper' })),
           row.tokenName && h('span', { className: 'tweaker-token-badge', title: `Uses ${row.tokenName}` },
@@ -1070,17 +1140,27 @@
     };
   }
 
-  function normalizeHex(value) {
-    if (!value) return '#000000';
-    const m = value.match(/#([0-9a-fA-F]{3,6})/);
+  function normalizeHex(value, keepAlpha) {
+    if (!value) return keepAlpha ? '#000000ff' : '#000000';
+    const m = value.match(/#([0-9a-fA-F]{3,8})/);
     if (m) {
-      let hex = m[1];
+      let hex = m[1].toLowerCase();
       if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
-      return '#' + hex.toLowerCase();
+      if (hex.length === 4) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2]+hex[3]+hex[3];
+      if (keepAlpha && hex.length === 6) hex = hex + 'ff';
+      if (!keepAlpha && hex.length === 8) hex = hex.slice(0, 6);
+      return '#' + hex;
     }
     const rgba = parseColor(value);
-    if (rgba) return '#' + rgba.slice(0,3).map(n => n.toString(16).padStart(2,'0')).join('');
-    return '#000000';
+    if (rgba) {
+      const base = '#' + rgba.slice(0, 3).map((n) => n.toString(16).padStart(2, '0')).join('');
+      if (keepAlpha) {
+        const a = rgba[3] != null ? Math.round(rgba[3] * 255).toString(16).padStart(2, '0') : 'ff';
+        return base + a;
+      }
+      return base;
+    }
+    return keepAlpha ? '#000000ff' : '#000000';
   }
 
   function inferColorRole(cssProperty) {
@@ -1108,38 +1188,85 @@
     }, [open]);
 
     if (!open) return null;
-    return h('div', { className: 'tweaker-modal-scrim', [CFG.chromeAttr]: '' },
-      h('div', { className: 'tweaker-modal' },
-        h('div', { className: 'tweaker-modal-header' },
-          h('h3', null, 'AI Theme Review'),
-          h('button', { className: 'tweaker-x', onClick: onClose }, '×'),
-        ),
-        h('div', { className: 'tweaker-modal-body' },
-          loading && h('p', { className: 'tweaker-muted' }, 'Reviewing your changes…'),
-          err && h('p', { className: 'tweaker-err' }, 'Review failed: ' + err + ' — you can still save.'),
-          review && h('div', null,
-            h('p', null, review.assessment),
-            review.flagged.length > 0 && h('div', { className: 'tweaker-review-section' },
-              h('h4', null, 'Flagged'),
-              h('ul', null, review.flagged.map((f, i) => h('li', { key: i, className: 'flag-' + f.severity },
-                h('strong', null, f.tokenName || '(general)'), ' — ', f.issue
-              )))
-            ),
-            review.suggestedTweaks.length > 0 && h('div', { className: 'tweaker-review-section' },
-              h('h4', null, 'Suggested tweaks'),
-              h('ul', null, review.suggestedTweaks.map((s, i) => h('li', { key: i },
-                h('code', null, s.tokenName), ' → ',
-                h('code', null, s.proposedValue), ' — ', s.rationale,
-                ' ', h('button', { className: 'tweaker-btn-sm', onClick: () => onAccept(s) }, 'Apply')
-              )))
-            )
+    return h(DraggablePanel, {
+      storageKey: 'review',
+      className: 'tweaker-floating-panel tweaker-review-panel',
+      width: 480,
+      header: h('div', { className: 'tweaker-floating-header-content' },
+        h('i', { className: 'fa-solid fa-wand-magic-sparkles' }),
+        h('span', { className: 'tweaker-floating-title' }, 'AI Theme Review'),
+        h('button', { className: 'tweaker-x', onClick: onClose, 'aria-label': 'Close' }, '×'),
+      ),
+    },
+      h('div', { className: 'tweaker-modal-body' },
+        loading && h('p', { className: 'tweaker-muted' }, 'Reviewing your changes…'),
+        err && h('p', { className: 'tweaker-err' }, 'Review failed: ' + err + ' — you can still save.'),
+        review && h('div', null,
+          h('p', null, review.assessment),
+          review.flagged.length > 0 && h('div', { className: 'tweaker-review-section' },
+            h('h4', null, 'Flagged'),
+            h('ul', null, review.flagged.map((f, i) => h('li', { key: i, className: 'flag-' + f.severity },
+              h('strong', null, f.tokenName || '(general)'), ' — ', f.issue
+            )))
+          ),
+          review.suggestedTweaks.length > 0 && h('div', { className: 'tweaker-review-section' },
+            h('h4', null, 'Suggested tweaks'),
+            h('ul', null, review.suggestedTweaks.map((s, i) => h('li', { key: i },
+              h('code', null, s.tokenName), ' → ',
+              h('code', null, s.proposedValue), ' — ', s.rationale,
+              ' ', h('button', { className: 'tweaker-btn-sm', onClick: () => onAccept(s) }, 'Apply')
+            )))
           )
-        ),
-        h('div', { className: 'tweaker-modal-footer' },
-          h('button', { className: 'tweaker-btn', onClick: onClose }, 'Back to editor'),
-          h('button', { className: 'tweaker-btn tweaker-btn-primary', onClick: () => onAccept(null) }, 'Proceed to save'),
         )
+      ),
+      h('div', { className: 'tweaker-modal-footer' },
+        h('button', { className: 'tweaker-btn', onClick: onClose }, 'Back to editor'),
+        h('button', { className: 'tweaker-btn tweaker-btn-primary', onClick: () => onAccept(null) }, 'Proceed to save'),
       )
+    );
+  }
+
+  // Draggable floating panel shell used by Review + Save. Position persists
+  // per storageKey. Initial position: centered in viewport when no saved pos.
+  function DraggablePanel({ storageKey, className, width, header, children }) {
+    const [pos, setPos] = useState(() => {
+      const saved = loadPanelPos(storageKey);
+      if (saved) return saved;
+      // Center on first open
+      return { x: Math.max(0, (window.innerWidth - (width || 480)) / 2), y: Math.max(40, window.innerHeight * 0.18) };
+    });
+    const panelRef = useRef(null);
+    function onDragStart(e) {
+      if (e.target.closest('button, input, select, textarea')) return;
+      e.preventDefault();
+      const rect = panelRef.current.getBoundingClientRect();
+      const offsetX = e.clientX - rect.left;
+      const offsetY = e.clientY - rect.top;
+      let nx = rect.left, ny = rect.top;
+      function move(ev) {
+        nx = clamp(ev.clientX - offsetX, 0, window.innerWidth - rect.width);
+        ny = clamp(ev.clientY - offsetY, 0, window.innerHeight - 60);
+        setPos({ x: nx, y: ny });
+      }
+      function up() {
+        document.removeEventListener('mousemove', move);
+        document.removeEventListener('mouseup', up);
+        savePanelPos(storageKey, { x: nx, y: ny });
+      }
+      document.addEventListener('mousemove', move);
+      document.addEventListener('mouseup', up);
+    }
+    return h('div', {
+      ref: panelRef,
+      className: className,
+      [CFG.chromeAttr]: '',
+      style: { left: `${pos.x}px`, top: `${pos.y}px`, width: `${width || 480}px` },
+    },
+      h('div', { className: 'tweaker-floating-header', onMouseDown: onDragStart, title: 'Drag to move' },
+        h('i', { className: 'fa-solid fa-grip-lines tweaker-drag-handle', 'aria-hidden': 'true' }),
+        header,
+      ),
+      children,
     );
   }
 
