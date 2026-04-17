@@ -498,39 +498,21 @@
     const [scope, setScope] = useState('global');
     const [activeProperty, setActiveProperty] = useState(null);
     const panelRef = useRef(null);
-    const anchorRef = useRef(null);
 
-    // Anchor panel to the selected element via floating-ui.
-    useEffect(() => {
-      if (!selection || !panelRef.current || !LIBS.computePosition) return;
-      const virtualEl = {
-        getBoundingClientRect: () => selection.element.getBoundingClientRect(),
-        contextElement: selection.element,
-      };
-      anchorRef.current = virtualEl;
-      const cleanup = LIBS.autoUpdate(virtualEl, panelRef.current, () => {
-        LIBS.computePosition(virtualEl, panelRef.current, {
-          placement: 'right-start',
-          middleware: [LIBS.offset(12), LIBS.flip(), LIBS.shift({ padding: 12 })],
-        }).then(({ x, y }) => {
-          Object.assign(panelRef.current.style, { left: `${x}px`, top: `${y}px` });
-        });
-      });
-      return cleanup;
-    }, [selection]);
-
-    if (!selection) return null;
-    const tokens = selection.tokens || [];
+    // Panel is a persistent right-edge drawer — stays open for the entire
+    // Tweak Mode session regardless of which element (if any) is selected.
+    // It closes only via the X (which exits Tweak Mode) or Review & Save.
+    const tokens = (selection && selection.tokens) || [];
 
     return h('div', {
       ref: panelRef,
       className: 'tweaker-inspector',
       [CFG.chromeAttr]: '',
-      style: { position: 'fixed', top: 0, left: 0, zIndex: 9999999 },
     },
       h('div', { className: 'tweaker-inspector-header' },
-        h('span', { className: 'tweaker-inspector-selector' }, selection.selector || '(element)'),
-        h('button', { className: 'tweaker-x', onClick: onClose, 'aria-label': 'Close' }, '×'),
+        h('span', { className: 'tweaker-inspector-selector' },
+          selection && selection.selector ? selection.selector : 'Tweak — click any element'),
+        h('button', { className: 'tweaker-x', onClick: onClose, 'aria-label': 'Exit Tweak Mode', title: 'Exit Tweak Mode' }, '×'),
       ),
       h('div', { className: 'tweaker-scope-toggle' },
         h('button', {
@@ -711,16 +693,22 @@
     const [activeId, setActiveId] = useState('bg');
 
     // Resolve current values from the element's computed style + any token match.
-    const rows = useMemo(() => COLOR_PROPS.map((p) => {
-      const matched = tokens.find((t) => t.property === p.property);
-      const value = matched ? matched.value : getComputedStyle(selection.element)[p.property];
-      return { ...p, value: value || '', tokenName: matched ? matched.tokenName : null };
-    }), [selection.element, tokens]);
+    // When there's no selection, rows are empty — swatch grid still works for
+    // the user to preview-apply to the whole theme later (disabled state).
+    const rows = useMemo(() => {
+      if (!selection) return [];
+      return COLOR_PROPS.map((p) => {
+        const matched = tokens.find((t) => t.property === p.property);
+        const value = matched ? matched.value : getComputedStyle(selection.element)[p.property];
+        return { ...p, value: value || '', tokenName: matched ? matched.tokenName : null };
+      });
+    }, [selection, tokens]);
 
     const bgRow = rows.find((r) => r.id === 'bg');
     const textRow = rows.find((r) => r.id === 'text');
 
     function handleApply(hex, tokenHint) {
+      if (!selection) return;
       const row = rows.find((r) => r.id === activeId);
       if (!row) return;
       const useGlobal = scope === 'global' && row.tokenName;
@@ -741,10 +729,15 @@
     return h('div', { className: 'tweaker-tab-colors' },
       h(SwatchGrid, { onApply: handleApply }),
 
-      h('div', { className: 'tweaker-section' },
+      !selection && h('div', { className: 'tweaker-callout' },
+        h('i', { className: 'fa-solid fa-hand-pointer' }),
+        h('span', null, 'Click any element on the page to start editing its properties.'),
+      ),
+
+      selection && h('div', { className: 'tweaker-section' },
         h('div', { className: 'tweaker-section-head' },
           h('span', null, 'Properties'),
-          h('span', { className: 'tweaker-hint' }, `Active: ${rows.find((r) => r.id === activeId).label}`),
+          h('span', { className: 'tweaker-hint' }, `Active: ${(rows.find((r) => r.id === activeId) || {}).label || '—'}`),
         ),
         rows.map((row) => h(ColorRow, {
           key: row.id, row, active: activeId === row.id,
@@ -757,14 +750,14 @@
         }))
       ),
 
-      (bgRow && textRow) && h('div', { className: 'tweaker-section' },
+      selection && (bgRow && textRow) && h('div', { className: 'tweaker-section' },
         h('div', { className: 'tweaker-section-head' },
           h('span', null, 'Contrast (text vs background)'),
         ),
         h(ContrastChip, { fg: normalizeHex(textRow.value), bg: normalizeHex(bgRow.value) })
       ),
 
-      h('div', { className: 'tweaker-section' },
+      selection && h('div', { className: 'tweaker-section' },
         h('div', { className: 'tweaker-section-head' }, h('span', null, 'Opacity')),
         h(OpacityRow, { selection, onEdit, tokens })
       ),
@@ -857,6 +850,10 @@
   const WEIGHTS = [300, 400, 500, 600, 700, 800];
 
   function TypeTab({ selection, scope, tokens, onEdit }) {
+    if (!selection) return h('div', { className: 'tweaker-callout' },
+      h('i', { className: 'fa-solid fa-hand-pointer' }),
+      h('span', null, 'Click any text element on the page to edit its typography.'),
+    );
     const cs = getComputedStyle(selection.element);
     const fontSizePx = parseFloat(cs.fontSize) || 16;
     const [family, setFamily] = useState(cs.fontFamily || 'var(--font-sans)');
@@ -947,6 +944,10 @@
   // ──────────────────────────────────────────────────────────────────
 
   function BoxTab({ selection, scope, tokens, onEdit }) {
+    if (!selection) return h('div', { className: 'tweaker-callout' },
+      h('i', { className: 'fa-solid fa-hand-pointer' }),
+      h('span', null, 'Click any element on the page to edit its spacing, radius, and shadow.'),
+    );
     const cs = getComputedStyle(selection.element);
     const emit = (property, value) => onEdit({
       kind: 'scoped', scope: 'scoped',
@@ -1344,14 +1345,15 @@
       return () => pickerRef.current && pickerRef.current.stop();
     }, [active]);
 
-    // Keyboard: Cmd-Z / Cmd-Shift-Z / Escape.
+    // Keyboard: Cmd-Z / Cmd-Shift-Z only. Escape closes open modals but never
+    // the main Tweak panel — the panel is persistent and only exits via the X
+    // or a successful save.
     useEffect(() => {
       if (!active) return;
       function onKey(e) {
         if (e.key === 'Escape') {
           if (saveOpen) setSaveOpen(false);
           else if (reviewOpen) setReviewOpen(false);
-          else if (selection) setSelection(null);
         }
         const mod = e.metaKey || e.ctrlKey;
         if (mod && e.key.toLowerCase() === 'z') {
@@ -1361,7 +1363,7 @@
       }
       document.addEventListener('keydown', onKey);
       return () => document.removeEventListener('keydown', onKey);
-    }, [active, saveOpen, reviewOpen, selection, undoStack, redoStack]);
+    }, [active, saveOpen, reviewOpen, undoStack, redoStack]);
 
     function applyChange(change) {
       change.id = change.id || uuid();
@@ -1452,25 +1454,25 @@
       loadLibs().then(() => setActive(true));
     }
 
-    // Nav wrench button — prominently placed next to the theme switcher when
-    // a nav is present; floating top-right otherwise.
+    // Nav wrench button — always labeled "Tweak". Click toggles Tweak Mode.
+    // The is-on state indicates activation; the label stays stable.
     const navBtn = h('button', {
       className: 'tweaker-nav-btn' + (active ? ' is-on' : '') + (navMount ? '' : ' tweaker-nav-btn--floating'),
       [CFG.chromeAttr]: '',
       onClick: active ? deactivate : activate,
-      title: active ? 'Exit Tweak Mode (Esc)' : 'Enter Tweak Mode — edit the current theme',
+      title: active ? 'Tweak Mode is on — click to exit' : 'Enter Tweak Mode — edit the current theme',
       'aria-pressed': active ? 'true' : 'false',
     },
-      h('i', { className: 'fa-solid ' + (active ? 'fa-xmark' : 'fa-wrench'), 'aria-hidden': 'true' }),
-      h('span', { className: 'tweaker-nav-btn-label' }, active ? 'Exit' : 'Tweak'),
+      h('i', { className: 'fa-solid fa-wrench', 'aria-hidden': 'true' }),
+      h('span', { className: 'tweaker-nav-btn-label' }, 'Tweak'),
     );
 
     return h(React.Fragment, null,
       navMount ? ReactDOM.createPortal(navBtn, navMount) : navBtn,
       active && h(React.Fragment, null,
-        selection && h(Inspector, {
+        h(Inspector, {
           selection,
-          onClose: () => setSelection(null),
+          onClose: deactivate,
           onEdit,
           activeTheme: activeThemeRef.current,
           pendingChanges,
