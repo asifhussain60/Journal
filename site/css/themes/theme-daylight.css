@@ -1,0 +1,240 @@
+/* ═══════════════════════════════════════════════════
+   DAYLIGHT — light-theme demo
+   Shows that swapping the theme file reference in the
+   HTML is enough to restyle the whole app. Drop-in
+   replacement for themes/theme.css.
+
+   Swap this line in site/index.html / itinerary HTMLs:
+     <link rel="stylesheet" href="css/themes/theme.css">
+   to:
+     <link rel="stylesheet" href="css/themes/theme-daylight.css">
+   and reload. No other files change.
+   ═══════════════════════════════════════════════════ */
+
+:root {
+  /* ─── Surfaces ─── */
+  --bg: #F8F5EF;
+  --bg-2: #EFE8DB;
+  --bg-primary: #F8F5EF;
+  --bg-secondary: #EFE8DB;
+  --bg-tertiary: #E6DDCB;
+  --bg-card: rgba(255, 255, 255, 0.85);
+  --bg-card-hover: rgba(255, 255, 255, 0.95);
+  --bg-card-solid: #FFFFFF;
+
+  /* ─── Panels + lines ─── */
+  --panel: rgba(74, 58, 42, 0.06);
+  --panel-2: rgba(74, 58, 42, 0.10);
+  --line: rgba(74, 58, 42, 0.10);
+  --line-strong: rgba(74, 58, 42, 0.22);
+
+  /* ─── Text ─── */
+  --text: #2A2218;
+  --text-primary: #2A2218;
+  --text-secondary: #56493A;
+  --text-muted: #87796A;
+  --muted: #56493A;
+  --text-main: #2A2218;
+
+  /* ─── Borders ─── */
+  --border-default: rgba(74, 58, 42, 0.10);
+  --border-subtle: rgba(74, 58, 42, 0.05);
+  --border-accent: rgba(180, 100, 50, 0.35);
+
+  /* ─── Accent + palette (warm amber) ─── */
+  --accent-rgb: 180, 100, 50;
+  --accent: #B46432;
+  --accent-soft: rgba(180, 100, 50, 0.12);
+  --accent-hover: rgba(180, 100, 50, 0.22);
+  --rose: #C46A7A;
+  --rose-2: #D88494;
+  --blush: #F5DCE0;
+  --mauve: #8C6B9A;
+  --lavender: #A48DB2;
+  --gold: #C89B5E;
+  --wisteria: #A48DB2;
+
+  /* ─── Semantic ─── */
+  --success: #177A4A;
+  --warning: #C58B22;
+  --error: #B83A3A;
+  --info: #2D6AA8;
+
+  /* ─── Shadows ─── */
+  --shadow: 0 24px 64px rgba(74, 58, 42, 0.14);
+  --shadow-soft: 0 8px 32px rgba(74, 58, 42, 0.08);
+  --shadow-card: 0 4px 20px rgba(74, 58, 42, 0.06);
+  --shadow-sm: 0 1px 3px rgba(74, 58, 42, 0.10);
+  --shadow-md: 0 4px 12px rgba(74, 58, 42, 0.14);
+  --shadow-lg: 0 8px 32px rgba(74, 58, 42, 0.18);
+  --shadow-glow: 0 0 20px rgba(180, 100, 50, 0.15);
+
+  /* ─── Glass surfaces ─── */
+  --glass-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.55) 100%);
+  --glass-bg-hover: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.75) 100%);
+  --glass-border: rgba(255, 255, 255, 0.75);
+  --glass-border-light: rgba(255, 255, 255, 0.95);
+  --glass-shadow: 0 10px 40px rgba(74, 58, 42, 0.06);
+  --glass-shadow-hover: 0 16px 50px rgba(74, 58, 42, 0.10);
+
+  /* ─── Mesh blobs ─── */
+  --bg-mesh-1: rgba(200, 155, 94, 0.12);
+  --bg-mesh-2: rgba(196, 106, 122, 0.08);
+  --bg-mesh-3: rgba(164, 141, 178, 0.10);
+  --bg-mesh-4: rgba(224, 197, 146, 0.10);
+
+  /* ─── Radius scale ─── */
+  --radius-xl: 20px;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --radius-xs: 6px;
+
+  /* ─── Layout ─── */
+  --content: min(1320px, 100%);
+  --gutter: clamp(1.5rem, 4vw, 3rem);
+
+  /* ─── Fonts (unchanged — theme-level choice could differ) ─── */
+  --font-serif: 'Cormorant Garamond', 'Georgia', serif;
+  --font-sans: 'Nunito Sans', 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'DM Mono', monospace;
+  --font-script: 'Great Vibes', cursive;
+  --font-dance: 'Dancing Script', cursive;
+
+  /* ─── Mood palette (warm-inflected, light-optimized) ─── */
+  --mood-romantic-bg:     rgba(196, 106, 122, 0.18);
+  --mood-romantic-fg:     #8B3A4A;
+  --mood-adventure-bg:    rgba(23, 122, 74, 0.18);
+  --mood-adventure-fg:    #155D38;
+  --mood-cultural-bg:     rgba(197, 139, 34, 0.18);
+  --mood-cultural-fg:     #8C5E0E;
+  --mood-relaxed-bg:      rgba(140, 107, 154, 0.18);
+  --mood-relaxed-fg:      #5A3F6A;
+  --mood-celebration-bg:  rgba(200, 155, 94, 0.20);
+  --mood-celebration-fg:  #8A5E28;
+  --mood-bittersweet-bg:  rgba(107, 90, 122, 0.20);
+  --mood-bittersweet-fg:  #493960;
+  --mood-anticipation-bg: rgba(180, 100, 50, 0.18);
+  --mood-anticipation-fg: #8C3E18;
+  --mood-reflective-bg:   rgba(45, 106, 168, 0.18);
+  --mood-reflective-fg:   #1E4C7B;
+  --mood-spiritual-bg:    rgba(98, 128, 102, 0.20);
+  --mood-spiritual-fg:    #355A3C;
+  --mood-playful-bg:      rgba(210, 100, 140, 0.18);
+  --mood-playful-fg:      #8F2F54;
+
+  /* ─── Book-spine palette (warmer, lighter) ─── */
+  --book-ch00-bg: #C9B59E;  --book-ch00-border: #A69077;
+  --book-ch01-bg: #D9C1A8;  --book-ch01-border: #B39A80;
+  --book-ch02-bg: #BFA0B2;  --book-ch02-border: #9B7E90;
+  --book-ch03-bg: #D8B3A3;  --book-ch03-border: #B18F7F;
+  --book-ch04-bg: #A6B4C4;  --book-ch04-border: #7F8EA0;
+  --book-ch05-bg: #B5A1B8;  --book-ch05-border: #907B95;
+  --book-ch06-bg: #BBA998;  --book-ch06-border: #998775;
+  --book-ch07-bg: #C7A8B1;  --book-ch07-border: #A0858F;
+  --book-default-bg: #C4B5A3;  --book-default-border: #9E8F7C;
+
+  /* ─── Note-type palette ─── */
+  --note-edit-color:        var(--accent);
+  --note-reflection-color:  var(--gold);
+  --note-research-color:    #177A4A;
+  --note-continuity-color:  var(--rose);
+  --note-voice-color:       #2D6AA8;
+
+  /* ─── Alpha ramps ─── */
+  --white-04: rgba(42, 34, 24, 0.04);   /* "white" ramp recast as text-tint for light theme */
+  --white-05: rgba(42, 34, 24, 0.05);
+  --white-06: rgba(42, 34, 24, 0.06);
+  --white-08: rgba(42, 34, 24, 0.06);   /* slightly softer */
+  --white-10: rgba(42, 34, 24, 0.08);
+  --white-12: rgba(42, 34, 24, 0.10);
+  --white-14: rgba(42, 34, 24, 0.12);
+  --white-16: rgba(42, 34, 24, 0.14);
+  --white-18: rgba(42, 34, 24, 0.16);
+  --white-22: rgba(42, 34, 24, 0.22);
+  --white-24: rgba(42, 34, 24, 0.24);
+  --white-30: rgba(42, 34, 24, 0.30);
+  --white-40: rgba(42, 34, 24, 0.40);
+  --white-50: rgba(255, 255, 255, 0.50);
+  --white-60: rgba(255, 255, 255, 0.65);
+  --white-75: rgba(255, 255, 255, 0.80);
+  --white-90: rgba(255, 255, 255, 0.92);
+
+  --shadow-a10: rgba(74, 58, 42, 0.08);
+  --shadow-a16: rgba(74, 58, 42, 0.12);
+  --shadow-a18: rgba(74, 58, 42, 0.14);
+  --shadow-a22: rgba(74, 58, 42, 0.18);
+  --shadow-a30: rgba(74, 58, 42, 0.22);
+  --shadow-a35: rgba(74, 58, 42, 0.28);
+  --shadow-a50: rgba(74, 58, 42, 0.40);
+
+  --accent-a06: color-mix(in srgb, var(--accent) 6%, transparent);
+  --accent-a08: color-mix(in srgb, var(--accent) 8%, transparent);
+  --accent-a12: color-mix(in srgb, var(--accent) 12%, transparent);
+  --accent-a14: color-mix(in srgb, var(--accent) 14%, transparent);
+  --accent-a15: color-mix(in srgb, var(--accent) 15%, transparent);
+  --accent-a18: color-mix(in srgb, var(--accent) 18%, transparent);
+  --accent-a20: color-mix(in srgb, var(--accent) 20%, transparent);
+  --accent-a25: color-mix(in srgb, var(--accent) 25%, transparent);
+  --accent-a30: color-mix(in srgb, var(--accent) 30%, transparent);
+  --accent-a35: color-mix(in srgb, var(--accent) 35%, transparent);
+
+  --rose-a06: color-mix(in srgb, var(--rose) 6%, transparent);
+  --rose-a08: color-mix(in srgb, var(--rose) 8%, transparent);
+  --rose-a10: color-mix(in srgb, var(--rose) 10%, transparent);
+  --rose-a14: color-mix(in srgb, var(--rose) 14%, transparent);
+  --rose-a15: color-mix(in srgb, var(--rose) 15%, transparent);
+  --rose-a18: color-mix(in srgb, var(--rose) 18%, transparent);
+
+  --gold-a06: color-mix(in srgb, var(--gold) 6%, transparent);
+  --gold-a08: color-mix(in srgb, var(--gold) 8%, transparent);
+  --gold-a14: color-mix(in srgb, var(--gold) 14%, transparent);
+  --gold-a18: color-mix(in srgb, var(--gold) 18%, transparent);
+}
+
+/* ─── Body ambience — light, warm paper ─── */
+body {
+  background:
+    radial-gradient(circle at 10% 10%, rgba(196, 106, 122, 0.06), transparent 25%),
+    radial-gradient(circle at 90% 12%, rgba(164, 141, 178, 0.05), transparent 28%),
+    radial-gradient(circle at 50% 100%, rgba(200, 155, 94, 0.04), transparent 25%),
+    linear-gradient(180deg, #FBF8F2 0%, #F4EEDF 40%, #EFE6D2 100%);
+  color: var(--text);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+}
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: auto;
+  pointer-events: none;
+  z-index: -2;
+  filter: blur(70px);
+  opacity: 0.30;
+}
+body::before {
+  width: 34rem; height: 34rem;
+  left: -10rem; top: 8rem;
+  background: radial-gradient(circle, rgba(196, 106, 122, 0.18), transparent 70%);
+  animation: driftOne 18s ease-in-out infinite alternate;
+}
+body::after {
+  width: 30rem; height: 30rem;
+  right: -8rem; top: 18rem;
+  background: radial-gradient(circle, rgba(164, 141, 178, 0.14), transparent 72%);
+  animation: driftTwo 24s ease-in-out infinite alternate;
+}
+
+@keyframes driftOne {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(5rem, -2rem, 0) scale(1.12); }
+}
+@keyframes driftTwo {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(-6rem, 3rem, 0) scale(1.08); }
+}

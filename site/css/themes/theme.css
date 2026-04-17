@@ -1,15 +1,28 @@
 /* ═══════════════════════════════════════════════════
-   JOURNAL THEME — Rose & Mauve Night
-   THE single visual theme for the journal. Every color,
-   font, radius, shadow, and layout token lives here.
-   Edit these values to restyle the entire app — all
-   component files (base.css, app.css, itinerary.css,
-   floating-chat.css, ai-drawer.css) consume tokens
-   via var().
+   JOURNAL THEME — Rose & Mauve Night (default)
+   THE single visual theme reference for the journal.
+   Every color, font, radius, shadow, mood, alpha ramp,
+   and layout token lives here; all component files
+   (base.css, app.css, itinerary.css, floating-chat.css,
+   ai-drawer.css) consume tokens via var().
 
-   If a second theme is ever needed, convert this :root
-   block to [data-theme="…"] and add a sibling scoped
-   block; the HTML layer has no theme-specific markup.
+   ─── Creating additional themes ───
+   Copy this file, rename (e.g. themes/theme-xxx.css),
+   edit the token values. Alternate theme already shipped
+   as a worked example: themes/theme-daylight.css (warm
+   light).
+
+   ─── Swapping themes ───
+   Each HTML view links exactly one theme file. To change
+   the active theme, edit the <link rel="stylesheet"> tag:
+
+     <link rel="stylesheet" href="css/themes/theme.css">
+     <link rel="stylesheet" href="css/themes/theme-daylight.css">
+
+   No other markup or component CSS changes. All active
+   views (site/index.html, site/itineraries/*.html,
+   trips/*/itinerary.html) must point at the same theme
+   if you want the site visually consistent.
    ═══════════════════════════════════════════════════ */
 
 :root {
