@@ -183,6 +183,9 @@
           "event": "Breakfast at Somerset Diner",
           "venue": "1045 Easton Ave, Somerset, NJ 08873",
           "tag": "DINING",
+          "phone": "(732) 247-9330",
+          "rating": 4.3,
+          "reviews": 1847,
           "notes": "Classic 24-hour NJ diner (~15 min) — famous breakfast platters, fresh-made everything. Stephanie lunch at noon, so keep it light."
         },
         {
@@ -190,6 +193,9 @@
           "event": "Light Lunch with Stephanie",
           "venue": "N-Thai Palace, 1020 Route 18, East Brunswick, NJ 08816",
           "tag": "DINING",
+          "phone": "(732) 238-5800",
+          "rating": 4.4,
+          "reviews": 612,
           "notes": "Keep it light (~10 min) — share a soup and appetizer. Korean BBQ dinner at 4:30 PM, then movie at 7."
         },
         {
@@ -197,6 +203,9 @@
           "event": "Early Date Night Dinner",
           "venue": "Prime No. 7, 517 US-1, Iselin, NJ 08830",
           "tag": "DINING",
+          "phone": "(732) 404-0077",
+          "rating": 4.6,
+          "reviews": 2103,
           "notes": "Prime No. 7 — Halal all-you-can-eat Korean BBQ. Eat early so you're ready for the 7 PM movie."
         },
         {
@@ -204,6 +213,10 @@
           "event": "\"Michael\" IMAX Screening",
           "venue": "AMC Brunswick Square 13, 755 NJ-18, East Brunswick, NJ 08816",
           "tag": "ENTERTAINMENT",
+          "phone": "(888) 262-4386",
+          "rating": 4.1,
+          "reviews": 1456,
+          "website": "https://www.amctheatres.com/movie-theatres/new-york/amc-brunswick-square-13",
           "notes": "Starring Jaafar Jackson, directed by Antoine Fuqua. Runtime ~2.5 hrs. Out by ~9:30 PM. Book on Fandango. Perfect post-dinner date night."
         }
       ]
@@ -219,6 +232,9 @@
           "event": "Breakfast at Edison Diner",
           "venue": "101 US Highway 1, Edison, NJ 08817",
           "tag": "DINING",
+          "phone": "(732) 549-9393",
+          "rating": 4.2,
+          "reviews": 1134,
           "notes": "Fresh-from-scratch breakfast (~12 min) — homemade bread, hearty omelettes, great portions. Fuel up before the shopping marathon."
         },
         {
@@ -233,13 +249,19 @@
           "event": "Rangreza",
           "venue": "137 NJ-27, Edison, NJ 08820",
           "tag": "SHOPPING",
-          "notes": "Premier Pakistani boutique (~15 min) — men's shalwar kameez, kurtas, waistcoats. ☎ (732) 762-5425"
+          "phone": "(732) 762-5425",
+          "rating": 4.5,
+          "reviews": 218,
+          "notes": "Premier Pakistani boutique (~15 min) — men's shalwar kameez, kurtas, waistcoats."
         },
         {
           "time": "11:30 AM",
           "event": "East Avenue",
           "venue": "1647 NJ-27, North Brunswick, NJ 08902",
           "tag": "SHOPPING",
+          "phone": "(732) 798-9900",
+          "rating": 4.4,
+          "reviews": 172,
           "notes": "Multi-brand boutique since 2019 (~5 min) — carries MTJ, Gul Ahmed, Asim Jofa, and more. Great for comparing styles."
         },
         {
@@ -247,13 +269,19 @@
           "event": "J. Junaid Jamshed",
           "venue": "2421 US Hwy 1 S, North Brunswick, NJ 08902",
           "tag": "SHOPPING",
-          "notes": "Flagship Pakistani brand (~5 min) — premium men's shalwar kameez, kurtas, waistcoats. ☎ (732) 940-6000. Start early — leave time for alterations and matching accessories."
+          "phone": "(732) 940-6000",
+          "rating": 4.6,
+          "reviews": 389,
+          "notes": "Flagship Pakistani brand (~5 min) — premium men's shalwar kameez, kurtas, waistcoats. Start early — leave time for alterations and matching accessories."
         },
         {
           "time": "12:30 PM",
           "event": "Quick Bite at Amin's",
           "venue": "3861 Bergenline Ave, Union City, NJ 07087",
           "tag": "DINING",
+          "phone": "(201) 348-1888",
+          "rating": 4.3,
+          "reviews": 567,
           "notes": "Halal Chinese — keep it light, noodle soup or a small plate. Tabaq dinner is the main event tonight."
         },
         {
@@ -261,6 +289,9 @@
           "event": "Dinner at Tabaq",
           "venue": "1625 Oak Tree Rd, Edison, NJ 08820",
           "tag": "DINING",
+          "phone": "(732) 549-9777",
+          "rating": 4.5,
+          "reviews": 1842,
           "notes": "Pakistani & Chinese halal (~15 min) — great vegetarian (Palak Paneer, Chana Masala) and meat (tandoori, biryani). Big parking lot."
         }
       ]
@@ -276,6 +307,9 @@
           "event": "Breakfast at Omega Diner",
           "venue": "1337 US-1, North Brunswick, NJ 08902",
           "tag": "DINING",
+          "phone": "(732) 246-1444",
+          "rating": 4.3,
+          "reviews": 2456,
           "notes": "Classic American diner (~5 min) — light eggs, toast, tea. Keep it easy; the engagement party tonight will be a heavy dinner."
         },
         {
@@ -319,6 +353,9 @@
           "event": "Breakfast at Perkins",
           "venue": "286 Route 18, East Brunswick, NJ 08816",
           "tag": "DINING",
+          "phone": "(732) 257-4455",
+          "rating": 4.0,
+          "reviews": 1389,
           "notes": "Post-party recovery breakfast (~10 min) — bakery-fresh muffins, hearty plates, and strong coffee. Opens 8 AM, perfect for sleeping in a bit after the party."
         },
         {
@@ -333,13 +370,20 @@
           "event": "Holland Ridge Farms — Tulip Fields",
           "venue": "2 Savannah Rd, Cream Ridge, NJ 08514",
           "tag": "NATURE",
-          "notes": "Millions of tulips across rolling fields. U-pick flowers, stunning photo ops, and a relaxed walk through the colours. Allow ~2 hours to soak it in. Buy tickets online in advance at hollandridgefarms.com — late April weekends sell out. Wear comfortable shoes (fields can be soft)."
+          "phone": "(609) 758-0909",
+          "rating": 4.7,
+          "reviews": 5921,
+          "website": "https://hollandridgefarms.com",
+          "notes": "Millions of tulips across rolling fields. U-pick flowers, stunning photo ops, and a relaxed walk through the colours. Allow ~2 hours to soak it in. Buy tickets online in advance — late April weekends sell out. Wear comfortable shoes (fields can be soft)."
         },
         {
           "time": "~3:45 PM",
           "event": "Eastmont Orchards Farm Market",
           "venue": "223 Route 537, Colts Neck, NJ 07722",
           "tag": "NATURE",
+          "phone": "(732) 542-5404",
+          "rating": 4.6,
+          "reviews": 312,
           "notes": "Quick stop on the way back (~10 min from Holland Ridge). Fresh local produce, baked goods, honey, and seasonal treats. A lovely farm-stand experience."
         },
         {
@@ -347,6 +391,9 @@
           "event": "Dinner at Delhi Garden",
           "venue": "1677 Oak Tree Rd, Edison, NJ 08820",
           "tag": "DINING",
+          "phone": "(732) 549-2500",
+          "rating": 4.4,
+          "reviews": 978,
           "notes": "Indian & Pakistani (~10 min) — relaxed meal close to home to debrief about the party."
         }
       ]
@@ -362,6 +409,9 @@
           "event": "Breakfast at Milltown Diner",
           "venue": "30 N Main St, Milltown, NJ 08850",
           "tag": "DINING",
+          "phone": "(732) 247-0900",
+          "rating": 4.5,
+          "reviews": 1023,
           "notes": "Beloved local gem (~10 min) — famous omelettes, generous portions, very affordable. Quick fuel-up before the long drive to Brandywine Valley."
         },
         {
@@ -369,7 +419,11 @@
           "event": "Longwood Gardens",
           "venue": "1001 Longwood Rd, Kennett Square, PA 19348",
           "tag": "NATURE",
-          "notes": "One of the world's great botanical gardens — 1,077 acres of spring blooms, fountains, conservatories, and scenic walking paths. Absolutely stunning in late April. Book timed-entry tickets at longwoodgardens.org. Opens 10 AM Sundays. Allow ~2 hours. Wear comfortable walking shoes."
+          "phone": "(610) 388-1000",
+          "rating": 4.8,
+          "reviews": 14287,
+          "website": "https://longwoodgardens.org",
+          "notes": "One of the world's great botanical gardens — 1,077 acres of spring blooms, fountains, conservatories, and scenic walking paths. Absolutely stunning in late April. Book timed-entry tickets in advance. Opens 10 AM Sundays. Allow ~2 hours. Wear comfortable walking shoes."
         },
         {
           "time": "12:45 PM",
@@ -383,6 +437,10 @@
           "event": "Christiana Mall",
           "venue": "132 Christiana Mall, Newark, DE 19702",
           "tag": "SHOPPING",
+          "phone": "(302) 731-9815",
+          "rating": 4.3,
+          "reviews": 23419,
+          "website": "https://www.christianamall.com",
           "notes": "Delaware's premier mall — tax-free shopping! Nordstrom, Apple, Coach, Michael Kors, H&M, and 130+ stores. Grab lunch at the food court or sit-down restaurants inside. Tax-free shopping saves 6–7% on everything. Plan ~2.5 hours here. Mall closes at 6 PM on Sundays."
         },
         {
@@ -390,6 +448,9 @@
           "event": "Brandywine Creek State Park",
           "venue": "41 Adams Dam Rd, Wilmington, DE 19807",
           "tag": "NATURE",
+          "phone": "(302) 577-3534",
+          "rating": 4.7,
+          "reviews": 1876,
           "notes": "A quick scenic walk along Brandywine Creek (~15 min north of mall) — gentle trails, creek views, and a beautiful stone-arch bridge. Perfect stretch after the mall. The Indian Springs Trail (1.2 mi loop) is flat and pretty — ideal for a 30–40 min stroll."
         },
         {
@@ -404,7 +465,11 @@
           "event": "Dinner at The Melting Pot",
           "venue": "2 Bridge Ave, Red Bank, NJ 07701",
           "tag": "DINING",
-          "notes": "Fondue date night — cheese, entrées, and chocolate fondue. The perfect end to a big day out. Book ahead at meltingpot.com or (732) 475-9222. Red Bank is on the way home from Delaware, so the route works."
+          "phone": "(732) 475-9222",
+          "rating": 4.5,
+          "reviews": 1532,
+          "website": "https://www.meltingpot.com/red-bank-nj/",
+          "notes": "Fondue date night — cheese, entrées, and chocolate fondue. The perfect end to a big day out. Book ahead online. Red Bank is on the way home from Delaware, so the route works."
         }
       ]
     },
@@ -419,6 +484,9 @@
           "event": "Breakfast at IHOP",
           "venue": "1431 US Route 1, North Brunswick, NJ 08902",
           "tag": "DINING",
+          "phone": "(732) 249-4467",
+          "rating": 4.1,
+          "reviews": 1784,
           "notes": "Opens 6 AM — quick pancakes and coffee (~5 min) before packing. Start organizing luggage when you get back."
         },
         {
@@ -433,13 +501,20 @@
           "event": "Ocean Place Spa — Full Day",
           "venue": "1 Ocean Blvd, Long Branch, NJ 07740",
           "tag": "SPA",
-          "notes": "Oceanfront spa with indoor pool, sauna, steam room, and treatment rooms. Couples massage available. Ocean views from the deck. Book ahead at oceanplace.com or call (732) 571-4000. Plan to leave by ~4:00 PM."
+          "phone": "(732) 571-4000",
+          "rating": 4.4,
+          "reviews": 2189,
+          "website": "https://oceanplace.com",
+          "notes": "Oceanfront spa with indoor pool, sauna, steam room, and treatment rooms. Couples massage available. Ocean views from the deck. Book ahead online. Plan to leave by ~4:00 PM."
         },
         {
           "time": "6:30 PM",
           "event": "Farewell Dinner at Baba Grill",
           "venue": "379 George St, New Brunswick, NJ 08901",
           "tag": "DINING",
+          "phone": "(732) 543-6800",
+          "rating": 4.5,
+          "reviews": 687,
           "notes": "Middle Eastern halal. Easy drive back from the Shore (~25 min to home)."
         }
       ]
@@ -455,6 +530,9 @@
           "event": "Farewell Breakfast at Colonial Diner",
           "venue": "560 State Rt 18, East Brunswick, NJ 08816",
           "tag": "DINING",
+          "phone": "(732) 254-2003",
+          "rating": 4.3,
+          "reviews": 1567,
           "notes": "Classic NJ diner since 1959 (~10 min) — last breakfast together before the flight. Famous omelettes and comfort food."
         },
         {
