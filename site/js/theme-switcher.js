@@ -128,14 +128,19 @@
     const link = document.getElementById(LINK_ID);
     if (!link) {
       console.warn('[ThemeSwitcher] No <link id="' + LINK_ID + '"> on page — cannot swap theme.');
+      if (window.notify) window.notify.error('Could not switch theme', { description: 'This page has no theme stylesheet to swap.' });
       return;
     }
+    const previousId = document.documentElement.getAttribute('data-active-theme');
     link.setAttribute('href', resolveThemePath(theme.file));
     localStorage.setItem(STORAGE_KEY, theme.id);
     document.documentElement.setAttribute('data-active-theme', theme.id);
     // Re-render all mounted switchers
     document.querySelectorAll('[data-theme-switcher]').forEach(renderInto);
     window.dispatchEvent(new CustomEvent('theme:changed', { detail: { theme } }));
+    if (previousId !== theme.id && window.notify) {
+      window.notify.success('Theme: ' + theme.name, { description: theme.description });
+    }
   }
 
   // ─── Grouping ──────────────────────────────────────────────

@@ -272,7 +272,7 @@ The app uses a light lavender theme (`body.theme-lavender`). All colors are defi
 
 ### DayOne Integration
 - Entries are created/edited in this app, then **manually copied** to DayOne via clipboard
-- `DayOnePreview` uses `useToast()` + `navigator.clipboard.writeText(...)` directly; the standalone `copyToClipboard(text)` utility was removed in Phase 2 in favor of context-driven toasts
+- `DayOnePreview` calls `copyToClipboard(text)`, which writes via `navigator.clipboard` and then fires `window.notify.success(...)` / `window.notify.error(...)` (Sonner — see §8.4)
 - DayOne Preview component shows formatted preview with journal name, tags, mood badge
 - DayOne CLI path: `/Applications/Day One.app/Contents/MacOS/dayone` (for future automation)
 - Journal names use **curly apostrophes** (Unicode U+2019): `Ishrat\u2019s Visits`
@@ -334,12 +334,12 @@ Asif's journal voice is: first-person, present-tense feeling with past-tense nar
 
 | Component | Purpose | Key Props/State |
 |-----------|---------|-----------------|
-| `App` | Root (wrapped in `<ToastProvider>`), nav, routing, Cmd-K palette | `page`, `activeChapter`, `readProgress`, `paletteOpen` |
+| `App` | Root, nav, routing, Cmd-K palette. Toasts are emitted via `window.notify` (Sonner — see §8.4) rather than a React provider | `page`, `activeChapter`, `readProgress`, `paletteOpen` |
 | `HomePage` | Dashboard + hero banner | `trips`, `onNavigate` |
 | `ActiveTripHero` | Trip countdown/live banner (keyboard-activatable) | `trips`, `onNavigate` |
 | `MemoirModule` | Chapters / incidents / quotes | `tab`, `searchQuery` |
 | `DayOneModule` | Entry browser / editor / new entry | `subTab`, `selectedTrip`, `selectedEntry`, new-entry form state |
-| `DayOnePreview` | Formatted DayOne entry preview (copy-to-clipboard uses `useToast`) | `entry`, `selectedJournal` |
+| `DayOnePreview` | Formatted DayOne entry preview (copy-to-clipboard fires `window.notify.success/error`) | `entry`, `selectedJournal` |
 | `ChapterReader` | Memoir chapter reader with TOC, notes, bookmarks | Reader prefs via `useLocalStoragePrefs('reader', …)`; notes, bookmarks |
 | `ScrollToTop` | Floating scroll-to-top with progress ring | `progress` |
 
@@ -378,7 +378,7 @@ Defined at the top of the `<script type="text/babel">` block in `site/index.html
 |----------|---------|
 | `Modal` | React portal, backdrop click to close, Esc to close, focus trap, body-scroll lock, focus restore on unmount. Sizes: sm / md / lg / xl |
 | `ConfirmDialog` | Wraps `Modal`; `destructive` flag switches confirm button to destructive variant + warning icon. Replaces `window.confirm()` and silent deletes |
-| `ToastProvider` | Context provider with `aria-live="polite"` container. `variant`: success / warning / error / info. Also exposes `window.__appToast.show(msg, variant)` so the independent `voice-refiner.jsx` React root uses the same single implementation |
+| Notifications (Sonner) | `site/js/toast.js` mounts a single Sonner `<Toaster />` into `#notify-root` and exposes `window.notify.{success,error,warning,info,message,promise,dismiss}`. Themed via `site/css/toast.css`. Used by the main SPA, `voice-refiner.jsx`, `floating-chat.js`, `theme-switcher.js`, and `tweaker.js` — one implementation, every page |
 | `CommandPalette` | Cmd-K / Ctrl-K shell. Fuzzy filter, arrow-key navigation, Enter to run, Esc to close. Phase 2 ships with an empty command list — Phase 3 registers commands |
 
 ### 8.5 State Hooks (Phase 2)
@@ -389,7 +389,7 @@ Defined at the top of the `<script type="text/babel">` block in `site/index.html
 | `useLocalStoragePrefs(key, defaults)` | `[prefs, setPrefs]` | Rehydrates on mount, persists on every change. Used in `ChapterReader` to replace the 5 separate `rp_*` `useEffect` hooks (`fontScale`, `fontFamily`, `readingTheme`, `lineSpacing`, `contentWidth`) with a single `reader` key |
 | `useActiveTrip()` | `{ trip, loading, error }` | Wraps `fetch('data/manifest.json')` and returns `manifest.active` (or null) |
 | `useCommandPalette()` | `{ open, setOpen }` | Binds global Cmd-K / Ctrl-K |
-| `useToast()` | `{ show, dismiss }` | Must be used inside `<ToastProvider>`; throws otherwise |
+| _(no toast hook)_ | — | Notifications are fired imperatively via `window.notify.*` (Sonner) — see §8.4. Works in React components and in vanilla DOM callers alike |
 
 ### 8.6 Design Tokens (Phase 2)
 

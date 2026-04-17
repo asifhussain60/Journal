@@ -25,6 +25,7 @@
   <link rel="stylesheet" href="css/app.css">
   <link rel="stylesheet" href="css/theme-switcher.css">
   <link rel="stylesheet" href="css/ai-drawer.css">
+  <link rel="stylesheet" href="css/toast.css">
 </head>
 <body>
 
@@ -36,17 +37,22 @@
   <script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone@7.29.2/babel.min.js"></script>
 
-  <!-- Import map: lets ESM modules (e.g. react-colorful) share the single
-       window.React instance loaded above. Without this, esm.sh bundles its
-       own React and hooks crash with a null-dispatcher error. -->
+  <!-- Import map: lets ESM modules (e.g. react-colorful, sonner) share the
+       single window.React instance loaded above. Without this, esm.sh bundles
+       its own React and hooks crash with a null-dispatcher error. Sonner is
+       pulled with ?external=react,react-dom so it too resolves to window.React. -->
   <script type="importmap">
   {
     "imports": {
       "react": "data:text/javascript;charset=utf-8,const R=window.React;export default R;export const {useState,useEffect,useRef,useMemo,useCallback,useReducer,useLayoutEffect,useContext,createElement,Fragment,forwardRef,memo,Children,cloneElement,createContext,isValidElement,useImperativeHandle,useDebugValue}=R;",
-      "react-dom": "data:text/javascript;charset=utf-8,const R=window.ReactDOM;export default R;export const {createRoot,hydrateRoot,findDOMNode,createPortal,render,unmountComponentAtNode,flushSync,unstable_batchedUpdates}=R;"
+      "react-dom": "data:text/javascript;charset=utf-8,const R=window.ReactDOM;export default R;export const {createRoot,hydrateRoot,findDOMNode,createPortal,render,unmountComponentAtNode,flushSync,unstable_batchedUpdates}=R;",
+      "sonner": "https://esm.sh/sonner@1.7.4?external=react,react-dom"
     }
   }
   </script>
+
+  <!-- Shared notification layer (Sonner). Mounts once, exposes window.notify. -->
+  <script src="js/toast.js"></script>
 
   <script type="text/babel">
     const { useState, useEffect, useRef, useCallback, useMemo } = React;
@@ -143,16 +149,19 @@
       return <i className={`fa-solid ${name} ${sizeClass}`.trim()}></i>;
     }
 
-    function showToast(message) {
-      const toast = document.createElement('div');
-      toast.className = 'toast';
-      toast.textContent = message;
-      document.body.appendChild(toast);
-      setTimeout(() => toast.remove(), 3000);
+    // Thin alias so any lingering legacy caller still works; the canonical
+    // notification API is window.notify (site/js/toast.js, Sonner-backed).
+    function showToast(message, kind) {
+      const n = window.notify;
+      if (n && typeof n[kind || 'message'] === 'function') return n[kind || 'message'](message);
+      if (n && typeof n.message === 'function') return n.message(message);
+      console.log('[TOAST]', message);
     }
 
     function copyToClipboard(text) {
-      navigator.clipboard.writeText(text).then(() => showToast('Copied to DayOne clipboard'));
+      navigator.clipboard.writeText(text)
+        .then(() => window.notify.success('Copied to DayOne clipboard'))
+        .catch((e) => window.notify.error('Copy failed', { description: e && e.message }));
     }
 
     function formatDate(iso) {
@@ -667,7 +676,10 @@
         fetch(chapter.file)
           .then(r => r.ok ? r.text() : Promise.reject('Not found'))
           .then(text => { setContent(text); setLoading(false); })
-          .catch(() => { setContent(null); setLoading(false); });
+          .catch((e) => {
+            setContent(null); setLoading(false);
+            if (window.notify) window.notify.error('Could not load chapter', { description: 'Try again or pick another chapter.' });
+          });
       }, [chapter.id]);
 
       // Persist bookmarks
@@ -795,12 +807,23 @@
       }
 
       function toggleBookmark(paraIdx) {
-        setBookmarks(prev => prev.includes(paraIdx) ? prev.filter(b => b !== paraIdx) : [...prev, paraIdx].sort((a,b) => a - b));
+        setBookmarks(prev => {
+          const exists = prev.includes(paraIdx);
+          if (window.notify) {
+            exists
+              ? window.notify.message('Bookmark removed')
+              : window.notify.success('Bookmark added');
+          }
+          return exists ? prev.filter(b => b !== paraIdx) : [...prev, paraIdx].sort((a,b) => a - b);
+        });
       }
 
       function bookmarkCurrentParagraph() {
         if (!bookmarks.includes(currentParaIdx)) {
           setBookmarks(prev => [...prev, currentParaIdx].sort((a,b) => a - b));
+          if (window.notify) window.notify.success('Bookmark added', { description: getParaPreview(currentParaIdx) });
+        } else if (window.notify) {
+          window.notify.info('Already bookmarked here');
         }
       }
 
@@ -824,10 +847,12 @@
         };
         setNotes(prev => [...prev, note]);
         setNoteText('');
+        if (window.notify) window.notify.success('Note saved', { description: (NOTE_TYPES[noteType] && NOTE_TYPES[noteType].label) + ' · ' + note.paraPreview });
       }
 
       function removeNote(noteId) {
         setNotes(prev => prev.filter(n => n.id !== noteId));
+        if (window.notify) window.notify.message('Note deleted');
       }
 
       // Map paragraph index → notes at that paragraph
@@ -1260,15 +1285,25 @@
     // =================================================================
 
     const budgetStatus = pct => pct >= 90 ? 'danger' : pct >= 75 ? 'warn' : 'ok';
+    let __budgetErrorNotified = false;
     const fetchSummary = () => {
       console.log('[API:REQ]', 'http://localhost:3001/api/usage/summary');
       return fetch('http://localhost:3001/api/usage/summary')
         .then(r => {
           console.log('[API:RES]', 'http://localhost:3001/api/usage/summary', r.status);
-          return r.ok ? r.json() : null;
+          if (r.ok) { __budgetErrorNotified = false; return r.json(); }
+          if (!__budgetErrorNotified && window.notify) {
+            window.notify.warning('Budget unavailable', { description: 'Server returned ' + r.status });
+            __budgetErrorNotified = true;
+          }
+          return null;
         })
         .catch(err => {
           console.error('[API:ERR]', 'http://localhost:3001/api/usage/summary', err);
+          if (!__budgetErrorNotified && window.notify) {
+            window.notify.warning('Budget unavailable', { description: 'Cowork server is offline.' });
+            __budgetErrorNotified = true;
+          }
           return null;
         });
     };

@@ -271,6 +271,7 @@
       if (!window.BabuAI || !window.BabuAI.tripQA) {
         console.log('[CHAT:ERR] BabuAI.tripQA not available');
         this.addMessage('Trip assistant API not available', 'error');
+        if (window.notify) window.notify.error('Trip assistant unavailable', { description: 'Check that the cowork server is running.' });
         return;
       }
 
@@ -292,6 +293,7 @@
 
           console.log('[CHAT:ERR]', { message, error: error.message });
           this.addMessage(`Error: ${error.message}`, 'error', true);
+          if (window.notify) window.notify.error('Trip assistant failed', { description: error.message });
         });
 
       console.log('[CHAT:REQ]', { message, intent: 'qa', tripContext: this.tripContext });
@@ -304,6 +306,7 @@
       if (!window.BabuAI || !window.BabuAI.tripEdit) {
         console.log('[CHAT:ERR] BabuAI.tripEdit not available');
         this.addMessage('Edit API not available', 'error');
+        if (window.notify) window.notify.error('Edit API unavailable', { description: 'Check that the cowork server is running.' });
         return;
       }
 
@@ -323,6 +326,7 @@
             }, () => {
               console.log('[CHAT:EDIT] Discarded', { message, summary });
               this.addMessage('Edit discarded', 'system');
+              if (window.notify) window.notify.message('Edit discarded');
             });
           } else {
             // intent=qa or intent=unknown or no patch — just surface the
@@ -339,6 +343,7 @@
 
           console.log('[CHAT:ERR]', { message, error: error.message });
           this.addMessage(`Error: ${error.message}`, 'error', true);
+          if (window.notify) window.notify.error('Edit preview failed', { description: error.message });
         });
 
       console.log('[CHAT:REQ]', { message, intent: 'edit', tripContext: this.tripContext });
@@ -357,15 +362,21 @@
           // SPA refresh — re-fetch trip + re-render timeline in place.
           // No page reload: the chat stays open and the user sees the edit
           // animate into the itinerary.
+          const desc = (proposal && proposal.summary) || message;
           if (typeof window.__refreshItinerary === 'function') {
             window.__refreshItinerary()
-              .then(() => this.addMessage('Edit applied.', 'system'))
+              .then(() => {
+                this.addMessage('Edit applied.', 'system');
+                if (window.notify) window.notify.success('Edit applied', { description: desc });
+              })
               .catch((err) => {
                 console.log('[CHAT:ERR] refresh failed', err);
                 this.addMessage('Edit applied (refresh failed — reload manually).', 'system');
+                if (window.notify) window.notify.warning('Edit applied — refresh failed', { description: 'Reload the page to see the change.' });
               });
           } else {
             this.addMessage('Edit applied.', 'system');
+            if (window.notify) window.notify.success('Edit applied', { description: desc });
           }
         })
         .catch(error => {
@@ -374,6 +385,7 @@
 
           console.log('[CHAT:ERR]', { message, error: error.message });
           this.addMessage(`Error: ${error.message}`, 'error', true);
+          if (window.notify) window.notify.error('Edit failed to apply', { description: error.message });
         });
     },
 

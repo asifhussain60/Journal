@@ -27,13 +27,15 @@
     );
   }
 
-  // ---- shared toast (delegated to the main app's ToastProvider) -----------
-  // The main #root tree renders <ToastProvider> which exposes window.__appToast.
-  // We call into it so the repo has a single toast implementation.
+  // ---- shared toast (delegated to window.notify / Sonner) -----------------
+  // The single source of truth lives in site/js/toast.js — it mounts a Sonner
+  // <Toaster /> once per page and exposes success/error/info/warning/message.
   function toast(msg, variant) {
-    if (window.__appToast && typeof window.__appToast.show === "function") {
-      window.__appToast.show(msg, variant || "info");
-    }
+    const v = variant || "info";
+    const n = window.notify;
+    if (n && typeof n[v] === "function") return n[v](msg);
+    if (n && typeof n.message === "function") return n.message(msg);
+    console.log("[TOAST]", v, msg);
   }
 
   // ---- main drawer component ----------------------------------------------
@@ -57,7 +59,9 @@
         setUsage(r.usage || null);
         toast("Refined", "success");
       } catch (err) {
-        setError(err.message || String(err));
+        const msg = err.message || String(err);
+        setError(msg);
+        toast("Refine failed: " + msg, "error");
       } finally {
         setBusy(false);
       }

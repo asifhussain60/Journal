@@ -645,45 +645,7 @@ select.input-field {
   box-shadow: 0 4px 15px var(--accent-a12);
 }
 
-/* ═══ TOAST ═══ */
-.toast-container {
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  z-index: 1100;
-  pointer-events: none;
-}
-.toast {
-  position: static;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.75rem;
-  background: linear-gradient(135deg, rgba(56,46,68,.96), rgba(46,38,58,.96));
-  color: var(--text);
-  padding: 0.85rem 1.4rem;
-  border-radius: var(--radius-md);
-  font-family: var(--font-sans);
-  font-size: 0.95rem;
-  font-weight: 500;
-  border: 1px solid var(--white-14);
-  box-shadow: 0 10px 30px rgba(0,0,0,.25);
-  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  pointer-events: auto;
-  cursor: pointer;
-  max-width: 360px;
-}
-.toast-success { border-left: 3px solid var(--state-success); }
-.toast-success .fa-solid { color: var(--state-success); }
-.toast-error   { border-left: 3px solid var(--state-error); }
-.toast-error .fa-solid   { color: var(--state-error); }
-.toast-warning { border-left: 3px solid var(--state-warning); }
-.toast-warning .fa-solid { color: var(--state-warning); }
-.toast-info    { border-left: 3px solid var(--state-info); }
-.toast-info .fa-solid    { color: var(--state-info); }
-.toast-message { flex: 1; }
+/* Toast styling lives in site/css/toast.css (Sonner-themed). */
 
 /* ═══ RESPONSIVE ═══ */
 @media (max-width: 768px) {

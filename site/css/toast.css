@@ -1,0 +1,86 @@
+/* toast.css — Sonner theming wired to the journal design system.
+ *
+ * Maps Sonner's built-in CSS variables to the tokens defined in
+ * site/css/themes/theme*.css so toasts inherit the active theme and swap
+ * automatically when the user changes themes via the header switcher.
+ *
+ * Loaded once per page, after theme.css + base.css + app.css. Kept in the
+ * site/css/ root (not inside themes/) because toast styling is structural,
+ * not theme-scoped — only the token resolutions differ per theme.
+ */
+
+[data-sonner-toaster] {
+  /* Neutral/default surface */
+  --normal-bg:      var(--bg-card-solid, var(--bg-card, #2b2240));
+  --normal-text:    var(--text, #fff7fb);
+  --normal-border:  var(--white-14, rgba(255, 255, 255, 0.14));
+
+  /* Success */
+  --success-bg:     color-mix(in srgb, var(--state-success, #4ade80) 20%, var(--bg-card-solid, #2b2240));
+  --success-text:   var(--text, #fff7fb);
+  --success-border: color-mix(in srgb, var(--state-success, #4ade80) 55%, transparent);
+
+  /* Error */
+  --error-bg:       color-mix(in srgb, var(--state-error, #f87171) 22%, var(--bg-card-solid, #2b2240));
+  --error-text:     var(--text, #fff7fb);
+  --error-border:   color-mix(in srgb, var(--state-error, #f87171) 55%, transparent);
+
+  /* Warning */
+  --warning-bg:     color-mix(in srgb, var(--state-warning, #fbbf24) 22%, var(--bg-card-solid, #2b2240));
+  --warning-text:   var(--text, #fff7fb);
+  --warning-border: color-mix(in srgb, var(--state-warning, #fbbf24) 55%, transparent);
+
+  /* Info */
+  --info-bg:        color-mix(in srgb, var(--state-info, #60a5fa) 20%, var(--bg-card-solid, #2b2240));
+  --info-text:      var(--text, #fff7fb);
+  --info-border:    color-mix(in srgb, var(--state-info, #60a5fa) 50%, transparent);
+
+  z-index: var(--z-toast, 300);
+}
+
+[data-sonner-toast] {
+  font-family: var(--font-sans, 'Nunito Sans', 'Inter', system-ui, sans-serif) !important;
+  font-size: 0.92rem;
+  letter-spacing: 0.01em;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-lg, 0 10px 30px rgba(0, 0, 0, 0.25)) !important;
+  border-radius: var(--radius-md, 10px) !important;
+}
+
+[data-sonner-toast] [data-title] {
+  font-weight: 600;
+}
+
+[data-sonner-toast] [data-description] {
+  opacity: 0.82;
+  font-size: 0.86rem;
+  margin-top: 0.15rem;
+  line-height: 1.35;
+}
+
+[data-sonner-toast] [data-close-button] {
+  background: transparent !important;
+  border: 1px solid var(--normal-border) !important;
+  color: currentColor !important;
+  opacity: 0.7;
+  transition: opacity 0.15s ease;
+}
+[data-sonner-toast] [data-close-button]:hover { opacity: 1; }
+
+[data-sonner-toast] [data-button] {
+  background: var(--accent, var(--state-info, #60a5fa)) !important;
+  color: var(--contrast-dark, #2b2240) !important;
+  border-radius: var(--radius-sm, 6px) !important;
+  font-weight: 600 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-sonner-toast] { transition: none !important; animation: none !important; }
+}
+
+@media (max-width: 640px) {
+  [data-sonner-toaster][data-position^="bottom"] { bottom: 12px !important; }
+  [data-sonner-toaster][data-position^="top"]    { top: 12px !important; }
+  [data-sonner-toast] { font-size: 0.88rem; }
+}
