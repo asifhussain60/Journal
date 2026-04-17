@@ -518,12 +518,24 @@
   // §11 React: Inspector panel
   // ══════════════════════════════════════════════════════════════════════════
 
-  function Inspector({ selection, onClose, onEdit, activeTheme, pendingChanges, history }) {
+  function Inspector({ selection, onClose, onEdit, activeTheme, pendingChanges, history, onApply, onCancel, onSaveAsNew, onReview, applying }) {
     const [tab, setTab] = useState('colors');
     const [scope, setScope] = useState('global');
     const [activeProperty, setActiveProperty] = useState(null);
     const [pos, setPos] = useState(() => loadPanelPos('inspector'));
+    const [menuOpen, setMenuOpen] = useState(false);
     const panelRef = useRef(null);
+
+    // Close the Apply dropdown when clicking anywhere else
+    useEffect(() => {
+      if (!menuOpen) return;
+      function onDown(e) {
+        if (e.target.closest('.tweaker-apply-split')) return;
+        setMenuOpen(false);
+      }
+      document.addEventListener('mousedown', onDown, true);
+      return () => document.removeEventListener('mousedown', onDown, true);
+    }, [menuOpen]);
 
     // Panel is a persistent, draggable floating panel — stays open for the
     // entire Tweak Mode session regardless of element selection. Position
@@ -593,9 +605,42 @@
         tab === 'box' && h(BoxTab, { selection, scope, tokens, onEdit }),
       ),
       h('div', { className: 'tweaker-footer' },
-        h('span', { className: 'tweaker-muted' }, `${pendingChanges.length} pending change${pendingChanges.length === 1 ? '' : 's'}`),
+        h('span', { className: 'tweaker-footer-count' }, `${pendingChanges.length} pending`),
         h('button', { className: 'tweaker-btn-sm', onClick: () => history.undo(), disabled: !history.canUndo, title: 'Undo (⌘Z)' }, '↶'),
         h('button', { className: 'tweaker-btn-sm', onClick: () => history.redo(), disabled: !history.canRedo, title: 'Redo (⌘⇧Z)' }, '↷'),
+        h('span', { className: 'tweaker-footer-spacer' }),
+        h('button', {
+          className: 'tweaker-btn',
+          onClick: onCancel,
+          disabled: applying,
+          title: 'Discard all pending changes and exit Tweak Mode',
+        }, 'Cancel'),
+        h('div', { className: 'tweaker-apply-split' },
+          h('button', {
+            className: 'tweaker-btn tweaker-btn-primary tweaker-apply-main',
+            onClick: onApply,
+            disabled: applying || pendingChanges.length === 0,
+            title: pendingChanges.length === 0 ? 'No changes to apply' : `Save ${pendingChanges.length} change${pendingChanges.length === 1 ? '' : 's'} to ${activeTheme.name}`,
+          }, applying ? 'Saving…' : 'Apply'),
+          h('button', {
+            className: 'tweaker-btn tweaker-btn-primary tweaker-apply-caret',
+            onClick: () => setMenuOpen((v) => !v),
+            disabled: applying || pendingChanges.length === 0,
+            'aria-label': 'More save options',
+            'aria-expanded': menuOpen ? 'true' : 'false',
+          }, h('i', { className: 'fa-solid fa-caret-' + (menuOpen ? 'up' : 'down') })),
+          menuOpen && h('div', { className: 'tweaker-apply-menu' },
+            h('button', { onClick: () => { setMenuOpen(false); onApply(); } },
+              h('i', { className: 'fa-solid fa-floppy-disk' }),
+              ' Save to ', h('strong', null, activeTheme.name)),
+            h('button', { onClick: () => { setMenuOpen(false); onSaveAsNew(); } },
+              h('i', { className: 'fa-solid fa-plus' }),
+              ' Save as new theme…'),
+            h('button', { onClick: () => { setMenuOpen(false); onReview(); } },
+              h('i', { className: 'fa-solid fa-wand-magic-sparkles' }),
+              ' Review before saving'),
+          )
+        ),
       ),
     );
   }
@@ -1278,14 +1323,17 @@
   // §13 React: Save modal
   // ══════════════════════════════════════════════════════════════════════════
 
-  function SaveModal({ open, onClose, pendingChanges, activeTheme, onSaved, onValidationFail }) {
-    const [mode, setMode] = useState('overwrite');
+  function SaveModal({ open, onClose, pendingChanges, activeTheme, onSaved, onValidationFail, initialMode }) {
+    const [mode, setMode] = useState(initialMode || 'overwrite');
     const [newSlug, setNewSlug] = useState('');
     const [newName, setNewName] = useState('');
     const [newDesc, setNewDesc] = useState('');
     const [newCat, setNewCat] = useState('Dark');
     const [saving, setSaving] = useState(false);
     const [err, setErr] = useState(null);
+
+    // Reset mode when the modal is opened with a new initialMode.
+    useEffect(() => { if (open && initialMode) setMode(initialMode); }, [open, initialMode]);
 
     if (!open) return null;
 
@@ -1543,6 +1591,8 @@
         const link = document.getElementById(CFG.themeStylesheetId);
         if (link) link.href = link.href.split('?')[0] + '?t=' + Date.now();
       }
+      // After a successful save (any mode), exit Tweak Mode — the user is done.
+      setTimeout(() => deactivate(), 400);
     }
 
     function onValidationFail(output) {
@@ -1561,6 +1611,77 @@
     function activate() {
       localStorage.setItem(CFG.modeKey, 'on');
       loadLibs().then(() => setActive(true));
+    }
+
+    const [applying, setApplying] = useState(false);
+    const [saveInitialMode, setSaveInitialMode] = useState('overwrite');
+
+    // Direct apply (fast path): overwrite the currently-active theme file with
+    // accumulated pending changes. Skip the AI review; the validator still gates
+    // the write server-side.
+    async function applyDirect() {
+      if (pendingChanges.length === 0 || applying) return;
+      const tokenMutations = pendingChanges
+        .filter((c) => c.kind === 'token' && c.tokenName)
+        .map((c) => ({ name: c.tokenName, value: c.newValue }));
+      const scopedOverrides = pendingChanges
+        .filter((c) => c.kind === 'scoped')
+        .map((c) => ({ selector: c.selector, property: c.property, value: c.value }));
+      setApplying(true);
+      try {
+        const result = await API.save({
+          schemaVersion: '1',
+          mode: 'overwrite',
+          slug: activeThemeRef.current.id,
+          tokenMutations,
+          scopedOverrides,
+        });
+        onSaved(result);
+      } catch (e) {
+        const validator = e.body && e.body.validator;
+        if (validator) {
+          onValidationFail(validator);
+        } else {
+          setToast({ kind: 'error', msg: 'Save failed: ' + (e.message || String(e)) });
+          setTimeout(() => setToast(null), 6000);
+        }
+      } finally {
+        setApplying(false);
+      }
+    }
+
+    function cancelWithConfirm() {
+      if (pendingChanges.length === 0) {
+        deactivate();
+        return;
+      }
+      const plural = pendingChanges.length === 1 ? 'change' : 'changes';
+      if (!window.confirm(`Discard ${pendingChanges.length} pending ${plural}?`)) return;
+      // discardAll reverts previews + clears session; then exit Tweak Mode.
+      discardAllSilent();
+      deactivate();
+    }
+
+    function discardAllSilent() {
+      for (const c of pendingChanges.filter((c) => c.kind === 'token' && c.tokenName)) {
+        const baseline = baselineTokens[c.tokenName];
+        if (baseline) applyGlobalTokenMutation(c.tokenName, baseline);
+        else clearGlobalTokenMutation(c.tokenName);
+      }
+      setPendingChanges([]); setUndoStack([]); setRedoStack([]);
+      renderScopedOverrides([]);
+      clearSession();
+    }
+
+    function openSaveAsNew() {
+      if (pendingChanges.length === 0) return;
+      setSaveInitialMode('new');
+      setSaveOpen(true);
+    }
+
+    function openReview() {
+      if (pendingChanges.length === 0) return;
+      setReviewOpen(true);
     }
 
     // Nav wrench button — always labeled "Tweak". Click toggles Tweak Mode.
@@ -1590,12 +1711,12 @@
             canUndo: undoStack.length > 0,
             canRedo: redoStack.length > 0,
           },
+          onApply: applyDirect,
+          onCancel: cancelWithConfirm,
+          onSaveAsNew: openSaveAsNew,
+          onReview: openReview,
+          applying,
         }),
-        pendingChanges.length > 0 && h('div', { className: 'tweaker-action-bar', [CFG.chromeAttr]: '' },
-          h('span', null, `${pendingChanges.length} pending change${pendingChanges.length === 1 ? '' : 's'}`),
-          h('button', { className: 'tweaker-btn-sm', onClick: discardAll }, 'Discard'),
-          h('button', { className: 'tweaker-btn tweaker-btn-primary', onClick: () => setReviewOpen(true) }, 'Review & Save'),
-        ),
         h(ReviewModal, {
           open: reviewOpen, onClose: () => setReviewOpen(false),
           pendingChanges, activeTheme: activeThemeRef.current, baselineTokens,
@@ -1609,6 +1730,7 @@
               });
             } else {
               setReviewOpen(false);
+              setSaveInitialMode('overwrite');
               setSaveOpen(true);
             }
           },
@@ -1617,6 +1739,7 @@
           open: saveOpen, onClose: () => setSaveOpen(false),
           pendingChanges, activeTheme: activeThemeRef.current,
           onSaved, onValidationFail,
+          initialMode: saveInitialMode,
         }),
         toast && h('div', { className: `tweaker-toast tweaker-toast-${toast.kind}`, [CFG.chromeAttr]: '' }, toast.msg),
       ),
