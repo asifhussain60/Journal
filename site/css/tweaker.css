@@ -119,18 +119,27 @@
   padding: var(--space-3);
   border-bottom: 1px solid var(--border-default);
   background: var(--bg-card);
-  cursor: grab;
+  cursor: move;
   user-select: none;
 }
 .tweaker-inspector-header:active { cursor: grabbing; }
+/* Children that have their own interaction don't show the move cursor. */
+.tweaker-inspector-header button,
+.tweaker-floating-header button {
+  cursor: pointer;
+}
 .tweaker-drag-handle {
   color: var(--text-muted);
-  font-size: 0.78rem;
-  opacity: 0.6;
-  transition: opacity var(--motion-fast);
+  font-size: 0.88rem;
+  opacity: 0.55;
+  transition: opacity var(--motion-fast), color var(--motion-fast), transform var(--motion-fast);
 }
 .tweaker-inspector-header:hover .tweaker-drag-handle,
-.tweaker-floating-header:hover .tweaker-drag-handle { opacity: 1; }
+.tweaker-floating-header:hover .tweaker-drag-handle {
+  opacity: 1;
+  color: var(--accent);
+  transform: scale(1.08);
+}
 .tweaker-inspector-selector {
   flex: 1;
   font-family: var(--font-mono);
@@ -648,7 +657,7 @@ body[data-tweak-mode="on"] [data-tweak-chrome] * {
   padding: var(--space-2) var(--space-3);
   background: var(--bg-card);
   border-bottom: 1px solid var(--border-default);
-  cursor: grab;
+  cursor: move;
   user-select: none;
 }
 .tweaker-floating-header:active { cursor: grabbing; }
