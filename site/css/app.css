@@ -51,17 +51,7 @@
   to   { transform: translateY(0); opacity: 1; }
 }
 
-/* ─── Page Layout ─── */
-.page {
-  padding-top: 6rem;   /* clears the fixed .nav header */
-  padding-bottom: 6rem;
-  min-height: 100vh;
-}
-.container {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 1.5rem;
-}
+/* .page + .container live in base.css — single source of truth. */
 
 /* ─── Grid ─── */
 .grid-cards {

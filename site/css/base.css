@@ -83,7 +83,7 @@ a:hover { color: var(--text-primary); }
 .text-4xl { font-size: 2.25rem; line-height: 1.2; }
 
 /* ─── Layout Primitives ─── */
-.container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+.container { max-width: 1280px; margin: 0 auto; padding: 0 1.5rem; }
 .container-narrow { max-width: 800px; margin: 0 auto; padding: 0 1.5rem; }
 
 .flex { display: flex; }
@@ -384,7 +384,7 @@ select.input {
 }
 
 /* ─── Page Layout ─── */
-.page { padding-top: 80px; padding-bottom: 6rem; min-height: 100vh; }
+.page { padding-top: 6rem; padding-bottom: 6rem; min-height: 100vh; }  /* clears the fixed .nav */
 .page-header {
   padding: 2rem 0 1.5rem;
   border-bottom: 1px solid var(--border-subtle);
