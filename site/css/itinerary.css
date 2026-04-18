@@ -521,7 +521,10 @@ html{scroll-behavior:smooth}
 }
 .day-card.open .day-body{
   max-height:3400px;
-  padding:0 1.5rem 1.5rem;
+  /* Top padding gives the first event card breathing room away from the
+     day-header's bottom edge; without it the card border hugs the day
+     container's rim. */
+  padding:1rem 1.5rem 1.5rem;
 }
 /* Map block: header row (title + Open-in-Google-Maps link) above the map */
 .day-map-block{display:flex;flex-direction:column;gap:.65rem;}
@@ -573,17 +576,18 @@ html{scroll-behavior:smooth}
   border-radius:14px;
   background:linear-gradient(
     180deg,
-    rgba(255,255,255,.035) 0%,
-    rgba(255,255,255,.015) 100%
+    var(--white-04) 0%,
+    color-mix(in srgb, var(--white-05) 30%, transparent) 100%
   );
-  /* Darker-lavender (muted version of --lavender #c6a6ff). 2px for presence. */
-  border:2px solid rgba(139, 111, 201, .55);
+  /* Border + shadow bloom use the active theme's accent so cards read in
+     the theme's palette instead of a hardcoded lavender glow. */
+  border:2px solid color-mix(in srgb, var(--accent) 45%, transparent);
   box-shadow:
     inset 0 1px 0 0 var(--white-05),
     0 2px 4px var(--shadow-a30),
-    0 12px 28px -14px rgba(0,0,0,.55),
-    0 0 0 1px rgba(139, 111, 201, .10),           /* faint outer ring */
-    0 18px 40px -20px rgba(139, 111, 201, .35);   /* soft lavender bloom */
+    0 12px 28px -14px var(--shadow-a50),
+    0 0 0 1px var(--accent-a12),
+    0 18px 40px -20px var(--accent-a35);
   transition:transform .22s cubic-bezier(.34,1.2,.64,1),
              background-color .22s ease,
              border-color .22s ease,
@@ -595,15 +599,15 @@ html{scroll-behavior:smooth}
   background:linear-gradient(
     180deg,
     var(--white-06) 0%,
-    rgba(255,255,255,.025) 100%
+    var(--white-04) 100%
   );
-  border-color:rgba(180, 150, 240, .78);          /* brighten toward lavender */
+  border-color:var(--accent);
   box-shadow:
-    inset 0 1px 0 0 rgba(255,255,255,.07),
-    0 4px 8px rgba(0,0,0,.32),
-    0 22px 44px -18px rgba(0,0,0,.60),
-    0 0 0 1px rgba(180, 150, 240, .18),
-    0 26px 54px -20px rgba(180, 150, 240, .45);
+    inset 0 1px 0 0 var(--white-08),
+    0 4px 8px var(--shadow-a30),
+    0 22px 44px -18px var(--shadow-a50),
+    0 0 0 1px var(--accent-a18),
+    0 26px 54px -20px var(--accent-a35);
 }
 
 /* ─── Timeline wrapper (new renderer only) ─────────────────────────── */
@@ -639,36 +643,48 @@ html{scroll-behavior:smooth}
 .event-chips{ display:none; }
 .event-chip--drive.is-loading .drive-val{ opacity:.55; }
 
-/* Alt-venue slot — spans full width below the info/weather grid */
+/* Alt-venue slot — theme-bound. Resting border + filled-state fills use
+   the accent so themes like Tales Scarlet/Obsidian don't show the old
+   hardcoded rose/pink outline on a wine/navy surface. */
 .event-alt{
   grid-area:alt;
   margin-top:.35rem;padding:.55rem .75rem;border-radius:10px;
-  background:rgba(255,255,255,.03);
+  background:var(--white-04);
   border:1px dashed var(--white-12);
-  font-size:.78rem;color:rgba(241,220,231,.7);
+  font-size:.78rem;color:var(--text-secondary);
   display:flex;align-items:center;gap:.55rem;
 }
 .event-alt--filled{
   border-style:solid;
-  border-color:rgba(232,139,184,.28);
-  background:rgba(232,139,184,.08);
-  color:rgba(255,214,232,.92);
+  border-color:var(--accent-a25);
+  background:var(--accent-a08);
+  color:var(--text);
 }
 .event-alt .alt-label{
   font-size:.64rem;font-weight:700;letter-spacing:.15em;
-  text-transform:uppercase;color:var(--accent-primary,#e88bb8);
-  opacity:.85;white-space:nowrap;
+  text-transform:uppercase;color:var(--accent);
+  white-space:nowrap;
 }
 .event-alt .alt-body{flex:1;min-width:0;}
 .event-alt .alt-name{font-weight:500;color:inherit;}
-.event-alt .alt-meta{opacity:.7;font-size:.72rem;}
+.event-alt .alt-meta{font-size:.72rem;color:var(--text-muted);}
 .event-alt .alt-find-btn{
-  background:none;border:1px solid rgba(232,139,184,.35);
-  color:var(--rose);font-size:.72rem;padding:.3rem .65rem;
-  border-radius:999px;cursor:pointer;white-space:nowrap;
-  transition:background .18s ease;
+  background:none;
+  border:1px dashed var(--accent-a35);
+  color:var(--accent);
+  font-size:.72rem;
+  font-weight:500;
+  padding:.3rem .7rem;
+  border-radius:999px;
+  cursor:pointer;
+  white-space:nowrap;
+  transition:background-color .18s ease, border-color .18s ease, border-style .18s ease;
 }
-.event-alt .alt-find-btn:hover{background:rgba(232,139,184,.18);}
+.event-alt .alt-find-btn:hover{
+  background:var(--accent-a12);
+  border-style:solid;
+  border-color:var(--accent);
+}
 
 /* Time column — right-aligned, sits outside the card */
 .event-time-col{
