@@ -1226,39 +1226,25 @@
         parts.push('    </div>');
         parts.push('    <div class="event-details">');
 
-        // ── Summary row — title + "what is this?" meta pills (category,
-        //     rating, duration). Pills let you scan a day without expanding
-        //     every card. Everything else (tag, address, phone, drive,
-        //     notes) lives in the body. ──
-        // Meta pills — each carries a tiny label so its meaning is obvious
-        // at a glance. Clock-icon + bare minutes reads ambiguously as a
-        // clock time; the "FOR" label + hourglass disambiguates it as
-        // "duration of stay", not "start time".
-        var summaryPills = [];
+        // ── Summary row — title + inline meta. Meta reads as a single
+        //     dotted text line (category · ★rating · duration · drive), so
+        //     we only have one typographic system instead of five pill
+        //     tints. The numbers and the star carry the information; the
+        //     chips are gone. The drive span keeps its hydration classes so
+        //     hydrateDriveTimes() can still fill it in post-render.
+        var metaBits = [];
         if (ev.category) {
-          summaryPills.push(
-            '<span class="event-pill event-pill--category">' +
-            '<i class="fa-solid fa-tag" aria-hidden="true"></i>' +
-            '<span class="event-pill-value">' + escHtml(ev.category) + '</span>' +
-            '</span>'
-          );
+          metaBits.push('<span class="event-meta-item">' + escHtml(ev.category) + '</span>');
         }
         if (ev.rating) {
-          summaryPills.push(
-            '<span class="event-pill event-pill--rating" title="Rating">' +
-            '<i class="fa-solid fa-star" aria-hidden="true"></i>' +
-            '<span class="event-pill-value">' + escHtml(String(ev.rating)) + '</span>' +
-            '</span>'
-          );
+          metaBits.push('<span class="event-meta-item event-meta-item--rating"><i class="fa-solid fa-star" aria-hidden="true"></i>' + escHtml(String(ev.rating)) + '</span>');
         }
         if (ev.duration_min) {
-          summaryPills.push(
-            '<span class="event-pill event-pill--duration" title="Duration at this stop">' +
-            '<i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>' +
-            '<span class="event-pill-label">for</span>' +
-            '<span class="event-pill-value">' + escHtml(String(ev.duration_min)) + ' min</span>' +
-            '</span>'
-          );
+          metaBits.push('<span class="event-meta-item">' + escHtml(String(ev.duration_min)) + ' min stay</span>');
+        }
+        if (num) {
+          var driveTxt = (ev.drive_min_to_next ? escHtml(String(ev.drive_min_to_next)) + ' min drive' : '— drive');
+          metaBits.push('<span class="event-meta-item event-chip--drive" data-drive-from="' + num + '"><i class="fa-solid fa-car" aria-hidden="true"></i><span class="drive-val">' + driveTxt + '</span></span>');
         }
 
         parts.push('      <div class="event-summary">');
@@ -1268,8 +1254,8 @@
         // never be blank. stopPropagation inside handler so editing doesn't
         // also toggle the accordion.
         parts.push('          <h4 class="event-title" data-day-idx="' + dayIdx + '" data-event-idx="' + eventIdx + '" title="Click to edit" onclick="beginTitleEdit(event, this)">' + escHtml(ev.event) + '</h4>');
-        if (summaryPills.length) {
-          parts.push('          <div class="event-summary-meta">' + summaryPills.join('') + '</div>');
+        if (metaBits.length) {
+          parts.push('          <div class="event-meta">' + metaBits.join('<span class="event-meta-dot" aria-hidden="true">\u00b7</span>') + '</div>');
         }
         parts.push('        </div>');
         // Action slot — delete + caret. Delete bails out of the accordion
@@ -1285,14 +1271,7 @@
         // ── Collapsible body — grid-template-rows 0fr→1fr animates height. ──
         parts.push('      <div class="event-body">');
         parts.push('        <div class="event-body-inner">');
-        // Info body (tag + rating + contact + chips) + optional notes aside, then alt-venue row below.
         parts.push('          <div class="event-info-body">');
-
-        if (ev.tag) {
-          parts.push('            <div class="event-meta-top">');
-          parts.push('              <span class="tag tag-' + key + '">' + escHtml(ev.tag) + '</span>');
-          parts.push('            </div>');
-        }
 
         var hasContact = address || ev.phone;
         if (hasContact) {
@@ -1302,26 +1281,10 @@
           parts.push('            </div>');
         }
 
-        // Drive chip lives here (in body) because drive times are about the
-        // transition to the NEXT stop — only relevant when you're looking
-        // at the full card context. Category/rating/duration moved up to
-        // the summary pills so "what is this place?" is answerable at a glance.
-        var leftChips = [];
-        if (num) {
-          var driveTxt = (ev.drive_min_to_next ? escHtml(String(ev.drive_min_to_next)) + ' min drive' : '— drive');
-          leftChips.push('<span class="event-chip event-chip--drive" data-drive-from="' + num + '"><i class="fa-solid fa-car" aria-hidden="true"></i><span class="drive-val">' + driveTxt + '</span></span>');
-        }
-        if (leftChips.length) {
-          parts.push('            <div class="event-chips">' + leftChips.join('') + '</div>');
-        }
-
         parts.push('          </div>'); // .event-info-body
 
         if (noteText) {
-          parts.push('          <aside class="event-notes" aria-label="Notes">');
-          parts.push('            <i class="event-notes-icon fa-solid fa-quote-left" aria-hidden="true"></i>');
-          parts.push('            <p class="event-notes-text">' + escHtml(noteText) + '</p>');
-          parts.push('          </aside>');
+          parts.push('          <p class="event-desc">' + escHtml(noteText) + '</p>');
         }
 
         // Alt-venue slot — spans the full width within the body.

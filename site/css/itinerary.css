@@ -567,9 +567,9 @@ html{scroll-behavior:smooth}
 .event-card,
 .event:not(:has(.event-card)){
   display:grid;
-  grid-template-columns:64px minmax(0,1fr);
-  gap:1rem;
-  padding:1rem 1.1rem;
+  grid-template-columns:56px minmax(0,1fr);
+  gap:.85rem;
+  padding:.85rem 1rem;
   border-radius:14px;
   background:linear-gradient(
     180deg,
@@ -633,37 +633,11 @@ html{scroll-behavior:smooth}
 }
 .event-icon{position:relative;}
 
-/* Chip row sits under the rating/contact block, before tip/desc */
-.event-chips{
-  display:flex;flex-wrap:wrap;gap:.4rem;
-  margin-top:.55rem;
-}
-.event-chip{
-  display:inline-flex;align-items:center;gap:.35rem;
-  padding:.25rem .6rem;border-radius:999px;
-  font-size:.74rem;font-weight:500;letter-spacing:.02em;
-  background:var(--white-05);
-  border:1px solid rgba(255,255,255,.09);
-  color:rgba(241,220,231,.85);
-  line-height:1;
-}
-.event-chip i{font-size:.72rem;opacity:.75;}
-.event-chip--category{
-  background:rgba(180,130,220,.12);
-  border-color:rgba(180,130,220,.28);
-  color:var(--lavender);
-}
-.event-chip--duration{
-  background:rgba(130,190,200,.12);
-  border-color:rgba(130,190,200,.28);
-  color:var(--info);
-}
-.event-chip--drive{
-  background:rgba(245,180,120,.12);
-  border-color:rgba(245,180,120,.32);
-  color:var(--gold);
-}
-.event-chip--drive.is-loading{opacity:.55;}
+/* Legacy chip containers — no longer rendered by the new card but kept as
+   no-ops so any static-HTML fallback referencing .event-chips degrades
+   silently. Drive time now lives inline in .event-meta below the title. */
+.event-chips{ display:none; }
+.event-chip--drive.is-loading .drive-val{ opacity:.55; }
 
 /* Alt-venue slot — spans full width below the info/weather grid */
 .event-alt{
@@ -1133,17 +1107,18 @@ html{scroll-behavior:smooth}
   opacity:.35;
 }
 
-/* Title — prominent, Inter for clarity.
-   Click-to-edit: hover shows a soft underline to hint editability;
-   focus-style is a rose ring while contenteditable is active. */
+/* Title — Inter 600, negative tracking for display clarity. Sits above
+   the inline meta row; both share the same font family so the card has
+   one voice. Click-to-edit hover shows a rose tint; focus-style is a
+   rose ring while contenteditable is active. */
 .event-title{
   margin:0;
   font-family:"Inter","SF Pro Display","Helvetica Neue",system-ui,sans-serif;
-  font-size:1.08rem;
+  font-size:1.1rem;
   font-weight:600;
   line-height:1.25;
   color:var(--text);
-  letter-spacing:-.005em;
+  letter-spacing:-.015em;
   /* Edit-affordance surface: negative margin + positive padding keeps the
      baseline unchanged while giving the focus ring / hover tint a
      comfortable breathing box. */
@@ -1188,93 +1163,76 @@ html{scroll-behavior:smooth}
   to  { transform:rotate(360deg); }
 }
 
-/* Summary meta — pill row under the title, always visible so "what is
-   this place?" (category), "is it good?" (rating), and "how long?"
-   (duration) are answerable without expanding. */
-.event-summary-meta{
+/* Inline meta — single dotted text run below the title. Replaces the
+   former pill rainbow (category/rating/duration + drive chip). One
+   typographic system: Inter 12px 500, muted. The rating keeps its star
+   glyph; the drive span keeps its hydration hook (.event-chip--drive
+   .drive-val) so hydrateDriveTimes() still updates it post-paint. */
+.event-meta{
   display:flex;
   flex-wrap:wrap;
-  gap:.35rem;
-  margin-top:.4rem;
-  /* Right-justify so pills align to the card's trailing edge — turns a
-     decorative left-aligned strip into a structured meta-strip that reads
-     as "attributes of this event" instead of a continuation of the title. */
-  justify-content:flex-end;
-}
-/* Label-value pill structure: tiny uppercase label (e.g. "FOR") followed by
-   the value ("60 min"). Makes pills self-describing without bloating them. */
-.event-pill-label{
-  font-size:.58rem;
-  letter-spacing:.14em;
-  text-transform:uppercase;
-  opacity:.7;
-  font-weight:600;
-}
-.event-pill-value{ font-weight:500; }
-.event-pill{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:.3rem;
-  /* Uniform height + padding so pills visually balance across every event
-     card. Per-variant min-widths below lock rating + duration to the same
-     footprint regardless of value length. */
-  height:22px;
-  padding:0 .6rem;
-  border-radius:999px;
-  font-size:.72rem;
+  align-items:baseline;
+  gap:.35rem .5rem;
+  margin-top:.25rem;
+  font-family:"Inter","SF Pro Display","Helvetica Neue",system-ui,sans-serif;
+  font-size:.76rem;
   font-weight:500;
-  letter-spacing:.015em;
-  line-height:1;
-  background:var(--white-05);
-  border:1px solid var(--white-12);
-  color:var(--muted);
+  color:var(--text-muted);
+  letter-spacing:.005em;
+  line-height:1.45;
+  font-variant-numeric:tabular-nums;
+}
+.event-meta-item{
+  display:inline-flex;
+  align-items:baseline;
+  gap:.3rem;
   white-space:nowrap;
-  box-sizing:border-box;
-  transition:background-color .2s ease, border-color .2s ease;
-}
-.event-pill i{ font-size:.66rem; opacity:.8; flex:0 0 auto; }
-.event-pill--category{
-  background:color-mix(in srgb, var(--lavender) 14%, transparent);
-  border-color:color-mix(in srgb, var(--lavender) 32%, transparent);
-  color:var(--lavender);
-  font-weight:600;
-  letter-spacing:.02em;
-  /* Category text varies a lot. Give it a sensible min so short names
-     ("Hotel · Downtime") don't look cramped next to long siblings, but
-     cap the max so the whole meta-row stays on one line when possible. */
-  min-width:8rem;
-  max-width:20rem;
+  /* Keep any long category label from shoving the row sideways — wraps
+     gracefully at the next dot. */
+  max-width:100%;
   overflow:hidden;
   text-overflow:ellipsis;
 }
-.event-pill--category .event-pill-value{
-  overflow:hidden;
-  text-overflow:ellipsis;
-  min-width:0;
+.event-meta-item i{
+  font-size:.72rem;
+  opacity:.9;
 }
-.event-pill--rating{
-  background:color-mix(in srgb, var(--gold) 14%, transparent);
-  border-color:color-mix(in srgb, var(--gold) 32%, transparent);
+.event-meta-item--rating i{
   color:var(--gold);
-  font-variant-numeric:tabular-nums;
-  /* Rating is always one decimal digit (4.1 → 4.9); lock the width so the
-     star never shifts between rows. */
-  min-width:3.25rem;
+  opacity:1;
 }
-.event-pill--rating i{ opacity:1; }
-.event-pill--duration{
-  background:color-mix(in srgb, var(--info) 14%, transparent);
-  border-color:color-mix(in srgb, var(--info) 32%, transparent);
-  color:var(--info);
-  font-variant-numeric:tabular-nums;
-  /* Fits "FOR 999 min" so 30/60/180-min events all share the same pill
-     footprint and the value end-aligns consistently across rows. */
-  min-width:6.25rem;
+.event-meta-dot{
+  color:var(--text-muted);
+  opacity:.45;
+  font-weight:400;
+  user-select:none;
 }
-.event-card:hover .event-pill{
-  border-color:color-mix(in srgb, currentColor 38%, transparent);
+/* The drive-time span keeps its class name for hydrateDriveTimes() but
+   renders as plain inline text, not a pill. */
+.event-meta .event-chip--drive{
+  display:inline-flex;
+  align-items:baseline;
+  gap:.3rem;
+  padding:0;
+  background:none;
+  border:none;
+  color:inherit;
+  font:inherit;
+  white-space:nowrap;
 }
+.event-meta .event-chip--drive i{
+  font-size:.72rem;
+  opacity:.85;
+}
+.event-meta .event-chip--drive.is-loading{ opacity:.55; }
+
+/* Legacy pill / summary-meta classes — no longer rendered but kept as
+   no-ops so any cached DOM or fallback rendering degrades silently. */
+.event-summary-meta,
+.event-pill,
+.event-pill-label,
+.event-pill-value,
+.event-meta-top{ display:none; }
 
 /* Rating — gold stars, bold number, muted review count */
 .event-rating{
@@ -1304,29 +1262,40 @@ html{scroll-behavior:smooth}
   font-size:.78rem;
 }
 
-/* Contact block — address + phone rows, icon-prefixed */
+/* Contact block — address + phone on one line separated by a soft dot.
+   Inter, 13px, secondary text color. Matches the meta-row typographic
+   system so the card has one voice throughout. */
 .event-contact{
   display:flex;
-  flex-direction:column;
-  gap:.25rem;
+  flex-wrap:wrap;
+  align-items:baseline;
+  gap:.25rem .55rem;
   margin-top:.15rem;
+  font-family:"Inter","SF Pro Display","Helvetica Neue",system-ui,sans-serif;
+  font-size:.82rem;
+  font-weight:400;
+  line-height:1.5;
+  color:var(--text-secondary);
 }
 .event-contact > *{
   display:inline-flex;
-  align-items:center;
-  gap:.5rem;
-  color:var(--muted);
-  font-size:.86rem;
-  line-height:1.4;
-  opacity:.85;
+  align-items:baseline;
+  gap:.35rem;
+  min-width:0;
+}
+.event-contact > *:not(:last-child)::after{
+  content:"\00b7";
+  margin-left:.55rem;
+  color:var(--text-muted);
+  opacity:.5;
 }
 .event-contact > * > i,
 .event-contact > * > .fa-solid,
 .event-contact > * > .fa-regular{
-  width:14px;
+  width:12px;
   text-align:center;
-  font-size:.82rem;
-  color:var(--rose-2);
+  font-size:.74rem;
+  color:var(--text-muted);
   opacity:.75;
   flex-shrink:0;
 }
@@ -1343,11 +1312,23 @@ html{scroll-behavior:smooth}
 .event-phone a:hover,
 .event-website:hover{
   color:var(--text);
-  border-bottom-color:rgba(255,255,255,.25);
+  border-bottom-color:var(--white-24);
 }
 
-/* Hidden in the new layout — notes surface only in detail drawers later */
-.event-desc, .event-tip{ display:none; }
+/* Description — plain Inter body, no italic, no quote glyph. The
+   renderer now drops the text straight into a <p class="event-desc"> so
+   it reads as description, not a pull-quote. Legacy static HTML uses the
+   same class (previously display:none; now visible). */
+.event-desc{
+  margin:.5rem 0 0;
+  font-family:"Inter","SF Pro Display","Helvetica Neue",system-ui,sans-serif;
+  font-size:.86rem;
+  font-weight:400;
+  line-height:1.55;
+  color:var(--text-secondary);
+  overflow-wrap:break-word;
+}
+.event-tip{ display:none; }
 
 /* Legacy `.event-addr` (kept in static HTML fallback) — mirrors new contact style */
 .event-addr{
@@ -1513,33 +1494,11 @@ html{scroll-behavior:smooth}
   opacity:.75;
 }
 
-/* ═══ EVENT NOTES — full-width pull-quote below info ═══ */
-.event-notes{
-  grid-area:notes;
-  display:flex;
-  gap:.75rem;
-  padding:.7rem .1rem .15rem;
-  margin-top:.45rem;
-  border-top:1px dashed color-mix(in srgb, var(--rose) 22%, transparent);
-  min-width:0;
-}
-.event-notes-icon{
-  color:color-mix(in srgb, var(--rose) 70%, transparent);
-  font-size:.85rem;
-  margin-top:.35rem;
-  flex:0 0 auto;
-  opacity:.85;
-}
-.event-notes-text{
-  margin:0;
-  font-family:"Cormorant Garamond","Iowan Old Style",Georgia,serif;
-  font-style:italic;
-  font-size:1rem;
-  line-height:1.55;
-  color:rgba(241,220,231,.82);
-  letter-spacing:.005em;
-  overflow-wrap:break-word;
-}
+/* Legacy notes pull-quote — replaced by plain-body .event-desc. Kept as
+   display:none so any stray cached DOM degrades silently. */
+.event-notes,
+.event-notes-icon,
+.event-notes-text{ display:none; }
 
 /* Warning glow on the card — only applied when weather severity ≠ none AND
    the event is outdoor or has a long drive. Set by applyWeatherGlow() in JS. */
