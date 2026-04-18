@@ -28,10 +28,13 @@ export const TRANSITIONS = Object.freeze({
   }),
 
   // reviewStatus — has the user processed the row (DOR 279–290)
+  // Phase 11b mutation (2026-04-18): approved → unreviewed added so the
+  // ReviewCard 'Unapprove' button on the Reviewed lane can put an entry
+  // back into the Unreviewed lane for re-curation. Mirror in the DoR.
   reviewStatus: Object.freeze({
     unreviewed: new Set(["in_review", "approved"]),
     in_review:  new Set(["approved", "rejected"]),
-    approved:   new Set(),
+    approved:   new Set(["unreviewed"]),
     rejected:   new Set(["unreviewed"]),
   }),
 

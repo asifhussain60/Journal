@@ -1774,6 +1774,8 @@
       // artifact + voice fingerprint + active trip context. The result
       // replaces draft.prompt directly. Before replacing, the current
       // prompt is snapshotted to draft.preRefine so the reviewer can undo.
+      // On the Reviewed lane, persist=true so the refined output lands
+      // server-side immediately (no Save button to click).
       async function handleRefine() {
         if (refining) return;
         if (isDummy) {
@@ -1785,11 +1787,13 @@
         try {
           const body = { note: draft.prompt };
           if (draft.kindOverride) body.kindOverride = draft.kindOverride;
+          if (isReviewed) body.persist = true;
           const r = await window.BabuAI.logRefine(entry.id, body);
           if (r?.refined) {
             draft.snapshotForRefine(draft.prompt);
             draft.setPrompt(r.refined);
             if (r.structured) draft.setStructured(r.structured);
+            if (isReviewed) setLastSaved(r.refined);
           } else {
             setRefineError('No refined text returned');
           }
@@ -1797,6 +1801,47 @@
           setRefineError(err.message || String(err));
         } finally {
           setRefining(false);
+        }
+      }
+
+      // Auto-save on textarea blur (Reviewed lane only). Silent unless the
+      // PATCH fails. Skips when content is unchanged since last persist.
+      const [lastSaved, setLastSaved] = useState(initialPrompt);
+      const [autoSaving, setAutoSaving] = useState(false);
+      async function handleAutoSave() {
+        if (!isReviewed || isDummy) return;
+        if (draft.prompt === lastSaved) return;
+        setAutoSaving(true);
+        try {
+          const patch = { draftProse: (draft.prompt || '').trim() };
+          if (draft.kindOverride) patch.kindOverride = draft.kindOverride;
+          if (draft.structured) patch.structured = draft.structured;
+          await onSaveDraft?.(entry.id, patch, { silent: true });
+          setLastSaved(draft.prompt);
+        } catch (err) {
+          window.notify?.error?.('Auto-save failed', { description: err.message || String(err) });
+        } finally {
+          setAutoSaving(false);
+        }
+      }
+
+      // Unapprove (Reviewed lane only): flips reviewStatus back to
+      // 'unreviewed' so the entry returns to the Unreviewed lane.
+      const [unapproving, setUnapproving] = useState(false);
+      async function handleUnapprove() {
+        if (unapproving) return;
+        if (isDummy) {
+          window.notify?.info?.('Demo card', { description: 'Unapprove is disabled on preview cards.' });
+          return;
+        }
+        setUnapproving(true);
+        try {
+          await onSaveDraft?.(entry.id, { reviewStatus: 'unreviewed' }, { silent: true });
+          window.notify?.success?.('Moved back to Unreviewed');
+        } catch (err) {
+          window.notify?.error?.('Unapprove failed', { description: err.message || String(err) });
+        } finally {
+          setUnapproving(false);
         }
       }
 
@@ -1890,9 +1935,10 @@
               className="review-card-prompt-input"
               value={draft.prompt}
               onChange={e => draft.setPrompt(e.target.value)}
+              onBlur={handleAutoSave}
               placeholder="Add a note or prompt for this entry…"
               rows={3}
-              disabled={refining || approving}
+              disabled={refining || approving || unapproving}
               spellCheck
             />
           </div>
@@ -1904,18 +1950,31 @@
           )}
 
           <footer className="review-card-actions">
-            <button
-              className="log-action-btn log-action-btn--reject"
-              onClick={() => onReject?.(entry)}
-              disabled={approving || refining}
-              title="Reject this entry"
-            >
-              <Icon name="fa-trash-can" /> Reject
-            </button>
+            {isReviewed ? (
+              <button
+                className="log-action-btn log-action-btn--reject"
+                onClick={handleUnapprove}
+                disabled={unapproving || refining || autoSaving}
+                title="Send this back to the Unreviewed lane"
+              >
+                <Icon name={unapproving ? 'fa-circle-notch fa-spin' : 'fa-rotate-left'} />
+                {' '}
+                {unapproving ? 'Unapproving…' : 'Unapprove'}
+              </button>
+            ) : (
+              <button
+                className="log-action-btn log-action-btn--reject"
+                onClick={() => onReject?.(entry)}
+                disabled={approving || refining}
+                title="Reject this entry"
+              >
+                <Icon name="fa-trash-can" /> Reject
+              </button>
+            )}
             <button
               className="log-action-btn log-action-btn--refine"
               onClick={handleRefine}
-              disabled={approving || refining}
+              disabled={approving || refining || unapproving}
               title={refineTitle}
             >
               <Icon name={refineIcon} /> {refineLabel}
@@ -1924,22 +1983,24 @@
               <button
                 className="log-action-btn log-action-btn--undo"
                 onClick={handleUndoRefine}
-                disabled={approving || refining}
+                disabled={approving || refining || unapproving}
                 title="Restore the text you had before Refine ran"
               >
                 <Icon name="fa-rotate-left" /> Undo
               </button>
             )}
-            <button
-              className="log-action-btn log-action-btn--approve"
-              onClick={handleCommit}
-              disabled={approving || refining}
-              title={isReviewed ? 'Save edits to this approved entry' : 'Approve and persist'}
-            >
-              <Icon name={approving ? 'fa-circle-notch fa-spin' : (isReviewed ? 'fa-floppy-disk' : 'fa-check')} />
-              {' '}
-              {approving ? (isReviewed ? 'Saving…' : 'Approving…') : (isReviewed ? 'Save' : 'Approve')}
-            </button>
+            {!isReviewed && (
+              <button
+                className="log-action-btn log-action-btn--approve"
+                onClick={handleCommit}
+                disabled={approving || refining}
+                title="Approve and persist"
+              >
+                <Icon name={approving ? 'fa-circle-notch fa-spin' : 'fa-check'} />
+                {' '}
+                {approving ? 'Approving…' : 'Approve'}
+              </button>
+            )}
           </footer>
         </article>
       );
@@ -2045,14 +2106,14 @@
         setEntries(prev => prev.map(e => e.id === id ? r.entry : e));
         window.notify?.success?.('Approved');
       }
-      // Save: same PATCH path as approve, just without the reviewStatus flip.
-      // Used by the Reviewed lane when the reviewer edits/refines an
-      // already-approved entry.
-      async function handleSaveDraft(id, patch) {
+      // Save: PATCH any subset of fields. Used by Reviewed-lane auto-save
+      // (textarea blur) and Unapprove (reviewStatus flip). The `silent`
+      // option suppresses the success toast for ambient save operations.
+      async function handleSaveDraft(id, patch, opts = {}) {
         const r = await window.BabuAI.logPatch(id, patch);
         if (!r?.entry) throw new Error('save patch returned no entry');
         setEntries(prev => prev.map(e => e.id === id ? r.entry : e));
-        window.notify?.success?.('Saved');
+        if (!opts.silent) window.notify?.success?.('Saved');
       }
       // Reconcile entries state after the kind-toggle badge PATCHes the row.
       function handleKindFlipped(id, updatedEntry) {
