@@ -2223,8 +2223,10 @@
                   ))}
                 </div>
               </div>
+            </div>
 
-              {/* Photo review lane — only meaningful when Inbox is active */}
+            {/* Review frame — folder-tab strip (Inbox only) attaches to the entries grid */}
+            <div className={`log-review-frame ${tab === 'inbox' ? 'has-tabs' : ''}`}>
               {tab === 'inbox' && (
                 <div className="log-subtab-bar" role="tablist" aria-label="Photo review">
                   <button
@@ -2247,42 +2249,42 @@
                   </button>
                 </div>
               )}
-            </div>
 
-            <div className="log-entries">
-            {loading ? (
-              <div className="log-empty"><Icon name="fa-spinner" /> <p>Loading your log…</p></div>
-            ) : visible.length === 0 ? (
-              <div className="log-empty">
-                <Icon name="fa-inbox" />
-                <p>{
-                  tab === 'inbox'
-                    ? (reviewView === 'reviewed'
-                        ? 'No reviewed photos yet — approve some from Unreviewed to see them here.'
-                        : 'Nothing needs attention — everything is up to date.')
-                    : `No ${tab} items match these filters.`
-                }</p>
+              <div className="log-entries">
+                {loading ? (
+                  <div className="log-empty"><Icon name="fa-spinner" /> <p>Loading your log…</p></div>
+                ) : visible.length === 0 ? (
+                  <div className="log-empty">
+                    <Icon name="fa-inbox" />
+                    <p>{
+                      tab === 'inbox'
+                        ? (reviewView === 'reviewed'
+                            ? 'No reviewed photos yet — approve some from Unreviewed to see them here.'
+                            : 'Nothing needs attention — everything is up to date.')
+                        : `No ${tab} items match these filters.`
+                    }</p>
+                  </div>
+                ) : (
+                  visible.map(entry => {
+                    // Photo cards in the Inbox tab render in review-mode with inline
+                    // note editor + AI refine. Everything else uses the default card.
+                    const isPhotoInReviewLane = tab === 'inbox' && entry.kind === 'photo';
+                    return (
+                      <LogEntryCard
+                        key={entry.id}
+                        entry={entry}
+                        mode={isPhotoInReviewLane ? 'review' : 'default'}
+                        onApprove={handleApprove}
+                        onReassign={handleReassign}
+                        onRefine={handleRefine}
+                        onReject={handleReject}
+                        onSaveNote={handleSaveNote}
+                        onRefineNote={handleRefineNote}
+                      />
+                    );
+                  })
+                )}
               </div>
-            ) : (
-              visible.map(entry => {
-                // Photo cards in the Inbox tab render in review-mode with inline
-                // note editor + AI refine. Everything else uses the default card.
-                const isPhotoInReviewLane = tab === 'inbox' && entry.kind === 'photo';
-                return (
-                  <LogEntryCard
-                    key={entry.id}
-                    entry={entry}
-                    mode={isPhotoInReviewLane ? 'review' : 'default'}
-                    onApprove={handleApprove}
-                    onReassign={handleReassign}
-                    onRefine={handleRefine}
-                    onReject={handleReject}
-                    onSaveNote={handleSaveNote}
-                    onRefineNote={handleRefineNote}
-                  />
-                );
-              })
-            )}
             </div>
           </section>
 

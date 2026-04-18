@@ -1144,34 +1144,63 @@
 }
 
 /* ═══════════════════════════════════════════════════
-   9. Photo review lane — sub-tab bar + inline note editor
+   9. Photo review lane — folder-tab strip + framed entries grid
    ═══════════════════════════════════════════════════ */
 
-/* Sub-tab bar — slimmer than the primary .log-tab row, lives below the
-   source-filter chips inside .log-panel-control. Scoped to the Inbox tab. */
-.log-subtab-bar {
-  display: flex;
-  gap: 6px;
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px dashed var(--border-default);
+/* Frame wraps the entries grid; when Inbox is active the tab strip sits on
+   top, with the active tab's bottom border merging into this frame. */
+.log-review-frame {
+  background: var(--bg-tertiary);
+  border: var(--log-border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  box-shadow:
+    inset 0 1px 0 var(--white-08),
+    var(--shadow-sm);
+}
+.log-review-frame.has-tabs {
+  border-top-left-radius: 0;
+}
+/* On non-Inbox tabs there is no tab strip to attach to — strip the chrome
+   so the entries grid renders bare, matching the pre-folder-tab layout. */
+.log-review-frame:not(.has-tabs) {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
 }
 
+/* Tab strip — left-aligned, sits above the frame and overlaps its top border
+   by 1px so the active tab flows seamlessly into the panel. */
+.log-subtab-bar {
+  display: flex;
+  gap: 4px;
+  margin: 0 0 -1px 0;
+  padding: 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* Padding is off-scale on purpose: the 1px difference between inactive
+   (bottom: 10px) and active (bottom: 11px) absorbs the frame's top border
+   so the active tab visually merges with the panel below. Don't normalize. */
 .log-subtab {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 16px;
-  border-radius: var(--radius-full);
+  padding: 9px 18px 10px;
   background: var(--bg-secondary);
   border: var(--log-border);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
   color: var(--text-muted);
   font-size: 1rem;
   font-weight: 600;
   letter-spacing: 0.01em;
   cursor: pointer;
-  transition: all 180ms ease;
-  box-shadow: var(--shadow-sm);
+  transition: background 180ms ease, color 180ms ease, border-color 180ms ease;
+  position: relative;
+  top: 2px;
 }
 .log-subtab:hover {
   color: var(--text-primary);
@@ -1179,14 +1208,13 @@
   border-color: var(--border-accent);
 }
 .log-subtab.active {
+  background: var(--bg-tertiary);
   color: var(--accent);
-  background: linear-gradient(135deg,
-    rgba(var(--accent-rgb), 0.22) 0%,
-    rgba(var(--accent-rgb), 0.08) 100%);
   border-color: var(--border-accent);
-  box-shadow:
-    0 0 10px rgba(var(--accent-rgb), 0.14),
-    var(--shadow-sm);
+  border-bottom-color: var(--bg-tertiary);
+  top: 0;
+  padding-bottom: 11px;
+  z-index: 2;
 }
 
 .log-subtab-badge {
