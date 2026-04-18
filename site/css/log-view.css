@@ -1237,46 +1237,120 @@
   border-color: var(--border-accent);
 }
 
-/* ─── Review-mode card: pills hidden, preview replaced by the note editor.
-       Card container dimensions are intentionally unchanged (min-height
-       continues to come from .log-entry-card) — the editor must fit within. */
-.log-entry-card--review .log-entry-preview,
-.log-entry-card--review .log-entry-status {
-  display: none;
+/* ═══════════════════════════════════════════════════
+   10. Phase 11b — Unified Review Card (3-zone shape)
+   ═══════════════════════════════════════════════════
+   Vertical card: header → artifact (read-only) → prompt textarea →
+   refined-output textarea (lazy) → action footer. Same shape for every
+   kind (photo, receipt, voice, note). Per-kind artifact rendering is
+   inside .review-card-artifact—{image|voice|text|empty}. */
+
+.review-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+  border: var(--log-border);
+  box-shadow: var(--log-shadow-card);
+  min-width: 0;
 }
 
-/* ─── Inline note editor (PhotoNoteEditor) ─── */
-.log-note-editor {
+.review-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.review-card-time {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: var(--radius-full);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+.review-card-kind-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--accent);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+.review-card-kind-toggle:hover {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  border-color: var(--border-accent);
+}
+
+.review-card-zone {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  flex: 1;
-  min-width: 0;
-  margin-bottom: 12px;
-  padding: 10px;
+}
+
+/* ─── Zone 1: artifact (read-only, kind-aware) ─── */
+.review-card-artifact {
   border-radius: var(--radius-md);
-  background: var(--bg-secondary);
-  border: var(--log-border);
-  transition: border-color 200ms ease, box-shadow 200ms ease;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  overflow: hidden;
 }
-
-.log-note-editor.is-refining {
-  border-color: var(--border-accent);
-  box-shadow:
-    0 0 0 1px rgba(var(--accent-rgb), 0.28),
-    0 0 14px rgba(var(--accent-rgb), 0.22);
-  animation: log-note-editor-pulse 1.6s ease-in-out infinite;
-}
-
-@keyframes log-note-editor-pulse {
-  0%, 100% { box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.28), 0 0 14px rgba(var(--accent-rgb), 0.22); }
-  50%      { box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.40), 0 0 22px rgba(var(--accent-rgb), 0.38); }
-}
-
-.log-note-editor-input {
+.review-card-artifact--image {
+  display: block;
   width: 100%;
-  min-height: 64px;
-  max-height: 160px;
+  height: auto;
+  max-height: 380px;
+  object-fit: contain;
+}
+.review-card-artifact--voice {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+}
+.review-card-artifact-audio {
+  width: 100%;
+  height: 36px;
+}
+.review-card-artifact-transcript {
+  font-size: 0.98rem;
+  line-height: 1.55;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.review-card-artifact--text {
+  padding: 14px 16px;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.review-card-artifact--empty {
+  padding: 16px;
+  font-size: 0.95rem;
+  font-style: italic;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ─── Zone 2: prompt textarea + Refine button ─── */
+.review-card-prompt-input {
+  width: 100%;
+  min-height: 72px;
+  max-height: 200px;
   resize: vertical;
   padding: 10px 12px;
   border-radius: var(--radius-sm);
@@ -1289,33 +1363,31 @@
   box-shadow: inset 0 1px 2px rgba(0,0,0,0.15);
   transition: border-color 160ms ease, box-shadow 160ms ease;
 }
-.log-note-editor-input:focus {
+.review-card-prompt-input:focus {
   outline: none;
   border-color: var(--border-accent);
   box-shadow:
     inset 0 1px 2px rgba(0,0,0,0.15),
     0 0 0 2px rgba(var(--accent-rgb), 0.18);
 }
-.log-note-editor-input:disabled {
+.review-card-prompt-input:disabled {
   opacity: 0.65;
   cursor: not-allowed;
 }
-.log-note-editor-input::placeholder {
+.review-card-prompt-input::placeholder {
   color: var(--text-muted);
   font-style: italic;
 }
 
-.log-note-editor-actions {
+.review-card-prompt-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
 }
-
-.log-note-editor-refine {
+.review-card-refine-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 14px;
+  padding: 7px 16px;
   border-radius: var(--radius-full);
   border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
   background: color-mix(in srgb, var(--accent) 12%, transparent);
@@ -1324,20 +1396,20 @@
   font-weight: 600;
   letter-spacing: 0.01em;
   cursor: pointer;
-  transition: all 180ms ease;
+  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
 }
-.log-note-editor-refine:hover:not(:disabled) {
+.review-card-refine-btn:hover:not(:disabled) {
   background: color-mix(in srgb, var(--accent) 22%, transparent);
   border-color: var(--border-accent);
   transform: translateY(-1px);
   box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.22);
 }
-.log-note-editor-refine:disabled {
+.review-card-refine-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.log-note-editor-error {
+.review-card-error {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1350,19 +1422,14 @@
   line-height: 1.4;
 }
 
-/* Refined preview — shown after a successful refine, before the user
-   accepts or discards it. Non-destructive: the textarea still holds the
-   user's original text until the user explicitly clicks Use refined. */
-.log-note-editor-preview {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 10px 12px;
-  border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--accent) 8%, transparent);
+/* ─── Zone 3: refined output (editable, lazy) ─── */
+.review-card-zone--refined {
+  padding: 12px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
   border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent);
 }
-.log-note-editor-preview-label {
+.review-card-refined-label {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1372,21 +1439,43 @@
   text-transform: uppercase;
   color: var(--accent);
 }
-.log-note-editor-preview-text {
-  font-size: 0.98rem;
-  line-height: 1.55;
+.review-card-refined-input {
+  width: 100%;
+  min-height: 96px;
+  max-height: 280px;
+  resize: vertical;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  background: var(--bg-tertiary);
   color: var(--text-primary);
-  white-space: pre-wrap;
-  word-break: break-word;
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.55;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.15);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
 }
-.log-note-editor-preview-actions {
+.review-card-refined-input:focus {
+  outline: none;
+  border-color: var(--border-accent);
+  box-shadow:
+    inset 0 1px 2px rgba(0,0,0,0.15),
+    0 0 0 2px rgba(var(--accent-rgb), 0.18);
+}
+.review-card-refined-input:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* ─── Action footer ─── */
+.review-card-actions {
   display: flex;
-  gap: 8px;
-  justify-content: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border-default);
 }
-.log-note-editor-preview-actions .log-action-btn {
-  flex: 0 0 auto;
-  height: 34px;
-  padding: 0 14px;
-  font-size: 0.9rem;
+.review-card-actions .log-action-btn {
+  flex: 1;
+  justify-content: center;
 }
