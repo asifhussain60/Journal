@@ -1,0 +1,58 @@
+{
+  "map1": [
+    [40.6895, -74.1745, "EWR — Arrival"],
+    [40.4862, -74.4518, "Home2 Suites, New Brunswick"],
+    [40.4590, -74.4780, "Mithaas, North Brunswick"]
+  ],
+  "map2": [
+    [40.4862, -74.4518, "Home2 Suites"],
+    [40.5205, -74.3755, "Skylark Diner, Edison"],
+    [40.4545, -74.4650, "Baithakh, North Brunswick"],
+    [40.5218, -74.3880, "The Pho House + Crispy Cones, Edison"]
+  ],
+  "map3": [
+    [40.4862, -74.4518, "Home2 Suites"],
+    [40.5095, -74.4445, "Somerset Diner, Somerset"],
+    [40.4286, -74.3916, "N-Thai Palace, 1020 Rte 18, East Brunswick"],
+    [40.5150, -74.3950, "Prime No. 7 — Korean BBQ"]
+  ],
+  "map4": [
+    [40.4862, -74.4518, "Home2 Suites"],
+    [40.5190, -74.3870, "Edison Diner, 101 US Hwy 1, Edison"],
+    [40.5350, -74.3700, "Rangreza, 137 NJ-27, Edison"],
+    [40.4580, -74.4750, "East Avenue, North Brunswick"],
+    [40.4560, -74.4480, "J. Junaid Jamshed, 2421 US Hwy 1 S"],
+    [40.5340, -74.3720, "Tabaq, 1625 Oak Tree Rd, Edison"]
+  ],
+  "map5": [
+    [40.4862, -74.4518, "Home2 Suites — Prep & Depart"],
+    [40.4590, -74.4570, "Omega Diner, North Brunswick"],
+    [40.7380, -73.7870, "Engagement Party, Fresh Meadows, Queens"]
+  ],
+  "map6": [
+    [40.4862, -74.4518, "Home2 Suites"],
+    [40.4280, -74.3920, "Perkins, 286 Rte 18, East Brunswick"],
+    [40.1580, -74.4920, "Holland Ridge Farms — Tulip Fields, Cream Ridge"],
+    [40.1750, -74.4700, "Eastmont Orchards Farm Market"],
+    [40.5218, -74.3690, "Delhi Garden, Oak Tree Rd, Edison"]
+  ],
+  "map7": [
+    [40.4862, -74.4518, "Home2 Suites"],
+    [40.4480, -74.4330, "Milltown Diner, 30 N Main St, Milltown"],
+    [39.8715, -75.6735, "Longwood Gardens, Kennett Square, PA"],
+    [39.6790, -75.6490, "Christiana Mall, Newark, DE (Tax-Free!)"],
+    [39.8060, -75.5740, "Brandywine Creek State Park"],
+    [40.3470, -74.0660, "The Melting Pot, Red Bank"]
+  ],
+  "map8": [
+    [40.4862, -74.4518, "Home2 Suites"],
+    [40.4590, -74.4570, "IHOP, 1431 US Rte 1, North Brunswick"],
+    [40.2921, -73.9726, "Ocean Place Resort & Spa, Long Branch"],
+    [40.5200, -74.4100, "Baba Grill — Farewell Dinner"]
+  ],
+  "map9": [
+    [40.4862, -74.4518, "Home2 Suites — Checkout"],
+    [40.4235, -74.3890, "Colonial Diner, 560 Rte 18, East Brunswick"],
+    [40.6895, -74.1745, "EWR — UA 16 Departure"]
+  ]
+}

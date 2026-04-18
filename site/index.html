@@ -217,12 +217,12 @@
       const currentDay = isLive ? Math.floor((today - start) / msPerDay) + 1 : 0;
 
       return (
-        <div className="trip-hero stagger-2" onClick={() => window.location.href = activeTrip.itineraryPath || 'itineraries/2026-04-ishrat-engagement.html'}>
+        <div className="trip-hero stagger-2" onClick={() => window.location.href = activeTrip.itineraryPath || 'itineraries/itinerary.html?trip=' + activeTrip.slug}>
           
-          <div className="hero-overline">Asif & Ishrat</div>
-          <div className="hero-names">Asif & Ishrat</div>
-          <div className="hero-for">The Engagement Trip</div>
-          <div className="hero-dates">April 20 — 28, 2026</div>
+          <div className="hero-overline">{activeTrip.travelers ? activeTrip.travelers.join(' & ') : ''}</div>
+          <div className="hero-names">{activeTrip.travelers ? activeTrip.travelers.join(' & ') : ''}</div>
+          <div className="hero-for">{activeTrip.occasion || activeTrip.name || ''}</div>
+          <div className="hero-dates">{activeTrip.dates ? activeTrip.dates.start + ' — ' + activeTrip.dates.end : ''}</div>
 
           <div className="hero-line"></div>
 

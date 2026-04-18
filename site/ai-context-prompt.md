@@ -164,7 +164,7 @@ function App() {
     "dates": { "start": "2026-04-20", "end": "2026-04-28", "days": 9 },
     "flights": { "inbound": {...}, "outbound": {...} },
     "highlights": [{ "date": "...", "event": "...", "venue": "..." }],
-    "itineraryPath": "itineraries/2026-04-ishrat-engagement.html"
+    "itineraryPath": "itineraries/itinerary.html?trip=2026-04-ishrat-engagement"
   },
   "archive": [{ "slug": "...", "name": "...", "status": "completed" }]
 }

@@ -6,7 +6,7 @@ you *which layer* to investigate.
 
 ## The full request path
 
-A user on an iPad opens `https://journal.kashkole.com/itineraries/2026-04-ishrat-engagement.html`
+A user on an iPad opens `https://journal.kashkole.com/itineraries/itinerary.html?trip=2026-04-ishrat-engagement`
 and asks the Trip Assistant a question. Here's every hop:
 
 ```

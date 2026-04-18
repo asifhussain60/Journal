@@ -3,10 +3,13 @@
 //   POST /api/trip-assistant    — intent-router prompt for FloatingChat
 //   POST /api/ingest-itinerary  — Haiku parse of pasted itinerary → skeleton JSON
 //   GET  /api/trip/:slug/full   — read full trip.yaml
+//   GET  /api/trip/:slug/stops  — read per-trip map stops data
 
 import express from "express";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { loadPrompt } from "../prompts/index.js";
-import { getActiveTripSlug } from "../receipts.js";
+import { getActiveTripSlug, TRIPS_DIR } from "../receipts.js";
 import { readTripObj } from "../trip-edit-ops.js";
 import { extractJsonObject, wrapUserMessage, logExtractFailure } from "../util/json.js";
 
@@ -149,6 +152,22 @@ export function createTripRouter({ anthropic, DEFAULT_MODEL }) {
       res.json({ ok: true, trip });
     } catch (err) {
       if (err.code === "ENOENT") return res.status(404).json({ ok: false, error: "trip not found" });
+      res.status(500).json({ ok: false, error: err?.message ?? String(err) });
+    }
+  });
+
+  // ─── Map stops (geocoordinates per day) ──────────────────────────
+  router.get("/api/trip/:slug/stops", async (req, res) => {
+    const { slug } = req.params;
+    if (!slug || !/^[a-z0-9-]+$/.test(slug)) {
+      return res.status(400).json({ ok: false, error: "invalid slug" });
+    }
+    try {
+      const stopsPath = path.join(TRIPS_DIR, slug, "stops.json");
+      const raw = await readFile(stopsPath, "utf8");
+      res.json({ ok: true, stops: JSON.parse(raw) });
+    } catch (err) {
+      if (err.code === "ENOENT") return res.json({ ok: true, stops: {} });
       res.status(500).json({ ok: false, error: err?.message ?? String(err) });
     }
   });

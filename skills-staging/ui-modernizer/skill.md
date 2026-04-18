@@ -49,7 +49,7 @@ Split `site/css/app.css` (3,469 lines) by extracting the chapter reader into a d
 - Run `npm run validate-themes` after split.
 
 ### 2b. Do NOT split `itinerary.css`
-- Only one consumer HTML exists (`site/itineraries/2026-04-ishrat-engagement.html`).
+- Only one consumer HTML exists (`site/itineraries/itinerary.html` — generic, slug-driven template).
 - The sections are already clearly delimited by banner comments.
 - Risk/return doesn't justify split.
 
@@ -66,8 +66,7 @@ Upgrade the **day-body accordion** in the itinerary from the `max-height: 3400px
 
 ### How
 1. Wrap `.day-body` children in a `<div class="day-body-inner">` in both:
-   - All 9 static day-body blocks in `site/itineraries/2026-04-ishrat-engagement.html`
-   - The JS renderer at line ~1395 in the same file
+   - The JS renderer in `site/itineraries/itinerary.html` (now fully data-driven, no static day blocks)
 2. Update `.day-body` CSS: remove `max-height` transitions, add `grid-template-rows: 0fr → 1fr`.
 3. Add `.day-body-inner` rules: `min-height: 0; overflow: hidden; display: grid; grid-template-columns: 1fr; gap: 1.5rem;`.
 4. Move padding-top from `.day-card.open .day-body` to `.day-card.open .day-body-inner`.
