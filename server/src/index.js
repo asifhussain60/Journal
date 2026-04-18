@@ -73,6 +73,7 @@ import { createTripSpendRouter } from "./routes/trip-spend.js";
 import { createHolidayBudgetRouter } from "./routes/holiday-budget.js";
 import { createLogRouter } from "./routes/log.js";
 import { createPublishSessionsRouter } from "./routes/publish-sessions.js";
+import { createClassifyQueue } from "./lib/classify-queue.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -178,6 +179,9 @@ const upload = multer({
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
 app.use("/trips", express.static(path.join(REPO_ROOT, "trips"), { fallthrough: true, maxAge: "1h" }));
 
+// --- Phase 11b classify queue (in-process, async image kind classification)
+const classifyQueue = createClassifyQueue({ anthropic });
+
 // --- Mount routers -----------------------------------------------------------
 app.use(createCoreRouter({ anthropic, DEFAULT_MODEL, KEY_SOURCE, PORT, ALLOWED_ORIGINS }));
 app.use(createTripRouter({ anthropic, DEFAULT_MODEL }));
@@ -190,7 +194,7 @@ app.use(createThemeRouter({ anthropic, DEFAULT_MODEL, themeSaveValidator }));
 app.use(createWeatherRouter());
 app.use(createTripSpendRouter());
 app.use(createHolidayBudgetRouter({ anthropic }));
-app.use(createLogRouter({ queueValidators: QUEUE_VALIDATORS, anthropic, DEFAULT_MODEL }));
+app.use(createLogRouter({ queueValidators: QUEUE_VALIDATORS, anthropic, DEFAULT_MODEL, classifyQueue }));
 app.use(createPublishSessionsRouter({ publishSessionValidator }));
 
 // --- Start -------------------------------------------------------------------

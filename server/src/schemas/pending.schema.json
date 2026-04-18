@@ -43,9 +43,10 @@
         "receipt",
         "voice",
         "itinerary",
-        "note"
+        "note",
+        "unsorted-image"
       ],
-      "description": "Source-type of the capture. Drain routes on this field."
+      "description": "Source-type of the capture. Drain routes on this field. 'unsorted-image' is the transient state for images awaiting classify-image-kind to firm them up to photo or receipt (Phase 11b)."
     },
     "source": {
       "type": "string",

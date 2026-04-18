@@ -1444,11 +1444,12 @@
     ));
 
     const KIND_BADGE = {
-      photo:     { icon: 'fa-camera',        label: 'Photo' },
-      receipt:   { icon: 'fa-receipt',       label: 'Receipt' },
-      voice:     { icon: 'fa-microphone',    label: 'Voice' },
-      note:      { icon: 'fa-note-sticky',   label: 'Note' },
-      itinerary: { icon: 'fa-calendar-days', label: 'Itinerary' },
+      photo:            { icon: 'fa-camera',        label: 'Photo' },
+      receipt:          { icon: 'fa-receipt',       label: 'Receipt' },
+      voice:            { icon: 'fa-microphone',    label: 'Voice' },
+      note:             { icon: 'fa-note-sticky',   label: 'Note' },
+      itinerary:        { icon: 'fa-calendar-days', label: 'Itinerary' },
+      'unsorted-image': { icon: 'fa-image',         label: 'Image' },
     };
 
     function entryPreview(entry) {
@@ -1701,7 +1702,9 @@
         setRefining(true);
         setRefineError('');
         try {
-          const r = await window.BabuAI.logRefine(entry.id, { note: draft.prompt });
+          const body = { note: draft.prompt };
+          if (draft.kindOverride) body.kindOverride = draft.kindOverride;
+          const r = await window.BabuAI.logRefine(entry.id, body);
           if (r?.refined) {
             draft.setRefined(r.refined);
             if (r.structured) draft.setStructured(r.structured);
@@ -1739,6 +1742,10 @@
 
       const refineLabel = refining ? 'Refining…' : (draft.refined ? 'Re-refine' : 'Refine');
       const refineIcon = refining ? 'fa-circle-notch fa-spin' : 'fa-wand-magic-sparkles';
+      const kindUnresolved = effectiveKind === 'unsorted-image';
+      const refineTitle = kindUnresolved
+        ? 'Pick Photo or Receipt above before refining (image kind not yet classified).'
+        : 'Refine in your voice with active trip context';
 
       return (
         <article className="review-card review-card-3zone">
@@ -1774,8 +1781,8 @@
               <button
                 className="review-card-refine-btn"
                 onClick={handleRefine}
-                disabled={refining || approving}
-                title="Refine in your voice with active trip context"
+                disabled={refining || approving || kindUnresolved}
+                title={refineTitle}
               >
                 <Icon name={refineIcon} /> {refineLabel}
               </button>

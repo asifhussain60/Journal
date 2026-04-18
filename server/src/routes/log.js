@@ -121,7 +121,7 @@ function matchesTab(entry, tab) {
 
 // --- Router ------------------------------------------------------------------
 
-export function createLogRouter({ queueValidators, anthropic, DEFAULT_MODEL }) {
+export function createLogRouter({ queueValidators, anthropic, DEFAULT_MODEL, classifyQueue }) {
   const router = express.Router();
 
   // GET /api/log — merged, normalized LogEntry list
@@ -207,13 +207,17 @@ export function createLogRouter({ queueValidators, anthropic, DEFAULT_MODEL }) {
 
         const relPath = `trips/${slug}/photos/${filename}`;
 
+        // Phase 11b: image lands as 'unsorted-image' and the classify queue
+        // promotes it to 'photo' or 'receipt' asynchronously. If anthropic is
+        // unavailable (no key, no queue), the row stays 'unsorted-image' and
+        // the reviewer firms it via the kind toggle on the review card.
         row = {
           schemaVersion: "2",
           id,
           createdAt: now,
           capturedAt: now,
           tripSlug: slug,
-          kind: "photo",
+          kind: classifyQueue ? "unsorted-image" : "photo",
           source: "app",
           status: "pending",
           memoryWorthy: false,
@@ -260,6 +264,12 @@ export function createLogRouter({ queueValidators, anthropic, DEFAULT_MODEL }) {
 
       const { count } = await appendQueueRow(slug, "pending", row);
       shadow("queue-pending", row);
+
+      // Phase 11b: kick off async classify for fresh image captures. Best-effort —
+      // failures here never block the capture response.
+      if (classifyQueue && row.kind === "unsorted-image") {
+        classifyQueue.enqueue({ slug, id: row.id, imagePath: row.payload.imagePath });
+      }
 
       res.json({ ok: true, id: row.id, kind: row.kind, tripSlug: slug, count });
     } catch (err) {
@@ -365,7 +375,7 @@ export function createLogRouter({ queueValidators, anthropic, DEFAULT_MODEL }) {
     try {
       const slug = req.query.slug || (await getActiveTripSlug());
       const id = req.params.id;
-      const { note, persist } = req.body ?? {};
+      const { note, persist, kindOverride } = req.body ?? {};
       if (typeof note !== "string") {
         return res.status(400).json({ ok: false, error: "note (string) is required (may be empty)" });
       }
@@ -377,7 +387,12 @@ export function createLogRouter({ queueValidators, anthropic, DEFAULT_MODEL }) {
       const idx = items.findIndex((r) => r?.id === id);
       if (idx === -1) return res.status(404).json({ ok: false, error: "entry not found in pending" });
       const row = items[idx];
-      const kind = row.kind;
+      // Honor reviewer's kind toggle for image rows even before it lands as a
+      // PATCH — keeps the refine prompt aligned with what the reviewer sees.
+      const kind = (kindOverride === "photo" || kindOverride === "receipt") &&
+                   ["photo", "receipt", "unsorted-image"].includes(row.kind)
+                     ? kindOverride
+                     : row.kind;
 
       // Photo path keeps Phase 11a's non-empty-prompt invariant — the photo
       // refine prompt is wired around "the user typed something next to a photo".
