@@ -16,10 +16,10 @@ const execFileP = promisify(execFile);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export const REPO_ROOT = path.resolve(__dirname, "../..");
+export const REPO_ROOT = path.resolve(__dirname, "../../..");
 export const TRIPS_DIR = path.join(REPO_ROOT, "trips");
 export const MANIFEST_PATH = path.join(TRIPS_DIR, "manifest.json");
-const OCR_SCRIPT = path.resolve(__dirname, "../scripts/mac-vision-ocr.swift");
+const OCR_SCRIPT = path.resolve(__dirname, "../../scripts/mac-vision-ocr.swift");
 
 const IMAGE_SNIFFS = [
   { ext: "jpg", test: (b) => b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff },

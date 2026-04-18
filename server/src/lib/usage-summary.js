@@ -15,7 +15,7 @@ import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const LOG_PATH = path.resolve(__dirname, "../logs/usage.jsonl");
+const LOG_PATH = path.resolve(__dirname, "../../logs/usage.jsonl");
 
 // Model pricing in USD per 1M tokens. Covers the Claude 4.x family as of
 // 2026-04. Unknown models fall back to Sonnet rates (conservative).
