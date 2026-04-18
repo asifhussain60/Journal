@@ -692,8 +692,7 @@ html{scroll-behavior:smooth}
   font-size:.58rem;
   font-weight:700;
   letter-spacing:.18em;
-  color:var(--muted);
-  opacity:.55;
+  color:var(--text-muted);
   margin-top:.2rem;
 }
 
@@ -1175,9 +1174,12 @@ html{scroll-behavior:smooth}
   gap:.35rem .5rem;
   margin-top:.25rem;
   font-family:"Inter","SF Pro Display","Helvetica Neue",system-ui,sans-serif;
-  font-size:.76rem;
+  font-size:.78rem;
   font-weight:500;
-  color:var(--text-muted);
+  /* Secondary, not muted — meta is the most-scanned text on the card and
+     muted was landing at 4–6:1 on tinted cards (rose halo, lavender
+     bloom) which reads as a wash. Secondary gives 9:1+ on every theme. */
+  color:var(--text-secondary);
   letter-spacing:.005em;
   line-height:1.45;
   font-variant-numeric:tabular-nums;
@@ -1203,7 +1205,6 @@ html{scroll-behavior:smooth}
 }
 .event-meta-dot{
   color:var(--text-muted);
-  opacity:.45;
   font-weight:400;
   user-select:none;
 }
@@ -1257,8 +1258,7 @@ html{scroll-behavior:smooth}
   font-family:"Inter","SF Pro Display",system-ui,sans-serif;
 }
 .event-rating-count{
-  color:var(--muted);
-  opacity:.7;
+  color:var(--text-muted);
   font-size:.78rem;
 }
 
@@ -1287,7 +1287,6 @@ html{scroll-behavior:smooth}
   content:"\00b7";
   margin-left:.55rem;
   color:var(--text-muted);
-  opacity:.5;
 }
 .event-contact > * > i,
 .event-contact > * > .fa-solid,
@@ -1296,7 +1295,6 @@ html{scroll-behavior:smooth}
   text-align:center;
   font-size:.74rem;
   color:var(--text-muted);
-  opacity:.75;
   flex-shrink:0;
 }
 .event-phone{
@@ -1332,10 +1330,9 @@ html{scroll-behavior:smooth}
 
 /* Legacy `.event-addr` (kept in static HTML fallback) — mirrors new contact style */
 .event-addr{
-  color:var(--muted);
+  color:var(--text-secondary);
   line-height:1.5;
   font-size:.86rem;
-  opacity:.7;
 }
 
 /* ─── Tag pill (still rendered inside .event-meta-top) ───────────────── */
@@ -1407,7 +1404,7 @@ html{scroll-behavior:smooth}
   gap:.1rem;
 }
 .day-weather .weather-hi{color:var(--text);}
-.day-weather .weather-lo{color:var(--muted);opacity:.8;}
+.day-weather .weather-lo{color:var(--text-muted);}
 .day-weather .weather-sep{
   color:var(--muted);
   opacity:.55;
@@ -1433,11 +1430,9 @@ html{scroll-behavior:smooth}
   display:inline-flex;
   align-items:center;
   gap:.25rem;
-  opacity:.85;
 }
 .day-weather .weather-meta i{
   font-size:.72rem;
-  opacity:.7;
   color:var(--rose-2);
 }
 .day-weather[data-severity="warn"]{
@@ -1984,8 +1979,7 @@ html{scroll-behavior:smooth}
 .budget-txn-date{
   white-space:nowrap;
   font-variant-numeric:tabular-nums;
-  color:var(--muted);
-  opacity:.85;
+  color:var(--text-muted);
   font-size:.72rem;
   letter-spacing:.02em;
 }
@@ -2305,8 +2299,7 @@ html{scroll-behavior:smooth}
   gap:.75rem;
   width:100%;
   max-width:22rem;
-  color:var(--muted);
-  opacity:.78;
+  color:var(--text-muted);
 }
 .alt-modal-eyebrow-line{
   flex:1 1 auto;
@@ -2605,8 +2598,7 @@ html{scroll-behavior:smooth}
   letter-spacing:.005em;
 }
 .alt-constraints-notes-input::placeholder{
-  color:var(--muted);
-  opacity:.62;
+  color:var(--text-muted);
   font-style:italic;
 }
 .alt-constraints-notes-hint{
@@ -2684,25 +2676,22 @@ html{scroll-behavior:smooth}
   flex-shrink:0;
 }
 .alt-option-venue{
-  color:var(--muted);
+  color:var(--text-secondary);
   font-size:.86rem;
   line-height:1.45;
-  opacity:.85;
 }
 .alt-option-meta{
   display:flex;
   align-items:center;
   gap:.55rem;
-  color:var(--muted);
+  color:var(--text-muted);
   font-size:.82rem;
-  opacity:.8;
   flex-wrap:wrap;
 }
-.alt-option-meta i{ color:var(--rose-2); opacity:.7; margin-right:.15rem; }
-.alt-option-sep{ opacity:.45; }
+.alt-option-meta i{ color:var(--rose-2); margin-right:.15rem; }
+.alt-option-sep{ color:var(--text-muted); }
 .alt-option-rationale{
-  color:var(--text);
-  opacity:.78;
+  color:var(--text-secondary);
   font-size:.88rem;
   font-style:italic;
   line-height:1.5;
