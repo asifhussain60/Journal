@@ -384,7 +384,7 @@ select.input {
 .nav-link {
   padding: 0.55rem 1.1rem;
   border-radius: var(--radius-md);
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-size: 0.95rem;
   font-weight: 500;
   transition: all var(--transition-fast);

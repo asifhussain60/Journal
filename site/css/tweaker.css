@@ -6,71 +6,84 @@
    token — validator check 2 requires this.
    ═══════════════════════════════════════════════════ */
 
-/* ─── Nav-mounted wrench (default: portaled next to theme switcher) ─── */
-/* Height matches .theme-switcher-trigger via min-height so all nav pills line up. */
+/* ─── Nav-mounted wrench — 42×42 circular icon button.
+       Visual matches .insert-event-nav-btn and .theme-switcher-trigger so the
+       three header action buttons read as a unified cluster. Label kept in
+       DOM (sr-only) for screen-reader accessible name. ──────────────── */
 .tweaker-nav-btn {
+  /* position:relative contains the sr-only .tweaker-nav-btn-label below. */
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.45rem 0.9rem;
-  min-height: 34px;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
   box-sizing: border-box;
-  margin-right: 0.5rem;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-pill);
-  color: var(--text-primary);
+  margin-right: 0.3rem;
+  background: var(--accent-a14);
+  border: 1px solid var(--accent-a25);
+  border-radius: 50%;
+  color: var(--accent);
   font-family: var(--font-sans);
-  font-size: 0.82rem;
-  font-weight: 500;
   cursor: pointer;
-  box-shadow: var(--shadow-sm);
   transition: transform var(--motion-fast), border-color var(--motion-fast),
               background var(--motion-fast), box-shadow var(--motion-fast);
   vertical-align: middle;
   line-height: 1;
-  white-space: nowrap;
 }
 .tweaker-nav-btn:hover {
   transform: translateY(-1px);
-  border-color: var(--border-accent);
-  background: var(--glass-bg-hover);
-  box-shadow: var(--shadow-md);
+  background: var(--accent-a25);
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px -4px var(--accent-a35);
 }
 .tweaker-nav-btn:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
 }
 .tweaker-nav-btn.is-on {
-  background: color-mix(in srgb, var(--accent) 22%, var(--bg));
+  background: var(--accent);
   border-color: var(--accent);
-  color: var(--text);
+  color: var(--contrast-dark);
+}
+.tweaker-nav-btn.is-on:hover {
+  background: color-mix(in srgb, var(--accent) 88%, white);
 }
 .tweaker-nav-btn i {
-  font-size: 0.88rem;
-  color: var(--accent);
+  font-size: 1.15rem;
+  line-height: 1;
+  color: inherit;
   transition: color var(--motion-fast);
 }
-.tweaker-nav-btn.is-on i { color: var(--text); }
-.tweaker-nav-btn-label { letter-spacing: 0.02em; }
+.tweaker-nav-btn-label {
+  /* Visually hidden, kept for screen readers — matches the .insert-event-nav-btn-label pattern. */
+  position: absolute;
+  width: 1px;height: 1px;
+  padding: 0;margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
 
-/* ─── Floating fallback (for pages without a nav, e.g. trips/itinerary share) ─── */
+/* ─── Floating fallback (for pages without a nav, e.g. trips/itinerary share).
+       Inherits the 42×42 circular geometry from the base rule — only the
+       positioning, layering, and surface treatment differ. ──────────────── */
 .tweaker-nav-btn.tweaker-nav-btn--floating {
   position: fixed;
   right: var(--space-4);
   top: var(--space-4);
   z-index: 9999990;
   margin-right: 0;
-  padding: var(--space-2) var(--space-3);
   backdrop-filter: blur(16px) saturate(160%);
   box-shadow: var(--shadow-md);
 }
 
-/* Hide label on narrow viewports (matches theme-switcher behavior). */
-@media (max-width: 640px) {
-  .tweaker-nav-btn-label { display: none; }
-  .tweaker-nav-btn { padding: 0.45rem 0.55rem; }
-}
+/* Mobile: button stays 42×42 icon-only. The legacy rules that hid the label
+   and shrank padding here were removed — the desktop default already
+   sr-only-clips the label, and re-applying display:none would strip the
+   element from the a11y tree. */
 
 /* ─── Hover highlight overlay ─── */
 /* Theme-aware multi-layer shadow: tight accent ring + soft outer glow that

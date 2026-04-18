@@ -1605,9 +1605,10 @@
         var notesVal = c.notes || '';
         parts.push('<div class="alt-constraints-notes">');
         parts.push('  <i class="alt-constraints-notes-icon fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>');
-        parts.push('  <input type="text" class="alt-constraints-notes-input" data-constraint="notes" placeholder="Refine \u2014 e.g. vegetarian only, quieter spot, outdoor seating\u2026" value="' + escHtml(notesVal) + '" autocomplete="off" spellcheck="false" />');
-        parts.push('  <kbd class="alt-constraints-notes-hint">Enter</kbd>');
+        parts.push('  <input type="text" class="alt-constraints-notes-input" data-constraint="notes" placeholder="Refine \u2014 e.g. vegetarian only, quieter spot, outdoor seating\u2026" value="' + escHtml(notesVal) + '" autocomplete="off" spellcheck="false" aria-describedby="alt-notes-precedence" />');
+        parts.push('  <button type="button" class="alt-constraints-notes-submit" aria-label="Submit refinement and search again">Enter</button>');
         parts.push('</div>');
+        parts.push('<div id="alt-notes-precedence" class="alt-constraints-precedence-hint">Your prompt overrides the filters above when both are set.</div>');
         parts.push('</div>');
         return parts.join('');
       }
@@ -1672,6 +1673,11 @@
             }
           });
         }
+        // Submit button — same handler as Enter-on-input. Standard pattern:
+        // every AI widget should auto-run on open AND offer an explicit
+        // "submit your override" affordance, not rely on Enter-only.
+        var notesSubmit = body.querySelector('.alt-constraints-notes-submit');
+        if (notesSubmit) notesSubmit.addEventListener('click', applyConstraints);
         startAltStatusCycle();
       }
 

@@ -12,37 +12,65 @@
   align-items: center;
 }
 
-/* ─── Trigger pill ─── */
+/* ─── Trigger — 42×42 circular icon button.
+       Visual matches .insert-event-nav-btn and .tweaker-nav-btn so the three
+       header action buttons read as a unified cluster. The active-theme
+       swatch dots are hidden in favor of a single palette icon to keep the
+       circular form factor consistent. ──────────────────────────────── */
 .theme-switcher-trigger {
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
-  padding: 0.45rem 0.9rem 0.45rem 0.55rem;
-  border-radius: var(--radius-full);
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  color: var(--text-primary);
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--accent-a14);
+  border: 1px solid var(--accent-a25);
+  color: var(--accent);
   font-family: var(--font-sans);
-  font-size: 0.82rem;
-  font-weight: 500;
   cursor: pointer;
-  transition: all var(--transition-fast);
-  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast), background-color var(--transition-fast),
+              border-color var(--transition-fast), box-shadow var(--transition-fast);
+  line-height: 1;
+}
+.theme-switcher-trigger::before {
+  /* Single palette icon as the visual; replaces the swatch-dot cluster which
+     didn't fit the circular icon-only form factor. The dropdown still shows
+     full theme swatches so users don't lose color preview. */
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  content: "\f53f"; /* fa-palette */
+  font-size: 1.15rem;
   line-height: 1;
 }
 .theme-switcher-trigger:hover {
-  background: var(--glass-bg-hover);
-  border-color: var(--border-accent);
+  background: var(--accent-a25);
+  border-color: var(--accent);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 12px -4px var(--accent-a35);
 }
-.theme-switcher-trigger-dots {
-  display: inline-flex;
-  gap: 2px;
-  padding: 3px;
-  border-radius: var(--radius-full);
-  background: var(--white-08);
-  border: 1px solid var(--white-14);
+.theme-switcher-trigger:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.theme-switcher-trigger[aria-expanded="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--contrast-dark);
+}
+/* Hide the legacy trigger inner content (swatch dots, label, chevron) so the
+   single palette icon is what reads. The DOM is preserved for screen readers. */
+.theme-switcher-trigger-dots,
+.theme-switcher-trigger-label,
+.theme-switcher-trigger-chevron {
+  position: absolute;
+  width: 1px;height: 1px;
+  padding: 0;margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
 }
 .theme-swatch-dot {
   width: 10px;
@@ -50,22 +78,6 @@
   border-radius: 50%;
   background: var(--swatch, #fff);
   box-shadow: inset 0 0 0 1px var(--white-22);
-}
-.theme-switcher-trigger-label {
-  max-width: 150px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  letter-spacing: 0.01em;
-}
-.theme-switcher-trigger-chevron {
-  font-size: 0.7em;
-  opacity: 0.55;
-  transition: transform var(--transition-fast);
-}
-.theme-switcher-trigger[aria-expanded="true"] .theme-switcher-trigger-chevron {
-  transform: rotate(180deg);
-  opacity: 0.9;
 }
 
 /* ─── Dropdown panel ─── */
@@ -230,12 +242,10 @@
 
 /* ─── Responsive ─── */
 @media (max-width: 640px) {
-  .theme-switcher-trigger-label {
-    display: none;
-  }
-  .theme-switcher-trigger {
-    padding: 0.4rem 0.55rem;
-  }
+  /* Trigger is already 42×42 icon-only; only the dropdown panel needs to
+     adapt to narrow viewports. The label rule that previously sat here was
+     removed because the desktop redesign already sr-only-clips the label and
+     re-applying display:none here would strip the element from the a11y tree. */
   .theme-switcher-panel {
     right: 0;
     min-width: 280px;

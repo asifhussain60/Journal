@@ -443,6 +443,12 @@ html{scroll-behavior:smooth}
 .day-card.fc-enter{
   animation:dayCardEnter .35s ease-out both;
 }
+.timeline > .day-card:nth-child(even){
+  background:linear-gradient(180deg, var(--white-06), var(--white-04));
+}
+.timeline > .day-card:nth-child(even):hover{
+  background:linear-gradient(180deg, var(--white-08), var(--white-05));
+}
 .day-card::before{
   display:none;
 }
@@ -476,6 +482,12 @@ html{scroll-behavior:smooth}
   gap:1.25rem;
   padding:1.25rem 1.5rem;
   cursor:pointer;
+  background:transparent;
+  transition:background-color .35s ease, box-shadow .35s ease;
+}
+.day-card.open .day-header{
+  background:color-mix(in srgb, var(--bg) 55%, transparent);
+  box-shadow:inset 0 -1px 0 0 var(--white-08);
 }
 .day-info{min-width:0;}
 .day-label{
@@ -605,6 +617,19 @@ html{scroll-behavior:smooth}
              background-color .22s ease,
              border-color .22s ease,
              box-shadow .22s ease;
+}
+/* Inner-accordion alternation: even event cards take an accent tint
+   strong enough to read at a glance. Distinct hue from the outer day-card
+   white-tier alternation so the two layers don't blend. The hover rule
+   below intentionally overrides this tint to a neutral brighten — the
+   alternation reads at rest, the hover gives unambiguous interaction state. */
+.event-list > .event:nth-child(even) > .event-card,
+.event-list > .event:nth-child(even):not(:has(.event-card)){
+  background:linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 16%, var(--white-08)) 0%,
+    color-mix(in srgb, var(--accent) 9%, var(--white-04)) 100%
+  );
 }
 .event:has(.event-card):hover > .event-card,
 .event:not(:has(.event-card)):hover{
@@ -855,10 +880,9 @@ html{scroll-behavior:smooth}
   background:color-mix(in srgb, var(--rose) 16%, transparent);
 }
 
-/* Action cluster — trash button + caret, grouped on the summary's right.
-   The trash is purposely low-contrast at rest to avoid pulling the eye
-   from the title; it heats up on hover to red so the destructive intent
-   is unambiguous. */
+/* Action cluster — caret only. Delete button is positioned absolutely
+   on the .event-card at the top-right corner so destructive intent is
+   visually separated from primary navigation. */
 .event-actions{
   flex:0 0 auto;
   display:flex;
@@ -867,30 +891,37 @@ html{scroll-behavior:smooth}
   margin-top:.2rem;
 }
 .event-delete-btn{
+  /* Inside the card border at the top-right corner — overhanging would risk
+     clipping by .day-card{overflow:hidden} on the first event in an open day. */
+  position:absolute;
+  top:8px;
+  right:8px;
+  z-index:3;
   display:grid;
   place-items:center;
-  width:26px;
-  height:26px;
+  width:30px;
+  height:30px;
   border-radius:50%;
-  border:1px solid transparent;
-  background:transparent;
-  /* color-mix fades the icon without applying opacity to the whole element */
-  color:color-mix(in srgb, var(--text-secondary) 42%, transparent);
-  font-size:.72rem;
+  border:1px solid color-mix(in srgb, var(--error) 65%, transparent);
+  background:var(--error);
+  color:var(--contrast-dark);
+  font-size:.78rem;
   cursor:pointer;
+  box-shadow:
+    0 2px 6px var(--shadow-a30),
+    0 6px 14px -4px color-mix(in srgb, var(--error) 45%, transparent);
   transition:
-    color .18s ease,
+    transform .18s cubic-bezier(.34,1.56,.64,1),
     background-color .18s ease,
-    border-color .18s ease,
-    transform .18s ease;
+    box-shadow .18s ease;
 }
-.event-card:hover .event-delete-btn{ color:color-mix(in srgb, var(--text-secondary) 78%, transparent); }
 .event-delete-btn:hover,
 .event-delete-btn:focus-visible{
-  color:var(--error);
-  background:color-mix(in srgb, var(--error) 14%, transparent);
-  border-color:color-mix(in srgb, var(--error) 45%, transparent);
-  transform:scale(1.06);
+  transform:scale(1.1);
+  background:color-mix(in srgb, var(--error) 88%, white);
+  box-shadow:
+    0 3px 8px var(--shadow-a30),
+    0 10px 20px -4px color-mix(in srgb, var(--error) 60%, transparent);
   outline:none;
 }
 
@@ -2626,19 +2657,40 @@ html{scroll-behavior:smooth}
   color:var(--text-muted);
   font-style:italic;
 }
-.alt-constraints-notes-hint{
+.alt-constraints-notes-submit{
   flex:0 0 auto;
-  padding:.15rem .45rem;
-  border-radius:5px;
-  background:var(--white-05);
-  border:1px solid var(--white-12);
-  color:var(--text-muted);
+  padding:.35rem .8rem;
+  border-radius:6px;
+  background:var(--accent-a14);
+  border:1px solid var(--accent-a35);
+  color:var(--accent);
   font-family:"JetBrains Mono","DM Mono",ui-monospace,monospace;
-  font-size:.64rem;
-  font-weight:500;
-  letter-spacing:.05em;
+  font-size:.68rem;
+  font-weight:600;
+  letter-spacing:.08em;
   text-transform:uppercase;
-  pointer-events:none;
+  cursor:pointer;
+  transition:background-color .18s ease, border-color .18s ease, color .18s ease, transform .18s ease;
+}
+.alt-constraints-notes-submit:hover{
+  background:var(--accent-a25);
+  border-color:var(--accent);
+  color:var(--text);
+  transform:translateY(-1px);
+}
+.alt-constraints-notes-submit:focus-visible{
+  outline:none;
+  box-shadow:var(--focus-ring);
+}
+/* Precedence hint sits below the input so users know typed text wins
+   over dropdowns. Standard pattern across all AI override widgets. */
+.alt-constraints-precedence-hint{
+  margin-top:.4rem;
+  padding-left:.4rem;
+  font-size:.7rem;
+  font-style:italic;
+  color:var(--text-muted);
+  letter-spacing:.01em;
 }
 
 /* ── Spend-donut fallback when YNAB is not configured ── */
