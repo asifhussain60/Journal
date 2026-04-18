@@ -25,8 +25,8 @@ export function createQueueRouter({ queueValidators }) {
     if (!row || typeof row !== "object" || Array.isArray(row)) {
       return res.status(400).json({ ok: false, error: "request body must be a queue row object" });
     }
-    if (row.schemaVersion !== "1") {
-      return res.status(400).json({ ok: false, error: 'schemaVersion must be "1"' });
+    if (row.schemaVersion !== "1" && row.schemaVersion !== "2") {
+      return res.status(400).json({ ok: false, error: 'schemaVersion must be "1" or "2"' });
     }
     const validate = queueValidators.get(name);
     if (!validate(row)) {

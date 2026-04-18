@@ -27,6 +27,7 @@
   <link rel="stylesheet" href="css/theme-switcher.css">
   <link rel="stylesheet" href="css/ai-drawer.css">
   <link rel="stylesheet" href="css/toast.css">
+  <link rel="stylesheet" href="css/log-view.css">
 </head>
 <body>
 
@@ -261,6 +262,13 @@
                 <h3 className="module-title">DayOne Journal</h3>
               </div>
               <p className="module-description">Draft daily logs, tag locations, and apply your <em>Voice DNA</em> before seamlessly exporting directly to DayOne.</p>
+            </div>
+            <div className="glass-card module-card" onClick={() => onNavigate('log')}>
+              <div className="module-card-header">
+                <div className="module-icon"><Icon name="fa-layer-group" size="1.8em" /></div>
+                <h3 className="module-title">Trip Log</h3>
+              </div>
+              <p className="module-description">Capture photos and notes, review your inbox, and track placement, journal drafts, and expenses for the active trip.</p>
             </div>
           </div>
         </div>
@@ -1423,6 +1431,276 @@
     }
 
     // =================================================================
+    // LOG MODULE — Phase 11a
+    // Trip Log surface: capture strip + 4-tab IA + row list
+    // =================================================================
+
+    const LOG_API_BASE = 'http://127.0.0.1:3001';
+
+    const KIND_BADGE = {
+      photo:     { icon: 'fa-camera',        label: 'Photo' },
+      receipt:   { icon: 'fa-receipt',       label: 'Receipt' },
+      voice:     { icon: 'fa-microphone',    label: 'Voice' },
+      note:      { icon: 'fa-note-sticky',   label: 'Note' },
+      itinerary: { icon: 'fa-calendar-days', label: 'Itinerary' },
+    };
+
+    function entryPreview(entry) {
+      if (entry.kind === 'note') return entry.payload?.text || '(empty note)';
+      if (entry.kind === 'voice') return entry.draft?.prose || entry.payload?.transcript || '(voice note)';
+      if (entry.kind === 'receipt') {
+        const p = entry.payload;
+        return p?.merchant ? `${p.merchant} — ${p.currency ?? 'USD'} ${p.amount ?? ''}` : '(receipt)';
+      }
+      if (entry.kind === 'photo') {
+        const ip = entry.payload?.imagePath || entry.imagePath;
+        return ip ? ip.split('/').pop() : '(photo)';
+      }
+      return '(item)';
+    }
+
+    function matchesLogTab(entry, tab) {
+      switch (tab) {
+        case 'inbox':
+          return ['unreviewed', 'in_review'].includes(entry.reviewStatus) ||
+                 ['unplaced', 'proposed'].includes(entry.placementStatus);
+        case 'journal':
+          return ['draft', 'published'].includes(entry.journalStatus) || entry.memoryWorthy === true;
+        case 'expenses':
+          return ['candidate', 'approved', 'synced', 'failed'].includes(entry.ynabStatus);
+        case 'stuck':
+          return entry.ingestStatus === 'failed' || entry._drainStatus === 'stuck' || entry.ynabStatus === 'failed';
+        default:
+          return true;
+      }
+    }
+
+    function LogEntryRow({ entry }) {
+      const badge = KIND_BADGE[entry.kind] || { icon: 'fa-question', label: entry.kind };
+      const di = entry.placement?.dayIndex;
+      const placementLabel = di != null
+        ? `Day ${di + 1}${entry.placement.eventId ? ' · ' + entry.placement.eventId.replace(/_/g, ' ') : ''}`
+        : 'Unsorted';
+      const showConfidence = ['ai', 'nearby'].includes(entry.placement?.source);
+      const conf = entry.placement?.confidence ?? 0;
+      const confClass = conf >= 0.8 ? 'high' : conf >= 0.5 ? 'mid' : 'low';
+
+      return (
+        <div className="log-entry-row">
+          <div className="log-entry-kind-badge">
+            <Icon name={badge.icon} /> {badge.label}
+          </div>
+          <div className="log-entry-body">
+            <div className="log-entry-preview">{entryPreview(entry)}</div>
+            <div className="log-entry-meta">
+              <span className={`log-placement-chip ${entry.placementStatus}`}>
+                <Icon name="fa-map-pin" /> {placementLabel}
+              </span>
+              {showConfidence && (
+                <span className={`log-confidence-dot ${confClass}`} title={`${Math.round(conf * 100)}% confidence`}></span>
+              )}
+              {entry.route?.journal !== 'none' && (
+                <span className="log-route-badge log-route-badge--journal"><Icon name="fa-book" /></span>
+              )}
+              {entry.route?.ynab !== 'na' && (
+                <span className="log-route-badge log-route-badge--ynab"><Icon name="fa-coins" /></span>
+              )}
+            </div>
+          </div>
+          <div className="log-entry-status">
+            <span className={`log-status-dot log-status-dot--${entry.reviewStatus}`}></span>
+          </div>
+        </div>
+      );
+    }
+
+    function LogModule() {
+      const [tab, setTab] = useState('inbox');
+      const [sourceFilter, setSourceFilter] = useState('all');
+      const [placementFilter, setPlacementFilter] = useState('all');
+      const [entries, setEntries] = useState([]);
+      const [loading, setLoading] = useState(true);
+      const [tripSlug, setTripSlug] = useState(null);
+      const [noteText, setNoteText] = useState('');
+      const [capturing, setCapturing] = useState(false);
+      const photoInputRef = useRef(null);
+
+      function loadEntries() {
+        setLoading(true);
+        fetch(`${LOG_API_BASE}/api/log`)
+          .then(r => r.json())
+          .then(data => {
+            if (data.ok) { setEntries(data.entries); setTripSlug(data.tripSlug); }
+          })
+          .catch(err => console.error('[Log]', err))
+          .finally(() => setLoading(false));
+      }
+
+      useEffect(() => { loadEntries(); }, []);
+
+      function tabCount(t) {
+        return entries.filter(e => matchesLogTab(e, t)).length;
+      }
+
+      const visible = entries
+        .filter(e => matchesLogTab(e, tab))
+        .filter(e => sourceFilter === 'all' ? true : e.kind === sourceFilter)
+        .filter(e => {
+          if (placementFilter === 'placed')   return e.placementStatus === 'confirmed';
+          if (placementFilter === 'unsorted') return e.placementStatus === 'unplaced';
+          return true;
+        });
+
+      async function captureNote() {
+        const text = noteText.trim();
+        if (!text) return;
+        setCapturing(true);
+        try {
+          const r = await fetch(`${LOG_API_BASE}/api/log/capture`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ kind: 'note', text }),
+          });
+          const d = await r.json();
+          if (d.ok) { setNoteText(''); window.notify?.success('Note captured'); loadEntries(); }
+          else window.notify?.error('Capture failed', { description: d.error });
+        } catch (err) {
+          window.notify?.error('Capture failed', { description: err.message });
+        } finally {
+          setCapturing(false);
+        }
+      }
+
+      async function capturePhoto(file) {
+        if (!file) return;
+        setCapturing(true);
+        try {
+          const form = new FormData();
+          form.append('photo', file);
+          const r = await fetch(`${LOG_API_BASE}/api/log/capture`, { method: 'POST', body: form });
+          const d = await r.json();
+          if (d.ok) { window.notify?.success('Photo captured'); loadEntries(); }
+          else window.notify?.error('Photo capture failed', { description: d.error });
+        } catch (err) {
+          window.notify?.error('Photo capture failed', { description: err.message });
+        } finally {
+          setCapturing(false);
+          if (photoInputRef.current) photoInputRef.current.value = '';
+        }
+      }
+
+      const TABS = [
+        { id: 'inbox',    icon: 'fa-inbox',             label: 'Inbox' },
+        { id: 'journal',  icon: 'fa-book',              label: 'Journal' },
+        { id: 'expenses', icon: 'fa-coins',             label: 'Expenses' },
+        { id: 'stuck',    icon: 'fa-circle-exclamation', label: 'Stuck' },
+      ];
+
+      const SOURCES = ['all', 'photo', 'receipt', 'voice', 'note'];
+      const PLACEMENTS = [
+        { id: 'all',      label: 'All Days' },
+        { id: 'placed',   label: 'Placed' },
+        { id: 'unsorted', label: 'Unsorted' },
+      ];
+
+      return (
+        <div className="log-module">
+          {/* ── Capture Strip ── */}
+          <div className="log-capture-strip">
+            <div className="log-capture-strip-inner">
+              <div className="log-trip-pill">
+                <Icon name="fa-plane" /> {tripSlug || 'No active trip'}
+              </div>
+              <div className="log-capture-actions">
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  ref={photoInputRef}
+                  style={{ display: 'none' }}
+                  onChange={e => capturePhoto(e.target.files?.[0])}
+                />
+                <button className="btn-capture btn-capture--photo" onClick={() => photoInputRef.current?.click()} disabled={capturing}>
+                  <Icon name="fa-camera" /> Photo
+                </button>
+                <button className="btn-capture btn-capture--receipt" disabled title="Receipt — Phase 11e">
+                  <Icon name="fa-receipt" /> Receipt
+                </button>
+                <button className="btn-capture btn-capture--voice" disabled title="Voice — Phase 11d">
+                  <Icon name="fa-microphone" /> Voice
+                </button>
+                <button className="btn-capture btn-capture--note" onClick={() => document.getElementById('log-note-input')?.focus()}>
+                  <Icon name="fa-note-sticky" /> Note
+                </button>
+              </div>
+            </div>
+            <div className="log-note-quick-input">
+              <input
+                id="log-note-input"
+                className="input-field input-field--note"
+                type="text"
+                placeholder="Quick note… (Enter to capture)"
+                value={noteText}
+                onChange={e => setNoteText(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && captureNote()}
+              />
+              {noteText.trim() && (
+                <button className="btn-capture-note-submit" onClick={captureNote} disabled={capturing}>
+                  <Icon name="fa-check" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* ── Tab Bar ── */}
+          <div className="log-tab-bar">
+            {TABS.map(t => {
+              const count = tabCount(t.id);
+              return (
+                <button key={t.id} className={`log-tab ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)}>
+                  <Icon name={t.icon} /> {t.label}
+                  {count > 0 && <span className="log-tab-badge">{count}</span>}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* ── Filter Chips ── */}
+          <div className="log-filter-bar">
+            <div className="log-chip-row">
+              {SOURCES.map(s => (
+                <button key={s} className={`log-chip ${sourceFilter === s ? 'active' : ''}`} onClick={() => setSourceFilter(s)}>
+                  {s === 'all' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
+                </button>
+              ))}
+            </div>
+            <div className="log-chip-row">
+              {PLACEMENTS.map(p => (
+                <button key={p.id} className={`log-chip ${placementFilter === p.id ? 'active' : ''}`} onClick={() => setPlacementFilter(p.id)}>
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* ── Entry List ── */}
+          <div className="log-entries">
+            {loading ? (
+              <div className="log-empty"><Icon name="fa-spinner" /> Loading…</div>
+            ) : visible.length === 0 ? (
+              <div className="log-empty">
+                <Icon name="fa-inbox" />
+                <p>{tab === 'inbox' ? 'Nothing needs attention' : `No ${tab} items`}</p>
+              </div>
+            ) : (
+              visible.map(entry => <LogEntryRow key={entry.id} entry={entry} />)
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // =================================================================
     // MAIN APP
     // =================================================================
 
@@ -1468,6 +1746,7 @@
               <button className={`nav-link ${page === 'home' ? 'active' : ''}`} onClick={() => { setPage('home'); setActiveChapter(null); }}><Icon name="fa-house" /> <span>Dashboard</span></button>
               <button className={`nav-link ${page === 'memoir' || page === 'chapter' ? 'active' : ''}`} onClick={() => { setPage('memoir'); setActiveChapter(null); }}><Icon name="fa-book-open" /> <span>Memoir</span></button>
               <button className={`nav-link ${page === 'dayone' ? 'active' : ''}`} onClick={() => { setPage('dayone'); setActiveChapter(null); }}><Icon name="fa-feather-pointed" /> <span>DayOne</span></button>
+              <button className={`nav-link ${page === 'log' ? 'active' : ''}`} onClick={() => { setPage('log'); setActiveChapter(null); }}><Icon name="fa-layer-group" /> <span>Log</span></button>
               <BudgetPill onOpen={() => setUsageOpen(true)} />
               <div data-theme-switcher=""></div>
             </div>
@@ -1477,6 +1756,7 @@
             {page === 'home' && <HomePage trips={trips} onNavigate={setPage} />}
             {page === 'memoir' && <MemoirModule onOpenChapter={openChapter} />}
             {page === 'dayone' && <DayOneModule trips={trips} />}
+            {page === 'log' && <LogModule />}
             {page === 'chapter' && activeChapter && (
               <ChapterReader
                 chapter={activeChapter}
