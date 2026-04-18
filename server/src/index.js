@@ -111,7 +111,7 @@ app.use(
     // along on cross-origin fetches from journal(-dev)?.kashkole.com to
     // journal-api.kashkole.com.
     credentials: true,
-    methods: ["GET", "POST", "DELETE"],
+    methods: ["GET", "POST", "PATCH", "DELETE"],
   })
 );
 app.use(express.json({ limit: "1mb" }));
