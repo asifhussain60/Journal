@@ -2186,6 +2186,8 @@
             qs.push('since=' + encodeURIComponent(win.since));
             qs.push('until=' + encodeURIComponent(win.until));
           }
+          var tripSlug = (window.__tripContext && window.__tripContext.slug) || null;
+          if (tripSlug) qs.push('trip=' + encodeURIComponent(tripSlug));
           if (fresh) qs.push('fresh=1');
           var url = API_BASE + '/api/holiday-budget' + (qs.length ? '?' + qs.join('&') : '');
           return fetch(url)

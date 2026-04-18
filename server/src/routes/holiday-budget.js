@@ -32,6 +32,31 @@
 import express from "express";
 import { loadYnabConfig } from "../util/ynab.js";
 import { loadPrompt } from "../prompts/index.js";
+import { getActiveTripSlug } from "../lib/receipts.js";
+import { readTripObj } from "../lib/trip-edit-ops.js";
+
+// Default YNAB category name when trip.yaml doesn't specify one. Kept for
+// backward compatibility with trips created before ynab.category was introduced.
+const DEFAULT_CATEGORY = "Holiday";
+
+function escapeRegExp(s) {
+  return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+// Read trip.yaml for an optional `ynab.category` override. Silent on any
+// read/parse error — falls back to the default. The holiday-budget panel
+// must never 500 just because a trip.yaml is missing or malformed.
+async function resolveCategoryName(slug) {
+  if (!slug) return DEFAULT_CATEGORY;
+  try {
+    const trip = await readTripObj(slug);
+    const name = trip?.ynab?.category;
+    if (typeof name === "string" && name.trim().length) return name.trim();
+  } catch {
+    // trip.yaml missing or unparseable — fall through to default
+  }
+  return DEFAULT_CATEGORY;
+}
 
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const CACHE = new Map();
@@ -195,7 +220,20 @@ export function createHolidayBudgetRouter({ anthropic }) {
         });
       }
 
-      const ck = `holiday:${budgetId}:${effSince}:${effUntil}`;
+      // Resolve the YNAB category name per-trip. Accepts ?trip=slug; falls
+      // back to the active trip from manifest. Missing trip.yaml or missing
+      // ynab.category both fall back to the "Holiday" default.
+      const requestedSlug = typeof req.query.trip === "string" && req.query.trip.trim().length
+        ? req.query.trip.trim()
+        : null;
+      let tripSlug = requestedSlug;
+      if (!tripSlug) {
+        try { tripSlug = await getActiveTripSlug(); } catch { tripSlug = null; }
+      }
+      const categoryName = await resolveCategoryName(tripSlug);
+      const categoryRe = new RegExp(`^${escapeRegExp(categoryName)}$`, "i");
+
+      const ck = `holiday:${budgetId}:${categoryName}:${effSince}:${effUntil}`;
       if (!fresh) {
         const hit = CACHE.get(ck);
         if (hit && Date.now() - hit.at < CACHE_TTL_MS) {
@@ -203,7 +241,8 @@ export function createHolidayBudgetRouter({ anthropic }) {
         }
       }
 
-      // 1. Locate the "Holiday" YNAB category. Its balance drives the
+      // 1. Locate the configured YNAB category (default "Holiday", per-trip
+      //    override via trip.yaml → ynab.category). Its balance drives the
       //    Available tile; its id scopes the transaction fetch below.
       const catData = await ynabFetch(`/budgets/${budgetId}/categories`, token);
       const groups = catData?.data?.category_groups ?? [];
@@ -211,7 +250,7 @@ export function createHolidayBudgetRouter({ anthropic }) {
       for (const g of groups) {
         for (const c of g.categories || []) {
           if (c.hidden || c.deleted) continue;
-          if (/^holiday$/i.test(String(c.name || "").trim())) { holiday = c; break; }
+          if (categoryRe.test(String(c.name || "").trim())) { holiday = c; break; }
         }
         if (holiday) break;
       }
@@ -295,6 +334,8 @@ export function createHolidayBudgetRouter({ anthropic }) {
         ok: true,
         key: true,
         window: { since: effSince, until: effUntil },
+        category: { name: categoryName, matched: Boolean(holiday) },
+        tripSlug,
         totals: {
           spent: Math.round(spent * 100) / 100,
           available: Math.round(available * 100) / 100,
