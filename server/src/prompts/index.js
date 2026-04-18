@@ -20,6 +20,10 @@ import suggestInsertEventPrompt from "./suggest-insert-event.js";
 import themeSwatchesPrompt from "./theme-swatches.js";
 import themeReviewPrompt from "./theme-review.js";
 import classifyHolidayTxnsPrompt from "./classify-holiday-txns.js";
+import classifyImageKindPrompt from "./classify-image-kind.js";
+import refineNotePrompt from "./refine-note.js";
+import refineVoiceTranscriptPrompt from "./refine-voice-transcript.js";
+import refineReceiptPrompt from "./refine-receipt.js";
 
 /**
  * Registry of all prompts known at startup time. Extend by importing the new
@@ -37,6 +41,10 @@ const REGISTRY = Object.freeze({
   [themeSwatchesPrompt.name]: themeSwatchesPrompt,
   [themeReviewPrompt.name]: themeReviewPrompt,
   [classifyHolidayTxnsPrompt.name]: classifyHolidayTxnsPrompt,
+  [classifyImageKindPrompt.name]: classifyImageKindPrompt,
+  [refineNotePrompt.name]: refineNotePrompt,
+  [refineVoiceTranscriptPrompt.name]: refineVoiceTranscriptPrompt,
+  [refineReceiptPrompt.name]: refineReceiptPrompt,
 });
 
 /**

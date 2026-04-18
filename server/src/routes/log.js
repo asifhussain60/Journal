@@ -26,6 +26,7 @@ import { fromItineraryInbox } from "../adapters/fromItineraryInbox.js";
 import { fromDeadLetter } from "../adapters/fromDeadLetter.js";
 import { applyInitialStates, assertInitial, assertTransition, TransitionError } from "../lib/workflow-state.js";
 import { readTripObj } from "../lib/trip-edit-ops.js";
+import { loadPrompt } from "../prompts/index.js";
 import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -267,10 +268,17 @@ export function createLogRouter({ queueValidators, anthropic, DEFAULT_MODEL }) {
   });
 
   // PATCH /api/log/:id — mutate allowed fields on a pending-queue row.
-  // Body: { notes?, reviewStatus?, draftProse? }
+  // Body: { notes?, reviewStatus?, draftProse?, kindOverride?, structured? }
   //   notes         — replaces the top-level string verbatim (empty string clears)
   //   reviewStatus  — validated through workflow-state.assertTransition
-  //   draftProse    — stored under draft.prose (used to persist refined text)
+  //   draftProse    — stored under draft.prose (Zone 3 refined output)
+  //   kindOverride  — Phase 11b: reviewer-corrected kind for image entries
+  //                   ("photo" | "receipt"); rewrites row.kind on write so all
+  //                   downstream consumers see the corrected value. Only honored
+  //                   when row.kind is currently photo/receipt/unsorted-image.
+  //   structured    — Phase 11b: receipt-extraction object {amount, currency,
+  //                   merchant, date, ynabCategory, lineItems}; stored under
+  //                   draft.structured for the YNAB sync step at Approve time.
   // Only operates on rows in pending.json (photo/note/receipt lane). Returns the
   // normalized LogEntry after write so the client can reconcile local state.
   router.patch("/api/log/:id", express.json(), async (req, res) => {
@@ -279,7 +287,7 @@ export function createLogRouter({ queueValidators, anthropic, DEFAULT_MODEL }) {
       const id = req.params.id;
       if (!id) return res.status(400).json({ ok: false, error: "id required" });
 
-      const { notes, reviewStatus, draftProse } = req.body ?? {};
+      const { notes, reviewStatus, draftProse, kindOverride, structured } = req.body ?? {};
       const items = await readQueue(slug, "pending");
       const idx = items.findIndex((r) => r?.id === id);
       if (idx === -1) return res.status(404).json({ ok: false, error: "entry not found in pending" });
@@ -310,6 +318,18 @@ export function createLogRouter({ queueValidators, anthropic, DEFAULT_MODEL }) {
         row.draft = { ...(row.draft || {}), prose: draftProse };
       }
 
+      if (kindOverride === "photo" || kindOverride === "receipt") {
+        const swappable = ["photo", "receipt", "unsorted-image"];
+        if (!swappable.includes(row.kind)) {
+          return res.status(409).json({ ok: false, error: `kindOverride only valid for image kinds (got kind=${row.kind})` });
+        }
+        row.kind = kindOverride;
+      }
+
+      if (structured && typeof structured === "object") {
+        row.draft = { ...(row.draft || {}), structured };
+      }
+
       row.updatedAt = new Date().toISOString();
       items[idx] = row;
       const filePath = path.join(TRIPS_DIR, slug, "pending.json");
@@ -321,12 +341,23 @@ export function createLogRouter({ queueValidators, anthropic, DEFAULT_MODEL }) {
     }
   });
 
-  // POST /api/log/:id/refine — refine a per-image note with trip + journal + voice context.
+  // POST /api/log/:id/refine — refine a captured entry in Asif's voice using
+  // the user's prompt as curatorial intent. Branches on row.kind:
+  //   photo   → vision refine (Sonnet) producing prose; existing Phase 11a path.
+  //   receipt → vision refine (Sonnet, refine-receipt prompt) producing both
+  //             prose AND a structured object (amount/merchant/category/items).
+  //             Response shape: { refined, structured, model, usage }.
+  //   voice   → text refine (Haiku, refine-voice-transcript prompt) cleaning
+  //             the transcript stored at row.payload.transcript.
+  //   note    → text refine (Haiku, refine-note prompt) polishing the captured
+  //             text stored at row.payload.text or row.notes.
+  //
   // Body: { note: string, persist?: boolean }
-  //   note     — raw user-authored note/prompt (required, non-empty)
+  //   note     — Zone 2 prompt (curatorial intent). May be empty for non-photo
+  //              kinds — prompts default to "tighten and apply Asif voice".
+  //              Photo kind keeps the Phase 11a invariant: non-empty required.
   //   persist  — when true, server writes refined text to row.draft.prose
-  // Returns: { ok, refined, model, usage }. Non-destructive by default: the caller
-  // decides whether to replace the raw note, so a failed save doesn't nuke user input.
+  //              (and structured object for receipts).
   router.post("/api/log/:id/refine", express.json(), async (req, res) => {
     if (!anthropic) {
       return res.status(503).json({ ok: false, error: "anthropic client not configured" });
@@ -335,8 +366,8 @@ export function createLogRouter({ queueValidators, anthropic, DEFAULT_MODEL }) {
       const slug = req.query.slug || (await getActiveTripSlug());
       const id = req.params.id;
       const { note, persist } = req.body ?? {};
-      if (typeof note !== "string" || note.trim().length === 0) {
-        return res.status(400).json({ ok: false, error: "note (non-empty string) is required" });
+      if (typeof note !== "string") {
+        return res.status(400).json({ ok: false, error: "note (string) is required (may be empty)" });
       }
       if (note.length > 20_000) {
         return res.status(413).json({ ok: false, error: "note exceeds 20000 chars" });
@@ -346,6 +377,16 @@ export function createLogRouter({ queueValidators, anthropic, DEFAULT_MODEL }) {
       const idx = items.findIndex((r) => r?.id === id);
       if (idx === -1) return res.status(404).json({ ok: false, error: "entry not found in pending" });
       const row = items[idx];
+      const kind = row.kind;
+
+      // Photo path keeps Phase 11a's non-empty-prompt invariant — the photo
+      // refine prompt is wired around "the user typed something next to a photo".
+      if (kind === "photo" && note.trim().length === 0) {
+        return res.status(400).json({ ok: false, error: "note (non-empty string) is required for photo refine" });
+      }
+      if (!["photo", "receipt", "voice", "note"].includes(kind)) {
+        return res.status(422).json({ ok: false, error: `kind ${kind} not refineable` });
+      }
 
       // Compose context — voice fingerprint is required; trip is best-effort.
       let fingerprint;
@@ -361,95 +402,185 @@ export function createLogRouter({ queueValidators, anthropic, DEFAULT_MODEL }) {
       } catch { /* no active trip yaml — refine still works */ }
 
       const di = row.placement?.dayIndex;
-      const tripBlock = tripCtx
-        ? `Active trip: ${tripCtx.slug || slug}${tripCtx.title ? ` — ${tripCtx.title}` : ""}`
-        : `Active trip slug: ${slug}`;
-      const dayBlock = di != null
-        ? `Photo is placed on Day ${di + 1}${row.placement?.eventId ? ` · ${row.placement.eventId.replace(/_/g, " ")}` : ""}.`
-        : `Photo is unsorted — not yet pinned to a day.`;
-      const journalBlock = row.draft?.prose
-        ? `Existing journal draft for this photo:\n${row.draft.prose}`
-        : `No journal draft exists yet for this photo.`;
+      const tripBlockParts = [
+        tripCtx
+          ? `Active trip: ${tripCtx.slug || slug}${tripCtx.title ? ` — ${tripCtx.title}` : ""}`
+          : `Active trip slug: ${slug}`,
+      ];
+      if (tripCtx?.startDate) tripBlockParts.push(`Trip dates: ${tripCtx.startDate}${tripCtx.endDate ? ` → ${tripCtx.endDate}` : ""}`);
+      if (tripCtx?.location) tripBlockParts.push(`Location: ${tripCtx.location}`);
+      if (tripCtx?.ynab?.category) tripBlockParts.push(`Trip YNAB target category: ${tripCtx.ynab.category}`);
+      const tripBlock = tripBlockParts.join("\n");
 
-      // Vision context: load the photo itself when the row is a photo kind, so
-      // the model can read location/mood cues straight off the pixels. Graceful:
-      // a missing/oversize/unreadable image just skips vision, refine still runs.
-      const imageBlockResult = row.kind === "photo"
-        ? await loadEntryImageBlock(row)
-        : { skipped: "not-photo" };
-      const visionAvailable = !!imageBlockResult.block;
+      // ─── Photo path (Phase 11a, unchanged behavior) ───
+      if (kind === "photo") {
+        const dayBlock = di != null
+          ? `Photo is placed on Day ${di + 1}${row.placement?.eventId ? ` · ${row.placement.eventId.replace(/_/g, " ")}` : ""}.`
+          : `Photo is unsorted — not yet pinned to a day.`;
+        const journalBlock = row.draft?.prose
+          ? `Existing journal draft for this photo:\n${row.draft.prose}`
+          : `No journal draft exists yet for this photo.`;
 
-      const system = [
-        fingerprint,
-        "",
-        "---",
-        "",
-        "You are refining a short note the user typed next to a trip photo so it reads in Asif's voice.",
-        "",
-        "Inputs you will receive:",
-        "- Trip + day context (text).",
-        "- Any existing journal draft for this photo (text).",
-        "- The user's raw note/prompt to refine (text).",
-        visionAvailable
-          ? "- The photo itself (image). Read location, light, weather, people, and mood from it."
-          : "- No image was supplied — rely on the user's note and trip context alone.",
-        "",
-        "How to use the image (when present):",
-        "- Use it to ground sensory details that are clearly visible: time of day, light,",
-        "  weather, setting, what the subject is doing. Do not guess at names, prices,",
-        "  plaques, or anything requiring OCR of signage.",
-        "- Prefer concrete anchors (sky, stone, water, street, plate of food) over abstract ones.",
-        "- The user's note is the spine. The image adds texture, not plot.",
-        "",
-        "Strict rules:",
-        "- Preserve every fact the user wrote. Do not invent people, names, places, or events",
-        "  that aren't in the note, the trip context, or plainly visible in the image.",
-        "- Match the voice fingerprint above. Obey every ABSOLUTE PROHIBITION.",
-        "- Return plain prose only — no markdown, no headings, no preamble, no trailing commentary.",
-        "- If the note is one sentence, keep it one sentence. Don't pad.",
-        "- Do not add a closing moral or summary.",
-      ].join("\n");
+        const imageBlockResult = await loadEntryImageBlock(row);
+        const visionAvailable = !!imageBlockResult.block;
 
-      const textContent = [
-        tripBlock,
-        dayBlock,
-        "",
-        journalBlock,
-        "",
-        "User's raw note to refine:",
-        "---",
-        note.trim(),
-        "---",
-      ].join("\n");
+        const system = [
+          fingerprint,
+          "",
+          "---",
+          "",
+          "You are refining a short note the user typed next to a trip photo so it reads in Asif's voice.",
+          "",
+          "Inputs you will receive:",
+          "- Trip + day context (text).",
+          "- Any existing journal draft for this photo (text).",
+          "- The user's raw note/prompt to refine (text).",
+          visionAvailable
+            ? "- The photo itself (image). Read location, light, weather, people, and mood from it."
+            : "- No image was supplied — rely on the user's note and trip context alone.",
+          "",
+          "How to use the image (when present):",
+          "- Use it to ground sensory details that are clearly visible: time of day, light,",
+          "  weather, setting, what the subject is doing. Do not guess at names, prices,",
+          "  plaques, or anything requiring OCR of signage.",
+          "- Prefer concrete anchors (sky, stone, water, street, plate of food) over abstract ones.",
+          "- The user's note is the spine. The image adds texture, not plot.",
+          "",
+          "Strict rules:",
+          "- Preserve every fact the user wrote. Do not invent people, names, places, or events",
+          "  that aren't in the note, the trip context, or plainly visible in the image.",
+          "- Match the voice fingerprint above. Obey every ABSOLUTE PROHIBITION.",
+          "- Return plain prose only — no markdown, no headings, no preamble, no trailing commentary.",
+          "- If the note is one sentence, keep it one sentence. Don't pad.",
+          "- Do not add a closing moral or summary.",
+        ].join("\n");
 
-      const userContent = visionAvailable
-        ? [imageBlockResult.block, { type: "text", text: textContent }]
-        : textContent;
+        const textContent = [
+          tripBlock,
+          dayBlock,
+          "",
+          journalBlock,
+          "",
+          "User's raw note to refine:",
+          "---",
+          note.trim(),
+          "---",
+        ].join("\n");
+
+        const userContent = visionAvailable
+          ? [imageBlockResult.block, { type: "text", text: textContent }]
+          : textContent;
+
+        const msg = await anthropic.messages.create({
+          model: DEFAULT_MODEL,
+          max_tokens: 1024,
+          system,
+          messages: [{ role: "user", content: userContent }],
+        });
+        const refined = msg.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim();
+
+        if (persist && refined) {
+          row.draft = { ...(row.draft || {}), prose: refined };
+          row.updatedAt = new Date().toISOString();
+          items[idx] = row;
+          const filePath = path.join(TRIPS_DIR, slug, "pending.json");
+          await atomicWriteJSON(filePath, items);
+        }
+
+        return res.json({
+          ok: true,
+          refined,
+          model: msg.model,
+          usage: msg.usage,
+          vision: visionAvailable
+            ? { used: true, mediaType: imageBlockResult.mediaType, bytes: imageBlockResult.bytes }
+            : { used: false, reason: imageBlockResult.skipped },
+        });
+      }
+
+      // ─── Phase 11b paths: receipt / voice / note ───
+      const promptDef = loadPrompt(
+        kind === "receipt" ? "refine-receipt"
+        : kind === "voice" ? "refine-voice-transcript"
+        : "refine-note"
+      );
+      const system = [fingerprint, "", "---", "", promptDef.system].join("\n");
+
+      const userPromptBlock = note.trim().length
+        ? `User's prompt:\n---\n${note.trim()}\n---`
+        : `User's prompt: (empty — apply prompt defaults)`;
+
+      let userContent;
+      let visionMeta = { used: false, reason: "kind-not-image" };
+
+      if (kind === "receipt") {
+        const imageBlockResult = await loadEntryImageBlock(row);
+        if (!imageBlockResult.block) {
+          return res.status(422).json({ ok: false, error: `receipt refine requires image (skipped: ${imageBlockResult.skipped})` });
+        }
+        visionMeta = { used: true, mediaType: imageBlockResult.mediaType, bytes: imageBlockResult.bytes };
+        const textContent = [tripBlock, "", userPromptBlock].join("\n");
+        userContent = [imageBlockResult.block, { type: "text", text: textContent }];
+      } else {
+        // voice / note — text-only
+        const artifactText = kind === "voice"
+          ? (row.payload?.transcript || row.notes || "")
+          : (row.payload?.text || row.notes || "");
+        if (!artifactText.trim().length) {
+          return res.status(422).json({ ok: false, error: `${kind} refine requires non-empty captured text` });
+        }
+        const artifactLabel = kind === "voice" ? "Voice transcript (raw):" : "Captured note (raw):";
+        userContent = [
+          tripBlock,
+          "",
+          artifactLabel,
+          "---",
+          artifactText.trim(),
+          "---",
+          "",
+          userPromptBlock,
+        ].join("\n");
+      }
 
       const msg = await anthropic.messages.create({
-        model: DEFAULT_MODEL,
-        max_tokens: 1024,
+        model: promptDef.model,
+        max_tokens: kind === "receipt" ? 1500 : 1024,
         system,
         messages: [{ role: "user", content: userContent }],
       });
-      const refined = msg.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim();
+      const rawText = msg.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim();
+
+      let refined = rawText;
+      let structured = null;
+
+      if (kind === "receipt") {
+        // Receipt prompt returns { refined, structured: {...} } — JSON only.
+        try {
+          const parsed = JSON.parse(rawText);
+          refined = typeof parsed.refined === "string" ? parsed.refined : "";
+          structured = parsed.structured && typeof parsed.structured === "object" ? parsed.structured : null;
+        } catch (err) {
+          return res.status(502).json({ ok: false, error: `receipt refine returned non-JSON: ${err.message}`, raw: rawText.slice(0, 500) });
+        }
+      }
 
       if (persist && refined) {
-        row.draft = { ...(row.draft || {}), prose: refined };
+        const draftPatch = { ...(row.draft || {}), prose: refined };
+        if (structured) draftPatch.structured = structured;
+        row.draft = draftPatch;
         row.updatedAt = new Date().toISOString();
         items[idx] = row;
         const filePath = path.join(TRIPS_DIR, slug, "pending.json");
         await atomicWriteJSON(filePath, items);
       }
 
-      res.json({
+      return res.json({
         ok: true,
         refined,
+        ...(structured ? { structured } : {}),
         model: msg.model,
         usage: msg.usage,
-        vision: visionAvailable
-          ? { used: true, mediaType: imageBlockResult.mediaType, bytes: imageBlockResult.bytes }
-          : { used: false, reason: imageBlockResult.skipped },
+        vision: visionMeta,
       });
     } catch (err) {
       res.status(502).json({ ok: false, error: err?.message ?? String(err) });
