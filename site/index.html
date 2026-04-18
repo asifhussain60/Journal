@@ -1624,7 +1624,7 @@
     function useDraftCache(entryId, initialPrompt = '') {
       const key = `journal.draft.${entryId}`;
       const [draft, setDraft] = useState(() => {
-        const empty = { prompt: initialPrompt, refined: '', preRefine: null, kindOverride: null, structured: null };
+        const empty = { prompt: initialPrompt, refined: '', kindOverride: null, structured: null };
         try {
           const raw = localStorage.getItem(key);
           if (!raw) return empty;
@@ -1635,7 +1635,6 @@
           return {
             prompt: typeof parsed.prompt === 'string' ? parsed.prompt : initialPrompt,
             refined: typeof parsed.refined === 'string' ? parsed.refined : '',
-            preRefine: typeof parsed.preRefine === 'string' ? parsed.preRefine : null,
             kindOverride: parsed.kindOverride === 'photo' || parsed.kindOverride === 'receipt' ? parsed.kindOverride : null,
             structured: parsed.structured && typeof parsed.structured === 'object' ? parsed.structured : null,
           };
@@ -1649,7 +1648,7 @@
           if (writeTimer.current) clearTimeout(writeTimer.current);
           writeTimer.current = setTimeout(() => {
             try {
-              const empty = !next.prompt && !next.refined && next.preRefine == null && !next.kindOverride && !next.structured;
+              const empty = !next.prompt && !next.refined && !next.kindOverride && !next.structured;
               if (empty) localStorage.removeItem(key);
               else localStorage.setItem(key, JSON.stringify({ ...next, updatedAt: new Date().toISOString() }));
             } catch {}
@@ -1664,14 +1663,8 @@
         setRefined:      (v) => persist(p => ({ ...p, refined: v })),
         setKindOverride: (v) => persist(p => ({ ...p, kindOverride: v })),
         setStructured:   (v) => persist(p => ({ ...p, structured: v })),
-        // Snapshot the current prompt before Refine replaces it. Pass null
-        // to clear (e.g. after Undo restores). Only one snapshot is kept —
-        // each Refine overwrites the previous snapshot so Undo always goes
-        // back exactly one step.
-        snapshotForRefine: (currentPrompt) => persist(p => ({ ...p, preRefine: currentPrompt })),
-        clearPreRefine:    () => persist(p => ({ ...p, preRefine: null })),
         clear: () => {
-          setDraft({ prompt: '', refined: '', preRefine: null, kindOverride: null, structured: null });
+          setDraft({ prompt: '', refined: '', kindOverride: null, structured: null });
           if (writeTimer.current) clearTimeout(writeTimer.current);
           try { localStorage.removeItem(key); } catch {}
         },
@@ -1772,10 +1765,9 @@
 
       // Refine in-place: AI rewrites the textarea content using the card
       // artifact + voice fingerprint + active trip context. The result
-      // replaces draft.prompt directly. Before replacing, the current
-      // prompt is snapshotted to draft.preRefine so the reviewer can undo.
-      // On the Reviewed lane, persist=true so the refined output lands
-      // server-side immediately (no Save button to click).
+      // replaces draft.prompt directly. On the Reviewed lane, persist=true
+      // so the refined output lands server-side immediately (no Save button
+      // to click).
       async function handleRefine() {
         if (refining) return;
         if (isDummy) {
@@ -1790,7 +1782,6 @@
           if (isReviewed) body.persist = true;
           const r = await window.BabuAI.logRefine(entry.id, body);
           if (r?.refined) {
-            draft.snapshotForRefine(draft.prompt);
             draft.setPrompt(r.refined);
             if (r.structured) draft.setStructured(r.structured);
             if (isReviewed) setLastSaved(r.refined);
@@ -1843,13 +1834,6 @@
         } finally {
           setUnapproving(false);
         }
-      }
-
-      // Undo: swap the textarea back to the pre-refine snapshot.
-      function handleUndoRefine() {
-        if (draft.preRefine == null) return;
-        draft.setPrompt(draft.preRefine);
-        draft.clearPreRefine();
       }
 
       // Approve (Unreviewed lane) flips reviewStatus to 'approved' along
@@ -2004,17 +1988,6 @@
             >
               <Icon name={refineIcon} /> {refineLabel}
             </button>
-            {draft.preRefine != null && (
-              <button
-                className="log-action-btn log-action-btn--undo log-action-btn--icon-only"
-                onClick={handleUndoRefine}
-                disabled={approving || refining || unapproving}
-                title="Restore the text you had before Refine ran"
-                aria-label="Undo refine"
-              >
-                <Icon name="fa-rotate-left" />
-              </button>
-            )}
             {!isReviewed && (
               <button
                 className="log-action-btn log-action-btn--approve"

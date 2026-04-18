@@ -571,17 +571,6 @@
   color: var(--warning);
   border-color: color-mix(in srgb, var(--warning) 36%, transparent);
 }
-.log-action-btn--undo {
-  background: var(--bg-tertiary);
-  border-color: var(--border-default);
-  color: var(--text-secondary);
-  font-weight: 600;
-}
-.log-action-btn--undo:hover:not(:disabled) {
-  background: var(--bg-card-hover);
-  color: var(--text-primary);
-  border-color: var(--border-accent);
-}
 .log-action-btn--approve {
   background: linear-gradient(135deg,
     color-mix(in srgb, var(--success) 32%, transparent) 0%,
@@ -1176,9 +1165,4 @@
   padding: 0 8px;
   font-size: 0.9rem;
   gap: 5px;
-}
-/* Icon-only buttons (e.g. Undo) — fixed compact width, never grow. */
-.review-card-actions .log-action-btn--icon-only {
-  flex: 0 0 auto;
-  padding: 0 12px;
 }
