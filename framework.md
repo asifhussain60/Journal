@@ -516,4 +516,90 @@ See `_workspace/ideas/app-cowork-execution-plan.md` for the full phase roadmap (
 
 ---
 
+## Phase 11b — Unified Review Card (locked 2026-04-18)
+
+Builds on Phase 11a (commit `4a29d10`, photo review lane + inline note editor + vision refine) and the folder-tab subtab UI (commit `1ccd295`). Generalizes the photo review-mode card to all four kinds (photo, receipt, voice, note) with one shared 3-zone shape. Full DoR at `_workspace/ideas/phase-11b-unified-review-card-dor.md`; this section mirrors the locked decisions so the contract is discoverable from the framework.
+
+**Card anatomy (3 zones, every kind):**
+
+1. **Artifact** (read-only) — image (photo/receipt) | ▶ playback chip + transcript (voice) | captured text (note). Original capture is sacred; never mutated client-side.
+2. **Prompt** (editable) — reviewer's curatorial intent. Drives Refine. Not persisted.
+3. **Refined output** (editable, hidden until first Refine) — AI result; reviewer can hand-edit. Approve persists this if non-empty, else falls back to Zone 1.
+
+**Storage architecture:**
+
+- Server stays source of truth. Existing `reviewStatus` workflow (`unreviewed → in_review → approved | rejected`) carries the lifecycle. No new DB tables.
+- localStorage caches in-progress drafts (Zone 2 prompt + Zone 3 refined + optional `kindOverride`) keyed by `journal.draft.{entryId}`. Debounced 300ms writes, 30-day TTL purge. Reload preserves typing; cache wipe loses ONLY drafts.
+- Photo blobs stay on server filesystem. No client-side blob caching — keeps multi-device review viable (phone capture → desktop review remains a first-class flow).
+
+**Image kind classification:**
+
+- New `classify-image-kind` prompt (Haiku, ~200 tokens, ~$0.0001/call) runs async after `POST /api/log/capture`.
+- Capture returns immediately with `kind='unsorted-image'`; firms up to `photo` or `receipt` within ~2s.
+- Reviewer can override via kind-toggle chip on the card; `kindOverride` rides in localStorage and is honored on Approve.
+- Failure mode: kind stays `unsorted-image`, reviewer flips manually. No blocked state.
+
+**Refine extension (single endpoint, branched by kind):**
+
+`POST /api/log/:id/refine` (existing) extends to:
+
+| kind    | model           | prompt                       |
+|---------|-----------------|------------------------------|
+| photo   | Sonnet (vision) | `refine-photo-note` (existing) |
+| receipt | Sonnet (vision) | `refine-receipt` (new)        |
+| voice   | Haiku (text)    | `refine-voice-transcript` (new) |
+| note    | Haiku (text)    | `refine-note` (new)           |
+
+Refine context per call: card artifact + Zone 2 prompt + active trip metadata (slug, date range, location, YNAB target category for receipts). NOT other entries, NOT memoir history. Strictly card-scoped.
+
+Receipt refine returns `{ refined, structured: { amount, merchant, ynabCategory, lineItems } }`. Structured fields ride invisibly to Approve and persist to YNAB + expense ledger.
+
+**Approve destinations (kind-specific routing preserved from Phase 11a):**
+
+| kind    | Persists to                                                     |
+|---------|-----------------------------------------------------------------|
+| photo   | photo asset store + memoir scratchpad fragment (refined caption) |
+| receipt | YNAB transaction (synchronous, blocks Approve until success) + expense ledger |
+| voice   | memoir scratchpad with refined transcript + audio reference     |
+| note    | memoir scratchpad with refined prose                            |
+
+Receipt YNAB sync is **synchronous**: Approve button shows spinner until `mcp__ynab__create_transaction` confirms. On failure, Approve fails with a toast, entry stays unreviewed, reviewer retries. No fire-and-forget — reviewer always knows the transaction landed.
+
+**Pills handling:**
+
+- Unreviewed (review-mode): `Note`, `Unsorted`, `UNREVIEWED` pills hidden. Clean card.
+- Reviewed lane + Journal tab: pills present (kind-at-a-glance + filter affordance preserved).
+
+**Non-regression contract:**
+
+- Phase 11a workflow-state machinery (`server/src/lib/workflow-state.js`) untouched.
+- Existing pending photos render in the new card with zero data migration (`entry.draft.refined` is opt-in).
+- Holiday-budget pipeline (commit `af22c38`) preserved — receipt structured extraction still drives per-trip YNAB category routing.
+- Voice fingerprint reference (`reference/voice-fingerprint.md`) consumed by `refine-note` and `refine-voice-transcript` to keep refined prose in Asif's voice.
+
+**Net-new files (Phase 11b scope):**
+
+- `server/src/prompts/classify-image-kind.js`
+- `server/src/prompts/refine-receipt.js`
+- `server/src/prompts/refine-note.js`
+- `server/src/prompts/refine-voice-transcript.js`
+- `server/src/lib/classify-queue.js` (in-process async queue)
+- `site/js/use-draft-cache.js` (localStorage hook)
+- New `<ReviewCard>` component inside `site/index.html` (replaces photo-only review-mode branches in `LogEntryCard`)
+- New `.review-card-3zone` CSS block in `site/css/log-view.css`
+
+**Acceptance gates:**
+
+- Gate A — All four kinds render with identical 3-zone card structure in Unreviewed lane.
+- Gate B — Pills (`Note`, `Unsorted`, `UNREVIEWED`) absent from review-mode; present on Reviewed/Journal cards.
+- Gate C — Refine produces Zone 3 content using card-scoped + active-trip context only.
+- Gate D — Approve persists Zone 3 (or Zone 1 if Zone 3 empty) to the correct kind-specific destination.
+- Gate E — Receipt Approve blocks until YNAB sync succeeds; failure surfaces as toast with retry.
+- Gate F — Image kind auto-classifies within ~2s of capture; reviewer can override via toggle.
+- Gate G — localStorage drafts survive page reload; cleared on Approve and Reject.
+- Gate H — No regression on Phase 11a flows (existing pending photos still review and approve correctly).
+- Gate I — Theme validator (`cd server && npm run validate-themes`) green.
+
+---
+
 *This framework is the governing document for the journal ecosystem. Update it when skills are added, removed, or restructured.*
