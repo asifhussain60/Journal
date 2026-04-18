@@ -19,6 +19,9 @@
 //   POST /api/find-alternatives        — trip-edit.js
 //   POST /api/verify-venue             — trip-edit.js
 //   POST /api/swap-event               — trip-edit.js
+//   POST /api/insert-event             — trip-edit.js
+//   POST /api/suggest-insert           — trip-edit.js
+//   POST /api/delete-event             — trip-edit.js
 //   POST /api/upload                   — receipts.js
 //   POST /api/extract-receipt          — receipts.js
 //   POST /api/queue/:name              — queue.js

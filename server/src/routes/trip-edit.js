@@ -5,6 +5,8 @@
 //   POST /api/find-alternatives  — propose 3 nearby alternatives for an event
 //   POST /api/verify-venue       — Gemini-grounded Google Search verification
 //   POST /api/swap-event         — deterministic JSON patch swapping event venue
+//   POST /api/insert-event       — deterministic JSON patch inserting an event at a position
+//   POST /api/suggest-insert     — AI (Sonnet + web_search) candidates to fill a gap; used by insert-mode modal
 
 import express from "express";
 import { loadPrompt } from "../prompts/index.js";
@@ -17,6 +19,30 @@ import { extractJsonObject, wrapUserMessage, logExtractFailure } from "../util/j
 // Intent tier-0 rule: keyword match on edit verbs routes to intent=edit; otherwise
 // the Sonnet trip-edit prompt classifies itself.
 const EDIT_KEYWORDS_RE = /\b(edit|change|move|add|remove|update|modify|set|delete|rename)\b/i;
+
+// Parse "H:MM AM/PM" / "HH:MM" / tilde-prefixed variants into minutes since
+// midnight. Mirrors the client-side parser in insert-event.js so the AI
+// suggestion API can surface a pre-computed window size.
+function parseClockToMin(raw) {
+  if (typeof raw !== "string") return null;
+  const s = raw.replace(/[~≈]/g, "").trim();
+  const m = s.match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM|am|pm)?/);
+  if (!m) return null;
+  let h = Number(m[1]);
+  const min = Number(m[2] || 0);
+  const ampm = (m[3] || "").toUpperCase();
+  if (ampm === "PM" && h < 12) h += 12;
+  if (ampm === "AM" && h === 12) h = 0;
+  if (!Number.isFinite(h) || !Number.isFinite(min)) return null;
+  return h * 60 + min;
+}
+
+function computeMinutesBetween(startStr, endStr) {
+  const s = parseClockToMin(startStr);
+  const e = parseClockToMin(endStr);
+  if (s == null || e == null) return null;
+  return Math.max(0, e - s);
+}
 
 export function createTripEditRouter({ anthropic, DEFAULT_MODEL }) {
   const router = express.Router();
@@ -268,6 +294,149 @@ export function createTripEditRouter({ anthropic, DEFAULT_MODEL }) {
         return res.status(400).json({ ok: false, error: applied.error, errors: applied.errors });
       }
       shadow("edit-log", { id: applied.id, tripSlug: slug, intent: "delete-event", source: "manual-delete", appliedPatch: patch, status: "applied", snapshotId: applied.snapshotId });
+      res.json({ ok: true, tripSlug: slug, ...applied });
+    } catch (err) {
+      res.status(502).json({ ok: false, error: err?.message ?? String(err) });
+    }
+  });
+
+  // Body: { tripSlug, dayIndex, insertEventIndex, window: {start,end}, constraints?, message? }
+  //   window.start / .end : "H:MM AM/PM" strings bounding the gap.
+  //   constraints   : { cuisine, maxDriveMin, priceTier, tagHint, notes } — all optional.
+  //   message       : user's free-form steer, merged into constraints.notes if set.
+  // Returns: { ok, windowSummary, candidates: [ { event, tag, category, venue, phone,
+  //   rating, duration_min, suggestedStart, driveMinutes, rationale } ] }
+  router.post("/api/suggest-insert", async (req, res) => {
+    const { tripSlug, dayIndex, insertEventIndex, window: win, constraints, message } = req.body ?? {};
+    if (!Number.isInteger(dayIndex) || !Number.isInteger(insertEventIndex)) {
+      return res.status(400).json({ ok: false, error: "dayIndex and insertEventIndex (integers) are required" });
+    }
+    if (!win || typeof win !== "object" || typeof win.start !== "string" || typeof win.end !== "string") {
+      return res.status(400).json({ ok: false, error: "window.start and window.end (strings) are required" });
+    }
+    req.body.promptName = "suggest-insert-event";
+    try {
+      const slug = tripSlug || (await getActiveTripSlug());
+      const trip = await readTripObj(slug);
+      const day = trip?.days?.[dayIndex];
+      if (!day) return res.status(404).json({ ok: false, error: `day ${dayIndex} not found` });
+
+      const evs = Array.isArray(day.events) ? day.events : [];
+      const prev = insertEventIndex > 0 ? evs[insertEventIndex - 1] : null;
+      const next = insertEventIndex < evs.length ? evs[insertEventIndex] : null;
+
+      // Normalize constraints: strip unknown keys, bound strings. Same pattern
+      // as /api/find-alternatives so no free-form key can smuggle prompt
+      // injection through this surface.
+      const allowedTiers = new Set(["$", "$$", "$$$", "$$$$"]);
+      const rawC = (constraints && typeof constraints === "object") ? constraints : {};
+      const normalizedConstraints = {
+        cuisine:     typeof rawC.cuisine === "string" && rawC.cuisine.trim() ? rawC.cuisine.trim().slice(0, 40) : null,
+        maxDriveMin: Number.isFinite(rawC.maxDriveMin) && rawC.maxDriveMin > 0 && rawC.maxDriveMin < 180 ? Math.round(rawC.maxDriveMin) : null,
+        priceTier:   allowedTiers.has(rawC.priceTier) ? rawC.priceTier : null,
+        tagHint:     typeof rawC.tagHint === "string" && rawC.tagHint.trim() ? rawC.tagHint.trim().slice(0, 40) : null,
+        notes:       typeof rawC.notes === "string" && rawC.notes.trim() ? rawC.notes.trim().slice(0, 200) : null,
+      };
+      // Merge the free-form message into notes if provided and notes is empty.
+      if (typeof message === "string" && message.trim() && !normalizedConstraints.notes) {
+        normalizedConstraints.notes = message.trim().slice(0, 200);
+      }
+
+      // Compute window minutes for the prompt (cheap, avoids re-parsing in Sonnet).
+      const windowMinutes = computeMinutesBetween(win.start, win.end);
+
+      const dayEventsLite = evs.map((ev) => ({
+        time: ev?.time ?? null,
+        event: ev?.event ?? null,
+        tag: ev?.tag ?? null,
+        venue: ev?.venue ?? null,
+      }));
+
+      const prompt = loadPrompt("suggest-insert-event");
+      const userMsg = JSON.stringify({
+        window: { start: win.start, end: win.end, minutes: windowMinutes },
+        prev: prev ? { event: prev.event, venue: prev.venue ?? null, tag: prev.tag ?? null } : null,
+        next: next ? { event: next.event, venue: next.venue ?? null, tag: next.tag ?? null } : null,
+        dayEvents: dayEventsLite,
+        trip: {
+          theme: trip?.theme ?? null,
+          vibe: trip?.vibe ?? null,
+          base: trip?.base ?? null,
+          travelers: Array.isArray(trip?.travelers) ? trip.travelers : [],
+          regions: Array.isArray(trip?.regions) ? trip.regions : [],
+        },
+        constraints: normalizedConstraints,
+      }, null, 2);
+
+      const msg = await anthropic.messages.create({
+        model: prompt.model ?? DEFAULT_MODEL,
+        max_tokens: 2048,
+        system: prompt.system,
+        messages: [{ role: "user", content: userMsg }],
+        tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 4 }],
+      });
+      const raw = msg.content.filter((b) => b.type === "text").map((b) => b.text).join("").trim();
+      const citations = msg.content
+        .filter((b) => b.type === "web_search_tool_result")
+        .flatMap((b) => (b.content || []).filter((c) => c.url).map((c) => ({ title: c.title, url: c.url })));
+      const parsed = extractJsonObject(raw);
+      if (!parsed || !Array.isArray(parsed.candidates)) {
+        logExtractFailure(prompt.name, raw);
+        return res.json({ ok: false, model: msg.model, usage: msg.usage, error: "model did not return candidates", rawText: raw });
+      }
+
+      res.json({
+        ok: true,
+        model: msg.model,
+        usage: msg.usage,
+        tripSlug: slug,
+        windowSummary: typeof parsed.windowSummary === "string" ? parsed.windowSummary : null,
+        candidates: parsed.candidates,
+        constraints: normalizedConstraints,
+        ...(citations.length ? { citations } : {}),
+      });
+    } catch (err) {
+      res.status(502).json({ ok: false, error: err?.message ?? String(err) });
+    }
+  });
+
+  // Body: { tripSlug, dayIndex, eventIndex, event: { time, event, tag, venue?, phone?, rating?, notes?, duration_min?, category? } }
+  //   eventIndex: the position to insert at. Existing events at this index
+  //     and beyond shift one slot later (JSON-Patch add semantics).
+  // Runs through applyTripEdit so the destination-card validator still fires.
+  router.post("/api/insert-event", async (req, res) => {
+    const { tripSlug, dayIndex, eventIndex, event } = req.body ?? {};
+    if (!Number.isInteger(dayIndex) || !Number.isInteger(eventIndex) || dayIndex < 0 || eventIndex < 0) {
+      return res.status(400).json({ ok: false, error: "dayIndex and eventIndex (non-negative integers) are required" });
+    }
+    if (!event || typeof event !== "object") {
+      return res.status(400).json({ ok: false, error: "event object is required" });
+    }
+    if (typeof event.event !== "string" || !event.event.trim()) {
+      return res.status(400).json({ ok: false, error: "event.event (title) is required" });
+    }
+    if (typeof event.time !== "string" || !event.time.trim()) {
+      return res.status(400).json({ ok: false, error: "event.time is required" });
+    }
+    try {
+      const slug = tripSlug || (await getActiveTripSlug());
+      const ALLOWED_KEYS = new Set(["time", "event", "tag", "venue", "phone", "rating", "notes", "duration_min", "category"]);
+      const clean = {};
+      for (const [k, v] of Object.entries(event)) {
+        if (!ALLOWED_KEYS.has(k)) continue;
+        if (v == null || v === "") continue;
+        clean[k] = v;
+      }
+      const patch = [{ op: "add", path: `/days/${dayIndex}/events/${eventIndex}`, value: clean }];
+      const applied = await applyTripEdit(slug, {
+        intent: `Insert "${clean.event}" on day ${dayIndex + 1}`,
+        patch,
+      });
+      if (!applied.ok) {
+        shadow("edit-log", { id: applied.id || `ins-fail-${Date.now()}`, tripSlug: slug, intent: "insert-event", source: "manual-insert", appliedPatch: patch, status: "failed", error: applied.error });
+        return res.status(400).json({ ok: false, error: applied.error, errors: applied.errors });
+      }
+      shadow("edit-log", { id: applied.id, tripSlug: slug, intent: "insert-event", source: "manual-insert", appliedPatch: patch, status: "applied", snapshotId: applied.snapshotId });
       res.json({ ok: true, tripSlug: slug, ...applied });
     } catch (err) {
       res.status(502).json({ ok: false, error: err?.message ?? String(err) });
