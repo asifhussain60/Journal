@@ -1,0 +1,159 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://journal.local/schemas/publish-session.schema.json",
+  "title": "Publish Session",
+  "description": "A row in trips/{slug}/publish-sessions.json — groups N LogEntry rows for a single Day One entry. Phase 11d Decision 1. Envelopes for composed, mediaPlan, review, publish, cleanup are locked now; their content is populated by 11d.2–11d.4.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "id",
+    "tripSlug",
+    "createdAt",
+    "createdBy",
+    "entryIds",
+    "status"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "enum": ["1"],
+      "description": "'1' = Phase 11d.1 contract."
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^ps_[0-9a-f]{20}$",
+      "description": "'ps_' + 20 hex chars. Stable identifier."
+    },
+    "tripSlug": {
+      "type": "string",
+      "minLength": 1
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "createdBy": {
+      "type": "string",
+      "enum": ["user", "auto-group", "floatingchat"]
+    },
+
+    "entryIds": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Ordered LogEntry ids composing this session."
+    },
+    "eventId": {
+      "type": "string",
+      "description": "Present if all entries share placement.eventId."
+    },
+    "dayIndex": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "timeWindow": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "startCapturedAt": { "type": "string", "format": "date-time" },
+        "endCapturedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+
+    "status": {
+      "type": "string",
+      "enum": [
+        "drafting",
+        "composing",
+        "reviewing",
+        "publishing",
+        "published",
+        "abandoned",
+        "failed"
+      ],
+      "description": "Session lifecycle. See session-state.js SESSION_TRANSITIONS."
+    },
+
+    "composed": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Populated by 11d.2 compose pipeline. App-only writer.",
+      "properties": {
+        "title":          { "type": "string", "maxLength": 80 },
+        "prose":          { "type": "string" },
+        "mood":           { "type": "string" },
+        "dayoneJournal":  { "type": "string" },
+        "dayoneTags":     { "type": "array", "items": { "type": "string" } },
+        "dateOverride":   { "type": "string" },
+        "location": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "lat":  { "type": "number" },
+            "lng":  { "type": "number" },
+            "name": { "type": "string" }
+          }
+        },
+        "revision":       { "type": "integer", "minimum": 0 },
+        "lastComposedAt": { "type": "string", "format": "date-time" },
+        "lastComposedBy": { "type": "string", "enum": ["ai", "user"] }
+      }
+    },
+
+    "mediaPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Populated by 11d.2 when first composed. See Decision 4.",
+      "properties": {
+        "photoIds":     { "type": "array", "items": { "type": "string" } },
+        "excludedIds":  { "type": "array", "items": { "type": "string" } },
+        "coverPhotoId": { "type": "string" }
+      }
+    },
+
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Populated by 11d.2 user actions.",
+      "properties": {
+        "approvedAt": { "type": "string", "format": "date-time" },
+        "rejectedAt": { "type": "string", "format": "date-time" },
+        "iterations": { "type": "integer", "minimum": 0 }
+      }
+    },
+
+    "publish": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Populated by 11d.3 CLI publish path.",
+      "properties": {
+        "method": {
+          "type": "string",
+          "enum": ["cli", "url-scheme", "shortcut"]
+        },
+        "submittedAt":   { "type": "string", "format": "date-time" },
+        "confirmedAt":   { "type": "string", "format": "date-time" },
+        "dayoneEntryId": { "type": "string" },
+        "error":         { "type": "string" },
+        "retryCount":    { "type": "integer", "minimum": 0 }
+      }
+    },
+
+    "cleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Populated by 11d.4 quarantine on confirmed publish.",
+      "properties": {
+        "policy": {
+          "type": "string",
+          "enum": ["delete-photos-on-publish", "retain", "custom"]
+        },
+        "customExcludeIds": { "type": "array", "items": { "type": "string" } },
+        "quarantinedAt":    { "type": "string", "format": "date-time" },
+        "expiresAt":        { "type": "string", "format": "date-time" },
+        "itemsMoved":       { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

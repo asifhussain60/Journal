@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "2",
+  "id": "bad-id-format",
+  "tripSlug": "",
+  "createdAt": "not-a-date",
+  "createdBy": "robot",
+  "entryIds": [],
+  "status": "open",
+  "composed": {
+    "title": "A title that is deliberately too long — exceeding the 80 character maximum to force a schema violation.",
+    "lastComposedBy": "mystery"
+  },
+  "mediaPlan": {
+    "photoIds": "not-an-array"
+  },
+  "unknownField": "should be rejected by additionalProperties:false"
+}

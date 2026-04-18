@@ -57,6 +57,9 @@ export function fromPending(row) {
     syncError: row.syncError ?? undefined,
     overrideSource: row.overrideSource ?? undefined,
 
+    // Phase 11d — PublishSession back-pointer (undefined when row is free)
+    sessionId: row.sessionId ?? undefined,
+
     // Internal drain lifecycle — not in UI copy but needed for Stuck tab filter
     _drainStatus: drainStatus,
     _queueName: "pending",

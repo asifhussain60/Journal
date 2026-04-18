@@ -36,6 +36,17 @@ import {
   validatePlacement,
 } from "../src/validators/placement-rules.js";
 
+import {
+  SESSION_TRANSITIONS,
+  SESSION_INITIAL_STATE,
+  SessionTransitionError,
+  SessionInitialStateError,
+  assertSessionTransition,
+  assertSessionInitial,
+  legalSessionTransitionsFor,
+  isSessionTerminal,
+} from "../src/lib/session-state.js";
+
 let failures = 0;
 let checks = 0;
 
@@ -211,6 +222,48 @@ const dirtyResult = validatePlacement(dirtyRow, trip);
 expect(!dirtyResult.valid, "validatePlacement dirty row returns invalid");
 expect(dirtyResult.errors.some((e) => e.rule === "5.6"), "validatePlacement surfaces 5.6");
 
+// ----- 4. Session state machine (Phase 11d Decision 5) --------------------
+
+const SESSION_STATES = new Set(Object.keys(SESSION_TRANSITIONS));
+for (const set of Object.values(SESSION_TRANSITIONS)) {
+  for (const to of set) SESSION_STATES.add(to);
+}
+
+let sessionLegal = 0;
+let sessionIllegal = 0;
+
+for (const [from, legalSet] of Object.entries(SESSION_TRANSITIONS)) {
+  for (const to of legalSet) {
+    expectOk(() => assertSessionTransition(from, to), `legal session: ${from} → ${to}`);
+    sessionLegal += 1;
+  }
+  for (const to of SESSION_STATES) {
+    if (legalSet.has(to)) continue;
+    expectThrow(() => assertSessionTransition(from, to), SessionTransitionError, `illegal session: ${from} → ${to}`);
+    sessionIllegal += 1;
+  }
+}
+
+// Unknown-state handling
+expectThrow(() => assertSessionTransition("__nope__", "drafting"), SessionTransitionError, "unknown session.from");
+
+// legalSessionTransitionsFor sanity
+expect(
+  legalSessionTransitionsFor("drafting").sort().join(",") === "abandoned,composing",
+  "legalSessionTransitionsFor(drafting) matches DOR",
+);
+
+// Terminal detection
+expect(isSessionTerminal("published"), "published is terminal");
+expect(isSessionTerminal("abandoned"), "abandoned is terminal");
+expect(!isSessionTerminal("drafting"), "drafting is not terminal");
+expect(!isSessionTerminal("publishing"), "publishing is not terminal");
+
+// Initial state
+expectOk(() => assertSessionInitial({ status: SESSION_INITIAL_STATE }), "assertSessionInitial accepts drafting");
+expectThrow(() => assertSessionInitial({ status: "composing" }), SessionInitialStateError, "assertSessionInitial rejects non-drafting");
+expectThrow(() => assertSessionInitial({}), SessionInitialStateError, "assertSessionInitial rejects missing status");
+
 // ----- Summary -------------------------------------------------------------
 
 if (failures > 0) {
@@ -222,5 +275,6 @@ console.log("validate-workflow-state OK");
 console.log(`  transitions:     ${legalCount} legal + ${illegalCount} illegal rejected`);
 console.log(`  initial-state:   applyInitialStates + assertInitial verified`);
 console.log(`  placement rules: 5.1–5.7 happy + violation fixtures verified`);
+console.log(`  session states:  ${sessionLegal} legal + ${sessionIllegal} illegal rejected; initial + terminal verified`);
 console.log(`  total checks:    ${checks}`);
 process.exit(0);

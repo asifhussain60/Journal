@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1",
+  "id": "ps_a1b2c3d4e5f6789012ab",
+  "tripSlug": "2026-05-engagement",
+  "createdAt": "2026-05-15T14:22:01Z",
+  "createdBy": "user",
+  "entryIds": ["ph_01hxyz01", "ph_01hxyz02", "rc_01hxyz03"],
+  "eventId": "evt_engagement_party",
+  "dayIndex": 3,
+  "timeWindow": {
+    "startCapturedAt": "2026-05-14T19:10:00Z",
+    "endCapturedAt": "2026-05-14T23:55:00Z"
+  },
+  "status": "reviewing",
+  "composed": {
+    "title": "Engagement party at Bocca di Bacco",
+    "prose": "The fondue arrived steaming, and Ishrat laughed at the cheese pull — the longest one I've ever seen in a restaurant.",
+    "mood": "tender",
+    "dayoneJournal": "Travel",
+    "dayoneTags": ["engagement", "ny", "2026"],
+    "revision": 2,
+    "lastComposedAt": "2026-05-15T14:30:12Z",
+    "lastComposedBy": "ai"
+  },
+  "mediaPlan": {
+    "photoIds": ["ph_01hxyz01", "ph_01hxyz02"],
+    "excludedIds": ["rc_01hxyz03"],
+    "coverPhotoId": "ph_01hxyz01"
+  },
+  "review": {
+    "iterations": 1
+  }
+}

@@ -179,6 +179,12 @@
       "type": "string",
       "enum": ["ai", "user", "remembered-merchant"],
       "description": "Who supplied the YNAB payee/category override."
+    },
+
+    "sessionId": {
+      "type": "string",
+      "pattern": "^ps_[0-9a-f]{20}$",
+      "description": "Phase 11d back-pointer. Set when the row is added to a PublishSession; cleared on abandon."
     }
   }
 }

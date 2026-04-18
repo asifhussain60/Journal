@@ -37,6 +37,11 @@
 //   GET  /api/weather                  — weather.js (Open-Meteo)
 //   GET  /api/log                       — log.js (Phase 11a)
 //   POST /api/log/capture               — log.js (Phase 11a)
+//   GET  /api/publish-sessions           — publish-sessions.js (Phase 11d.1)
+//   GET  /api/publish-sessions/:id       — publish-sessions.js (Phase 11d.1)
+//   POST /api/publish-sessions           — publish-sessions.js (Phase 11d.1)
+//   PATCH /api/publish-sessions/:id      — publish-sessions.js (Phase 11d.1)
+//   POST /api/publish-sessions/:id/abandon — publish-sessions.js (Phase 11d.1)
 //   GET  /api/trip-spend                — trip-spend.js (YNAB)
 //
 // CORS is locked to ALLOWED_ORIGINS (defaults cover localhost + prod/dev Pages).
@@ -67,6 +72,7 @@ import { createWeatherRouter } from "./routes/weather.js";
 import { createTripSpendRouter } from "./routes/trip-spend.js";
 import { createHolidayBudgetRouter } from "./routes/holiday-budget.js";
 import { createLogRouter } from "./routes/log.js";
+import { createPublishSessionsRouter } from "./routes/publish-sessions.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -148,6 +154,12 @@ const themeSaveSchema = JSON.parse(
 );
 const themeSaveValidator = ajv.compile(themeSaveSchema);
 
+// Publish-session schema validator (Phase 11d.1 — PublishSession v1).
+const publishSessionSchema = JSON.parse(
+  await readFile(path.join(SCHEMA_DIR, "publish-session.schema.json"), "utf8")
+);
+const publishSessionValidator = ajv.compile(publishSessionSchema);
+
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -179,6 +191,7 @@ app.use(createWeatherRouter());
 app.use(createTripSpendRouter());
 app.use(createHolidayBudgetRouter({ anthropic }));
 app.use(createLogRouter({ queueValidators: QUEUE_VALIDATORS }));
+app.use(createPublishSessionsRouter({ publishSessionValidator }));
 
 // --- Start -------------------------------------------------------------------
 app.listen(PORT, "127.0.0.1", () => {
