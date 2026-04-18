@@ -130,8 +130,9 @@ function earliestDateIso(entries) {
     .filter(Boolean)
     .map(s => new Date(s).getTime())
     .filter(n => !isNaN(n));
-  if (!stamps.length) return new Date().toISOString();
-  return new Date(Math.min(...stamps)).toISOString();
+  const when = stamps.length ? new Date(Math.min(...stamps)) : new Date();
+  // DayOne CLI rejects milliseconds in --isoDate. Emit YYYY-MM-DDTHH:MM:SSZ.
+  return when.toISOString().replace(/\.\d{3}Z$/, "Z");
 }
 
 function formatDateRange(entries) {
