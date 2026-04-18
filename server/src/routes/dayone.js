@@ -1,47 +1,30 @@
-// routes/dayone.js — Phase 11b Push-to-DayOne pipeline.
+// routes/dayone.js — Phase 11b Copy-to-DayOne pipeline.
 //
-// GET  /api/dayone/journals      → available DayOne journals (currently a
-//                                  hardcoded shortlist; CLI doesn't expose
-//                                  a `list` subcommand, so we curate).
-// POST /api/dayone/push          → bundle the supplied entry IDs into one
-//                                  DayOne entry. Body:
-//                                    { tripSlug, entryIds: [...], journal }
-//                                  Tries `dayone` (2025.19+) then `dayone2`
-//                                  CLI; on ENOENT falls back to returning
-//                                  the formatted markdown so the client can
-//                                  copy it.
+// GET  /api/dayone/journals     → available DayOne journals (curated shortlist;
+//                                 CLI has no `list` subcommand so we hand-pick).
+// POST /api/dayone/bundle       → bundle the supplied entry IDs into a single
+//                                 clipboard-ready payload. Body:
+//                                   { tripSlug, entryIds: [...], journal }
+//                                 Returns { markdown, html } where `html`
+//                                 contains inline <img src="data:..."> tags so
+//                                 pasting into DayOne brings the photo bytes
+//                                 with it (not just a file-path reference).
 //
-// Formatting follows DayOne's CLI + markdown conventions:
-//   - Inline `[{attachment}]` placeholders weave attached photos into the
-//     narrative (replaces deprecated `[{photo}]`). Photo argv order MUST
-//     match placeholder order in the body.
-//   - Body piped via stdin (no `--no-stdin`); CLI consumes line-by-line.
-//   - Photos passed via `-a` (replaces deprecated `-p`).
-//   - DayOne markdown supports: headings, italic/bold, blockquotes, lists,
-//     checklists, ![alt](url) inline images, ~~strike~~, ==highlight==,
-//     <cite>. Tables removed in v2024.x — we do not emit them.
+// Formatting:
+//   - markdown: DayOne-flavoured body with `[{attachment}]` placeholders where
+//     a photo belongs. Kept for plain-text fallback pastes.
+//   - html: the same body rendered as minimal HTML with inline base64 <img>
+//     tags replacing each placeholder — this is the payload that creates a
+//     rich DayOne entry on paste.
 
 import express from "express";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
 import { getActiveTripSlug, readQueue, REPO_ROOT } from "../lib/receipts.js";
 import { readTripObj } from "../lib/trip-edit-ops.js";
 
-const execFileP = promisify(execFile);
-
-// Try modern command first, then legacy, then the absolute path inside the
-// macOS app bundle. The app-bundle fallback means the integration works
-// even if the user never ran `install_cli.sh` (which needs sudo to write
-// to /usr/local/bin) — the binary itself is shipped inside the .app.
-const CLI_CANDIDATES = [
-  "dayone",
-  "dayone2",
-  "/Applications/Day One.app/Contents/MacOS/dayone",
-];
-
 // Curated for now — extend as you add target journals in DayOne.
-// Labels must match the names DayOne sees so the CLI -j flag works directly.
+// Labels must match the names DayOne sees so pastes land in the right journal.
 const JOURNALS = Object.freeze([
   { id: "ishrat-trips", label: "Ishrat Trips" },
   { id: "asifs-journal", label: "Asif's Journal" },
@@ -50,9 +33,6 @@ const JOURNALS = Object.freeze([
 
 const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
-// Pretty-print a trip slug like "2026-04-ishrat-engagement" → "Ishrat
-// Engagement — April 2026". Falls back to the title from trip.yaml or
-// the raw slug.
 function niceTitle(tripCtx, slug) {
   if (tripCtx?.title) return tripCtx.title;
   const s = tripCtx?.slug || slug || "";
@@ -75,10 +55,6 @@ function entryHasPhoto(row) {
   return !!(rel && typeof rel === "string");
 }
 
-// Build the markdown body with inline [{attachment}] placeholders for
-// every entry that has a photo. Skips entries with no narrative AND no
-// photo. Returns { markdown, photoEntryOrder } so the photo argv stays
-// aligned with the placeholders.
 function formatBundle({ tripCtx, slug, entries }) {
   const title = niceTitle(tripCtx, slug);
   const dateRange = formatDateRange(entries);
@@ -120,19 +96,8 @@ function collectPhotoPaths(orderedRows) {
     if (!abs.startsWith(REPO_ROOT + path.sep)) continue;
     out.push(abs);
   }
-  // DayOne CLI caps at 10 attachments per entry.
+  // Mirror DayOne's historical 10-attachment cap to keep payloads sane.
   return out.slice(0, 10);
-}
-
-function earliestDateIso(entries) {
-  const stamps = entries
-    .map(r => r.capturedAt || r.createdAt)
-    .filter(Boolean)
-    .map(s => new Date(s).getTime())
-    .filter(n => !isNaN(n));
-  const when = stamps.length ? new Date(Math.min(...stamps)) : new Date();
-  // DayOne CLI rejects milliseconds in --isoDate. Emit YYYY-MM-DDTHH:MM:SSZ.
-  return when.toISOString().replace(/\.\d{3}Z$/, "Z");
 }
 
 function formatDateRange(entries) {
@@ -148,25 +113,67 @@ function formatDateRange(entries) {
   return first.toDateString() === last.toDateString() ? fmt(first) : `${fmt(first)} – ${fmt(last)}`;
 }
 
-async function tryDayoneCli(args, input) {
-  let lastEnoentErr = null;
-  for (const bin of CLI_CANDIDATES) {
+function mimeFromExt(p) {
+  const ext = path.extname(p).toLowerCase();
+  if (ext === ".jpg" || ext === ".jpeg") return "image/jpeg";
+  if (ext === ".png") return "image/png";
+  if (ext === ".heic") return "image/heic";
+  if (ext === ".webp") return "image/webp";
+  if (ext === ".gif") return "image/gif";
+  return "application/octet-stream";
+}
+
+async function loadPhotos(paths) {
+  const out = [];
+  for (const abs of paths) {
     try {
-      return await execFileP(bin, args, {
-        input,
-        maxBuffer: 8 * 1024 * 1024,
-        timeout: 30_000,
+      const buf = await readFile(abs);
+      const mime = mimeFromExt(abs);
+      out.push({
+        filename: path.basename(abs),
+        mime,
+        dataUrl: `data:${mime};base64,${buf.toString("base64")}`,
       });
-    } catch (err) {
-      if (err.code === "ENOENT") { lastEnoentErr = err; continue; }
-      throw err;
-    }
+    } catch { /* skip unreadable */ }
   }
-  // All candidates missing — let caller fall back to clipboard mode.
-  const e = new Error("dayone CLI not installed");
-  e.code = "ENOENT";
-  e.cause = lastEnoentErr;
-  throw e;
+  return out;
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+// Render the bundle markdown to minimal HTML, swapping each `[{attachment}]`
+// placeholder for an <img> that carries the photo bytes inline. Paragraphs are
+// split on blank lines; single newlines inside a paragraph become <br>.
+function renderHtml({ markdown, photos }) {
+  const paragraphs = markdown.split(/\n{2,}/);
+  const parts = [];
+  let photoIdx = 0;
+  for (const raw of paragraphs) {
+    const block = raw.replace(/\s+$/, "");
+    if (!block) continue;
+    if (block.startsWith("# ")) {
+      parts.push(`<h1>${escapeHtml(block.slice(2).trim())}</h1>`);
+      continue;
+    }
+    if (block === "[{attachment}]") {
+      const p = photos[photoIdx++];
+      if (p) parts.push(`<p><img src="${p.dataUrl}" alt="${escapeHtml(p.filename)}" /></p>`);
+      continue;
+    }
+    const trimmed = block.trim();
+    if (/^\*[^*]+\*$/.test(trimmed)) {
+      parts.push(`<p><em>${escapeHtml(trimmed.slice(1, -1))}</em></p>`);
+      continue;
+    }
+    parts.push(`<p>${escapeHtml(block).replace(/\n/g, "<br>")}</p>`);
+  }
+  return parts.join("\n");
 }
 
 export function createDayoneRouter() {
@@ -176,7 +183,7 @@ export function createDayoneRouter() {
     res.json({ ok: true, journals: JOURNALS });
   });
 
-  router.post("/api/dayone/push", express.json(), async (req, res) => {
+  router.post("/api/dayone/bundle", express.json(), async (req, res) => {
     try {
       const { tripSlug, entryIds, journal } = req.body ?? {};
       if (!Array.isArray(entryIds) || entryIds.length === 0) {
@@ -199,39 +206,16 @@ export function createDayoneRouter() {
       try { tripCtx = await readTripObj(slug); } catch { /* best-effort */ }
 
       const { markdown, photoEntryOrder } = formatBundle({ tripCtx, slug, entries: ordered });
-      const photos = collectPhotoPaths(photoEntryOrder);
-      const dateIso = earliestDateIso(ordered);
+      const photos = await loadPhotos(collectPhotoPaths(photoEntryOrder));
+      const html = renderHtml({ markdown, photos });
 
-      // CLI invocation: photos before `--`, body via stdin so newlines are
-      // preserved cleanly. Tag with the trip slug for findability.
-      const args = ["-j", journalLabel, "--isoDate", dateIso];
-      if (slug) args.push("-t", String(slug));
-      if (photos.length) args.push("-a", ...photos);
-      args.push("--", "new");
-      try {
-        const { stdout, stderr } = await tryDayoneCli(args, markdown);
-        return res.json({
-          ok: true,
-          mode: "cli",
-          journal: journalLabel,
-          entryCount: ordered.length,
-          stdout: stdout?.trim() || "",
-          stderr: stderr?.trim() || "",
-        });
-      } catch (err) {
-        if (err.code === "ENOENT") {
-          return res.json({
-            ok: true,
-            mode: "clipboard",
-            journal: journalLabel,
-            entryCount: ordered.length,
-            markdown,
-            photos,
-            note: "DayOne CLI not installed. Install via DayOne menu \u2192 Help \u2192 Install Command Line Tools, then this button will push directly.",
-          });
-        }
-        return res.status(502).json({ ok: false, error: err?.message ?? String(err), stderr: err?.stderr?.toString() });
-      }
+      res.json({
+        ok: true,
+        journal: journalLabel,
+        entryCount: ordered.length,
+        markdown,
+        html,
+      });
     } catch (err) {
       res.status(500).json({ ok: false, error: err?.message ?? String(err) });
     }

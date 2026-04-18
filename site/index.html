@@ -2211,18 +2211,17 @@
           .catch(() => { /* silent — DayOne push is optional */ });
       }, []);
 
-      // Bundle every visible Reviewed entry into one DayOne entry.
-      // Server tries the dayone2 CLI first; on ENOENT it returns the
-      // formatted markdown so we can copy it to the clipboard. Either way
-      // the user gets useful output.
-      async function handleDayonePush() {
+      // Bundle every visible Reviewed entry and copy the result to the
+      // clipboard as rich HTML (inline base64 photos) plus plain markdown.
+      // Paste into a new DayOne entry to land the photos + narrative.
+      async function handleDayoneCopy() {
         if (dayonePushing) return;
         const reviewedRows = applyOrder(visible.filter(isReviewed));
         const entryIds = reviewedRows
           .map(e => e.id)
           .filter(id => typeof id === 'string' && !id.startsWith('dummy_'));
         if (!entryIds.length) {
-          window.notify?.warning?.('Nothing to push', { description: 'No Reviewed entries to bundle.' });
+          window.notify?.warning?.('Nothing to copy', { description: 'No Reviewed entries to bundle.' });
           return;
         }
         if (!dayoneJournal) {
@@ -2231,28 +2230,24 @@
         }
         setDayonePushing(true);
         try {
-          const r = await fetch(`${LOG_API_BASE}/api/dayone/push`, {
+          const r = await fetch(`${LOG_API_BASE}/api/dayone/bundle`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ tripSlug, entryIds, journal: dayoneJournal }),
           });
           const d = await r.json();
-          if (!d?.ok) throw new Error(d?.error || 'push failed');
-          if (d.mode === 'cli') {
-            window.notify?.success?.(`Pushed ${d.entryCount} entries to "${d.journal}"`);
-          } else if (d.mode === 'clipboard' && d.markdown) {
-            try {
-              await navigator.clipboard.writeText(d.markdown);
-              window.notify?.info?.('Markdown copied to clipboard', {
-                description: 'DayOne CLI not installed — paste into a new entry. (Install via DayOne > Help to enable direct push.)',
-              });
-            } catch {
-              window.notify?.warning?.('Clipboard write failed', { description: 'CLI also unavailable; check console for the markdown.' });
-              console.warn('[dayone] markdown bundle:\n' + d.markdown);
-            }
-          }
+          if (!d?.ok) throw new Error(d?.error || 'bundle failed');
+          const htmlBlob = new Blob([d.html || ''], { type: 'text/html' });
+          const textBlob = new Blob([d.markdown || ''], { type: 'text/plain' });
+          await navigator.clipboard.write([new ClipboardItem({
+            'text/html': htmlBlob,
+            'text/plain': textBlob,
+          })]);
+          window.notify?.success?.(`Copied ${d.entryCount} entries`, {
+            description: `Paste into "${d.journal}" in DayOne.`,
+          });
         } catch (err) {
-          window.notify?.error?.('DayOne push failed', { description: err.message || String(err) });
+          window.notify?.error?.('Copy to DayOne failed', { description: err.message || String(err) });
         } finally {
           setDayonePushing(false);
         }
@@ -2550,7 +2545,7 @@
             </div>
           </section>
 
-          {/* ── Push to DayOne — bundles Reviewed entries into one entry ── */}
+          {/* ── Copy to DayOne — bundles Reviewed entries onto the clipboard ── */}
           {reviewView === 'reviewed' && (
             <div className="log-dayone-push">
               <div className="log-dayone-push-controls">
@@ -2568,13 +2563,13 @@
                 </select>
                 <button
                   className="log-dayone-push-btn"
-                  onClick={handleDayonePush}
+                  onClick={handleDayoneCopy}
                   disabled={dayonePushing || !dayoneJournals.length}
-                  title="Bundle every Reviewed entry into one DayOne entry"
+                  title="Copy every Reviewed entry (photos + text) to the clipboard for pasting into DayOne"
                 >
-                  <Icon name={dayonePushing ? 'fa-circle-notch fa-spin' : 'fa-feather-pointed'} />
+                  <Icon name={dayonePushing ? 'fa-circle-notch fa-spin' : 'fa-copy'} />
                   {' '}
-                  {dayonePushing ? 'Pushing…' : 'Push to DayOne'}
+                  {dayonePushing ? 'Copying…' : 'Copy to DayOne'}
                 </button>
               </div>
             </div>
