@@ -1628,16 +1628,19 @@
     // override (image-kind toggle), and structured receipt fields. Server
     // stays source of truth for the entry itself; this hook just preserves
     // typing across reloads. Cleared on Approve/Reject.
-    function useDraftCache(entryId) {
+    function useDraftCache(entryId, initialPrompt = '') {
       const key = `journal.draft.${entryId}`;
       const [draft, setDraft] = useState(() => {
-        const empty = { prompt: '', refined: '', preRefine: null, kindOverride: null, structured: null };
+        const empty = { prompt: initialPrompt, refined: '', preRefine: null, kindOverride: null, structured: null };
         try {
           const raw = localStorage.getItem(key);
           if (!raw) return empty;
           const parsed = JSON.parse(raw);
+          // If localStorage has any prompt content (even empty string from a
+          // user clear), respect it. Only fall back to initialPrompt when the
+          // key isn't present at all.
           return {
-            prompt: typeof parsed.prompt === 'string' ? parsed.prompt : '',
+            prompt: typeof parsed.prompt === 'string' ? parsed.prompt : initialPrompt,
             refined: typeof parsed.refined === 'string' ? parsed.refined : '',
             preRefine: typeof parsed.preRefine === 'string' ? parsed.preRefine : null,
             kindOverride: parsed.kindOverride === 'photo' || parsed.kindOverride === 'receipt' ? parsed.kindOverride : null,
@@ -1758,9 +1761,14 @@
     // Zone 2 — editable prompt textarea (curatorial intent, not persisted)
     // Zone 3 — editable refined output (AI result, persisted on Approve)
     // Approve resolution: Zone 3 if non-empty, else Zone 1 (raw artifact).
-    function ReviewCard({ entry, onApproveDraft, onReject, onKindFlipped }) {
-      const draft = useDraftCache(entry.id);
+    function ReviewCard({ entry, lane, onApproveDraft, onSaveDraft, onReject, onKindFlipped }) {
+      // Reviewed cards seed the textarea with the canonical prose so the
+      // reviewer can see/edit what they previously approved. Unreviewed
+      // cards start empty (or whatever localStorage holds).
+      const initialPrompt = lane === 'reviewed' ? (entry.draft?.prose || '') : '';
+      const draft = useDraftCache(entry.id, initialPrompt);
       const effectiveKind = draft.kindOverride || entry.kind;
+      const isReviewed = lane === 'reviewed';
 
       const [refining, setRefining] = useState(false);
       const [refineError, setRefineError] = useState('');
@@ -1806,23 +1814,33 @@
         draft.clearPreRefine();
       }
 
-      async function handleApprove() {
+      // Approve (Unreviewed lane) flips reviewStatus to 'approved' along
+      // with the textarea text + any structured/kind override.
+      // Save (Reviewed lane) PATCHes only the textarea text + structured —
+      // entry stays approved.
+      async function handleCommit() {
         if (approving) return;
         if (isDummy) {
-          window.notify?.info?.('Demo card', { description: 'Approve is disabled on preview cards.' });
+          const verb = isReviewed ? 'Save' : 'Approve';
+          window.notify?.info?.('Demo card', { description: `${verb} is disabled on preview cards.` });
           return;
         }
         setApproving(true);
         try {
-          const patch = { reviewStatus: 'approved' };
-          // Textarea is now the canonical text (refine writes here too).
+          const patch = {};
+          if (!isReviewed) patch.reviewStatus = 'approved';
           if (draft.prompt && draft.prompt.trim()) patch.draftProse = draft.prompt.trim();
           if (draft.kindOverride) patch.kindOverride = draft.kindOverride;
           if (draft.structured) patch.structured = draft.structured;
-          await onApproveDraft?.(entry.id, patch);
+          if (isReviewed) {
+            await onSaveDraft?.(entry.id, patch);
+          } else {
+            await onApproveDraft?.(entry.id, patch);
+          }
           draft.clear();
         } catch (err) {
-          window.notify?.error?.('Approve failed', { description: err.message || String(err) });
+          const verb = isReviewed ? 'Save' : 'Approve';
+          window.notify?.error?.(`${verb} failed`, { description: err.message || String(err) });
         } finally {
           setApproving(false);
         }
@@ -1921,120 +1939,15 @@
             )}
             <button
               className="log-action-btn log-action-btn--approve"
-              onClick={handleApprove}
+              onClick={handleCommit}
               disabled={approving || refining}
-              title="Approve and persist"
+              title={isReviewed ? 'Save edits to this approved entry' : 'Approve and persist'}
             >
-              <Icon name={approving ? 'fa-circle-notch fa-spin' : 'fa-check'} /> {approving ? 'Approving…' : 'Approve'}
+              <Icon name={approving ? 'fa-circle-notch fa-spin' : (isReviewed ? 'fa-floppy-disk' : 'fa-check')} />
+              {' '}
+              {approving ? (isReviewed ? 'Saving…' : 'Approving…') : (isReviewed ? 'Save' : 'Approve')}
             </button>
           </footer>
-        </article>
-      );
-    }
-
-    // ─── Spacious entry card — full metadata view (Reviewed lane + non-Inbox tabs).
-    // Phase 11b: review-mode rendering moved to <ReviewCard>; this card is the
-    // default-mode reference shape (pills, placement, status, action footer).
-    function LogEntryCard({ entry, onApprove, onReassign, onRefine, onReject }) {
-      const badge = KIND_BADGE[entry.kind] || { icon: 'fa-question', label: entry.kind };
-      const di = entry.placement?.dayIndex;
-      const placementLabel = di != null
-        ? `Day ${di + 1}${entry.placement.eventId ? ' · ' + entry.placement.eventId.replace(/_/g, ' ') : ''}`
-        : 'Unsorted';
-      const showConfidence = ['ai', 'nearby'].includes(entry.placement?.source);
-      const conf = entry.placement?.confidence ?? 0;
-      const confClass = conf >= 0.8 ? 'high' : conf >= 0.5 ? 'mid' : 'low';
-
-      const canApprove  = entry.reviewStatus !== 'approved';
-      const canReassign = entry.placementStatus !== 'confirmed' || entry.reviewStatus !== 'approved';
-      const canRefine   = entry.kind === 'voice' || entry.kind === 'note' || entry.journalStatus === 'draft';
-      const canReject   = entry.reviewStatus !== 'rejected';
-
-      const statusLabel = {
-        unreviewed: 'Unreviewed',
-        in_review:  'In review',
-        approved:   'Approved',
-        rejected:   'Rejected',
-      }[entry.reviewStatus] || entry.reviewStatus;
-
-      return (
-        <article className="log-entry-card">
-          <LogEntryThumb entry={entry} />
-
-          <div className="log-entry-content">
-            <header className="log-entry-header">
-              <span className="log-entry-kind-badge">
-                <Icon name={badge.icon} /> {badge.label}
-              </span>
-              <span className={`log-placement-chip ${entry.placementStatus}`}>
-                <Icon name="fa-map-pin" /> {placementLabel}
-              </span>
-              {showConfidence && (
-                <span
-                  className={`log-confidence-dot ${confClass}`}
-                  title={`${entry.placement.source} · ${Math.round(conf * 100)}% confidence${entry.placement?.reasoning ? ' — ' + entry.placement.reasoning : ''}`}
-                ></span>
-              )}
-              <span className="log-route-badges">
-                {entry.route?.journal && entry.route.journal !== 'none' && (
-                  <span className="log-route-badge log-route-badge--journal" title={`Journal: ${entry.route.journal}`}>
-                    <Icon name="fa-book" />
-                  </span>
-                )}
-                {entry.route?.ynab && entry.route.ynab !== 'na' && (
-                  <span className="log-route-badge log-route-badge--ynab" title={`YNAB: ${entry.route.ynab}`}>
-                    <Icon name="fa-coins" />
-                  </span>
-                )}
-              </span>
-            </header>
-
-            <div className="log-entry-preview">
-              {entry.draft?.prose && (
-                <span className="log-entry-draft-flag">Draft</span>
-              )}
-              {entryPreview(entry)}
-            </div>
-
-            <footer className="log-entry-footer">
-              <span className="log-entry-status">
-                <span className={`log-status-dot log-status-dot--${entry.reviewStatus}`}></span>
-                {statusLabel}
-              </span>
-              <button
-                className="log-action-btn log-action-btn--refine"
-                onClick={() => onRefine?.(entry.id)}
-                disabled={!canRefine}
-                title="Refine with AI"
-              >
-                <Icon name="fa-wand-magic-sparkles" /> Refine
-              </button>
-              <button
-                className="log-action-btn log-action-btn--reassign"
-                onClick={() => onReassign?.(entry.id)}
-                disabled={!canReassign}
-                title="Reassign day or event"
-              >
-                <Icon name="fa-arrows-rotate" /> Reassign
-              </button>
-              <button
-                className="log-action-btn log-action-btn--reject"
-                onClick={() => onReject?.(entry)}
-                disabled={!canReject}
-                title="Reject this entry"
-              >
-                <Icon name="fa-trash-can" /> Reject
-              </button>
-              <button
-                className="log-action-btn log-action-btn--approve"
-                onClick={() => onApprove?.(entry.id)}
-                disabled={!canApprove}
-                title="Approve"
-              >
-                <Icon name="fa-check" /> Approve
-              </button>
-            </footer>
-          </div>
         </article>
       );
     }
@@ -2147,35 +2060,28 @@
       useEffect(() => { purgeStaleDrafts(); }, []);
 
       // ─── Per-row action handlers ───
-      async function handleApprove(id) {
-        try {
-          const r = await window.BabuAI.logPatch(id, { reviewStatus: 'approved' });
-          setEntries(prev => prev.map(e => e.id === id ? r.entry : e));
-          window.notify?.success?.('Approved');
-        } catch (err) {
-          window.notify?.error?.('Approve failed', { description: err.message || String(err) });
-        }
-      }
-      // Phase 11b: ReviewCard sends a combined PATCH (status + draft.prose +
-      // kindOverride + structured) so refined output and reviewer corrections
-      // ride to the server in one atomic write. Throws on failure so the card
-      // can keep its draft state for retry.
+      // ReviewCard sends a combined PATCH (status + draft.prose + kindOverride
+      // + structured) so refined output and reviewer corrections ride to the
+      // server in one atomic write. Throws on failure so the card can keep
+      // its draft state for retry.
       async function handleApproveDraft(id, patch) {
         const r = await window.BabuAI.logPatch(id, patch);
         if (!r?.entry) throw new Error('approve patch returned no entry');
         setEntries(prev => prev.map(e => e.id === id ? r.entry : e));
         window.notify?.success?.('Approved');
       }
+      // Save: same PATCH path as approve, just without the reviewStatus flip.
+      // Used by the Reviewed lane when the reviewer edits/refines an
+      // already-approved entry.
+      async function handleSaveDraft(id, patch) {
+        const r = await window.BabuAI.logPatch(id, patch);
+        if (!r?.entry) throw new Error('save patch returned no entry');
+        setEntries(prev => prev.map(e => e.id === id ? r.entry : e));
+        window.notify?.success?.('Saved');
+      }
       // Reconcile entries state after the kind-toggle badge PATCHes the row.
       function handleKindFlipped(id, updatedEntry) {
         setEntries(prev => prev.map(e => e.id === id ? updatedEntry : e));
-      }
-      function handleReassign(id) {
-        window.notify?.info?.('Reassign flow coming soon', { description: 'id=' + id });
-        window.dispatchEvent(new CustomEvent('log-entry:reassign', { detail: { id } }));
-      }
-      function handleRefine(id) {
-        window.dispatchEvent(new CustomEvent('ai-drawer:open', { detail: { entryId: id } }));
       }
       function handleReject(entry) { setRejectTarget(entry); }
       async function confirmReject() {
@@ -2506,29 +2412,20 @@
                   </div>
                 ) : (
                   displayEntries.map(entry => {
-                    // Phase 11b: every unreviewed entry in the Inbox renders as a
-                    // unified ReviewCard (3-zone shape). Reviewed entries and
-                    // non-Inbox tabs use the default LogEntryCard.
-                    const inUnreviewedLane = tab === 'inbox' && reviewView === 'unreviewed';
-                    if (inUnreviewedLane) {
-                      return (
-                        <ReviewCard
-                          key={entry.id}
-                          entry={entry}
-                          onApproveDraft={handleApproveDraft}
-                          onReject={handleReject}
-                          onKindFlipped={handleKindFlipped}
-                        />
-                      );
-                    }
+                    // Phase 11b: every entry renders as a unified ReviewCard.
+                    // Lane is per-entry by reviewStatus — approved entries
+                    // get the 'reviewed' shape (Save instead of Approve,
+                    // textarea pre-filled with draft.prose).
+                    const lane = entry.reviewStatus === 'approved' ? 'reviewed' : 'unreviewed';
                     return (
-                      <LogEntryCard
+                      <ReviewCard
                         key={entry.id}
                         entry={entry}
-                        onApprove={handleApprove}
-                        onReassign={handleReassign}
-                        onRefine={handleRefine}
+                        lane={lane}
+                        onApproveDraft={handleApproveDraft}
+                        onSaveDraft={handleSaveDraft}
                         onReject={handleReject}
+                        onKindFlipped={handleKindFlipped}
                       />
                     );
                   })
