@@ -706,22 +706,44 @@ html{scroll-behavior:smooth}
 .event-alt .alt-body{flex:1;min-width:0;}
 .event-alt .alt-name{font-weight:500;color:inherit;}
 .event-alt .alt-meta{font-size:.72rem;color:var(--text-muted);}
-.event-alt .alt-find-btn{
-  background:none;
-  border:1px dashed var(--accent-a35);
-  color:var(--accent);
-  font-size:.72rem;
-  font-weight:500;
-  padding:.3rem .7rem;
-  border-radius:999px;
+/* Alt-find — round corner button stacked under .event-delete-btn. Same
+   geometry as the delete button (30×30 round, top-right corner) but in the
+   accent palette so the destructive vs. constructive action read at a
+   glance. Only rendered when this stop is numbered AND no alternative is
+   already chosen — the renderer suppresses it once .event-alt--filled
+   takes over. */
+.alt-find-btn{
+  position:absolute;
+  /* Stacks below .event-delete-btn (30px tall + 8px top + 6px gap = 44px). */
+  top:44px;
+  right:8px;
+  z-index:3;
+  display:grid;
+  place-items:center;
+  width:30px;
+  height:30px;
+  border-radius:50%;
+  border:1px solid color-mix(in srgb, var(--accent) 65%, transparent);
+  background:var(--accent);
+  color:var(--contrast-dark);
+  font-size:.78rem;
   cursor:pointer;
-  white-space:nowrap;
-  transition:background-color .18s ease, border-color .18s ease, border-style .18s ease;
+  box-shadow:
+    0 2px 6px var(--shadow-a30),
+    0 6px 14px -4px var(--accent-a35);
+  transition:
+    transform .18s cubic-bezier(.34,1.56,.64,1),
+    background-color .18s ease,
+    box-shadow .18s ease;
 }
-.event-alt .alt-find-btn:hover{
-  background:var(--accent-a12);
-  border-style:solid;
-  border-color:var(--accent);
+.alt-find-btn:hover,
+.alt-find-btn:focus-visible{
+  transform:scale(1.1);
+  background:color-mix(in srgb, var(--accent) 88%, white);
+  box-shadow:
+    0 3px 8px var(--shadow-a30),
+    0 10px 20px -4px color-mix(in srgb, var(--accent) 60%, transparent);
+  outline:none;
 }
 
 /* Time column — right-aligned, sits outside the card */
@@ -2659,6 +2681,9 @@ html{scroll-behavior:smooth}
 }
 .alt-constraints-notes-submit{
   flex:0 0 auto;
+  /* min-width pegged to the resting "Enter" footprint so the button does not
+     shrink when its text swaps to "…" during the in-flight busy state. */
+  min-width:4.25rem;
   padding:.35rem .8rem;
   border-radius:6px;
   background:var(--accent-a14);
@@ -2669,10 +2694,11 @@ html{scroll-behavior:smooth}
   font-weight:600;
   letter-spacing:.08em;
   text-transform:uppercase;
+  text-align:center;
   cursor:pointer;
   transition:background-color .18s ease, border-color .18s ease, color .18s ease, transform .18s ease;
 }
-.alt-constraints-notes-submit:hover{
+.alt-constraints-notes-submit:hover:not(:disabled){
   background:var(--accent-a25);
   border-color:var(--accent);
   color:var(--text);
@@ -2681,6 +2707,16 @@ html{scroll-behavior:smooth}
 .alt-constraints-notes-submit:focus-visible{
   outline:none;
   box-shadow:var(--focus-ring);
+}
+/* Disabled state — token-clean (no opacity on the colored text). The button
+   visibly de-emphasizes while a fetch is in flight; the input next to it
+   stays enabled so users can compose the next prompt while waiting. */
+.alt-constraints-notes-submit:disabled{
+  background:var(--white-04);
+  border-color:var(--white-12);
+  color:var(--text-muted);
+  cursor:not-allowed;
+  transform:none;
 }
 /* Precedence hint sits below the input so users know typed text wins
    over dropdowns. Standard pattern across all AI override widgets. */
@@ -2691,6 +2727,38 @@ html{scroll-behavior:smooth}
   font-style:italic;
   color:var(--text-muted);
   letter-spacing:.01em;
+}
+
+/* Prompt echo — appears above the rotating status text when the user
+   submitted a free-form refinement. Acknowledges THEIR input so the
+   loading state isn't generic "AI is working" boilerplate. */
+.alt-modal-prompt-echo{
+  display:flex;
+  align-items:center;
+  gap:.55rem;
+  padding:.7rem .9rem;
+  margin-bottom:.7rem;
+  border-radius:8px;
+  background:var(--accent-a08);
+  border:1px solid var(--accent-a25);
+  color:var(--text);
+  font-size:.85rem;
+  line-height:1.4;
+  animation:promptEchoIn .25s ease-out both;
+}
+.alt-modal-prompt-echo i{
+  flex:0 0 auto;
+  color:var(--accent);
+  font-size:.95rem;
+}
+.alt-modal-prompt-echo em{
+  font-style:italic;
+  color:var(--accent);
+  font-weight:500;
+}
+@keyframes promptEchoIn{
+  from{opacity:0; transform:translateY(-4px);}
+  to{opacity:1; transform:translateY(0);}
 }
 
 /* ── Spend-donut fallback when YNAB is not configured ── */

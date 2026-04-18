@@ -1282,6 +1282,15 @@
         var delLabel = String(ev.event || '').replace(/'/g, "\\'");
         parts.push('        <div class="event-actions">');
         parts.push('          <button type="button" class="event-delete-btn" aria-label="Delete this stop" title="Delete this stop" onclick="event.stopPropagation(); requestDeleteEvent(' + dayIdx + ',' + eventIdx + ',\'' + escHtml(delLabel) + '\')"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>');
+        // Alt-find corner button — only rendered when this is a numbered stop
+        // AND no alternative venue has been chosen yet. Once an alt is set the
+        // .event-alt--filled card inside the body takes over and the button
+        // disappears (the user has already swapped). Positioned absolutely
+        // beneath the delete button via .alt-find-btn (see itinerary.css).
+        if (num && !(ev.alt_venue && ev.alt_venue.name)) {
+          var altLabel = String(ev.event || '').replace(/'/g, "\\'");
+          parts.push('          <button type="button" class="alt-find-btn" aria-label="Find an alternative venue nearby" title="Find an alternative venue nearby" onclick="event.stopPropagation(); findAlternate(' + dayIdx + ',' + eventIdx + ',\'' + escHtml(altLabel) + '\')"><i class="fa-solid fa-shuffle" aria-hidden="true"></i></button>');
+        }
         parts.push('          <i class="event-caret fa-solid fa-chevron-down" aria-hidden="true"></i>');
         parts.push('        </div>');
         parts.push('      </div>');
@@ -1320,12 +1329,10 @@
             if (meta.length) parts.push('              <span class="alt-meta">' + meta.join(' &middot; ') + '</span>');
             parts.push('            </div>');
             parts.push('          </div>');
-          } else {
-            var label = String(ev.event || '').replace(/'/g, "\\'");
-            parts.push('          <div class="event-alt">');
-            parts.push('            <button type="button" class="alt-find-btn" onclick="event.stopPropagation(); findAlternate(' + dayIdx + ',' + eventIdx + ',\'' + escHtml(label) + '\')"><i class="fa-solid fa-shuffle" aria-hidden="true"></i>Find an alternative nearby</button>');
-            parts.push('          </div>');
           }
+          // No "else" branch — when there's no alt yet, the .alt-find-btn
+          // corner action (rendered above next to the delete button) is the
+          // entry point. Avoids a redundant inline pill inside the body.
         }
 
         parts.push('        </div>'); // .event-body-inner
@@ -1633,8 +1640,20 @@
         return out;
       }
 
-      function renderAltLoadingBody() {
+      function renderAltLoadingBody(userPrompt) {
+        // When the user typed a refinement, echo it above the generic status
+        // so the response visibly acknowledges THEIR input — not just "AI is
+        // working" boilerplate.
+        var promptEcho = '';
+        if (userPrompt) {
+          promptEcho =
+            '<div class="alt-modal-prompt-echo" role="status" aria-live="polite">' +
+            '  <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>' +
+            '  <span>Evaluating your request: <em>' + escHtml(userPrompt) + '</em></span>' +
+            '</div>';
+        }
         return (
+          promptEcho +
           '<div class="alt-modal-loading" role="status" aria-live="polite">' +
           '  <div class="alt-modal-progress" aria-hidden="true">' +
           '    <div class="alt-modal-progress-bar"></div>' +
@@ -1643,6 +1662,23 @@
           '</div>' +
           altSkeletonHtml()
         );
+      }
+
+      // Notes-submit busy state — disables the Enter button + Enter key while
+      // a fetch is in flight so rapid double-fires don't stack requests. The
+      // input itself stays enabled so the user can start typing the next
+      // prompt while waiting for the current one.
+      var altNotesBusy = false;
+      function setNotesSubmitBusy(busy) {
+        altNotesBusy = busy;
+        var bodyEl = document.getElementById('alt-modal-body');
+        if (!bodyEl) return;
+        var btn = bodyEl.querySelector('.alt-constraints-notes-submit');
+        if (btn) {
+          btn.disabled = busy;
+          btn.textContent = busy ? '\u2026' : 'Enter';
+          btn.setAttribute('aria-busy', busy ? 'true' : 'false');
+        }
       }
 
       function openAltModal(ctx) {
@@ -1657,9 +1693,16 @@
         // the same applyConstraints() so a typed refinement runs holistically
         // with whatever dropdowns are already set.
         function applyConstraints() {
+          if (altNotesBusy) return;
           var next = readConstraintsFromBar();
+          // Capture-then-clear: read the typed prompt before wiping the input,
+          // so the in-flight fetch carries the value but the field looks fresh
+          // for the next refinement attempt.
+          var inputEl = document.querySelector('.alt-constraints-notes-input');
+          if (inputEl) inputEl.value = '';
           altConstraintsByKey[constraintsKey(ctx.dayIdx, ctx.eventIdx)] = next;
           altModalCtx = Object.assign({}, ctx, { constraints: next });
+          setNotesSubmitBusy(true);
           runFindAlternatives(altModalCtx);
         }
         var applyBtn = body.querySelector('.alt-constraint-apply');
@@ -1669,6 +1712,7 @@
           notesInput.addEventListener('keydown', function (e) {
             if (e.key === 'Enter' && !e.isComposing) {
               e.preventDefault();
+              if (altNotesBusy) return;
               applyConstraints();
             }
           });
@@ -1687,6 +1731,9 @@
         var m = document.getElementById('alt-modal');
         if (m) m.hidden = true;
         altModalCtx = null;
+        // Reset busy flag — next open should start with a fresh, clickable
+        // submit button regardless of how the previous session ended.
+        altNotesBusy = false;
       }
 
       // Replace the result area only — preserves the constraints bar so the
@@ -1804,7 +1851,8 @@
         // Abort any previous request — rapid clicks or regenerates must not
         // race: the older, slower response could overwrite the newer one.
         cancelAltInflight();
-        updateAltResultsArea(renderAltLoadingBody());
+        var typedPrompt = (ctx.constraints && ctx.constraints.notes) ? ctx.constraints.notes : '';
+        updateAltResultsArea(renderAltLoadingBody(typedPrompt));
         startAltStatusCycle();
 
         var ctl = (typeof AbortController === 'function') ? new AbortController() : null;
@@ -1829,11 +1877,13 @@
             if (!data.ok) throw new Error(data.error || 'No alternatives returned');
             stopAltStatus();
             renderAltOptions(ctx.dayIdx, ctx.eventIdx, data.alternatives);
+            setNotesSubmitBusy(false);
           })
           .catch(function (err) {
-            if (err && err.name === 'AbortError') return; // superseded
+            if (err && err.name === 'AbortError') return; // superseded — busy state owned by the new request
             altInflight = null;
             renderAltError(err.message || String(err));
+            setNotesSubmitBusy(false);
           });
       }
 
