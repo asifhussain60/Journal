@@ -73,6 +73,7 @@ import { createTripSpendRouter } from "./routes/trip-spend.js";
 import { createHolidayBudgetRouter } from "./routes/holiday-budget.js";
 import { createLogRouter } from "./routes/log.js";
 import { createPublishSessionsRouter } from "./routes/publish-sessions.js";
+import { createDayoneRouter } from "./routes/dayone.js";
 import { createClassifyQueue } from "./lib/classify-queue.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -196,6 +197,7 @@ app.use(createTripSpendRouter());
 app.use(createHolidayBudgetRouter({ anthropic }));
 app.use(createLogRouter({ queueValidators: QUEUE_VALIDATORS, anthropic, DEFAULT_MODEL, classifyQueue }));
 app.use(createPublishSessionsRouter({ publishSessionValidator }));
+app.use(createDayoneRouter());
 
 // --- Start -------------------------------------------------------------------
 app.listen(PORT, "127.0.0.1", () => {

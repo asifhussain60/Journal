@@ -2058,6 +2058,9 @@
       const [noteComposerOpen, setNoteComposerOpen] = useState(false);
       const [receiptProcessing, setReceiptProcessing] = useState(false);
       const [rejectTarget, setRejectTarget] = useState(null);
+      const [dayoneJournals, setDayoneJournals] = useState([]);
+      const [dayoneJournal, setDayoneJournal] = useState('');
+      const [dayonePushing, setDayonePushing] = useState(false);
       const photoCameraRef = useRef(null);
       const photoLibraryRef = useRef(null);
       const receiptInputRef = useRef(null);
@@ -2194,6 +2197,65 @@
         setEntries(prev => prev.map(e => e.id === id ? updatedEntry : e));
       }
       function handleReject(entry) { setRejectTarget(entry); }
+
+      // Fetch DayOne journals on mount; default selection to the first.
+      useEffect(() => {
+        fetch(`${LOG_API_BASE}/api/dayone/journals`)
+          .then(r => r.json())
+          .then(d => {
+            if (!d?.ok || !Array.isArray(d.journals)) return;
+            setDayoneJournals(d.journals);
+            if (d.journals.length && !dayoneJournal) setDayoneJournal(d.journals[0].id);
+          })
+          .catch(() => { /* silent — DayOne push is optional */ });
+      }, []);
+
+      // Bundle every visible Reviewed entry into one DayOne entry.
+      // Server tries the dayone2 CLI first; on ENOENT it returns the
+      // formatted markdown so we can copy it to the clipboard. Either way
+      // the user gets useful output.
+      async function handleDayonePush() {
+        if (dayonePushing) return;
+        const reviewedRows = applyOrder(visible.filter(isReviewed));
+        const entryIds = reviewedRows
+          .map(e => e.id)
+          .filter(id => typeof id === 'string' && !id.startsWith('dummy_'));
+        if (!entryIds.length) {
+          window.notify?.warning?.('Nothing to push', { description: 'No Reviewed entries to bundle.' });
+          return;
+        }
+        if (!dayoneJournal) {
+          window.notify?.warning?.('Pick a journal first');
+          return;
+        }
+        setDayonePushing(true);
+        try {
+          const r = await fetch(`${LOG_API_BASE}/api/dayone/push`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tripSlug, entryIds, journal: dayoneJournal }),
+          });
+          const d = await r.json();
+          if (!d?.ok) throw new Error(d?.error || 'push failed');
+          if (d.mode === 'cli') {
+            window.notify?.success?.(`Pushed ${d.entryCount} entries to "${d.journal}"`);
+          } else if (d.mode === 'clipboard' && d.markdown) {
+            try {
+              await navigator.clipboard.writeText(d.markdown);
+              window.notify?.info?.('Markdown copied to clipboard', {
+                description: 'DayOne CLI not installed — paste into a new entry. (Install via DayOne > Help to enable direct push.)',
+              });
+            } catch {
+              window.notify?.warning?.('Clipboard write failed', { description: 'CLI also unavailable; check console for the markdown.' });
+              console.warn('[dayone] markdown bundle:\n' + d.markdown);
+            }
+          }
+        } catch (err) {
+          window.notify?.error?.('DayOne push failed', { description: err.message || String(err) });
+        } finally {
+          setDayonePushing(false);
+        }
+      }
       async function confirmReject() {
         const entry = rejectTarget;
         if (!entry) return;
@@ -2486,6 +2548,36 @@
               </div>
             </div>
           </section>
+
+          {/* ── Push to DayOne — bundles Reviewed entries into one entry ── */}
+          {reviewView === 'reviewed' && (
+            <div className="log-dayone-push">
+              <div className="log-dayone-push-controls">
+                <select
+                  className="log-dayone-journal-select"
+                  value={dayoneJournal}
+                  onChange={e => setDayoneJournal(e.target.value)}
+                  disabled={dayonePushing || !dayoneJournals.length}
+                  aria-label="Target DayOne journal"
+                >
+                  {dayoneJournals.length === 0 && <option value="">No journals available</option>}
+                  {dayoneJournals.map(j => (
+                    <option key={j.id} value={j.id}>{j.label}</option>
+                  ))}
+                </select>
+                <button
+                  className="log-dayone-push-btn"
+                  onClick={handleDayonePush}
+                  disabled={dayonePushing || !dayoneJournals.length}
+                  title="Bundle every Reviewed entry into one DayOne entry"
+                >
+                  <Icon name={dayonePushing ? 'fa-circle-notch fa-spin' : 'fa-feather-pointed'} />
+                  {' '}
+                  {dayonePushing ? 'Pushing…' : 'Push to DayOne'}
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* ── Reject confirmation modal ── */}
           <ConfirmModal
