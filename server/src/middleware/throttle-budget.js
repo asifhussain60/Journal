@@ -20,7 +20,7 @@
 // edit-log reads. The "cheap" set mirrors the Cowork-side rule: synthesis
 // lives in Cowork, never throttled from the App surface.
 
-import { getUsageSummary } from "../usage-summary.js";
+import { getUsageSummary } from "../lib/usage-summary.js";
 
 // Endpoints that must never be throttled. Health first so monitoring always
 // works. Read-only queue + edit-log endpoints follow — they're cheap and the

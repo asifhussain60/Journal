@@ -9,8 +9,8 @@ import express from "express";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { loadPrompt } from "../prompts/index.js";
-import { getActiveTripSlug, TRIPS_DIR } from "../receipts.js";
-import { readTripObj } from "../trip-edit-ops.js";
+import { getActiveTripSlug, TRIPS_DIR } from "../lib/receipts.js";
+import { readTripObj } from "../lib/trip-edit-ops.js";
 import { extractJsonObject, wrapUserMessage, logExtractFailure } from "../util/json.js";
 
 export function createTripRouter({ anthropic, DEFAULT_MODEL }) {

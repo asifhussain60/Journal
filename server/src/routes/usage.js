@@ -2,7 +2,7 @@
 //   GET /api/usage/summary — feeds BudgetPill, UsageModal, throttle-budget.
 
 import express from "express";
-import { getUsageSummary } from "../usage-summary.js";
+import { getUsageSummary } from "../lib/usage-summary.js";
 
 export function createUsageRouter({ MONTHLY_CAP }) {
   const router = express.Router();

@@ -1435,7 +1435,13 @@
     // Trip Log surface: capture strip + 4-tab IA + row list
     // =================================================================
 
-    const LOG_API_BASE = 'http://127.0.0.1:3001';
+    // Reuse the env-aware base from claude-client.js (loaded before this script).
+    // Falls back to localhost for dev when BabuAI isn't available yet.
+    const LOG_API_BASE = (window.BabuAI?.baseUrl ?? (
+      window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === ''
+        ? 'http://localhost:3001'
+        : 'https://journal-api.kashkole.com'
+    ));
 
     const KIND_BADGE = {
       photo:     { icon: 'fa-camera',        label: 'Photo' },

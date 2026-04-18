@@ -11,7 +11,7 @@ import path from "node:path";
 import fastJsonPatch from "fast-json-patch";
 import yaml from "js-yaml";
 import { TRIPS_DIR } from "./receipts.js";
-import { validateTrip } from "./validators/trip-edit-rules.js";
+import { validateTrip } from "../validators/trip-edit-rules.js";
 
 const { applyPatch, deepClone } = fastJsonPatch;
 

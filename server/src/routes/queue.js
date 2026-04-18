@@ -7,9 +7,9 @@
 //   POST /api/dead-letter/discard  — drop a dead-letter entry
 
 import express from "express";
-import { getActiveTripSlug, appendQueueRow, readQueue } from "../receipts.js";
+import { getActiveTripSlug, appendQueueRow, readQueue } from "../lib/receipts.js";
 import { shadow } from "../middleware/shadow-write.js";
-import { listDeadLetter, replayDeadLetterEntry, deleteDeadLetterEntry } from "../dead-letter.js";
+import { listDeadLetter, replayDeadLetterEntry, deleteDeadLetterEntry } from "../lib/dead-letter.js";
 
 const QUEUE_NAME_RE = /^[a-z][a-z0-9-]*$/;
 

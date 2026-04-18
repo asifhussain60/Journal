@@ -4,8 +4,13 @@
   "description": "Babu — Journal Command Center. Memoir + Trip Planner + DayOne integration.",
   "private": true,
   "scripts": {
-    "dev": "npx serve . -l 3000 --cors",
-    "start": "npx serve . -l 3000 --cors"
+    "dev": "npx serve site -l 3000 --cors",
+    "dev:root": "npx serve . -l 3000 --cors",
+    "start": "npx serve site -l 3000 --cors",
+    "server": "cd server && npm start",
+    "server:dev": "cd server && npm run dev",
+    "health": "cd server && npm run health",
+    "validate": "cd server && npm run validate"
   },
   "keywords": ["journal", "memoir", "trip-planner"],
   "author": "Asif Hussain"

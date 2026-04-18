@@ -13,7 +13,7 @@ import {
   sniffImageExt,
   extToMediaType,
   macVisionOcr,
-} from "../receipts.js";
+} from "../lib/receipts.js";
 import { extractJsonObject } from "../util/json.js";
 
 export function createReceiptsRouter({ anthropic, DEFAULT_MODEL, upload }) {

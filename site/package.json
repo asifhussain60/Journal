@@ -1,7 +1,7 @@
 {
-  "name": "babu-journal",
+  "name": "babu-journal-site",
   "version": "0.1.0",
-  "description": "Babu — Journal Command Center. Memoir + Trip Planner + DayOne integration.",
+  "description": "Babu Journal — frontend SPA. Deployed to Cloudflare Workers as a static site.",
   "private": true,
   "scripts": {
     "dev": "npx serve . -l 3000 --cors",

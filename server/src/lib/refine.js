@@ -10,7 +10,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // server/src -> server -> repo root -> reference/voice-fingerprint.md
-const FINGERPRINT_PATH = path.resolve(__dirname, "../../reference/voice-fingerprint.md");
+const FINGERPRINT_PATH = path.resolve(__dirname, "../../../reference/voice-fingerprint.md");
 
 const INSTRUCTION = `Your task is to refine the journal entry below so it matches Asif's voice fingerprint.
 

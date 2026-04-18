@@ -10,10 +10,10 @@
 
 import express from "express";
 import { loadPrompt } from "../prompts/index.js";
-import { getActiveTripSlug } from "../receipts.js";
-import { applyTripEdit, revertTripEdit, readTripObj, readEditLog } from "../trip-edit-ops.js";
+import { getActiveTripSlug } from "../lib/receipts.js";
+import { applyTripEdit, revertTripEdit, readTripObj, readEditLog } from "../lib/trip-edit-ops.js";
 import { shadow } from "../middleware/shadow-write.js";
-import { verifyVenue as geminiVerifyVenue, isAvailable as geminiAvailable } from "../gemini-client.js";
+import { verifyVenue as geminiVerifyVenue, isAvailable as geminiAvailable } from "../lib/gemini-client.js";
 import { extractJsonObject, wrapUserMessage, logExtractFailure } from "../util/json.js";
 
 // Intent tier-0 rule: keyword match on edit verbs routes to intent=edit; otherwise

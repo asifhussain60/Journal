@@ -50,7 +50,7 @@ import multer from "multer";
 import Ajv from "ajv";
 import addFormats from "ajv-formats";
 import Anthropic from "@anthropic-ai/sdk";
-import { loadAnthropicKey } from "./keychain.js";
+import { loadAnthropicKey } from "./lib/keychain.js";
 import { usageLogger } from "./middleware/usage-logger.js";
 import { buildRateLimiter } from "./middleware/rate-limit.js";
 import { throttleBudget } from "./middleware/throttle-budget.js";

@@ -9,10 +9,10 @@ import express from "express";
 import path from "node:path";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import { makeRefineHandler } from "../refine.js";
+import { makeRefineHandler } from "../lib/refine.js";
 import { hasPrompt, loadPrompt } from "../prompts/index.js";
 import { accessAuthStatus } from "../middleware/access-auth.js";
-import { status as geminiStatus } from "../gemini-client.js";
+import { status as geminiStatus } from "../lib/gemini-client.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
