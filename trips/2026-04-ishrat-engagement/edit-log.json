@@ -1549,5 +1549,30 @@
     "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-d3729062-de44-4ff6-b85d-00f7f3e0a934.yaml",
     "actor": "app",
     "status": "applied"
+  },
+  {
+    "schemaVersion": "1",
+    "id": "d7ada6d0-8dc0-4a26-9756-c930989b8f86",
+    "createdAt": "2026-04-18T10:04:22.962Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "Swap event 1.2 → Arrive & Check In at Home2 Suites",
+    "patch": [
+      {
+        "op": "replace",
+        "path": "/days/0/events/1/event",
+        "value": "Arrive & Check In at Home2 Suites"
+      }
+    ],
+    "inversePatch": [
+      {
+        "op": "replace",
+        "path": "/days/0/events/1/event",
+        "value": "Arrive & Check In at Home2 Suites, New Brunswick"
+      }
+    ],
+    "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-d7ada6d0-8dc0-4a26-9756-c930989b8f86.yaml",
+    "actor": "app",
+    "status": "applied"
   }
 ]
