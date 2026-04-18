@@ -1142,3 +1142,223 @@
   transform: translateY(-1px);
   box-shadow: 0 6px 20px color-mix(in srgb, var(--error) 40%, transparent);
 }
+
+/* ═══════════════════════════════════════════════════
+   9. Photo review lane — sub-tab bar + inline note editor
+   ═══════════════════════════════════════════════════ */
+
+/* Sub-tab bar — slimmer than the primary .log-tab row, lives below the
+   source-filter chips inside .log-panel-control. Scoped to the Inbox tab. */
+.log-subtab-bar {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border-default);
+}
+
+.log-subtab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  background: var(--bg-secondary);
+  border: var(--log-border);
+  color: var(--text-muted);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: all 180ms ease;
+  box-shadow: var(--shadow-sm);
+}
+.log-subtab:hover {
+  color: var(--text-primary);
+  background: var(--bg-card-hover);
+  border-color: var(--border-accent);
+}
+.log-subtab.active {
+  color: var(--accent);
+  background: linear-gradient(135deg,
+    rgba(var(--accent-rgb), 0.22) 0%,
+    rgba(var(--accent-rgb), 0.08) 100%);
+  border-color: var(--border-accent);
+  box-shadow:
+    0 0 10px rgba(var(--accent-rgb), 0.14),
+    var(--shadow-sm);
+}
+
+.log-subtab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: var(--radius-full);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+.log-subtab.active .log-subtab-badge {
+  background: rgba(var(--accent-rgb), 0.30);
+  color: var(--white-90);
+  border-color: var(--border-accent);
+}
+
+/* ─── Review-mode card: pills hidden, preview replaced by the note editor.
+       Card container dimensions are intentionally unchanged (min-height
+       continues to come from .log-entry-card) — the editor must fit within. */
+.log-entry-card--review .log-entry-preview,
+.log-entry-card--review .log-entry-status {
+  display: none;
+}
+
+/* ─── Inline note editor (PhotoNoteEditor) ─── */
+.log-note-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 12px;
+  padding: 10px;
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  border: var(--log-border);
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+}
+
+.log-note-editor.is-refining {
+  border-color: var(--border-accent);
+  box-shadow:
+    0 0 0 1px rgba(var(--accent-rgb), 0.28),
+    0 0 14px rgba(var(--accent-rgb), 0.22);
+  animation: log-note-editor-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes log-note-editor-pulse {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.28), 0 0 14px rgba(var(--accent-rgb), 0.22); }
+  50%      { box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.40), 0 0 22px rgba(var(--accent-rgb), 0.38); }
+}
+
+.log-note-editor-input {
+  width: 100%;
+  min-height: 64px;
+  max-height: 160px;
+  resize: vertical;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.5;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.15);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+.log-note-editor-input:focus {
+  outline: none;
+  border-color: var(--border-accent);
+  box-shadow:
+    inset 0 1px 2px rgba(0,0,0,0.15),
+    0 0 0 2px rgba(var(--accent-rgb), 0.18);
+}
+.log-note-editor-input:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+.log-note-editor-input::placeholder {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.log-note-editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.log-note-editor-refine {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: all 180ms ease;
+}
+.log-note-editor-refine:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  border-color: var(--border-accent);
+  transform: translateY(-1px);
+  box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.22);
+}
+.log-note-editor-refine:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.log-note-editor-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--error) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--error) 40%, transparent);
+  color: var(--error);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/* Refined preview — shown after a successful refine, before the user
+   accepts or discards it. Non-destructive: the textarea still holds the
+   user's original text until the user explicitly clicks Use refined. */
+.log-note-editor-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent);
+}
+.log-note-editor-preview-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.log-note-editor-preview-text {
+  font-size: 0.98rem;
+  line-height: 1.55;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.log-note-editor-preview-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.log-note-editor-preview-actions .log-action-btn {
+  flex: 0 0 auto;
+  height: 34px;
+  padding: 0 14px;
+  font-size: 0.9rem;
+}

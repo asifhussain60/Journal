@@ -190,7 +190,7 @@ app.use(createThemeRouter({ anthropic, DEFAULT_MODEL, themeSaveValidator }));
 app.use(createWeatherRouter());
 app.use(createTripSpendRouter());
 app.use(createHolidayBudgetRouter({ anthropic }));
-app.use(createLogRouter({ queueValidators: QUEUE_VALIDATORS }));
+app.use(createLogRouter({ queueValidators: QUEUE_VALIDATORS, anthropic, DEFAULT_MODEL }));
 app.use(createPublishSessionsRouter({ publishSessionValidator }));
 
 // --- Start -------------------------------------------------------------------

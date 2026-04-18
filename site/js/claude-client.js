@@ -27,6 +27,7 @@
     "/api/refine", "/api/chat", "/api/trip-qa", "/api/trip-assistant",
     "/api/trip-edit", "/api/ingest-itinerary", "/api/extract-receipt",
     "/api/theme-swatches", "/api/theme-review", "/api/find-alternatives",
+    "/api/log/", // per-entry refine lives under /api/log/:id/refine
   ];
 
   function pickTimeout(path, override) {
@@ -227,6 +228,27 @@
 
     async queueGet(name) {
       return getJSON(`/api/queue/${name}`);
+    },
+
+    // Phase 11a+ — per-entry note / review mutations on pending.json rows.
+    async logPatch(id, patch) {
+      if (!id) throw new Error("logPatch: id required");
+      return getJSON(`/api/log/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch || {}),
+      });
+    },
+
+    // AI-refine a per-image note with trip + journal + voice-fingerprint context.
+    // { note, persist? } — when persist, server writes refined to row.draft.prose.
+    async logRefine(id, payload) {
+      if (!id) throw new Error("logRefine: id required");
+      return getJSON(`/api/log/${encodeURIComponent(id)}/refine`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload || {}),
+      });
     },
   };
 })();

@@ -1587,8 +1587,163 @@
       );
     }
 
+    // ─── Per-card inline note editor (review mode).
+    // Canonical state:   entry.notes (server, pending.json)
+    // Ephemeral UI:      local value, savedValue, refining/refined
+    // Resilience layer:  localStorage['log_note_draft_<id>'] — draft cache only,
+    //                    hydrated only when newer than canonical entry.updatedAt.
+    function PhotoNoteEditor({ entry, onSave, onRefine }) {
+      const storageKey = `log_note_draft_${entry.id}`;
+      const canonicalNote = entry.notes ?? '';
+      const [value, setValue] = useState(canonicalNote);
+      const [savedValue, setSavedValue] = useState(canonicalNote);
+      const [refining, setRefining] = useState(false);
+      const [refineError, setRefineError] = useState('');
+      const [refined, setRefined] = useState('');
+      const writeDraftTimer = useRef(null);
+
+      // Hydrate from localStorage on mount: canonical wins if it's fresher
+      // than the cached draft; otherwise restore the unsynced draft.
+      useEffect(() => {
+        try {
+          const raw = localStorage.getItem(storageKey);
+          if (!raw) return;
+          const draft = JSON.parse(raw);
+          const canonTs = new Date(entry.updatedAt || entry.capturedAt || 0).getTime();
+          if (draft && typeof draft.value === 'string' && draft.ts > canonTs && draft.value !== canonicalNote) {
+            setValue(draft.value);
+          } else {
+            localStorage.removeItem(storageKey);
+          }
+        } catch { /* storage disabled — ignore */ }
+      }, [entry.id]);
+
+      // Keep local in sync when canonical updates from outside (e.g. after save).
+      useEffect(() => {
+        setSavedValue(canonicalNote);
+        setValue(v => (v === savedValue ? canonicalNote : v));
+      }, [canonicalNote]);
+
+      function scheduleDraftWrite(v) {
+        if (writeDraftTimer.current) clearTimeout(writeDraftTimer.current);
+        writeDraftTimer.current = setTimeout(() => {
+          try {
+            if (!v) localStorage.removeItem(storageKey);
+            else   localStorage.setItem(storageKey, JSON.stringify({ value: v, ts: Date.now() }));
+          } catch {}
+        }, 400);
+      }
+
+      function handleChange(e) {
+        const v = e.target.value;
+        setValue(v);
+        scheduleDraftWrite(v);
+      }
+
+      async function handleBlur() {
+        const next = value;
+        // Restore-on-empty: empty blur rolls back to last non-empty saved value.
+        if (!next.trim() && savedValue && savedValue.trim()) {
+          setValue(savedValue);
+          try { localStorage.removeItem(storageKey); } catch {}
+          return;
+        }
+        if (next === savedValue) return;
+        try {
+          await onSave?.(entry.id, next);
+          setSavedValue(next);
+          try { localStorage.removeItem(storageKey); } catch {}
+        } catch (err) {
+          // Save failed — leave draft in localStorage so a reload recovers it.
+          window.notify?.error?.('Note save failed', { description: err.message || String(err) });
+        }
+      }
+
+      async function handleRefineClick() {
+        const source = value.trim();
+        if (!source || refining) return;
+        setRefining(true);
+        setRefineError('');
+        setRefined('');
+        try {
+          const r = await onRefine?.(entry.id, source);
+          if (r?.refined) setRefined(r.refined);
+          else            setRefineError('No refined text returned');
+        } catch (err) {
+          setRefineError(err.message || String(err));
+        } finally {
+          setRefining(false);
+        }
+      }
+
+      async function acceptRefined() {
+        const next = refined;
+        setValue(next);
+        setRefined('');
+        try {
+          await onSave?.(entry.id, next);
+          setSavedValue(next);
+        } catch (err) {
+          window.notify?.error?.('Save refined failed', { description: err.message || String(err) });
+        }
+      }
+
+      function rejectRefined() { setRefined(''); setRefineError(''); }
+
+      return (
+        <div className={`log-note-editor ${refining ? 'is-refining' : ''}`}>
+          <textarea
+            className="log-note-editor-input"
+            value={value}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            placeholder="Add a note or prompt for this photo…"
+            rows={3}
+            disabled={refining}
+            spellCheck
+          />
+          <div className="log-note-editor-actions">
+            <button
+              className="log-note-editor-refine"
+              onClick={handleRefineClick}
+              disabled={!value.trim() || refining}
+              title="Refine this note with trip + journal context in your voice"
+            >
+              <Icon name={refining ? 'fa-circle-notch fa-spin' : 'fa-wand-magic-sparkles'} />
+              {refining ? ' Refining…' : ' Refine'}
+            </button>
+          </div>
+          {refineError && (
+            <div className="log-note-editor-error" role="alert">
+              <Icon name="fa-triangle-exclamation" /> {refineError}
+            </div>
+          )}
+          {refined && !refining && (
+            <div className="log-note-editor-preview">
+              <div className="log-note-editor-preview-label">
+                <Icon name="fa-feather-pointed" /> Refined
+              </div>
+              <div className="log-note-editor-preview-text">{refined}</div>
+              <div className="log-note-editor-preview-actions">
+                <button className="log-action-btn" onClick={rejectRefined} title="Keep my original note">
+                  <Icon name="fa-xmark" /> Keep mine
+                </button>
+                <button className="log-action-btn log-action-btn--approve" onClick={acceptRefined} title="Replace with refined text">
+                  <Icon name="fa-check" /> Use refined
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
     // ─── Spacious photo-forward card ───
-    function LogEntryCard({ entry, onApprove, onReassign, onRefine, onReject }) {
+    // `mode`:
+    //   'default' — full metadata (pills, placement, status, footer actions incl. drawer Refine)
+    //   'review'  — photo review lane: pills hidden, inline note editor replaces the prose preview,
+    //               footer shows only Reject + Approve (Refine is inside the note editor)
+    function LogEntryCard({ entry, mode = 'default', onApprove, onReassign, onRefine, onReject, onSaveNote, onRefineNote }) {
       const badge = KIND_BADGE[entry.kind] || { icon: 'fa-question', label: entry.kind };
       const di = entry.placement?.dayIndex;
       const placementLabel = di != null
@@ -1603,6 +1758,7 @@
       const canReassign = entry.placementStatus !== 'confirmed' || entry.reviewStatus !== 'approved';
       const canRefine   = entry.kind === 'voice' || entry.kind === 'note' || entry.journalStatus === 'draft';
       const canReject   = entry.reviewStatus !== 'rejected';
+      const isReview    = mode === 'review';
 
       const statusLabel = {
         unreviewed: 'Unreviewed',
@@ -1612,68 +1768,80 @@
       }[entry.reviewStatus] || entry.reviewStatus;
 
       return (
-        <article className="log-entry-card">
+        <article className={`log-entry-card ${isReview ? 'log-entry-card--review' : ''}`}>
           <LogEntryThumb entry={entry} />
 
           <div className="log-entry-content">
-            {/* Header: kind + placement + confidence + routes */}
-            <header className="log-entry-header">
-              <span className="log-entry-kind-badge">
-                <Icon name={badge.icon} /> {badge.label}
-              </span>
-              <span className={`log-placement-chip ${entry.placementStatus}`}>
-                <Icon name="fa-map-pin" /> {placementLabel}
-              </span>
-              {showConfidence && (
-                <span
-                  className={`log-confidence-dot ${confClass}`}
-                  title={`${entry.placement.source} · ${Math.round(conf * 100)}% confidence${entry.placement?.reasoning ? ' — ' + entry.placement.reasoning : ''}`}
-                ></span>
-              )}
-              <span className="log-route-badges">
-                {entry.route?.journal && entry.route.journal !== 'none' && (
-                  <span className="log-route-badge log-route-badge--journal" title={`Journal: ${entry.route.journal}`}>
-                    <Icon name="fa-book" />
-                  </span>
+            {/* Header: hidden in review mode (kind/placement/unreviewed pills are redundant there) */}
+            {!isReview && (
+              <header className="log-entry-header">
+                <span className="log-entry-kind-badge">
+                  <Icon name={badge.icon} /> {badge.label}
+                </span>
+                <span className={`log-placement-chip ${entry.placementStatus}`}>
+                  <Icon name="fa-map-pin" /> {placementLabel}
+                </span>
+                {showConfidence && (
+                  <span
+                    className={`log-confidence-dot ${confClass}`}
+                    title={`${entry.placement.source} · ${Math.round(conf * 100)}% confidence${entry.placement?.reasoning ? ' — ' + entry.placement.reasoning : ''}`}
+                  ></span>
                 )}
-                {entry.route?.ynab && entry.route.ynab !== 'na' && (
-                  <span className="log-route-badge log-route-badge--ynab" title={`YNAB: ${entry.route.ynab}`}>
-                    <Icon name="fa-coins" />
-                  </span>
+                <span className="log-route-badges">
+                  {entry.route?.journal && entry.route.journal !== 'none' && (
+                    <span className="log-route-badge log-route-badge--journal" title={`Journal: ${entry.route.journal}`}>
+                      <Icon name="fa-book" />
+                    </span>
+                  )}
+                  {entry.route?.ynab && entry.route.ynab !== 'na' && (
+                    <span className="log-route-badge log-route-badge--ynab" title={`YNAB: ${entry.route.ynab}`}>
+                      <Icon name="fa-coins" />
+                    </span>
+                  )}
+                </span>
+              </header>
+            )}
+
+            {/* Body: inline note editor in review mode; prose preview otherwise */}
+            {isReview ? (
+              <PhotoNoteEditor entry={entry} onSave={onSaveNote} onRefine={onRefineNote} />
+            ) : (
+              <div className="log-entry-preview">
+                {entry.draft?.prose && (
+                  <span className="log-entry-draft-flag">Draft</span>
                 )}
-              </span>
-            </header>
+                {entryPreview(entry)}
+              </div>
+            )}
 
-            {/* Body: prose / draft preview */}
-            <div className="log-entry-preview">
-              {entry.draft?.prose && (
-                <span className="log-entry-draft-flag">Draft</span>
-              )}
-              {entryPreview(entry)}
-            </div>
-
-            {/* Footer: status + explicit actions */}
+            {/* Footer: reject + approve in review mode; full action row otherwise */}
             <footer className="log-entry-footer">
-              <span className="log-entry-status">
-                <span className={`log-status-dot log-status-dot--${entry.reviewStatus}`}></span>
-                {statusLabel}
-              </span>
-              <button
-                className="log-action-btn log-action-btn--refine"
-                onClick={() => onRefine?.(entry.id)}
-                disabled={!canRefine}
-                title="Refine with AI"
-              >
-                <Icon name="fa-wand-magic-sparkles" /> Refine
-              </button>
-              <button
-                className="log-action-btn log-action-btn--reassign"
-                onClick={() => onReassign?.(entry.id)}
-                disabled={!canReassign}
-                title="Reassign day or event"
-              >
-                <Icon name="fa-arrows-rotate" /> Reassign
-              </button>
+              {!isReview && (
+                <span className="log-entry-status">
+                  <span className={`log-status-dot log-status-dot--${entry.reviewStatus}`}></span>
+                  {statusLabel}
+                </span>
+              )}
+              {!isReview && (
+                <button
+                  className="log-action-btn log-action-btn--refine"
+                  onClick={() => onRefine?.(entry.id)}
+                  disabled={!canRefine}
+                  title="Refine with AI"
+                >
+                  <Icon name="fa-wand-magic-sparkles" /> Refine
+                </button>
+              )}
+              {!isReview && (
+                <button
+                  className="log-action-btn log-action-btn--reassign"
+                  onClick={() => onReassign?.(entry.id)}
+                  disabled={!canReassign}
+                  title="Reassign day or event"
+                >
+                  <Icon name="fa-arrows-rotate" /> Reassign
+                </button>
+              )}
               <button
                 className="log-action-btn log-action-btn--reject"
                 onClick={() => onReject?.(entry)}
@@ -1698,6 +1866,16 @@
 
     function LogModule() {
       const [tab, setTab] = useState('inbox');
+      // Photo review lane — only meaningful when tab==='inbox'.
+      // 'unreviewed' = photos with reviewStatus ∈ {unreviewed, in_review} + any non-photo kind
+      // 'reviewed'   = photos with reviewStatus === 'approved' only
+      const [reviewView, setReviewView] = useState(() => {
+        try { return localStorage.getItem('log_review_view') || 'unreviewed'; }
+        catch { return 'unreviewed'; }
+      });
+      useEffect(() => {
+        try { localStorage.setItem('log_review_view', reviewView); } catch {}
+      }, [reviewView]);
       const [sourceFilter, setSourceFilter] = useState('all');
       // dayFilter: 'all' | 'today' | 'unsorted' | <number dayIndex>
       const [dayFilter, setDayFilter] = useState('all');
@@ -1747,7 +1925,9 @@
       const todayIndex = dayIndices.length ? dayIndices[dayIndices.length - 1] : null;
       const unsortedCount = entries.filter(e => e.placement?.dayIndex == null).length;
 
-      const visible = entries
+      // Single canonical filter pipeline — source of truth is `entries`.
+      // Order: tab → source → day → (inbox-only) photo-review-view split.
+      const baseVisible = entries
         .filter(e => matchesLogTab(e, tab))
         .filter(e => sourceFilter === 'all' ? true : e.kind === sourceFilter)
         .filter(e => {
@@ -1759,19 +1939,47 @@
           return true;
         });
 
+      // Photo review lane derivation — applied only when Inbox tab is active.
+      // Non-photo entries only appear under "unreviewed" (the review concept is
+      // photo-specific for now). Approved photos migrate to "reviewed" once PATCH
+      // flips reviewStatus.
+      const isPhotoUnreviewed = e => e.kind === 'photo' && ['unreviewed', 'in_review'].includes(e.reviewStatus);
+      const isPhotoReviewed   = e => e.kind === 'photo' && e.reviewStatus === 'approved';
+      const reviewUnreviewedCount = baseVisible.filter(isPhotoUnreviewed).length;
+      const reviewReviewedCount   = baseVisible.filter(isPhotoReviewed).length;
+
+      const visible = tab === 'inbox'
+        ? baseVisible.filter(e => {
+            if (e.kind !== 'photo') return reviewView === 'unreviewed';
+            return reviewView === 'reviewed' ? isPhotoReviewed(e) : isPhotoUnreviewed(e);
+          })
+        : baseVisible;
+
       // ─── Per-row action handlers ───
-      // Approve/Reassign/Reject endpoints don't exist on the server yet (Phase 11b+).
-      // For now we surface intent via toasts + CustomEvents so wiring is ready.
-      function handleApprove(id) {
-        window.notify?.info?.('Approve queued', { description: 'id=' + id });
-        window.dispatchEvent(new CustomEvent('log-entry:approve', { detail: { id } }));
+      async function handleApprove(id) {
+        try {
+          const r = await window.BabuAI.logPatch(id, { reviewStatus: 'approved' });
+          setEntries(prev => prev.map(e => e.id === id ? r.entry : e));
+          window.notify?.success?.('Approved');
+        } catch (err) {
+          window.notify?.error?.('Approve failed', { description: err.message || String(err) });
+        }
       }
       function handleReassign(id) {
         window.notify?.info?.('Reassign flow coming soon', { description: 'id=' + id });
         window.dispatchEvent(new CustomEvent('log-entry:reassign', { detail: { id } }));
       }
+      // Default (non-review-mode) Refine still opens the side drawer.
       function handleRefine(id) {
         window.dispatchEvent(new CustomEvent('ai-drawer:open', { detail: { entryId: id } }));
+      }
+      async function handleSaveNote(id, notes) {
+        const r = await window.BabuAI.logPatch(id, { notes });
+        setEntries(prev => prev.map(e => e.id === id ? r.entry : e));
+        return r;
+      }
+      async function handleRefineNote(id, note) {
+        return await window.BabuAI.logRefine(id, { note });
       }
       function handleReject(entry) { setRejectTarget(entry); }
       async function confirmReject() {
@@ -2015,6 +2223,30 @@
                   ))}
                 </div>
               </div>
+
+              {/* Photo review lane — only meaningful when Inbox is active */}
+              {tab === 'inbox' && (
+                <div className="log-subtab-bar" role="tablist" aria-label="Photo review">
+                  <button
+                    role="tab"
+                    aria-selected={reviewView === 'unreviewed'}
+                    className={`log-subtab ${reviewView === 'unreviewed' ? 'active' : ''}`}
+                    onClick={() => setReviewView('unreviewed')}
+                  >
+                    <Icon name="fa-circle-half-stroke" /> Unreviewed
+                    {reviewUnreviewedCount > 0 && <span className="log-subtab-badge">{reviewUnreviewedCount}</span>}
+                  </button>
+                  <button
+                    role="tab"
+                    aria-selected={reviewView === 'reviewed'}
+                    className={`log-subtab ${reviewView === 'reviewed' ? 'active' : ''}`}
+                    onClick={() => setReviewView('reviewed')}
+                  >
+                    <Icon name="fa-circle-check" /> Reviewed
+                    {reviewReviewedCount > 0 && <span className="log-subtab-badge">{reviewReviewedCount}</span>}
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="log-entries">
@@ -2023,19 +2255,33 @@
             ) : visible.length === 0 ? (
               <div className="log-empty">
                 <Icon name="fa-inbox" />
-                <p>{tab === 'inbox' ? 'Nothing needs attention — everything is up to date.' : `No ${tab} items match these filters.`}</p>
+                <p>{
+                  tab === 'inbox'
+                    ? (reviewView === 'reviewed'
+                        ? 'No reviewed photos yet — approve some from Unreviewed to see them here.'
+                        : 'Nothing needs attention — everything is up to date.')
+                    : `No ${tab} items match these filters.`
+                }</p>
               </div>
             ) : (
-              visible.map(entry => (
-                <LogEntryCard
-                  key={entry.id}
-                  entry={entry}
-                  onApprove={handleApprove}
-                  onReassign={handleReassign}
-                  onRefine={handleRefine}
-                  onReject={handleReject}
-                />
-              ))
+              visible.map(entry => {
+                // Photo cards in the Inbox tab render in review-mode with inline
+                // note editor + AI refine. Everything else uses the default card.
+                const isPhotoInReviewLane = tab === 'inbox' && entry.kind === 'photo';
+                return (
+                  <LogEntryCard
+                    key={entry.id}
+                    entry={entry}
+                    mode={isPhotoInReviewLane ? 'review' : 'default'}
+                    onApprove={handleApprove}
+                    onReassign={handleReassign}
+                    onRefine={handleRefine}
+                    onReject={handleReject}
+                    onSaveNote={handleSaveNote}
+                    onRefineNote={handleRefineNote}
+                  />
+                );
+              })
             )}
             </div>
           </section>
