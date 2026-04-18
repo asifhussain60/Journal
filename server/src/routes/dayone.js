@@ -30,8 +30,15 @@ import { readTripObj } from "../lib/trip-edit-ops.js";
 
 const execFileP = promisify(execFile);
 
-// Try modern command first, then legacy. Both speak the same flag set.
-const CLI_CANDIDATES = ["dayone", "dayone2"];
+// Try modern command first, then legacy, then the absolute path inside the
+// macOS app bundle. The app-bundle fallback means the integration works
+// even if the user never ran `install_cli.sh` (which needs sudo to write
+// to /usr/local/bin) — the binary itself is shipped inside the .app.
+const CLI_CANDIDATES = [
+  "dayone",
+  "dayone2",
+  "/Applications/Day One.app/Contents/MacOS/dayone",
+];
 
 // Curated for now — extend as you add target journals in DayOne.
 // Labels must match the names DayOne sees so the CLI -j flag works directly.
