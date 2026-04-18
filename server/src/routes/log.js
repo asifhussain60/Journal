@@ -21,6 +21,7 @@ import { fromPending } from "../adapters/fromPending.js";
 import { fromVoiceInbox } from "../adapters/fromVoiceInbox.js";
 import { fromItineraryInbox } from "../adapters/fromItineraryInbox.js";
 import { fromDeadLetter } from "../adapters/fromDeadLetter.js";
+import { applyInitialStates, assertInitial } from "../lib/workflow-state.js";
 
 const MAX_PHOTO_BYTES = 10 * 1024 * 1024; // 10 MB
 
@@ -160,11 +161,6 @@ export function createLogRouter({ queueValidators }) {
           source: "app",
           status: "pending",
           memoryWorthy: false,
-          ingestStatus: "captured",
-          placementStatus: "unplaced",
-          reviewStatus: "unreviewed",
-          journalStatus: "none",
-          ynabStatus: "na",
           placement: { source: "unsorted" },
           route: { journal: "none", ynab: "na" },
           imagePath: relPath,
@@ -174,6 +170,8 @@ export function createLogRouter({ queueValidators }) {
             bytes: buf.length,
           },
         };
+        applyInitialStates(row);
+        assertInitial(row);
       } else if (req.body?.kind === "note") {
         // --- Note capture
         const text = String(req.body.text ?? "").trim();
@@ -191,15 +189,12 @@ export function createLogRouter({ queueValidators }) {
           source: "app",
           status: "pending",
           memoryWorthy: false,
-          ingestStatus: "captured",
-          placementStatus: "unplaced",
-          reviewStatus: "unreviewed",
-          journalStatus: "none",
-          ynabStatus: "na",
           placement: { source: "unsorted" },
           route: { journal: "none", ynab: "na" },
           payload: { text },
         };
+        applyInitialStates(row);
+        assertInitial(row);
       } else {
         return res.status(400).json({
           ok: false,
