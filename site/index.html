@@ -1517,6 +1517,20 @@
           );
         }
       }
+      // Text-bearing kinds: show content instead of icon
+      const textContent = kind === 'note'  ? (entry.payload?.text || entry.notes || '')
+                        : kind === 'voice' ? (entry.payload?.transcript || '')
+                        : '';
+      if (textContent) {
+        const cls = `log-entry-thumb log-entry-thumb--text log-entry-thumb--${kind}`;
+        return (
+          <div className={cls}>
+            <div className="log-entry-thumb-prose">{textContent}</div>
+            {rel && <span className="log-entry-thumb-time">{rel}</span>}
+          </div>
+        );
+      }
+
       const iconByKind = {
         photo:     'fa-camera',
         receipt:   'fa-receipt',
