@@ -1039,9 +1039,52 @@
 /* ─── Zone 1: artifact (read-only, kind-aware) ─── */
 /* Fixed height so every kind's artifact pane has the same dimensions —
    keeps Zone 2/3 controls aligned across the 3-column grid. iPhone
-   landscape (4:3) at our card width fits the 220px height naturally. */
+   landscape (4:3) at our card width fits the 220px height naturally.
+   Position relative anchors the kind badge in the top-right corner. */
 .review-card-zone--artifact {
   height: 220px;
+  position: relative;
+}
+
+/* ─── Kind badge (top-right of artifact). Image kinds are clickable to
+   flip photo↔receipt; note/voice are static. */
+.review-card-kind-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--bg-secondary) 88%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: default;
+  transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+.review-card-kind-badge.is-clickable {
+  cursor: pointer;
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+}
+.review-card-kind-badge.is-clickable:hover {
+  background: color-mix(in srgb, var(--accent) 25%, transparent);
+  border-color: var(--border-accent);
+  transform: translateY(-1px);
+}
+.review-card-kind-badge:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+.review-card-kind-badge i {
+  color: var(--accent);
+  font-size: 0.95rem;
 }
 .review-card-artifact {
   width: 100%;

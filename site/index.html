@@ -1690,6 +1690,31 @@
       } catch {}
     }
 
+    // ─── Phase 11b: kind badge (top-right overlay on Zone 1).
+    // For image kinds (photo/receipt/unsorted-image), the badge is clickable
+    // and flips photo↔receipt. For note/voice it's informational only.
+    function KindBadge({ kind, onFlip, busy }) {
+      const badge = KIND_BADGE[kind] || { icon: 'fa-question', label: kind };
+      const clickable = !!onFlip && !busy;
+      const flipTarget = kind === 'receipt' ? 'Photo' : 'Receipt';
+      const title = clickable
+        ? `Click to switch to ${flipTarget}`
+        : (kind === 'unsorted-image' ? 'Image kind not yet classified' : badge.label);
+      return (
+        <button
+          type="button"
+          className={`review-card-kind-badge ${clickable ? 'is-clickable' : 'is-static'}`}
+          onClick={clickable ? onFlip : undefined}
+          disabled={busy}
+          title={title}
+          aria-label={title}
+        >
+          <Icon name={busy ? 'fa-circle-notch fa-spin' : badge.icon} />
+          <span>{badge.label}</span>
+        </button>
+      );
+    }
+
     // ─── Phase 11b: artifact pane (Zone 1) — read-only, kind-aware.
     // Image / audio paths are repo-relative (e.g. trips/{slug}/photos/{id}.jpg).
     // Static blobs are mounted by the API server, so URL must prefix LOG_API_BASE.
@@ -1725,13 +1750,14 @@
     // Zone 2 — editable prompt textarea (curatorial intent, not persisted)
     // Zone 3 — editable refined output (AI result, persisted on Approve)
     // Approve resolution: Zone 3 if non-empty, else Zone 1 (raw artifact).
-    function ReviewCard({ entry, onApproveDraft, onReject }) {
+    function ReviewCard({ entry, onApproveDraft, onReject, onKindFlipped }) {
       const draft = useDraftCache(entry.id);
       const effectiveKind = draft.kindOverride || entry.kind;
 
       const [refining, setRefining] = useState(false);
       const [refineError, setRefineError] = useState('');
       const [approving, setApproving] = useState(false);
+      const [flippingKind, setFlippingKind] = useState(false);
 
       const isDummy = typeof entry.id === 'string' && entry.id.startsWith('dummy_');
 
@@ -1787,10 +1813,47 @@
         ? 'Refining as a photo — classify hasn\u2019t firmed the kind yet'
         : 'Refine in your voice with active trip context';
 
+      // Kind-flip: only meaningful for image kinds. Click toggles
+      // photo↔receipt, immediately PATCHes the server so it persists, and
+      // (per locked decision) auto-refines if Zone 3 is empty.
+      const isImageKind = ['photo', 'receipt', 'unsorted-image'].includes(effectiveKind);
+      async function handleKindFlip() {
+        if (flippingKind) return;
+        const next = effectiveKind === 'receipt' ? 'photo' : 'receipt';
+        if (isDummy) {
+          // Dummies don't exist server-side — flip locally only.
+          draft.setKindOverride(next);
+          return;
+        }
+        setFlippingKind(true);
+        try {
+          const r = await window.BabuAI.logPatch(entry.id, { kindOverride: next });
+          if (r?.entry) {
+            onKindFlipped?.(entry.id, r.entry);
+            // Server now reflects the new kind; clear localStorage override.
+            draft.setKindOverride(null);
+          }
+          // Auto-refine ONLY if Zone 3 is empty — preserves any hand-edited
+          // refined output the reviewer may have made.
+          if (!draft.refined || !draft.refined.trim()) {
+            handleRefine();
+          }
+        } catch (err) {
+          window.notify?.error?.('Kind change failed', { description: err.message || String(err) });
+        } finally {
+          setFlippingKind(false);
+        }
+      }
+
       return (
         <article className="review-card review-card-3zone">
           <div className="review-card-zone review-card-zone--artifact">
             <ReviewArtifact entry={entry} kind={effectiveKind} />
+            <KindBadge
+              kind={effectiveKind}
+              onFlip={isImageKind ? handleKindFlip : null}
+              busy={flippingKind}
+            />
           </div>
 
           <div className="review-card-zone review-card-zone--prompt">
@@ -2059,9 +2122,14 @@
       // Phase 11b: dummy preview cards (one per kind) at the top of Unreviewed
       // so every card variant is visible at a glance for layout review. Their
       // ids are prefixed `dummy_` and ReviewCard short-circuits Refine/Approve
-      // for any such entry — they never hit the server.
+      // for any such entry — they never hit the server. Dummies respect the
+      // active Source filter so the filter behaves consistently across both
+      // real and preview entries.
+      const filteredDummies = sourceFilter === 'all'
+        ? DUMMY_ENTRIES
+        : DUMMY_ENTRIES.filter(e => e.kind === sourceFilter);
       const displayEntries = (tab === 'inbox' && reviewView === 'unreviewed')
-        ? [...DUMMY_ENTRIES, ...visible]
+        ? [...filteredDummies, ...visible]
         : visible;
 
       // Drop stale draft cache entries once on mount (30-day TTL backstop).
@@ -2086,6 +2154,10 @@
         if (!r?.entry) throw new Error('approve patch returned no entry');
         setEntries(prev => prev.map(e => e.id === id ? r.entry : e));
         window.notify?.success?.('Approved');
+      }
+      // Reconcile entries state after the kind-toggle badge PATCHes the row.
+      function handleKindFlipped(id, updatedEntry) {
+        setEntries(prev => prev.map(e => e.id === id ? updatedEntry : e));
       }
       function handleReassign(id) {
         window.notify?.info?.('Reassign flow coming soon', { description: 'id=' + id });
@@ -2434,6 +2506,7 @@
                           entry={entry}
                           onApproveDraft={handleApproveDraft}
                           onReject={handleReject}
+                          onKindFlipped={handleKindFlipped}
                         />
                       );
                     }
