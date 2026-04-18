@@ -19,8 +19,6 @@
   --log-width: min(80%, 1180px);
   --section-gap: 30px;
   --card-gap: 1.6rem;
-  --tile-size: 72px;            /* square capture tile (bumped for legibility) */
-  --tile-icon: 1.55rem;         /* tile icon size */
   --row-icon: 1.15rem;          /* standardized row-level icon */
   --hover-lift: translateY(-2px) scale(1.008);
   --log-border: 1px solid var(--border-default);
@@ -104,58 +102,6 @@
    2. Capture Card — titled, rounded, 80% width
    ═══════════════════════════════════════════════════ */
 
-.log-capture-card {
-  width: var(--log-width);
-  margin: var(--section-gap) auto;
-  padding: 26px 30px 28px;
-  border-radius: var(--radius-xl);
-  background: var(--bg-secondary);
-  border: var(--log-border);
-  box-shadow: var(--log-shadow-card);
-}
-
-.log-capture-card-head {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding-bottom: 18px;
-  margin-bottom: 22px;
-  border-bottom: 1px solid var(--border-default);
-}
-.log-capture-card-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-  background: linear-gradient(135deg,
-    rgba(var(--accent-rgb), 0.18) 0%,
-    rgba(var(--accent-rgb), 0.06) 100%);
-  color: var(--accent);
-  border: var(--log-border-strong);
-  box-shadow:
-    0 0 10px rgba(var(--accent-rgb), 0.14),
-    var(--shadow-sm);
-  font-size: 1.35rem;
-}
-.log-capture-card-heading { min-width: 0; }
-.log-capture-card-title {
-  margin: 0;
-  font-family: 'Inter', var(--font-sans);
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  letter-spacing: -0.01em;
-}
-.log-capture-card-sub {
-  margin: 4px 0 0;
-  font-size: 1.1rem;
-  color: var(--text-muted);
-  line-height: 1.45;
-}
-
 /* Trip pill — strong identity */
 .log-trip-pill {
   display: inline-flex;
@@ -235,272 +181,6 @@
   color: var(--white-90);
   border-color: var(--border-accent);
 }
-
-/* ─── Row 2 — Capture actions + inline quick-note ─── */
-
-.log-capture-hero {
-  max-width: var(--content);
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-@media (max-width: 540px) {
-  .log-capture-hero { flex-wrap: wrap; }
-}
-
-.log-capture-actions {
-  display: flex;
-  gap: 8px;
-  flex: 0 0 auto;
-}
-
-/* Square capture tile — 72×72 */
-.btn-capture {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  width: var(--tile-size);
-  height: var(--tile-size);
-  padding: 8px 6px;
-  border-radius: var(--radius-md);
-  border: var(--log-border);
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  transition: transform 220ms ease, box-shadow 220ms ease,
-              border-color 220ms ease, background 220ms ease;
-  box-shadow: var(--shadow-sm);
-}
-
-.btn-capture > i {
-  font-size: var(--tile-icon) !important;
-  opacity: 1;
-  line-height: 1;
-  transition: transform 220ms ease, color 220ms ease;
-}
-.btn-capture > span {
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.btn-capture:hover:not(:disabled) {
-  transform: var(--hover-lift);
-  background: var(--bg-card-hover);
-  border-color: var(--border-accent);
-  box-shadow: var(--glow-lavender);
-}
-.btn-capture:hover:not(:disabled) > i { transform: scale(1.1); }
-
-.btn-capture:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-.btn-capture:disabled::after {
-  content: attr(data-badge);
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 2px 7px;
-  border-radius: var(--radius-xs);
-  background: var(--bg-secondary);
-  color: var(--text-muted);
-  border: 1px solid var(--border-accent);
-  box-shadow: var(--shadow-sm);
-}
-
-/* Kind-accent gradients on hover */
-.btn-capture--photo:hover:not(:disabled) {
-  background: linear-gradient(135deg,
-    color-mix(in srgb, var(--info) 18%, transparent) 0%,
-    color-mix(in srgb, var(--info) 6%, transparent) 100%);
-  border-color: color-mix(in srgb, var(--info) 42%, transparent);
-}
-.btn-capture--photo:hover:not(:disabled) > i { color: var(--info); }
-
-.btn-capture--receipt:hover:not(:disabled) {
-  background: linear-gradient(135deg,
-    color-mix(in srgb, var(--success) 18%, transparent) 0%,
-    color-mix(in srgb, var(--success) 6%, transparent) 100%);
-  border-color: color-mix(in srgb, var(--success) 42%, transparent);
-}
-.btn-capture--receipt:hover:not(:disabled) > i { color: var(--success); }
-
-.btn-capture--voice:hover:not(:disabled) {
-  background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.22) 0%, rgba(var(--accent-rgb), 0.08) 100%);
-  border-color: var(--border-accent);
-}
-.btn-capture--voice:hover:not(:disabled) > i { color: var(--accent); }
-
-.btn-capture--note:hover:not(:disabled) {
-  background: linear-gradient(135deg,
-    color-mix(in srgb, var(--warning) 18%, transparent) 0%,
-    color-mix(in srgb, var(--warning) 6%, transparent) 100%);
-  border-color: color-mix(in srgb, var(--warning) 42%, transparent);
-}
-.btn-capture--note:hover:not(:disabled) > i { color: var(--warning); }
-
-/* Split button for Photo — Take + Library in one tile */
-.btn-capture--photo-split {
-  position: relative;
-}
-.btn-capture-photo-menu {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 40;
-  min-width: 240px;
-  padding: 8px;
-  border-radius: var(--radius-md);
-  background: var(--bg-secondary);
-  border: var(--log-border);
-  box-shadow: var(--shadow-lg);
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  animation: log-menu-rise 180ms ease;
-}
-@keyframes log-menu-rise {
-  from { opacity: 0; transform: translateX(-50%) translateY(-4px); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
-}
-.btn-capture-photo-menu button {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  border: none;
-  color: var(--text-primary);
-  font-size: 1.1rem;
-  font-weight: 500;
-  text-align: left;
-  cursor: pointer;
-  transition: background 180ms ease;
-}
-.btn-capture-photo-menu button:hover {
-  background: var(--bg-card-hover);
-}
-.btn-capture-photo-menu button i {
-  color: var(--info);
-  font-size: 1.15rem;
-  width: 22px;
-  text-align: center;
-}
-
-/* ─── Inline quick-note — single-line, grows on focus ─── */
-
-.log-note-quick-input {
-  position: relative;
-  flex: 1 1 auto;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  height: var(--tile-size);
-  padding: 0 16px 0 18px;
-  border-radius: var(--radius-md);
-  border: var(--log-border);
-  background: var(--bg-tertiary);
-  box-shadow: var(--shadow-sm);
-  transition: all 220ms ease;
-}
-.log-note-quick-input:focus-within {
-  height: auto;
-  min-height: var(--tile-size);
-  padding: 14px 16px 14px 18px;
-  align-items: flex-start;
-  border-color: var(--border-accent);
-  box-shadow:
-    0 0 0 3px rgba(var(--accent-rgb), 0.10),
-    0 6px 18px rgba(var(--accent-rgb), 0.10),
-    var(--shadow-sm);
-}
-.log-note-quick-input > i {
-  flex: 0 0 auto;
-  font-size: 1.2rem !important;
-  color: var(--accent);
-  line-height: 1;
-}
-.log-note-quick-input:focus-within > i { margin-top: 6px; }
-
-.log-note-quick-input .input-field--note {
-  flex: 1 1 auto;
-  min-width: 0;
-  width: 100%;
-  min-height: 26px;
-  padding: 0 110px 0 0;
-  font-size: 1.1rem;
-  background: transparent;
-  border: none;
-  color: var(--text-primary);
-  line-height: 1.5;
-  resize: none;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  transition: none;
-}
-.log-note-quick-input:focus-within .input-field--note {
-  min-height: 80px;
-  white-space: normal;
-  overflow: auto;
-  text-overflow: clip;
-}
-.log-note-quick-input .input-field--note::placeholder {
-  color: color-mix(in srgb, var(--text-muted) 70%, transparent);
-}
-.log-note-quick-input .input-field--note:focus { outline: none; }
-
-.btn-capture-note-submit {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  height: 40px;
-  padding: 0 16px;
-  border-radius: var(--radius-md);
-  border: var(--log-border-strong);
-  background: linear-gradient(135deg,
-    rgba(var(--accent-rgb), 0.32) 0%,
-    rgba(var(--accent-rgb), 0.14) 100%);
-  color: var(--white-90);
-  font-size: 0.9rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 200ms ease;
-  box-shadow: var(--shadow-md);
-}
-.log-note-quick-input:focus-within .btn-capture-note-submit {
-  top: auto;
-  bottom: 12px;
-  transform: none;
-}
-.btn-capture-note-submit:hover:not(:disabled) {
-  box-shadow:
-    0 0 10px rgba(var(--accent-rgb), 0.20),
-    var(--shadow-md);
-  color: var(--white-90);
-}
-.btn-capture-note-submit:disabled { opacity: 0.45; cursor: not-allowed; }
 
 /* ═══════════════════════════════════════════════════
    3. Entries Panel — bordered container with control bar
@@ -653,10 +333,13 @@
 
 .log-entries {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--card-gap);
 }
-@media (max-width: 820px) {
+@media (max-width: 1100px) {
+  .log-entries { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 720px) {
   .log-entries { grid-template-columns: minmax(0, 1fr); }
 }
 
@@ -1171,8 +854,17 @@
   box-shadow: none;
 }
 
-/* Tab strip — left-aligned, sits above the frame and overlaps its top border
-   by 1px so the active tab flows seamlessly into the panel. */
+/* Subtab row — folder-tab strip on the left, capture actions on the right.
+   The bar overlaps the frame's top border by 1px so the active tab merges
+   into the panel. Capture actions float on the right with their own z-index
+   so dropdowns escape the .log-review-frame stacking context. */
+.log-subtab-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .log-subtab-bar {
   display: flex;
   gap: 4px;
@@ -1180,6 +872,87 @@
   padding: 0;
   position: relative;
   z-index: 1;
+}
+
+/* ─── Tab-row capture actions (Phase 11b: + Photo, + Receipt, + Note) ─── */
+.log-capture-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+  position: relative;
+  z-index: 30;
+}
+
+.log-capture-action {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--radius-full);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--accent);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+.log-capture-action:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  border-color: var(--border-accent);
+  transform: translateY(-1px);
+  box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.22);
+}
+.log-capture-action:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.log-capture-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 100;
+  min-width: 220px;
+  padding: 8px;
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  border: var(--log-border);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: log-menu-rise 180ms ease;
+}
+@keyframes log-menu-rise {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.log-capture-menu button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background 180ms ease;
+}
+.log-capture-menu button:hover {
+  background: var(--bg-card-hover);
+}
+.log-capture-menu button i {
+  color: var(--accent);
+  font-size: 1.05rem;
+  width: 20px;
+  text-align: center;
 }
 
 /* Padding is off-scale on purpose: the 1px difference between inactive
@@ -1264,7 +1037,15 @@
 }
 
 /* ─── Zone 1: artifact (read-only, kind-aware) ─── */
+/* Fixed height so every kind's artifact pane has the same dimensions —
+   keeps Zone 2/3 controls aligned across the 3-column grid. iPhone
+   landscape (4:3) at our card width fits the 220px height naturally. */
+.review-card-zone--artifact {
+  height: 220px;
+}
 .review-card-artifact {
+  width: 100%;
+  height: 100%;
   border-radius: var(--radius-md);
   background: var(--bg-tertiary);
   border: 1px solid var(--border-default);
@@ -1272,20 +1053,19 @@
 }
 .review-card-artifact--image {
   display: block;
-  width: 100%;
-  height: auto;
-  max-height: 380px;
-  object-fit: contain;
+  object-fit: cover;
 }
 .review-card-artifact--voice {
   display: flex;
   flex-direction: column;
   gap: 10px;
   padding: 12px 14px;
+  overflow-y: auto;
 }
 .review-card-artifact-audio {
   width: 100%;
   height: 36px;
+  flex: 0 0 auto;
 }
 .review-card-artifact-transcript {
   font-size: 0.98rem;
@@ -1301,13 +1081,59 @@
   color: var(--text-primary);
   white-space: pre-wrap;
   word-break: break-word;
+  overflow-y: auto;
 }
 .review-card-artifact--empty {
   padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 0.95rem;
   font-style: italic;
   color: var(--text-muted);
   text-align: center;
+}
+
+/* ─── Composer card variant — for the [+ Note] inline composer ─── */
+.review-card--composer {
+  outline: 2px dashed color-mix(in srgb, var(--accent) 45%, transparent);
+  outline-offset: -2px;
+}
+.review-card-composer-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.review-card-composer-input {
+  width: 100%;
+  min-height: 220px;
+  resize: vertical;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.5;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.15);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+.review-card-composer-input:focus {
+  outline: none;
+  border-color: var(--border-accent);
+  box-shadow:
+    inset 0 1px 2px rgba(0,0,0,0.15),
+    0 0 0 2px rgba(var(--accent-rgb), 0.18);
+}
+.review-card-composer-input::placeholder {
+  color: var(--text-muted);
+  font-style: italic;
 }
 
 /* ─── Zone 2: prompt textarea + Refine button ─── */

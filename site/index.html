@@ -1452,6 +1452,41 @@
       'unsorted-image': { icon: 'fa-image',         label: 'Image' },
     };
 
+    // Phase 11b: dummy preview entries — one per kind. Always rendered at the
+    // top of the Unreviewed lane so all card variants are visible for layout
+    // review. ReviewCard short-circuits API actions for any id starting with
+    // `dummy_` so these never hit the server.
+    const DUMMY_ENTRIES = [
+      {
+        id: 'dummy_photo', kind: 'photo', tripSlug: '_dummy', source: 'app',
+        capturedAt: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+        reviewStatus: 'unreviewed',
+        payload: { imagePath: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800' },
+        notes: '',
+      },
+      {
+        id: 'dummy_receipt', kind: 'receipt', tripSlug: '_dummy', source: 'app',
+        capturedAt: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
+        reviewStatus: 'unreviewed',
+        payload: { imagePath: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800' },
+        notes: '',
+      },
+      {
+        id: 'dummy_voice', kind: 'voice', tripSlug: '_dummy', source: 'app',
+        capturedAt: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
+        reviewStatus: 'unreviewed',
+        payload: { transcript: 'Made it up to the ridge before the rain started. Wind was honest, the light apologetic. Wrote a few lines I want to keep — about how the country folds when you stop expecting it to.' },
+        notes: '',
+      },
+      {
+        id: 'dummy_note', kind: 'note', tripSlug: '_dummy', source: 'app',
+        capturedAt: new Date(Date.now() - 1000 * 60 * 150).toISOString(),
+        reviewStatus: 'unreviewed',
+        payload: { text: 'Reminder: ask the innkeeper about the ferry timetable to Inishbofin. The coastal road past Letterfrack is supposedly worth the detour even if we skip the island.' },
+        notes: '',
+      },
+    ];
+
     function entryPreview(entry) {
       if (entry.kind === 'note') return entry.payload?.text || '(empty note)';
       if (entry.kind === 'voice') return entry.draft?.prose || entry.payload?.transcript || '(voice note)';
@@ -1698,8 +1733,14 @@
       const [refineError, setRefineError] = useState('');
       const [approving, setApproving] = useState(false);
 
+      const isDummy = typeof entry.id === 'string' && entry.id.startsWith('dummy_');
+
       async function handleRefine() {
         if (refining) return;
+        if (isDummy) {
+          window.notify?.info?.('Demo card', { description: 'Refine is disabled on preview cards.' });
+          return;
+        }
         setRefining(true);
         setRefineError('');
         try {
@@ -1721,6 +1762,10 @@
 
       async function handleApprove() {
         if (approving) return;
+        if (isDummy) {
+          window.notify?.info?.('Demo card', { description: 'Approve is disabled on preview cards.' });
+          return;
+        }
         setApproving(true);
         try {
           const patch = { reviewStatus: 'approved' };
@@ -1942,15 +1987,18 @@
       const [noteText, setNoteText] = useState('');
       const [capturing, setCapturing] = useState(false);
       const [photoMenuOpen, setPhotoMenuOpen] = useState(false);
+      const [noteComposerOpen, setNoteComposerOpen] = useState(false);
+      const [receiptProcessing, setReceiptProcessing] = useState(false);
       const [rejectTarget, setRejectTarget] = useState(null);
       const photoCameraRef = useRef(null);
       const photoLibraryRef = useRef(null);
+      const receiptInputRef = useRef(null);
 
       // Close the Photo menu on outside click
       useEffect(() => {
         if (!photoMenuOpen) return;
         function onDoc(e) {
-          if (!e.target.closest?.('.btn-capture--photo-split')) setPhotoMenuOpen(false);
+          if (!e.target.closest?.('.log-capture-action--photo')) setPhotoMenuOpen(false);
         }
         document.addEventListener('click', onDoc);
         return () => document.removeEventListener('click', onDoc);
@@ -2008,6 +2056,14 @@
       const visible = tab === 'inbox'
         ? baseVisible.filter(reviewView === 'reviewed' ? isReviewed : isUnreviewed)
         : baseVisible;
+
+      // Phase 11b: dummy preview cards (one per kind) at the top of Unreviewed
+      // so every card variant is visible at a glance for layout review. Their
+      // ids are prefixed `dummy_` and ReviewCard short-circuits Refine/Approve
+      // for any such entry — they never hit the server.
+      const displayEntries = (tab === 'inbox' && reviewView === 'unreviewed')
+        ? [...DUMMY_ENTRIES, ...visible]
+        : visible;
 
       // Drop stale draft cache entries once on mount (30-day TTL backstop).
       useEffect(() => { purgeStaleDrafts(); }, []);
@@ -2095,6 +2151,38 @@
         }
       }
 
+      // Phase 11b: [+ Receipt] flow — upload with explicit kind=receipt (skips
+      // async classify), then immediately call refine so the card lands with
+      // structured fields + Asif-voice description already filled in. The
+      // button shows a spinner during the round trip.
+      async function captureReceipt(file) {
+        if (!file) return;
+        setReceiptProcessing(true);
+        try {
+          const form = new FormData();
+          form.append('photo', file);
+          form.append('kind', 'receipt');
+          const r = await fetch(`${LOG_API_BASE}/api/log/capture`, { method: 'POST', body: form });
+          const d = await r.json();
+          if (!d.ok) throw new Error(d.error || 'capture failed');
+          window.notify?.success?.('Receipt uploaded — refining…');
+          // Auto-refine; persist=true writes refined + structured into draft.*.
+          try {
+            await window.BabuAI.logRefine(d.id, { note: '', persist: true });
+          } catch (refineErr) {
+            window.notify?.warning?.('Refine failed — receipt added but unpolished', {
+              description: refineErr.message || String(refineErr),
+            });
+          }
+          loadEntries();
+        } catch (err) {
+          window.notify?.error?.('Receipt capture failed', { description: err.message || String(err) });
+        } finally {
+          setReceiptProcessing(false);
+          if (receiptInputRef.current) receiptInputRef.current.value = '';
+        }
+      }
+
       const TABS = [
         { id: 'inbox',    icon: 'fa-inbox',             label: 'Inbox' },
         { id: 'journal',  icon: 'fa-book',              label: 'Journal' },
@@ -2152,110 +2240,33 @@
             </div>
           </div>
 
-          {/* ── 2. Capture card — titled, rounded, 80% width ── */}
-          <section className="log-capture-card">
-            <header className="log-capture-card-head">
-              <span className="log-capture-card-icon" aria-hidden="true">
-                <Icon name="fa-wand-magic-sparkles" />
-              </span>
-              <div className="log-capture-card-heading">
-                <h2 className="log-capture-card-title">Capture</h2>
-                <p className="log-capture-card-sub">
-                  Photo, receipt, voice, or a passing thought — AI files it to the right day and journal.
-                </p>
-              </div>
-            </header>
-
-            <div className="log-capture-hero">
-              <div className="log-capture-actions">
-                {/* Hidden file inputs — one with capture=environment for camera, one without for library */}
-                <input
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  ref={photoCameraRef}
-                  style={{ display: 'none' }}
-                  onChange={e => capturePhoto(e.target.files?.[0], photoCameraRef)}
-                />
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  ref={photoLibraryRef}
-                  style={{ display: 'none' }}
-                  onChange={e => {
-                    const files = Array.from(e.target.files || []);
-                    files.forEach(f => capturePhoto(f, photoLibraryRef));
-                  }}
-                />
-
-                <button
-                  className="btn-capture btn-capture--photo btn-capture--photo-split"
-                  onClick={e => { e.stopPropagation(); setPhotoMenuOpen(o => !o); }}
-                  disabled={capturing}
-                  title="Add a photo"
-                >
-                  <Icon name="fa-camera" />
-                  <span>Photo</span>
-                  {photoMenuOpen && (
-                    <div className="btn-capture-photo-menu" onClick={e => e.stopPropagation()}>
-                      <button onClick={() => { setPhotoMenuOpen(false); photoCameraRef.current?.click(); }}>
-                        <Icon name="fa-camera-retro" /> Take photo
-                      </button>
-                      <button onClick={() => { setPhotoMenuOpen(false); photoLibraryRef.current?.click(); }}>
-                        <Icon name="fa-images" /> Choose from library
-                      </button>
-                    </div>
-                  )}
-                </button>
-
-                <button
-                  className="btn-capture btn-capture--receipt"
-                  disabled
-                  data-badge="Soon"
-                  title="Receipt capture — Phase 11e"
-                >
-                  <Icon name="fa-receipt" />
-                  <span>Receipt</span>
-                </button>
-
-                <button
-                  className="btn-capture btn-capture--voice"
-                  disabled
-                  data-badge="Soon"
-                  title="Voice capture — Phase 11d"
-                >
-                  <Icon name="fa-microphone" />
-                  <span>Voice</span>
-                </button>
-
-              </div>
-
-              {/* Inline quick-note input — expands on focus */}
-              <div className="log-note-quick-input">
-                <Icon name="fa-wand-magic-sparkles" aria-hidden="true" />
-                <textarea
-                  id="log-note-input"
-                  className="input-field input-field--note"
-                  rows={1}
-                  placeholder="Quick note — a thought, a memory, a fragment… (⌘↵ to capture)"
-                  value={noteText}
-                  onChange={e => setNoteText(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); captureNote(); }
-                  }}
-                />
-                <button
-                  className="btn-capture-note-submit"
-                  onClick={captureNote}
-                  disabled={capturing || !noteText.trim()}
-                  title="Capture note (⌘/Ctrl + Enter)"
-                >
-                  <Icon name="fa-arrow-up" /> Capture
-                </button>
-              </div>
-            </div>
-          </section>
+          {/* Hidden file inputs used by the tab-row capture actions below. */}
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            ref={photoCameraRef}
+            style={{ display: 'none' }}
+            onChange={e => capturePhoto(e.target.files?.[0], photoCameraRef)}
+          />
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            ref={photoLibraryRef}
+            style={{ display: 'none' }}
+            onChange={e => {
+              const files = Array.from(e.target.files || []);
+              files.forEach(f => capturePhoto(f, photoLibraryRef));
+            }}
+          />
+          <input
+            type="file"
+            accept="image/*"
+            ref={receiptInputRef}
+            style={{ display: 'none' }}
+            onChange={e => captureReceipt(e.target.files?.[0])}
+          />
 
           {/* ── 3. Log panel — bordered container: control bar + entry grid ── */}
           <section className="log-panel">
@@ -2284,35 +2295,117 @@
               </div>
             </div>
 
-            {/* Review frame — folder-tab strip (Inbox only) attaches to the entries grid */}
+            {/* Review frame — folder-tab strip + tab-row capture actions (Inbox only) */}
             <div className={`log-review-frame ${tab === 'inbox' ? 'has-tabs' : ''}`}>
               {tab === 'inbox' && (
-                <div className="log-subtab-bar" role="tablist" aria-label="Photo review">
-                  <button
-                    role="tab"
-                    aria-selected={reviewView === 'unreviewed'}
-                    className={`log-subtab ${reviewView === 'unreviewed' ? 'active' : ''}`}
-                    onClick={() => setReviewView('unreviewed')}
-                  >
-                    <Icon name="fa-circle-half-stroke" /> Unreviewed
-                    {reviewUnreviewedCount > 0 && <span className="log-subtab-badge">{reviewUnreviewedCount}</span>}
-                  </button>
-                  <button
-                    role="tab"
-                    aria-selected={reviewView === 'reviewed'}
-                    className={`log-subtab ${reviewView === 'reviewed' ? 'active' : ''}`}
-                    onClick={() => setReviewView('reviewed')}
-                  >
-                    <Icon name="fa-circle-check" /> Reviewed
-                    {reviewReviewedCount > 0 && <span className="log-subtab-badge">{reviewReviewedCount}</span>}
-                  </button>
+                <div className="log-subtab-row">
+                  <div className="log-subtab-bar" role="tablist" aria-label="Photo review">
+                    <button
+                      role="tab"
+                      aria-selected={reviewView === 'unreviewed'}
+                      className={`log-subtab ${reviewView === 'unreviewed' ? 'active' : ''}`}
+                      onClick={() => setReviewView('unreviewed')}
+                    >
+                      <Icon name="fa-circle-half-stroke" /> Unreviewed
+                      {reviewUnreviewedCount > 0 && <span className="log-subtab-badge">{reviewUnreviewedCount}</span>}
+                    </button>
+                    <button
+                      role="tab"
+                      aria-selected={reviewView === 'reviewed'}
+                      className={`log-subtab ${reviewView === 'reviewed' ? 'active' : ''}`}
+                      onClick={() => setReviewView('reviewed')}
+                    >
+                      <Icon name="fa-circle-check" /> Reviewed
+                      {reviewReviewedCount > 0 && <span className="log-subtab-badge">{reviewReviewedCount}</span>}
+                    </button>
+                  </div>
+
+                  <div className="log-capture-actions">
+                    <button
+                      className="log-capture-action log-capture-action--photo"
+                      onClick={e => { e.stopPropagation(); setPhotoMenuOpen(o => !o); }}
+                      disabled={capturing}
+                      title="Add a photo"
+                    >
+                      <Icon name="fa-camera" /> Photo
+                      {photoMenuOpen && (
+                        <div className="log-capture-menu" onClick={e => e.stopPropagation()}>
+                          <button onClick={() => { setPhotoMenuOpen(false); photoCameraRef.current?.click(); }}>
+                            <Icon name="fa-camera-retro" /> Take photo
+                          </button>
+                          <button onClick={() => { setPhotoMenuOpen(false); photoLibraryRef.current?.click(); }}>
+                            <Icon name="fa-images" /> Choose from library
+                          </button>
+                        </div>
+                      )}
+                    </button>
+
+                    <button
+                      className="log-capture-action log-capture-action--receipt"
+                      onClick={() => receiptInputRef.current?.click()}
+                      disabled={receiptProcessing}
+                      title="Add a receipt — image is uploaded and AI-extracted automatically"
+                    >
+                      <Icon name={receiptProcessing ? 'fa-circle-notch fa-spin' : 'fa-receipt'} />
+                      {receiptProcessing ? ' Processing…' : ' Receipt'}
+                    </button>
+
+                    <button
+                      className="log-capture-action log-capture-action--note"
+                      onClick={() => setNoteComposerOpen(o => !o)}
+                      disabled={capturing}
+                      title="Add a note — type in your own words"
+                    >
+                      <Icon name="fa-note-sticky" /> Note
+                    </button>
+                  </div>
                 </div>
               )}
 
               <div className="log-entries">
+                {/* Inline note composer — opens when [+ Note] is clicked. */}
+                {tab === 'inbox' && reviewView === 'unreviewed' && noteComposerOpen && (
+                  <article className="review-card review-card--composer">
+                    <div className="review-card-composer-label">
+                      <Icon name="fa-note-sticky" /> New note
+                    </div>
+                    <textarea
+                      autoFocus
+                      className="review-card-composer-input"
+                      value={noteText}
+                      onChange={e => setNoteText(e.target.value)}
+                      placeholder="Type a thought, a memory, a fragment… (⌘↵ to capture)"
+                      rows={5}
+                      onKeyDown={e => {
+                        if (e.key === 'Escape') { setNoteComposerOpen(false); }
+                        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                          e.preventDefault();
+                          captureNote().then(() => setNoteComposerOpen(false));
+                        }
+                      }}
+                    />
+                    <footer className="review-card-actions">
+                      <button
+                        className="log-action-btn log-action-btn--reject"
+                        onClick={() => { setNoteText(''); setNoteComposerOpen(false); }}
+                        disabled={capturing}
+                      >
+                        <Icon name="fa-xmark" /> Cancel
+                      </button>
+                      <button
+                        className="log-action-btn log-action-btn--approve"
+                        onClick={async () => { await captureNote(); setNoteComposerOpen(false); }}
+                        disabled={capturing || !noteText.trim()}
+                      >
+                        <Icon name={capturing ? 'fa-circle-notch fa-spin' : 'fa-arrow-up'} /> {capturing ? 'Capturing…' : 'Capture'}
+                      </button>
+                    </footer>
+                  </article>
+                )}
+
                 {loading ? (
                   <div className="log-empty"><Icon name="fa-spinner" /> <p>Loading your log…</p></div>
-                ) : visible.length === 0 ? (
+                ) : displayEntries.length === 0 ? (
                   <div className="log-empty">
                     <Icon name="fa-inbox" />
                     <p>{
@@ -2324,7 +2417,7 @@
                     }</p>
                   </div>
                 ) : (
-                  visible.map(entry => {
+                  displayEntries.map(entry => {
                     // Phase 11b: every unreviewed entry in the Inbox renders as a
                     // unified ReviewCard (3-zone shape). Reviewed entries and
                     // non-Inbox tabs use the default LogEntryCard.

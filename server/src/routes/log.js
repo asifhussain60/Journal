@@ -211,13 +211,18 @@ export function createLogRouter({ queueValidators, anthropic, DEFAULT_MODEL, cla
         // promotes it to 'photo' or 'receipt' asynchronously. If anthropic is
         // unavailable (no key, no queue), the row stays 'unsorted-image' and
         // the reviewer firms it via the kind toggle on the review card.
+        // Caller can short-circuit classification by passing an explicit
+        // `kind` form field — used by the [+ Receipt] capture flow which
+        // already knows the kind at upload time.
+        const requestedKind = req.body?.kind;
+        const explicitKind = (requestedKind === "photo" || requestedKind === "receipt") ? requestedKind : null;
         row = {
           schemaVersion: "2",
           id,
           createdAt: now,
           capturedAt: now,
           tripSlug: slug,
-          kind: classifyQueue ? "unsorted-image" : "photo",
+          kind: explicitKind || (classifyQueue ? "unsorted-image" : "photo"),
           source: "app",
           status: "pending",
           memoryWorthy: false,
