@@ -880,6 +880,21 @@
   border: var(--log-border);
   box-shadow: var(--log-shadow-card);
   min-width: 0;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+.review-card.is-draggable {
+  cursor: grab;
+}
+.review-card.is-draggable:active {
+  cursor: grabbing;
+}
+.review-card.is-drag-over {
+  border-color: var(--border-accent);
+  box-shadow:
+    0 0 0 2px rgba(var(--accent-rgb), 0.35),
+    0 0 22px rgba(var(--accent-rgb), 0.25),
+    var(--log-shadow-card);
+  transform: translateY(-2px);
 }
 
 .review-card-zone {

@@ -1754,7 +1754,7 @@
     // Zone 2 — editable prompt textarea (curatorial intent, not persisted)
     // Zone 3 — editable refined output (AI result, persisted on Approve)
     // Approve resolution: Zone 3 if non-empty, else Zone 1 (raw artifact).
-    function ReviewCard({ entry, lane, onApproveDraft, onSaveDraft, onReject, onKindFlipped }) {
+    function ReviewCard({ entry, lane, draggable, onReorder, onApproveDraft, onSaveDraft, onReject, onKindFlipped }) {
       // Reviewed cards seed the textarea with the canonical prose so the
       // reviewer can see/edit what they previously approved. Unreviewed
       // cards start empty (or whatever localStorage holds).
@@ -1919,8 +1919,33 @@
         }
       }
 
+      // Drag-and-drop handlers — only active on Reviewed lane real entries.
+      const [isDragOver, setIsDragOver] = useState(false);
+      const dragProps = draggable ? {
+        draggable: true,
+        onDragStart: (e) => {
+          e.dataTransfer.setData('text/plain', entry.id);
+          e.dataTransfer.effectAllowed = 'move';
+        },
+        onDragOver: (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          if (!isDragOver) setIsDragOver(true);
+        },
+        onDragLeave: () => setIsDragOver(false),
+        onDrop: (e) => {
+          e.preventDefault();
+          setIsDragOver(false);
+          const fromId = e.dataTransfer.getData('text/plain');
+          if (fromId && fromId !== entry.id) onReorder?.(fromId, entry.id);
+        },
+      } : {};
+
       return (
-        <article className="review-card review-card-3zone">
+        <article
+          className={`review-card review-card-3zone ${draggable ? 'is-draggable' : ''} ${isDragOver ? 'is-drag-over' : ''}`}
+          {...dragProps}
+        >
           <div className="review-card-zone review-card-zone--artifact">
             <ReviewArtifact entry={entry} kind={effectiveKind} />
             <KindBadge
@@ -2088,9 +2113,58 @@
       const filteredDummies = sourceFilter === 'all'
         ? DUMMY_ENTRIES
         : DUMMY_ENTRIES.filter(e => e.kind === sourceFilter);
+
+      // Drag-and-drop ordering on the Reviewed lane only. The order array
+      // is per-trip and lives in localStorage; entries not in the array
+      // sort to the end by capturedAt (newest first to match the rest of
+      // the app's chronology). Tweak the storage key if the ordering
+      // contract ever needs to expand beyond a single trip.
+      const orderKey = `journal.order.${tripSlug || '_default'}`;
+      const [orderTick, setOrderTick] = useState(0);
+      const orderArray = useMemo(() => {
+        try {
+          const raw = localStorage.getItem(orderKey);
+          return raw ? JSON.parse(raw) : [];
+        } catch { return []; }
+      }, [orderKey, orderTick]);
+
+      function persistOrder(nextArray) {
+        try { localStorage.setItem(orderKey, JSON.stringify(nextArray)); } catch {}
+        setOrderTick(t => t + 1);
+      }
+
+      function applyOrder(rows) {
+        if (!orderArray.length) return rows;
+        const indexMap = new Map(orderArray.map((id, i) => [id, i]));
+        return [...rows].sort((a, b) => {
+          const ai = indexMap.has(a.id) ? indexMap.get(a.id) : Infinity;
+          const bi = indexMap.has(b.id) ? indexMap.get(b.id) : Infinity;
+          if (ai !== bi) return ai - bi;
+          // Fallback: newest first by capturedAt for entries not in the map.
+          return new Date(b.capturedAt || 0).getTime() - new Date(a.capturedAt || 0).getTime();
+        });
+      }
+
+      // Drop fromId in front of toId. If toId is null, append fromId to end.
+      function handleReorder(fromId, toId) {
+        if (!fromId || fromId === toId) return;
+        // Build the canonical order from currently-visible reviewed entries
+        // so freshly added rows merge in deterministically.
+        const reviewedIds = visible.filter(isReviewed).map(e => e.id);
+        const ordered = applyOrder(visible.filter(isReviewed)).map(e => e.id);
+        const seen = new Set([...orderArray, ...ordered, ...reviewedIds]);
+        let combined = orderArray.filter(id => seen.has(id));
+        for (const id of ordered) if (!combined.includes(id)) combined.push(id);
+        combined = combined.filter(id => id !== fromId);
+        const insertAt = toId ? combined.indexOf(toId) : combined.length;
+        if (insertAt < 0) combined.push(fromId);
+        else combined.splice(insertAt, 0, fromId);
+        persistOrder(combined);
+      }
+
       const displayEntries = (tab === 'inbox' && reviewView === 'unreviewed')
         ? [...filteredDummies, ...visible]
-        : visible;
+        : (reviewView === 'reviewed' ? applyOrder(visible) : visible);
 
       // Drop stale draft cache entries once on mount (30-day TTL backstop).
       useEffect(() => { purgeStaleDrafts(); }, []);
@@ -2393,11 +2467,14 @@
                     // get the 'reviewed' shape (Save instead of Approve,
                     // textarea pre-filled with draft.prose).
                     const lane = entry.reviewStatus === 'approved' ? 'reviewed' : 'unreviewed';
+                    const isDummyEntry = typeof entry.id === 'string' && entry.id.startsWith('dummy_');
                     return (
                       <ReviewCard
                         key={entry.id}
                         entry={entry}
                         lane={lane}
+                        draggable={lane === 'reviewed' && !isDummyEntry}
+                        onReorder={handleReorder}
                         onApproveDraft={handleApproveDraft}
                         onSaveDraft={handleSaveDraft}
                         onReject={handleReject}
