@@ -2006,12 +2006,13 @@
             </button>
             {draft.preRefine != null && (
               <button
-                className="log-action-btn log-action-btn--undo"
+                className="log-action-btn log-action-btn--undo log-action-btn--icon-only"
                 onClick={handleUndoRefine}
                 disabled={approving || refining || unapproving}
                 title="Restore the text you had before Refine ran"
+                aria-label="Undo refine"
               >
-                <Icon name="fa-rotate-left" /> Undo
+                <Icon name="fa-rotate-left" />
               </button>
             )}
             {!isReviewed && (

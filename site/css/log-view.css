@@ -576,8 +576,6 @@
   border-color: var(--border-default);
   color: var(--text-secondary);
   font-weight: 600;
-  flex: 0 0 auto;
-  padding: 0 14px;
 }
 .log-action-btn--undo:hover:not(:disabled) {
   background: var(--bg-card-hover);
@@ -1165,12 +1163,22 @@
 /* ─── Action footer ─── */
 .review-card-actions {
   display: flex;
-  justify-content: space-between;
-  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: stretch;
+  gap: 8px;
   padding-top: 14px;
   border-top: 1px dashed var(--border-default);
 }
 .review-card-actions .log-action-btn {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
   justify-content: center;
+  padding: 0 8px;
+  font-size: 0.9rem;
+  gap: 5px;
+}
+/* Icon-only buttons (e.g. Undo) — fixed compact width, never grow. */
+.review-card-actions .log-action-btn--icon-only {
+  flex: 0 0 auto;
+  padding: 0 12px;
 }
