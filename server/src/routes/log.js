@@ -394,10 +394,17 @@ export function createLogRouter({ queueValidators, anthropic, DEFAULT_MODEL, cla
       const row = items[idx];
       // Honor reviewer's kind toggle for image rows even before it lands as a
       // PATCH — keeps the refine prompt aligned with what the reviewer sees.
-      const kind = (kindOverride === "photo" || kindOverride === "receipt") &&
-                   ["photo", "receipt", "unsorted-image"].includes(row.kind)
-                     ? kindOverride
-                     : row.kind;
+      // For unsorted-image rows (classify hasn't firmed yet, or failed), fall
+      // back to the photo refine path so the user isn't blocked.
+      let kind;
+      if ((kindOverride === "photo" || kindOverride === "receipt") &&
+          ["photo", "receipt", "unsorted-image"].includes(row.kind)) {
+        kind = kindOverride;
+      } else if (row.kind === "unsorted-image") {
+        kind = "photo";
+      } else {
+        kind = row.kind;
+      }
 
       // Photo path keeps Phase 11a's non-empty-prompt invariant — the photo
       // refine prompt is wired around "the user typed something next to a photo".

@@ -1783,9 +1783,8 @@
 
       const refineLabel = refining ? 'Refining…' : (draft.refined ? 'Re-refine' : 'Refine');
       const refineIcon = refining ? 'fa-circle-notch fa-spin' : 'fa-wand-magic-sparkles';
-      const kindUnresolved = effectiveKind === 'unsorted-image';
-      const refineTitle = kindUnresolved
-        ? 'Pick Photo or Receipt above before refining (image kind not yet classified).'
+      const refineTitle = effectiveKind === 'unsorted-image'
+        ? 'Refining as a photo — classify hasn\u2019t firmed the kind yet'
         : 'Refine in your voice with active trip context';
 
       return (
@@ -1808,7 +1807,7 @@
               <button
                 className="review-card-refine-btn"
                 onClick={handleRefine}
-                disabled={refining || approving || kindUnresolved}
+                disabled={refining || approving}
                 title={refineTitle}
               >
                 <Icon name={refineIcon} /> {refineLabel}
@@ -2141,8 +2140,14 @@
           form.append('photo', file);
           const r = await fetch(`${LOG_API_BASE}/api/log/capture`, { method: 'POST', body: form });
           const d = await r.json();
-          if (d.ok) { window.notify?.success('Photo captured'); loadEntries(); }
-          else window.notify?.error('Photo capture failed', { description: d.error });
+          if (d.ok) {
+            window.notify?.success('Photo captured');
+            loadEntries();
+            // Server runs Vision classify async (~1\u20132s). Re-load shortly to
+            // pick up the firmed kind so the card shows photo/receipt instead
+            // of the transient unsorted-image.
+            setTimeout(loadEntries, 2000);
+          } else window.notify?.error('Photo capture failed', { description: d.error });
         } catch (err) {
           window.notify?.error('Photo capture failed', { description: err.message });
         } finally {
