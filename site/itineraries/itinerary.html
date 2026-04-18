@@ -2045,7 +2045,16 @@
         if (!host || !state.data) return;
         var cats = sortCategories(state.data.categories, state.sort);
         if (!cats.length) {
-          host.innerHTML = '<div class="budget-empty">No Holiday transactions yet. Press the refresh button after YNAB sync.</div>';
+          var msg;
+          if (state.data.key === false) {
+            msg = 'YNAB is not configured. Add YNAB_ACCESS_TOKEN to your server .env or keychain.';
+          } else if (state.data.category && state.data.category.matched === false) {
+            msg = 'YNAB category "' + esc(state.data.category.name) + '" not found. Add ynab.category to trip.yaml or rename the category in YNAB.';
+          } else {
+            var catName = (state.data.category && state.data.category.name) || 'Holiday';
+            msg = 'No ' + esc(catName) + ' transactions yet. Press the refresh button after YNAB sync.';
+          }
+          host.innerHTML = '<div class="budget-empty">' + msg + '</div>';
           return;
         }
         var html = '';
