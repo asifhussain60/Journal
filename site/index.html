@@ -1953,10 +1953,12 @@
     }
 
     function LogModule() {
-      const [tab, setTab] = useState('inbox');
-      // Photo review lane — only meaningful when tab==='inbox'.
-      // 'unreviewed' = photos with reviewStatus ∈ {unreviewed, in_review} + any non-photo kind
-      // 'reviewed'   = photos with reviewStatus === 'approved' only
+      // Tab UI removed in this iteration; the entire view is the inbox lane.
+      // Filter is still applied via matchesLogTab so the visible set stays
+      // identical to the pre-removal Inbox tab.
+      const tab = 'inbox';
+      // Review lane: 'unreviewed' lane shows reviewStatus ∈ {unreviewed,
+      // in_review}; 'reviewed' lane shows reviewStatus === 'approved'.
       const [reviewView, setReviewView] = useState(() => {
         try { return localStorage.getItem('log_review_view') || 'unreviewed'; }
         catch { return 'unreviewed'; }
@@ -1965,8 +1967,9 @@
         try { localStorage.setItem('log_review_view', reviewView); } catch {}
       }, [reviewView]);
       const [sourceFilter, setSourceFilter] = useState('all');
-      // dayFilter: 'all' | 'today' | 'unsorted' | <number dayIndex>
-      const [dayFilter, setDayFilter] = useState('all');
+      // Day chip filter UI removed in this iteration; the day filter chain in
+      // baseVisible short-circuits with this constant.
+      const dayFilter = 'all';
       const [entries, setEntries] = useState([]);
       const [loading, setLoading] = useState(true);
       const [tripSlug, setTripSlug] = useState(null);
@@ -2003,32 +2006,11 @@
 
       useEffect(() => { loadEntries(); }, []);
 
-      function tabCount(t) {
-        return entries.filter(e => matchesLogTab(e, t)).length;
-      }
-
-      // Day chips are derived from the data set itself
-      const dayIndices = React.useMemo(() => {
-        const s = new Set();
-        entries.forEach(e => { const di = e.placement?.dayIndex; if (di != null) s.add(di); });
-        return Array.from(s).sort((a, b) => a - b);
-      }, [entries]);
-      const todayIndex = dayIndices.length ? dayIndices[dayIndices.length - 1] : null;
-      const unsortedCount = entries.filter(e => e.placement?.dayIndex == null).length;
-
       // Single canonical filter pipeline — source of truth is `entries`.
-      // Order: tab → source → day → (inbox-only) photo-review-view split.
+      // Order: tab (inbox only) → source → review-lane split.
       const baseVisible = entries
         .filter(e => matchesLogTab(e, tab))
-        .filter(e => sourceFilter === 'all' ? true : e.kind === sourceFilter)
-        .filter(e => {
-          const di = e.placement?.dayIndex;
-          if (dayFilter === 'all')      return true;
-          if (dayFilter === 'today')    return todayIndex != null && di === todayIndex;
-          if (dayFilter === 'unsorted') return di == null;
-          if (typeof dayFilter === 'number') return di === dayFilter;
-          return true;
-        });
+        .filter(e => sourceFilter === 'all' ? true : e.kind === sourceFilter);
 
       // Phase 11b: review lifecycle applies to ALL kinds in the Inbox tab.
       // Unreviewed lane shows entries with reviewStatus ∈ {unreviewed, in_review}.
@@ -2177,13 +2159,6 @@
         }
       }
 
-      const TABS = [
-        { id: 'inbox',    icon: 'fa-inbox',             label: 'Inbox' },
-        { id: 'journal',  icon: 'fa-book',              label: 'Journal' },
-        { id: 'expenses', icon: 'fa-coins',             label: 'Expenses' },
-        { id: 'stuck',    icon: 'fa-circle-exclamation', label: 'Stuck' },
-      ];
-
       const SOURCES = [
         { id: 'all',     label: 'All' },
         { id: 'photo',   label: 'Photo',   icon: 'fa-camera' },
@@ -2194,46 +2169,6 @@
 
       return (
         <div className="log-module">
-          {/* ── 1. Context toolbar — trip + day chips (standalone tile) ── */}
-          <div className="log-context-tile">
-            <div className="log-trip-pill">
-              <Icon name="fa-plane" /> {tripSlug || 'No active trip'}
-            </div>
-            <span className="log-context-divider" aria-hidden="true"></span>
-            <div className="log-day-chips">
-                <button
-                  className={`log-day-chip ${dayFilter === 'all' ? 'active' : ''}`}
-                  onClick={() => setDayFilter('all')}
-                >All days <span className="count">{entries.length}</span></button>
-                {todayIndex != null && (
-                  <button
-                    className={`log-day-chip log-day-chip--today ${dayFilter === 'today' ? 'active' : ''}`}
-                    onClick={() => setDayFilter('today')}
-                  >
-                    <Icon name="fa-sun" /> Today
-                  </button>
-                )}
-                {dayIndices.map(di => {
-                  const n = entries.filter(e => e.placement?.dayIndex === di).length;
-                  return (
-                    <button
-                      key={di}
-                      className={`log-day-chip ${dayFilter === di ? 'active' : ''}`}
-                      onClick={() => setDayFilter(di)}
-                    >Day {di + 1} <span className="count">{n}</span></button>
-                  );
-                })}
-                {unsortedCount > 0 && (
-                  <button
-                    className={`log-day-chip log-day-chip--unsorted ${dayFilter === 'unsorted' ? 'active' : ''}`}
-                    onClick={() => setDayFilter('unsorted')}
-                  >
-                    Unsorted <span className="count">{unsortedCount}</span>
-                  </button>
-                )}
-            </div>
-          </div>
-
           {/* Hidden file inputs used by the tab-row capture actions below. */}
           <input
             type="file"
@@ -2262,21 +2197,9 @@
             onChange={e => captureReceipt(e.target.files?.[0])}
           />
 
-          {/* ── 3. Log panel — bordered container: control bar + entry grid ── */}
+          {/* ── Log panel — bordered container: source filter + entry grid ── */}
           <section className="log-panel">
             <div className="log-panel-control">
-              <div className="log-tab-bar">
-                {TABS.map(t => {
-                  const count = tabCount(t.id);
-                  return (
-                    <button key={t.id} className={`log-tab ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)}>
-                      <Icon name={t.icon} /> {t.label}
-                      {count > 0 && <span className="log-tab-badge">{count}</span>}
-                    </button>
-                  );
-                })}
-              </div>
-
               <div className="log-filter-bar">
                 <div className="log-chip-row">
                   <span className="log-chip-row-label">Source</span>
