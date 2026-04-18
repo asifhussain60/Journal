@@ -14,7 +14,7 @@ import { randomUUID } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import multer from "multer";
-import { getActiveTripSlug, appendQueueRow, readQueue, TRIPS_DIR, sniffImageExt } from "../receipts.js";
+import { getActiveTripSlug, appendQueueRow, readQueue, atomicWriteJSON, TRIPS_DIR, sniffImageExt } from "../receipts.js";
 import { listDeadLetter } from "../dead-letter.js";
 import { shadow } from "../middleware/shadow-write.js";
 import { fromPending } from "../adapters/fromPending.js";
@@ -211,6 +211,33 @@ export function createLogRouter({ queueValidators }) {
       shadow("queue-pending", row);
 
       res.json({ ok: true, id: row.id, kind: row.kind, tripSlug: slug, count });
+    } catch (err) {
+      res.status(500).json({ ok: false, error: err?.message ?? String(err) });
+    }
+  });
+
+  // DELETE /api/log/:id — remove an entry from every local queue it appears in.
+  // Photos keep their binary on disk (recoverable); rows are dropped so the
+  // entry stops surfacing in the inbox and isn't picked up by drain.
+  router.delete("/api/log/:id", async (req, res) => {
+    try {
+      const slug = req.query.slug || (await getActiveTripSlug());
+      const id = req.params.id;
+      if (!id) return res.status(400).json({ ok: false, error: "id required" });
+
+      let removed = 0;
+      for (const queueName of ["pending", "voice-inbox", "itinerary-inbox"]) {
+        const items = await readQueue(slug, queueName);
+        const kept = items.filter((r) => r?.id !== id);
+        if (kept.length !== items.length) {
+          const filePath = path.join(TRIPS_DIR, slug, `${queueName}.json`);
+          await atomicWriteJSON(filePath, kept);
+          removed += items.length - kept.length;
+        }
+      }
+
+      if (!removed) return res.status(404).json({ ok: false, error: "entry not found" });
+      res.json({ ok: true, id, removed });
     } catch (err) {
       res.status(500).json({ ok: false, error: err?.message ?? String(err) });
     }

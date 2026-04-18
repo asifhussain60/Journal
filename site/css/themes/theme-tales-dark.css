@@ -100,7 +100,7 @@
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.40);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45);
   --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.55);
-  --shadow-glow: 0 0 20px rgba(58, 177, 89, 0.20);
+  --shadow-glow: 0 0 10px rgba(58, 177, 89, 0.10);
 
   /* ─── Glass surfaces (Tales is less translucent than R&MN) ─── */
   --glass-bg: linear-gradient(135deg, rgba(71, 71, 71, 0.80) 0%, rgba(49, 49, 49, 0.72) 100%);
@@ -111,10 +111,10 @@
   --glass-shadow-hover: 0 16px 50px rgba(0, 0, 0, 0.42);
 
   /* ─── Mesh blobs (subdued — Tales is flat charcoal) ─── */
-  --bg-mesh-1: rgba(58, 177, 89, 0.06);
-  --bg-mesh-2: rgba(97, 197, 123, 0.04);
-  --bg-mesh-3: rgba(129, 213, 151, 0.04);
-  --bg-mesh-4: rgba(227, 197, 103, 0.03);
+  --bg-mesh-1: rgba(58, 177, 89, 0.04);
+  --bg-mesh-2: rgba(97, 197, 123, 0.03);
+  --bg-mesh-3: rgba(129, 213, 151, 0.03);
+  --bg-mesh-4: rgba(227, 197, 103, 0.02);
 
   /* ─── Radius scale (Tales is subtly rounded, 6px primary) ─── */
   --radius-xl: 12px;
@@ -264,9 +264,9 @@ body::after {
   height: 28rem;
   pointer-events: none;
   z-index: -2;
-  filter: blur(80px);
-  opacity: 0.20;
-  background: radial-gradient(circle, rgba(58, 177, 89, 0.35), transparent 70%);
+  filter: blur(90px);
+  opacity: 0.10;
+  background: radial-gradient(circle, rgba(58, 177, 89, 0.22), transparent 70%);
   animation: driftOne 22s ease-in-out infinite alternate;
 }
 

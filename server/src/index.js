@@ -105,7 +105,7 @@ app.use(
     // along on cross-origin fetches from journal(-dev)?.kashkole.com to
     // journal-api.kashkole.com.
     credentials: true,
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "DELETE"],
   })
 );
 app.use(express.json({ limit: "1mb" }));
@@ -159,6 +159,12 @@ const upload = multer({
     cb(null, true);
   },
 });
+
+// --- Static: serve captured photos under /trips so the log view can render previews
+//     (imagePath is stored as "trips/<slug>/photos/<file>" and the frontend fetches
+//     it from this API host).
+const REPO_ROOT = path.resolve(__dirname, "..", "..");
+app.use("/trips", express.static(path.join(REPO_ROOT, "trips"), { fallthrough: true, maxAge: "1h" }));
 
 // --- Mount routers -----------------------------------------------------------
 app.use(createCoreRouter({ anthropic, DEFAULT_MODEL, KEY_SOURCE, PORT, ALLOWED_ORIGINS }));

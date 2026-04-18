@@ -94,7 +94,7 @@
   --shadow-sm: 0 1px 3px rgba(74, 58, 42, 0.10);
   --shadow-md: 0 4px 12px rgba(74, 58, 42, 0.14);
   --shadow-lg: 0 8px 32px rgba(74, 58, 42, 0.18);
-  --shadow-glow: 0 0 20px rgba(180, 100, 50, 0.15);
+  --shadow-glow: 0 0 10px rgba(180, 100, 50, 0.08);
 
   /* ─── Glass surfaces ─── */
   --glass-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.55) 100%);
@@ -105,10 +105,10 @@
   --glass-shadow-hover: 0 16px 50px rgba(74, 58, 42, 0.10);
 
   /* ─── Mesh blobs ─── */
-  --bg-mesh-1: rgba(200, 155, 94, 0.12);
-  --bg-mesh-2: rgba(196, 106, 122, 0.08);
-  --bg-mesh-3: rgba(164, 141, 178, 0.10);
-  --bg-mesh-4: rgba(224, 197, 146, 0.10);
+  --bg-mesh-1: rgba(200, 155, 94, 0.07);
+  --bg-mesh-2: rgba(196, 106, 122, 0.05);
+  --bg-mesh-3: rgba(164, 141, 178, 0.06);
+  --bg-mesh-4: rgba(224, 197, 146, 0.06);
 
   /* ─── Radius scale ─── */
   --radius-xl: 20px;
@@ -222,9 +222,7 @@
 /* ─── Body ambience — light, warm paper ─── */
 body {
   background:
-    radial-gradient(circle at 10% 10%, rgba(196, 106, 122, 0.06), transparent 25%),
-    radial-gradient(circle at 90% 12%, rgba(164, 141, 178, 0.05), transparent 28%),
-    radial-gradient(circle at 50% 100%, rgba(200, 155, 94, 0.04), transparent 25%),
+    radial-gradient(circle at 20% 15%, rgba(196, 106, 122, 0.03), transparent 40%),
     linear-gradient(180deg, #FBF8F2 0%, #F4EEDF 40%, #EFE6D2 100%);
   color: var(--text);
   font-family: var(--font-sans);
@@ -241,19 +239,19 @@ body::after {
   inset: auto;
   pointer-events: none;
   z-index: -2;
-  filter: blur(70px);
-  opacity: 0.30;
+  filter: blur(80px);
+  opacity: 0.14;
 }
 body::before {
   width: 34rem; height: 34rem;
   left: -10rem; top: 8rem;
-  background: radial-gradient(circle, rgba(196, 106, 122, 0.18), transparent 70%);
+  background: radial-gradient(circle, rgba(196, 106, 122, 0.10), transparent 70%);
   animation: driftOne 18s ease-in-out infinite alternate;
 }
 body::after {
   width: 30rem; height: 30rem;
   right: -8rem; top: 18rem;
-  background: radial-gradient(circle, rgba(164, 141, 178, 0.14), transparent 72%);
+  background: radial-gradient(circle, rgba(164, 141, 178, 0.08), transparent 72%);
   animation: driftTwo 24s ease-in-out infinite alternate;
 }
 

@@ -6,8 +6,8 @@
   "type": "module",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "node --watch src/index.js",
+    "start": "node --env-file=.env src/index.js",
+    "dev": "node --env-file=.env --watch src/index.js",
     "health": "curl -s http://localhost:3001/health | jq",
     "smoke": "curl -s -X POST http://localhost:3001/api/voice-test -H 'Content-Type: application/json' -d '{}' | jq",
     "validate": "node scripts/validate-schemas.mjs",
