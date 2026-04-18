@@ -1866,22 +1866,13 @@
               disabled={refining || approving}
               spellCheck
             />
-            <div className="review-card-prompt-actions">
-              <button
-                className="review-card-refine-btn"
-                onClick={handleRefine}
-                disabled={refining || approving}
-                title={refineTitle}
-              >
-                <Icon name={refineIcon} /> {refineLabel}
-              </button>
-            </div>
-            {refineError && (
-              <div className="review-card-error" role="alert">
-                <Icon name="fa-triangle-exclamation" /> {refineError}
-              </div>
-            )}
           </div>
+
+          {refineError && (
+            <div className="review-card-error" role="alert">
+              <Icon name="fa-triangle-exclamation" /> {refineError}
+            </div>
+          )}
 
           {draft.refined && (
             <div className="review-card-zone review-card-zone--refined">
@@ -1907,6 +1898,14 @@
               title="Reject this entry"
             >
               <Icon name="fa-trash-can" /> Reject
+            </button>
+            <button
+              className="log-action-btn log-action-btn--refine"
+              onClick={handleRefine}
+              disabled={approving || refining}
+              title={refineTitle}
+            >
+              <Icon name={refineIcon} /> {refineLabel}
             </button>
             <button
               className="log-action-btn log-action-btn--approve"

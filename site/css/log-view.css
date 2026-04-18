@@ -663,10 +663,20 @@
 }
 .log-action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-.log-action-btn--refine:hover:not(:disabled) {
+.log-action-btn--refine {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--accent) 32%, transparent) 0%,
+    color-mix(in srgb, var(--accent) 16%, transparent) 100%);
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
   color: var(--accent);
+  font-weight: 700;
+}
+.log-action-btn--refine:hover:not(:disabled) {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--accent) 38%, transparent) 0%,
+    color-mix(in srgb, var(--accent) 20%, transparent) 100%);
   border-color: var(--border-accent);
-  box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.22);
+  box-shadow: 0 0 14px rgba(var(--accent-rgb), 0.28);
 }
 .log-action-btn--reassign:hover:not(:disabled) {
   color: var(--warning);
@@ -686,10 +696,20 @@
     color-mix(in srgb, var(--success) 18%, transparent) 100%);
   box-shadow: 0 0 14px color-mix(in srgb, var(--success) 28%, transparent);
 }
-.log-action-btn--reject:hover:not(:disabled) {
+.log-action-btn--reject {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--error) 28%, transparent) 0%,
+    color-mix(in srgb, var(--error) 14%, transparent) 100%);
+  border-color: color-mix(in srgb, var(--error) 48%, transparent);
   color: var(--error);
-  border-color: color-mix(in srgb, var(--error) 38%, transparent);
-  background: color-mix(in srgb, var(--error) 10%, transparent);
+  font-weight: 700;
+}
+.log-action-btn--reject:hover:not(:disabled) {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--error) 36%, transparent) 0%,
+    color-mix(in srgb, var(--error) 18%, transparent) 100%);
+  border-color: color-mix(in srgb, var(--error) 60%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--error) 28%, transparent);
 }
 
 /* ═══════════════════════════════════════════════════
@@ -1210,36 +1230,6 @@
 .review-card-prompt-input::placeholder {
   color: var(--text-muted);
   font-style: italic;
-}
-
-.review-card-prompt-actions {
-  display: flex;
-  justify-content: flex-end;
-}
-.review-card-refine-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 16px;
-  border-radius: var(--radius-full);
-  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
-  color: var(--accent);
-  font-size: 0.95rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  cursor: pointer;
-  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
-}
-.review-card-refine-btn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent) 22%, transparent);
-  border-color: var(--border-accent);
-  transform: translateY(-1px);
-  box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.22);
-}
-.review-card-refine-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .review-card-error {
