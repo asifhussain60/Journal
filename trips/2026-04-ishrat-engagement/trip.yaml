@@ -144,17 +144,6 @@
           "duration_min": 180
         },
         {
-          "time": "5:20 PM",
-          "event": "Tea & Coffee at Hidden Grounds Coffee Co.",
-          "venue": "106 Church St, New Brunswick, NJ 08901",
-          "tag": "CAFE",
-          "phone": "(732) 993-4114",
-          "rating": 4.6,
-          "notes": "Specialty coffee bar with proper loose-leaf tea selection and cozy sit-down seating (~5 min from hotel). Ishrat's English tea, Asif's pour-over. Unwind before Pho House.",
-          "category": "Specialty Coffee House",
-          "duration_min": 30
-        },
-        {
           "time": "6:30 PM",
           "event": "Dinner at The Pho House",
           "venue": "Wick Plaza, 1199 Amboy Ave, Edison, NJ 08837",
@@ -257,6 +246,16 @@
           "notes": "Fresh-from-scratch breakfast (~12 min) — homemade bread, hearty omelettes, great portions. Fuel up before the shopping marathon.",
           "category": "American · Classic Diner",
           "duration_min": 60
+        },
+        {
+          "time": "8:50 AM",
+          "event": "Morning Chai at Khyber Coffee & Tea House",
+          "tag": "CAFE",
+          "duration_min": 30,
+          "category": "South Asian Coffee & Tea House · Masala Chai & Desi Bites",
+          "venue": "110 Church St, New Brunswick, NJ 08901",
+          "phone": "(732) 317-1177",
+          "rating": 4.7
         },
         {
           "time": "9:30 AM",

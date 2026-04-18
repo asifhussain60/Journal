@@ -1073,5 +1073,481 @@
     "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-2e4ae266-f1b9-41c6-afd4-2c5278eb7613.yaml",
     "actor": "app",
     "status": "applied"
+  },
+  {
+    "schemaVersion": "1",
+    "id": "a6c51036-8c24-480c-b1ac-4786d9ee02e0",
+    "createdAt": "2026-04-18T09:59:59.245Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "Insert \"Morning Chai at Khyber Coffee & Tea House\" on day 4",
+    "patch": [
+      {
+        "op": "add",
+        "path": "/days/3/events/1",
+        "value": {
+          "time": "8:50 AM",
+          "event": "Morning Chai at Khyber Coffee & Tea House",
+          "tag": "CAFE",
+          "duration_min": 30,
+          "category": "South Asian Coffee & Tea House · Masala Chai & Desi Bites",
+          "venue": "110 Church St, New Brunswick, NJ 08901",
+          "phone": "(732) 317-1177",
+          "rating": 4.7
+        }
+      }
+    ],
+    "inversePatch": [
+      {
+        "op": "remove",
+        "path": "/days/3/events/9"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/8/category",
+        "value": "Pakistani · Charcoal BBQ"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/8/rating",
+        "value": 4.5
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/8/phone",
+        "value": "(732) 549-9777"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/8/notes",
+        "value": "Pakistani & Chinese halal (~15 min). Nap ends 6:30 PM, 15-min drive arrives 6:45 PM with buffer. Great vegetarian (Palak Paneer, Chana Masala) and meat (tandoori, biryani). Big parking lot."
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/8/tag",
+        "value": "DINING"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/8/venue",
+        "value": "1625 Oak Tree Rd, Edison, NJ 08820"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/8/event",
+        "value": "Dinner at Tabaq"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/8/time",
+        "value": "7:00 PM"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/7/duration_min",
+        "value": 90
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/7/category",
+        "value": "Hotel · Downtime"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/7/notes",
+        "value": "Tea ends 4:45 PM, 5-min drive puts us at hotel by 4:50 PM. 90-min nap — critical rest after a long shopping day and before tomorrow's heavy engagement party."
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/7/rating",
+        "value": 4.1
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/7/phone",
+        "value": "(732) 729-0900"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/7/tag",
+        "value": "REST"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/7/venue",
+        "value": "Home2 Suites by Hilton, 3 Jersey Ave, New Brunswick, NJ 08901"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/7/event",
+        "value": "Hotel Rest / Nap"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/7/time",
+        "value": "5:00 PM"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/6/duration_min",
+        "value": 30
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/6/category",
+        "value": "Specialty Coffee House"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/6/rating",
+        "value": 4.6
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/6/phone",
+        "value": "(732) 993-4114"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/6/notes",
+        "value": "Mid-shopping sit-down pause (~15 min from Samosa House, ~5 min from hotel). Ishrat's English tea, Asif's pour-over, scones optional. Recharge before hotel nap."
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/6/tag",
+        "value": "CAFE"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/6/venue",
+        "value": "106 Church St, New Brunswick, NJ 08901"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/6/event",
+        "value": "Tea & Coffee Break — Hidden Grounds"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/6/time",
+        "value": "4:15 PM"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/5/category",
+        "value": "Pakistani · Halal Street Food"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/5/notes",
+        "value": "Light halal lunch close to the shops (~10 min from J. Junaid). JJ ends 2:30 PM, 10-min drive puts us here by 2:40 PM. Candidates: Spice Rack (halal Indian, East Brunswick), Chaat Hut (Iselin, halal Indo-Chinese), or Chinese Mirch (East Brunswick, halal Chinese). Keep it light — Tabaq dinner is the main event. [Swapped from Amin's Union City to avoid a ~50-min each-way detour.]"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/5/rating",
+        "value": 4.3
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/5/phone",
+        "value": "(732) 525-2770"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/5/tag",
+        "value": "DINING"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/5/venue",
+        "value": "1000 US-9, Old Bridge, NJ 08857"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/5/event",
+        "value": "Halal Lunch at Samosa House"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/5/time",
+        "value": "2:45 PM"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/4/category",
+        "value": "Pakistani Designer · Tailored"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/4/phone",
+        "value": "(732) 940-6000"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/4/notes",
+        "value": "Flagship Pakistani brand (~10 min from Chase). Chase wraps 1:15 PM, 10-min drive puts us here by 1:25 PM. Premium men's shalwar kameez, kurtas, waistcoats — last boutique stop before lunch. Leave time for alterations and matching accessories."
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/4/tag",
+        "value": "SHOPPING"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/4/venue",
+        "value": "2421 US Hwy 1 S, North Brunswick, NJ 08902"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/4/event",
+        "value": "J. Junaid Jamshed"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/4/time",
+        "value": "1:30 PM"
+      },
+      {
+        "op": "add",
+        "path": "/days/3/events/4/rating",
+        "value": 4.6
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/3/category",
+        "value": "Banking · Chase"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/3/notes",
+        "value": "Chase advisor meeting — full hour booked. Midday slot sits between boutique runs so energy is still fresh; drive from East Avenue ~10 min. [Shifted from 12:00 PM and extended from 45 to 60 min so the meeting gets a real hour, not a rushed slot.]"
+      },
+      {
+        "op": "remove",
+        "path": "/days/3/events/3/rating"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/3/phone",
+        "value": "(732) 254-2181"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/3/tag",
+        "value": "APPOINTMENT"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/3/venue",
+        "value": "Chase Bank, 629 Route 18, East Brunswick, NJ 08816"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/3/event",
+        "value": "Financial Advisor Meeting"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/3/time",
+        "value": "12:15 PM"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/2/duration_min",
+        "value": 60
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/2/category",
+        "value": "South Asian Fashion · Menswear"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/2/notes",
+        "value": "Multi-brand boutique since 2019 (~5 min) — carries MTJ, Gul Ahmed, Asim Jofa, and more. Compare styles quickly; wrap by 11:45 so we can reach Chase by noon."
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/2/rating",
+        "value": 4.4
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/2/phone",
+        "value": "(732) 798-9900"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/2/venue",
+        "value": "1647 NJ-27, North Brunswick, NJ 08902"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/2/event",
+        "value": "East Avenue"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/2/time",
+        "value": "10:45 AM"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/1/rating",
+        "value": 4.5
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/1/phone",
+        "value": "(732) 762-5425"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/1/venue",
+        "value": "137 NJ-27, Edison, NJ 08820"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/1/category",
+        "value": "South Asian Fashion · Bridal"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/1/duration_min",
+        "value": 75
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/1/tag",
+        "value": "SHOPPING"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/1/event",
+        "value": "Rangreza"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/1/time",
+        "value": "9:30 AM"
+      },
+      {
+        "op": "add",
+        "path": "/days/3/events/1/notes",
+        "value": "Premier Pakistani boutique (~15 min) — men's shalwar kameez, kurtas, waistcoats. Start early to protect the 12 PM Chase appointment window."
+      }
+    ],
+    "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-a6c51036-8c24-480c-b1ac-4786d9ee02e0.yaml",
+    "actor": "app",
+    "status": "applied"
+  },
+  {
+    "schemaVersion": "1",
+    "id": "d3729062-de44-4ff6-b85d-00f7f3e0a934",
+    "createdAt": "2026-04-18T10:00:28.211Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "Delete Tea & Coffee at Hidden Grounds Coffee Co. from day 2",
+    "patch": [
+      {
+        "op": "remove",
+        "path": "/days/1/events/2"
+      }
+    ],
+    "inversePatch": [
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/duration_min",
+        "value": 75
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/category",
+        "value": "Vietnamese · Pho & Rice Bowls"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/notes",
+        "value": "Vietnamese pho and rice plates (~15 min) — light and perfect for evening."
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/rating",
+        "value": 4.6
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/phone",
+        "value": "(732) 225-8889"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/event",
+        "value": "Dinner at The Pho House"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/3/time",
+        "value": "6:30 PM"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/2/duration_min",
+        "value": 30
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/2/category",
+        "value": "Specialty Coffee House"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/2/notes",
+        "value": "Specialty coffee bar with proper loose-leaf tea selection and cozy sit-down seating (~5 min from hotel). Ishrat's English tea, Asif's pour-over. Unwind before Pho House."
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/2/phone",
+        "value": "(732) 993-4114"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/2/tag",
+        "value": "CAFE"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/2/venue",
+        "value": "106 Church St, New Brunswick, NJ 08901"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/2/event",
+        "value": "Tea & Coffee at Hidden Grounds Coffee Co."
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/2/time",
+        "value": "5:20 PM"
+      },
+      {
+        "op": "add",
+        "path": "/days/1/events/4",
+        "value": {
+          "time": "8:00 PM",
+          "event": "Dessert at Crispy Cones",
+          "venue": "Wick Plaza, 1199 Amboy Ave, Edison, NJ 08837",
+          "tag": "DINING",
+          "phone": "(732) 744-0123",
+          "rating": 4.7,
+          "notes": "Walk over in the same plaza for Shark Tank-famous rotisserie dough cones with soft serve. Open till 11 PM. [Shifted from 7:30 PM so it starts after Pho House dinner ends at ~7:45 PM.]",
+          "category": "Ice Cream · Sweet Cones",
+          "duration_min": 30
+        }
+      }
+    ],
+    "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-d3729062-de44-4ff6-b85d-00f7f3e0a934.yaml",
+    "actor": "app",
+    "status": "applied"
   }
 ]
