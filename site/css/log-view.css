@@ -6,7 +6,7 @@
 
 /* Tight clearance under the fixed nav for the Log page only */
 .page:has(.log-module) {
-  padding-top: 4.5rem;
+  padding-top: 0;
   padding-bottom: 3rem;
 }
 
@@ -78,7 +78,7 @@
 
 .log-context-tile {
   width: var(--log-width);
-  margin: 40px auto 0;
+  margin: 5rem auto 0;
   display: flex;
   align-items: center;
   gap: 12px;
