@@ -2058,21 +2058,39 @@
     // MAIN APP
     // =================================================================
 
+    const VALID_PAGES = ['home', 'memoir', 'dayone', 'log'];
+    function pageFromHash() {
+      const h = location.hash.replace('#', '');
+      return VALID_PAGES.includes(h) ? h : 'home';
+    }
+
     function App() {
-      const [page, setPage] = useState('home');
+      const [page, setPage] = useState(pageFromHash);
       const [trips, setTrips] = useState([]);
       const [activeChapter, setActiveChapter] = useState(null);
       const [readProgress, setReadProgress] = useState(0);
-      const [usageOpen, setUsageOpen] = useState(false);
+
 
       useEffect(() => {
         console.log('[THEME] rose-mauve-night (single-theme build)');
         console.log('[NAV]', page);
         loadTrips().then(setTrips);
+        function onPopState() {
+          const target = pageFromHash();
+          setPage(target);
+          setActiveChapter(null);
+        }
+        window.addEventListener('popstate', onPopState);
+        return () => window.removeEventListener('popstate', onPopState);
       }, []);
 
       useEffect(() => {
         console.log('[NAV]', page);
+        const desired = page === 'home' ? '' : '#' + page;
+        const current = location.hash || '';
+        if (current !== desired) {
+          history.replaceState(null, '', desired || location.pathname + location.search);
+        }
         // Refresh the nav budget pill on every view change. BudgetPill
         // already listens for `budget:refresh` via its event-bus wiring,
         // so this one dispatch keeps its display in sync with whatever
@@ -2101,7 +2119,6 @@
               <button className={`nav-link ${page === 'memoir' || page === 'chapter' ? 'active' : ''}`} onClick={() => { setPage('memoir'); setActiveChapter(null); }}><Icon name="fa-book-open" /> <span>Memoir</span></button>
               <button className={`nav-link ${page === 'dayone' ? 'active' : ''}`} onClick={() => { setPage('dayone'); setActiveChapter(null); }}><Icon name="fa-feather-pointed" /> <span>DayOne</span></button>
               <button className={`nav-link ${page === 'log' ? 'active' : ''}`} onClick={() => { setPage('log'); setActiveChapter(null); }}><Icon name="fa-layer-group" /> <span>Log</span></button>
-              <BudgetPill onOpen={() => setUsageOpen(true)} />
               <div data-theme-switcher=""></div>
             </div>
           </nav>
@@ -2121,7 +2138,6 @@
             )}
             <ScrollToTop progress={page === 'chapter' ? readProgress : null} />
           </main>
-          {usageOpen && <UsageModal onClose={() => setUsageOpen(false)} />}
         </div>
       );
     }
