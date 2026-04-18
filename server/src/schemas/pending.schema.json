@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://journal.local/schemas/pending.schema.json",
   "title": "Pending Queue Row",
-  "description": "A single row appended to trips/{slug}/pending.json. App writes, Cowork drains.",
+  "description": "A single row appended to trips/{slug}/pending.json. App writes, Cowork drains. v2 adds optional workflow-state fields; all new fields are optional at schema level, required at adapter layer.",
   "type": "object",
   "required": [
     "schemaVersion",
@@ -18,8 +18,8 @@
   "properties": {
     "schemaVersion": {
       "type": "string",
-      "const": "1",
-      "description": "Pinned to '1' for Phase 1 contract lock."
+      "enum": ["1", "2"],
+      "description": "'1' = Phase 1 contract. '2' = Phase 11a — adds optional workflow-state fields."
     },
     "id": {
       "type": "string",
@@ -88,6 +88,96 @@
     "notes": {
       "type": "string",
       "description": "Freeform note attached to the capture."
+    },
+
+    "capturedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Alias of createdAt — canonical capture timestamp in the LogEntry contract."
+    },
+
+    "ingestStatus": {
+      "type": "string",
+      "enum": ["captured", "parsed", "failed"],
+      "description": "Write-path state of the raw capture. Adapter fills default when absent."
+    },
+    "placementStatus": {
+      "type": "string",
+      "enum": ["unplaced", "proposed", "confirmed"],
+      "description": "Where the row is pinned. Adapter fills 'unplaced' when absent."
+    },
+    "reviewStatus": {
+      "type": "string",
+      "enum": ["unreviewed", "in_review", "approved", "rejected"],
+      "description": "Has the user processed the row? Adapter fills 'unreviewed' when absent."
+    },
+    "journalStatus": {
+      "type": "string",
+      "enum": ["none", "draft", "published"],
+      "description": "DayOne publish lifecycle. Adapter fills 'none' when absent."
+    },
+    "ynabStatus": {
+      "type": "string",
+      "enum": ["na", "candidate", "approved", "synced", "failed"],
+      "description": "Expense sync lifecycle. Adapter fills 'na' (or 'candidate' for receipts) when absent."
+    },
+
+    "placement": {
+      "type": "object",
+      "description": "Placement coordinates and signal metadata.",
+      "additionalProperties": true,
+      "properties": {
+        "dayIndex":        { "type": "integer" },
+        "eventIndex":      { "type": "integer" },
+        "eventId":         { "type": "string" },
+        "timestampLocal":  { "type": "string" },
+        "confidence":      { "type": "number", "minimum": 0, "maximum": 1 },
+        "source": {
+          "type": "string",
+          "enum": ["user", "exif", "gps", "ai", "nearby", "device-clock", "unsorted"]
+        },
+        "reasoning":       { "type": "string" }
+      }
+    },
+
+    "route": {
+      "type": "object",
+      "description": "Routing decisions — names the authoritative prose source per Decision 3.",
+      "additionalProperties": true,
+      "properties": {
+        "journal": {
+          "type": "string",
+          "enum": ["none", "draft", "day-summary", "published"]
+        },
+        "ynab": {
+          "type": "string",
+          "enum": ["na", "candidate", "approved", "synced", "failed"]
+        },
+        "ynabTxnId": { "type": "string" }
+      }
+    },
+
+    "draft": {
+      "type": "object",
+      "description": "Draft prose owned by App until published (Decision 3, Path A).",
+      "additionalProperties": true,
+      "properties": {
+        "prose":          { "type": "string" },
+        "mood":           { "type": "string" },
+        "dayoneJournal":  { "type": "string" },
+        "dayoneTags":     { "type": "array", "items": { "type": "string" } }
+      }
+    },
+
+    "reviewedAt":       { "type": "string", "format": "date-time" },
+    "publishedAt":      { "type": "string", "format": "date-time" },
+    "lastSyncedAt":     { "type": "string", "format": "date-time" },
+    "syncAttemptCount": { "type": "integer", "minimum": 0 },
+    "syncError":        { "type": "string" },
+    "overrideSource": {
+      "type": "string",
+      "enum": ["ai", "user", "remembered-merchant"],
+      "description": "Who supplied the YNAB payee/category override."
     }
   }
 }

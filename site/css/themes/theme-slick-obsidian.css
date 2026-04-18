@@ -89,21 +89,21 @@
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.55);
   --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.60);
-  --shadow-glow: 0 0 20px rgba(109, 191, 160, 0.18);
+  --shadow-glow: 0 0 10px rgba(109, 191, 160, 0.10);
 
   /* ─── Glass surfaces ─── */
-  --glass-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.05) 100%);
-  --glass-bg-hover: linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.08) 100%);
+  --glass-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.03) 100%);
+  --glass-bg-hover: linear-gradient(135deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.04) 100%);
   --glass-border: rgba(255, 255, 255, 0.14);
   --glass-border-light: rgba(255, 255, 255, 0.22);
   --glass-shadow: 0 10px 40px rgba(0, 0, 0, 0.32);
   --glass-shadow-hover: 0 16px 50px rgba(0, 0, 0, 0.42);
 
   /* ─── Mesh blobs ─── */
-  --bg-mesh-1: rgba(109, 191, 160, 0.14);
-  --bg-mesh-2: rgba(212, 163, 97, 0.10);
-  --bg-mesh-3: rgba(141, 138, 184, 0.10);
-  --bg-mesh-4: rgba(217, 138, 124, 0.08);
+  --bg-mesh-1: rgba(109, 191, 160, 0.08);
+  --bg-mesh-2: rgba(212, 163, 97, 0.06);
+  --bg-mesh-3: rgba(141, 138, 184, 0.06);
+  --bg-mesh-4: rgba(217, 138, 124, 0.05);
 
   /* ─── Radius scale ─── */
   --radius-xl: 20px;
@@ -217,9 +217,7 @@
 /* ─── Body ambience — deep slate ─── */
 body {
   background:
-    radial-gradient(circle at 10% 10%, rgba(109, 191, 160, 0.10), transparent 25%),
-    radial-gradient(circle at 90% 12%, rgba(212, 163, 97, 0.08), transparent 28%),
-    radial-gradient(circle at 50% 100%, rgba(141, 138, 184, 0.06), transparent 25%),
+    radial-gradient(circle at 20% 15%, rgba(109, 191, 160, 0.05), transparent 40%),
     linear-gradient(180deg, #11141A 0%, #181C23 40%, #14171C 100%);
   color: var(--text);
   font-family: var(--font-sans);
@@ -236,19 +234,19 @@ body::after {
   inset: auto;
   pointer-events: none;
   z-index: -2;
-  filter: blur(70px);
-  opacity: 0.28;
+  filter: blur(80px);
+  opacity: 0.12;
 }
 body::before {
   width: 34rem; height: 34rem;
   left: -10rem; top: 8rem;
-  background: radial-gradient(circle, rgba(109, 191, 160, 0.16), transparent 70%);
+  background: radial-gradient(circle, rgba(109, 191, 160, 0.09), transparent 70%);
   animation: driftOne 18s ease-in-out infinite alternate;
 }
 body::after {
   width: 30rem; height: 30rem;
   right: -8rem; top: 18rem;
-  background: radial-gradient(circle, rgba(212, 163, 97, 0.14), transparent 72%);
+  background: radial-gradient(circle, rgba(212, 163, 97, 0.08), transparent 72%);
   animation: driftTwo 24s ease-in-out infinite alternate;
 }
 

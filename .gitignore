@@ -41,6 +41,7 @@ _workspace/
 # Per-trip queue + ephemeral artifacts (App writes, Cowork drains and deletes per §5.10)
 trips/*/pending.json
 trips/*/receipts/
+trips/*/photos/
 trips/*/voice-inbox/
 trips/*/voice-inbox.json
 trips/*/itinerary-inbox.json

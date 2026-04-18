@@ -27,6 +27,7 @@
   <link rel="stylesheet" href="css/theme-switcher.css">
   <link rel="stylesheet" href="css/ai-drawer.css">
   <link rel="stylesheet" href="css/toast.css">
+  <link rel="stylesheet" href="css/log-view.css">
 </head>
 <body>
 
@@ -261,6 +262,13 @@
                 <h3 className="module-title">DayOne Journal</h3>
               </div>
               <p className="module-description">Draft daily logs, tag locations, and apply your <em>Voice DNA</em> before seamlessly exporting directly to DayOne.</p>
+            </div>
+            <div className="glass-card module-card" onClick={() => onNavigate('log')}>
+              <div className="module-card-header">
+                <div className="module-icon"><Icon name="fa-layer-group" size="1.8em" /></div>
+                <h3 className="module-title">Trip Log</h3>
+              </div>
+              <p className="module-description">Capture photos and notes, review your inbox, and track placement, journal drafts, and expenses for the active trip.</p>
             </div>
           </div>
         </div>
@@ -1423,6 +1431,610 @@
     }
 
     // =================================================================
+    // LOG MODULE — Phase 11a
+    // Trip Log surface: capture strip + 4-tab IA + row list
+    // =================================================================
+
+    const LOG_API_BASE = 'http://127.0.0.1:3001';
+
+    const KIND_BADGE = {
+      photo:     { icon: 'fa-camera',        label: 'Photo' },
+      receipt:   { icon: 'fa-receipt',       label: 'Receipt' },
+      voice:     { icon: 'fa-microphone',    label: 'Voice' },
+      note:      { icon: 'fa-note-sticky',   label: 'Note' },
+      itinerary: { icon: 'fa-calendar-days', label: 'Itinerary' },
+    };
+
+    function entryPreview(entry) {
+      if (entry.kind === 'note') return entry.payload?.text || '(empty note)';
+      if (entry.kind === 'voice') return entry.draft?.prose || entry.payload?.transcript || '(voice note)';
+      if (entry.kind === 'receipt') {
+        const p = entry.payload;
+        return p?.merchant ? `${p.merchant} — ${p.currency ?? 'USD'} ${p.amount ?? ''}` : '(receipt)';
+      }
+      if (entry.kind === 'photo') {
+        const mime = entry.payload?.mime || '';
+        const ip = entry.payload?.imagePath || entry.imagePath || '';
+        const ext = (ip.match(/\.([a-z0-9]+)$/i)?.[1] || mime.split('/')[1] || '').toUpperCase();
+        return ext ? `${ext} photo` : 'Photo';
+      }
+      return '(item)';
+    }
+
+    function matchesLogTab(entry, tab) {
+      switch (tab) {
+        case 'inbox':
+          return ['unreviewed', 'in_review'].includes(entry.reviewStatus) ||
+                 ['unplaced', 'proposed'].includes(entry.placementStatus);
+        case 'journal':
+          return ['draft', 'published'].includes(entry.journalStatus) || entry.memoryWorthy === true;
+        case 'expenses':
+          return ['candidate', 'approved', 'synced', 'failed'].includes(entry.ynabStatus);
+        case 'stuck':
+          return entry.ingestStatus === 'failed' || entry._drainStatus === 'stuck' || entry.ynabStatus === 'failed';
+        default:
+          return true;
+      }
+    }
+
+    // ─── Relative-time helper ("3m ago" etc.) ───
+    function relativeTime(ts) {
+      if (!ts) return '';
+      const then = new Date(ts).getTime();
+      if (isNaN(then)) return '';
+      const diffMs = Date.now() - then;
+      const m = Math.floor(diffMs / 60000);
+      if (m < 1)    return 'just now';
+      if (m < 60)   return `${m}m ago`;
+      const h = Math.floor(m / 60);
+      if (h < 24)   return `${h}h ago`;
+      const d = Math.floor(h / 24);
+      if (d < 7)    return `${d}d ago`;
+      return new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    }
+
+    // ─── Visual thumbnail: photo-forward; iconic tile otherwise ───
+    function LogEntryThumb({ entry }) {
+      const kind = entry.kind;
+      const ts = entry.capturedAt || entry.createdAt;
+      const rel = relativeTime(ts);
+
+      if (kind === 'photo') {
+        const ip = entry.payload?.imagePath || entry.imagePath;
+        if (ip) {
+          const src = /^https?:\/\//.test(ip) ? ip : `${LOG_API_BASE}/${ip.replace(/^\//, '')}`;
+          return (
+            <div className="log-entry-thumb">
+              <img src={src} alt="" loading="lazy" />
+              {rel && <span className="log-entry-thumb-time">{rel}</span>}
+            </div>
+          );
+        }
+      }
+      const iconByKind = {
+        photo:     'fa-camera',
+        receipt:   'fa-receipt',
+        voice:     'fa-microphone-lines',
+        note:      'fa-note-sticky',
+        itinerary: 'fa-calendar-days',
+      };
+      const cls = `log-entry-thumb log-entry-thumb--icon log-entry-thumb--${kind}`;
+      return (
+        <div className={cls}>
+          <Icon name={iconByKind[kind] || 'fa-question'} />
+          {rel && <span className="log-entry-thumb-time">{rel}</span>}
+        </div>
+      );
+    }
+
+    // ─── Reusable confirmation modal (mirrors itinerary del-modal) ───
+    function ConfirmModal({ open, title, message, targetLabel, confirmLabel, onCancel, onConfirm }) {
+      useEffect(() => {
+        if (!open) return;
+        function onKey(e) {
+          if (e.key === 'Escape') onCancel?.();
+          if (e.key === 'Enter')  onConfirm?.();
+        }
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+      }, [open, onCancel, onConfirm]);
+
+      if (!open) return null;
+      return (
+        <div className="confirm-modal" role="alertdialog" aria-modal="true">
+          <div className="confirm-modal-backdrop" onClick={onCancel}></div>
+          <div className="confirm-modal-panel">
+            <div className="confirm-modal-icon" aria-hidden="true">
+              <Icon name="fa-triangle-exclamation" />
+            </div>
+            <h3 className="confirm-modal-title">{title || 'Are you sure?'}</h3>
+            <p className="confirm-modal-msg">
+              {message || "This action can't be undone."}
+              {targetLabel && (
+                <> {' '}<span className="confirm-modal-target">{targetLabel}</span></>
+              )}
+            </p>
+            <div className="confirm-modal-actions">
+              <button className="confirm-modal-btn confirm-modal-btn--cancel" onClick={onCancel} autoFocus>
+                Keep it
+              </button>
+              <button className="confirm-modal-btn confirm-modal-btn--confirm" onClick={onConfirm}>
+                <Icon name="fa-trash-can" /> {confirmLabel || 'Reject'}
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ─── Spacious photo-forward card ───
+    function LogEntryCard({ entry, onApprove, onReassign, onRefine, onReject }) {
+      const badge = KIND_BADGE[entry.kind] || { icon: 'fa-question', label: entry.kind };
+      const di = entry.placement?.dayIndex;
+      const placementLabel = di != null
+        ? `Day ${di + 1}${entry.placement.eventId ? ' · ' + entry.placement.eventId.replace(/_/g, ' ') : ''}`
+        : 'Unsorted';
+      const showConfidence = ['ai', 'nearby'].includes(entry.placement?.source);
+      const conf = entry.placement?.confidence ?? 0;
+      const confClass = conf >= 0.8 ? 'high' : conf >= 0.5 ? 'mid' : 'low';
+
+      // State-machine gates for actions
+      const canApprove  = entry.reviewStatus !== 'approved';
+      const canReassign = entry.placementStatus !== 'confirmed' || entry.reviewStatus !== 'approved';
+      const canRefine   = entry.kind === 'voice' || entry.kind === 'note' || entry.journalStatus === 'draft';
+      const canReject   = entry.reviewStatus !== 'rejected';
+
+      const statusLabel = {
+        unreviewed: 'Unreviewed',
+        in_review:  'In review',
+        approved:   'Approved',
+        rejected:   'Rejected',
+      }[entry.reviewStatus] || entry.reviewStatus;
+
+      return (
+        <article className="log-entry-card">
+          <LogEntryThumb entry={entry} />
+
+          <div className="log-entry-content">
+            {/* Header: kind + placement + confidence + routes */}
+            <header className="log-entry-header">
+              <span className="log-entry-kind-badge">
+                <Icon name={badge.icon} /> {badge.label}
+              </span>
+              <span className={`log-placement-chip ${entry.placementStatus}`}>
+                <Icon name="fa-map-pin" /> {placementLabel}
+              </span>
+              {showConfidence && (
+                <span
+                  className={`log-confidence-dot ${confClass}`}
+                  title={`${entry.placement.source} · ${Math.round(conf * 100)}% confidence${entry.placement?.reasoning ? ' — ' + entry.placement.reasoning : ''}`}
+                ></span>
+              )}
+              <span className="log-route-badges">
+                {entry.route?.journal && entry.route.journal !== 'none' && (
+                  <span className="log-route-badge log-route-badge--journal" title={`Journal: ${entry.route.journal}`}>
+                    <Icon name="fa-book" />
+                  </span>
+                )}
+                {entry.route?.ynab && entry.route.ynab !== 'na' && (
+                  <span className="log-route-badge log-route-badge--ynab" title={`YNAB: ${entry.route.ynab}`}>
+                    <Icon name="fa-coins" />
+                  </span>
+                )}
+              </span>
+            </header>
+
+            {/* Body: prose / draft preview */}
+            <div className="log-entry-preview">
+              {entry.draft?.prose && (
+                <span className="log-entry-draft-flag">Draft</span>
+              )}
+              {entryPreview(entry)}
+            </div>
+
+            {/* Footer: status + explicit actions */}
+            <footer className="log-entry-footer">
+              <span className="log-entry-status">
+                <span className={`log-status-dot log-status-dot--${entry.reviewStatus}`}></span>
+                {statusLabel}
+              </span>
+              <button
+                className="log-action-btn log-action-btn--refine"
+                onClick={() => onRefine?.(entry.id)}
+                disabled={!canRefine}
+                title="Refine with AI"
+              >
+                <Icon name="fa-wand-magic-sparkles" /> Refine
+              </button>
+              <button
+                className="log-action-btn log-action-btn--reassign"
+                onClick={() => onReassign?.(entry.id)}
+                disabled={!canReassign}
+                title="Reassign day or event"
+              >
+                <Icon name="fa-arrows-rotate" /> Reassign
+              </button>
+              <button
+                className="log-action-btn log-action-btn--reject"
+                onClick={() => onReject?.(entry)}
+                disabled={!canReject}
+                title="Reject this entry"
+              >
+                <Icon name="fa-trash-can" /> Reject
+              </button>
+              <button
+                className="log-action-btn log-action-btn--approve"
+                onClick={() => onApprove?.(entry.id)}
+                disabled={!canApprove}
+                title="Approve"
+              >
+                <Icon name="fa-check" /> Approve
+              </button>
+            </footer>
+          </div>
+        </article>
+      );
+    }
+
+    function LogModule() {
+      const [tab, setTab] = useState('inbox');
+      const [sourceFilter, setSourceFilter] = useState('all');
+      // dayFilter: 'all' | 'today' | 'unsorted' | <number dayIndex>
+      const [dayFilter, setDayFilter] = useState('all');
+      const [entries, setEntries] = useState([]);
+      const [loading, setLoading] = useState(true);
+      const [tripSlug, setTripSlug] = useState(null);
+      const [noteText, setNoteText] = useState('');
+      const [capturing, setCapturing] = useState(false);
+      const [photoMenuOpen, setPhotoMenuOpen] = useState(false);
+      const [rejectTarget, setRejectTarget] = useState(null);
+      const photoCameraRef = useRef(null);
+      const photoLibraryRef = useRef(null);
+
+      // Close the Photo menu on outside click
+      useEffect(() => {
+        if (!photoMenuOpen) return;
+        function onDoc(e) {
+          if (!e.target.closest?.('.btn-capture--photo-split')) setPhotoMenuOpen(false);
+        }
+        document.addEventListener('click', onDoc);
+        return () => document.removeEventListener('click', onDoc);
+      }, [photoMenuOpen]);
+
+      function loadEntries() {
+        setLoading(true);
+        fetch(`${LOG_API_BASE}/api/log`)
+          .then(r => r.json())
+          .then(data => {
+            if (data.ok) { setEntries(data.entries); setTripSlug(data.tripSlug); }
+          })
+          .catch(err => console.error('[Log]', err))
+          .finally(() => setLoading(false));
+      }
+
+      useEffect(() => { loadEntries(); }, []);
+
+      function tabCount(t) {
+        return entries.filter(e => matchesLogTab(e, t)).length;
+      }
+
+      // Day chips are derived from the data set itself
+      const dayIndices = React.useMemo(() => {
+        const s = new Set();
+        entries.forEach(e => { const di = e.placement?.dayIndex; if (di != null) s.add(di); });
+        return Array.from(s).sort((a, b) => a - b);
+      }, [entries]);
+      const todayIndex = dayIndices.length ? dayIndices[dayIndices.length - 1] : null;
+      const unsortedCount = entries.filter(e => e.placement?.dayIndex == null).length;
+
+      const visible = entries
+        .filter(e => matchesLogTab(e, tab))
+        .filter(e => sourceFilter === 'all' ? true : e.kind === sourceFilter)
+        .filter(e => {
+          const di = e.placement?.dayIndex;
+          if (dayFilter === 'all')      return true;
+          if (dayFilter === 'today')    return todayIndex != null && di === todayIndex;
+          if (dayFilter === 'unsorted') return di == null;
+          if (typeof dayFilter === 'number') return di === dayFilter;
+          return true;
+        });
+
+      // ─── Per-row action handlers ───
+      // Approve/Reassign/Reject endpoints don't exist on the server yet (Phase 11b+).
+      // For now we surface intent via toasts + CustomEvents so wiring is ready.
+      function handleApprove(id) {
+        window.notify?.info?.('Approve queued', { description: 'id=' + id });
+        window.dispatchEvent(new CustomEvent('log-entry:approve', { detail: { id } }));
+      }
+      function handleReassign(id) {
+        window.notify?.info?.('Reassign flow coming soon', { description: 'id=' + id });
+        window.dispatchEvent(new CustomEvent('log-entry:reassign', { detail: { id } }));
+      }
+      function handleRefine(id) {
+        window.dispatchEvent(new CustomEvent('ai-drawer:open', { detail: { entryId: id } }));
+      }
+      function handleReject(entry) { setRejectTarget(entry); }
+      async function confirmReject() {
+        const entry = rejectTarget;
+        if (!entry) return;
+        setRejectTarget(null);
+        try {
+          const r = await fetch(`${LOG_API_BASE}/api/log/${encodeURIComponent(entry.id)}`, { method: 'DELETE' });
+          const d = await r.json();
+          if (!d.ok) throw new Error(d.error || 'delete failed');
+          setEntries(prev => prev.filter(e => e.id !== entry.id));
+          window.notify?.success?.('Entry removed', { description: entryPreview(entry) });
+          window.dispatchEvent(new CustomEvent('log-entry:reject', { detail: { id: entry.id } }));
+        } catch (err) {
+          window.notify?.error?.('Delete failed', { description: err.message || String(err) });
+        }
+      }
+
+      async function captureNote() {
+        const text = noteText.trim();
+        if (!text) return;
+        setCapturing(true);
+        try {
+          const r = await fetch(`${LOG_API_BASE}/api/log/capture`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ kind: 'note', text }),
+          });
+          const d = await r.json();
+          if (d.ok) { setNoteText(''); window.notify?.success('Note captured'); loadEntries(); }
+          else window.notify?.error('Capture failed', { description: d.error });
+        } catch (err) {
+          window.notify?.error('Capture failed', { description: err.message });
+        } finally {
+          setCapturing(false);
+        }
+      }
+
+      async function capturePhoto(file, sourceRef) {
+        if (!file) return;
+        setCapturing(true);
+        try {
+          const form = new FormData();
+          form.append('photo', file);
+          const r = await fetch(`${LOG_API_BASE}/api/log/capture`, { method: 'POST', body: form });
+          const d = await r.json();
+          if (d.ok) { window.notify?.success('Photo captured'); loadEntries(); }
+          else window.notify?.error('Photo capture failed', { description: d.error });
+        } catch (err) {
+          window.notify?.error('Photo capture failed', { description: err.message });
+        } finally {
+          setCapturing(false);
+          if (sourceRef?.current) sourceRef.current.value = '';
+        }
+      }
+
+      const TABS = [
+        { id: 'inbox',    icon: 'fa-inbox',             label: 'Inbox' },
+        { id: 'journal',  icon: 'fa-book',              label: 'Journal' },
+        { id: 'expenses', icon: 'fa-coins',             label: 'Expenses' },
+        { id: 'stuck',    icon: 'fa-circle-exclamation', label: 'Stuck' },
+      ];
+
+      const SOURCES = [
+        { id: 'all',     label: 'All' },
+        { id: 'photo',   label: 'Photo',   icon: 'fa-camera' },
+        { id: 'receipt', label: 'Receipt', icon: 'fa-receipt' },
+        { id: 'voice',   label: 'Voice',   icon: 'fa-microphone' },
+        { id: 'note',    label: 'Note',    icon: 'fa-note-sticky' },
+      ];
+
+      return (
+        <div className="log-module">
+          {/* ── 1. Context toolbar — trip + day chips (standalone tile) ── */}
+          <div className="log-context-tile">
+            <div className="log-trip-pill">
+              <Icon name="fa-plane" /> {tripSlug || 'No active trip'}
+            </div>
+            <span className="log-context-divider" aria-hidden="true"></span>
+            <div className="log-day-chips">
+                <button
+                  className={`log-day-chip ${dayFilter === 'all' ? 'active' : ''}`}
+                  onClick={() => setDayFilter('all')}
+                >All days <span className="count">{entries.length}</span></button>
+                {todayIndex != null && (
+                  <button
+                    className={`log-day-chip log-day-chip--today ${dayFilter === 'today' ? 'active' : ''}`}
+                    onClick={() => setDayFilter('today')}
+                  >
+                    <Icon name="fa-sun" /> Today
+                  </button>
+                )}
+                {dayIndices.map(di => {
+                  const n = entries.filter(e => e.placement?.dayIndex === di).length;
+                  return (
+                    <button
+                      key={di}
+                      className={`log-day-chip ${dayFilter === di ? 'active' : ''}`}
+                      onClick={() => setDayFilter(di)}
+                    >Day {di + 1} <span className="count">{n}</span></button>
+                  );
+                })}
+                {unsortedCount > 0 && (
+                  <button
+                    className={`log-day-chip log-day-chip--unsorted ${dayFilter === 'unsorted' ? 'active' : ''}`}
+                    onClick={() => setDayFilter('unsorted')}
+                  >
+                    Unsorted <span className="count">{unsortedCount}</span>
+                  </button>
+                )}
+            </div>
+          </div>
+
+          {/* ── 2. Capture card — titled, rounded, 80% width ── */}
+          <section className="log-capture-card">
+            <header className="log-capture-card-head">
+              <span className="log-capture-card-icon" aria-hidden="true">
+                <Icon name="fa-wand-magic-sparkles" />
+              </span>
+              <div className="log-capture-card-heading">
+                <h2 className="log-capture-card-title">Capture</h2>
+                <p className="log-capture-card-sub">
+                  Photo, receipt, voice, or a passing thought — AI files it to the right day and journal.
+                </p>
+              </div>
+            </header>
+
+            <div className="log-capture-hero">
+              <div className="log-capture-actions">
+                {/* Hidden file inputs — one with capture=environment for camera, one without for library */}
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  ref={photoCameraRef}
+                  style={{ display: 'none' }}
+                  onChange={e => capturePhoto(e.target.files?.[0], photoCameraRef)}
+                />
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  ref={photoLibraryRef}
+                  style={{ display: 'none' }}
+                  onChange={e => {
+                    const files = Array.from(e.target.files || []);
+                    files.forEach(f => capturePhoto(f, photoLibraryRef));
+                  }}
+                />
+
+                <button
+                  className="btn-capture btn-capture--photo btn-capture--photo-split"
+                  onClick={e => { e.stopPropagation(); setPhotoMenuOpen(o => !o); }}
+                  disabled={capturing}
+                  title="Add a photo"
+                >
+                  <Icon name="fa-camera" />
+                  <span>Photo</span>
+                  {photoMenuOpen && (
+                    <div className="btn-capture-photo-menu" onClick={e => e.stopPropagation()}>
+                      <button onClick={() => { setPhotoMenuOpen(false); photoCameraRef.current?.click(); }}>
+                        <Icon name="fa-camera-retro" /> Take photo
+                      </button>
+                      <button onClick={() => { setPhotoMenuOpen(false); photoLibraryRef.current?.click(); }}>
+                        <Icon name="fa-images" /> Choose from library
+                      </button>
+                    </div>
+                  )}
+                </button>
+
+                <button
+                  className="btn-capture btn-capture--receipt"
+                  disabled
+                  data-badge="Soon"
+                  title="Receipt capture — Phase 11e"
+                >
+                  <Icon name="fa-receipt" />
+                  <span>Receipt</span>
+                </button>
+
+                <button
+                  className="btn-capture btn-capture--voice"
+                  disabled
+                  data-badge="Soon"
+                  title="Voice capture — Phase 11d"
+                >
+                  <Icon name="fa-microphone" />
+                  <span>Voice</span>
+                </button>
+
+              </div>
+
+              {/* Inline quick-note input — expands on focus */}
+              <div className="log-note-quick-input">
+                <Icon name="fa-wand-magic-sparkles" aria-hidden="true" />
+                <textarea
+                  id="log-note-input"
+                  className="input-field input-field--note"
+                  rows={1}
+                  placeholder="Quick note — a thought, a memory, a fragment… (⌘↵ to capture)"
+                  value={noteText}
+                  onChange={e => setNoteText(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); captureNote(); }
+                  }}
+                />
+                <button
+                  className="btn-capture-note-submit"
+                  onClick={captureNote}
+                  disabled={capturing || !noteText.trim()}
+                  title="Capture note (⌘/Ctrl + Enter)"
+                >
+                  <Icon name="fa-arrow-up" /> Capture
+                </button>
+              </div>
+            </div>
+          </section>
+
+          {/* ── 3. Log panel — bordered container: control bar + entry grid ── */}
+          <section className="log-panel">
+            <div className="log-panel-control">
+              <div className="log-tab-bar">
+                {TABS.map(t => {
+                  const count = tabCount(t.id);
+                  return (
+                    <button key={t.id} className={`log-tab ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)}>
+                      <Icon name={t.icon} /> {t.label}
+                      {count > 0 && <span className="log-tab-badge">{count}</span>}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="log-filter-bar">
+                <div className="log-chip-row">
+                  <span className="log-chip-row-label">Source</span>
+                  {SOURCES.map(s => (
+                    <button key={s.id} className={`log-chip ${sourceFilter === s.id ? 'active' : ''}`} onClick={() => setSourceFilter(s.id)}>
+                      {s.icon && <Icon name={s.icon} />} {s.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="log-entries">
+            {loading ? (
+              <div className="log-empty"><Icon name="fa-spinner" /> <p>Loading your log…</p></div>
+            ) : visible.length === 0 ? (
+              <div className="log-empty">
+                <Icon name="fa-inbox" />
+                <p>{tab === 'inbox' ? 'Nothing needs attention — everything is up to date.' : `No ${tab} items match these filters.`}</p>
+              </div>
+            ) : (
+              visible.map(entry => (
+                <LogEntryCard
+                  key={entry.id}
+                  entry={entry}
+                  onApprove={handleApprove}
+                  onReassign={handleReassign}
+                  onRefine={handleRefine}
+                  onReject={handleReject}
+                />
+              ))
+            )}
+            </div>
+          </section>
+
+          {/* ── Reject confirmation modal ── */}
+          <ConfirmModal
+            open={!!rejectTarget}
+            title="Reject this entry?"
+            message={rejectTarget ? "You're about to reject" : ""}
+            targetLabel={rejectTarget ? entryPreview(rejectTarget) : null}
+            confirmLabel="Reject"
+            onCancel={() => setRejectTarget(null)}
+            onConfirm={confirmReject}
+          />
+        </div>
+      );
+    }
+
+    // =================================================================
     // MAIN APP
     // =================================================================
 
@@ -1468,6 +2080,7 @@
               <button className={`nav-link ${page === 'home' ? 'active' : ''}`} onClick={() => { setPage('home'); setActiveChapter(null); }}><Icon name="fa-house" /> <span>Dashboard</span></button>
               <button className={`nav-link ${page === 'memoir' || page === 'chapter' ? 'active' : ''}`} onClick={() => { setPage('memoir'); setActiveChapter(null); }}><Icon name="fa-book-open" /> <span>Memoir</span></button>
               <button className={`nav-link ${page === 'dayone' ? 'active' : ''}`} onClick={() => { setPage('dayone'); setActiveChapter(null); }}><Icon name="fa-feather-pointed" /> <span>DayOne</span></button>
+              <button className={`nav-link ${page === 'log' ? 'active' : ''}`} onClick={() => { setPage('log'); setActiveChapter(null); }}><Icon name="fa-layer-group" /> <span>Log</span></button>
               <BudgetPill onOpen={() => setUsageOpen(true)} />
               <div data-theme-switcher=""></div>
             </div>
@@ -1477,6 +2090,7 @@
             {page === 'home' && <HomePage trips={trips} onNavigate={setPage} />}
             {page === 'memoir' && <MemoirModule onOpenChapter={openChapter} />}
             {page === 'dayone' && <DayOneModule trips={trips} />}
+            {page === 'log' && <LogModule />}
             {page === 'chapter' && activeChapter && (
               <ChapterReader
                 chapter={activeChapter}

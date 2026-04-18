@@ -35,6 +35,8 @@
 //   POST /api/theme-review             — theme.js (tweaker)
 //   POST /api/theme-save               — theme.js (tweaker)
 //   GET  /api/weather                  — weather.js (Open-Meteo)
+//   GET  /api/log                       — log.js (Phase 11a)
+//   POST /api/log/capture               — log.js (Phase 11a)
 //   GET  /api/trip-spend                — trip-spend.js (YNAB)
 //
 // CORS is locked to ALLOWED_ORIGINS (defaults cover localhost + prod/dev Pages).
@@ -64,6 +66,7 @@ import { createThemeRouter } from "./routes/theme.js";
 import { createWeatherRouter } from "./routes/weather.js";
 import { createTripSpendRouter } from "./routes/trip-spend.js";
 import { createHolidayBudgetRouter } from "./routes/holiday-budget.js";
+import { createLogRouter } from "./routes/log.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -102,7 +105,7 @@ app.use(
     // along on cross-origin fetches from journal(-dev)?.kashkole.com to
     // journal-api.kashkole.com.
     credentials: true,
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "DELETE"],
   })
 );
 app.use(express.json({ limit: "1mb" }));
@@ -157,6 +160,12 @@ const upload = multer({
   },
 });
 
+// --- Static: serve captured photos under /trips so the log view can render previews
+//     (imagePath is stored as "trips/<slug>/photos/<file>" and the frontend fetches
+//     it from this API host).
+const REPO_ROOT = path.resolve(__dirname, "..", "..");
+app.use("/trips", express.static(path.join(REPO_ROOT, "trips"), { fallthrough: true, maxAge: "1h" }));
+
 // --- Mount routers -----------------------------------------------------------
 app.use(createCoreRouter({ anthropic, DEFAULT_MODEL, KEY_SOURCE, PORT, ALLOWED_ORIGINS }));
 app.use(createTripRouter({ anthropic, DEFAULT_MODEL }));
@@ -169,6 +178,7 @@ app.use(createThemeRouter({ anthropic, DEFAULT_MODEL, themeSaveValidator }));
 app.use(createWeatherRouter());
 app.use(createTripSpendRouter());
 app.use(createHolidayBudgetRouter({ anthropic }));
+app.use(createLogRouter({ queueValidators: QUEUE_VALIDATORS }));
 
 // --- Start -------------------------------------------------------------------
 app.listen(PORT, "127.0.0.1", () => {
