@@ -1761,6 +1761,11 @@
 
       const isDummy = typeof entry.id === 'string' && entry.id.startsWith('dummy_');
 
+      // Refine in-place: AI rewrites the textarea content using the card
+      // artifact + voice fingerprint + active trip context. The result
+      // replaces draft.prompt directly — no separate refined-output pane.
+      // Tradeoff: original input is lost on refine; reviewer relies on
+      // browser undo (Ctrl/Cmd+Z) inside the textarea if they want it back.
       async function handleRefine() {
         if (refining) return;
         if (isDummy) {
@@ -1774,7 +1779,7 @@
           if (draft.kindOverride) body.kindOverride = draft.kindOverride;
           const r = await window.BabuAI.logRefine(entry.id, body);
           if (r?.refined) {
-            draft.setRefined(r.refined);
+            draft.setPrompt(r.refined);
             if (r.structured) draft.setStructured(r.structured);
           } else {
             setRefineError('No refined text returned');
@@ -1795,7 +1800,8 @@
         setApproving(true);
         try {
           const patch = { reviewStatus: 'approved' };
-          if (draft.refined && draft.refined.trim()) patch.draftProse = draft.refined.trim();
+          // Textarea is now the canonical text (refine writes here too).
+          if (draft.prompt && draft.prompt.trim()) patch.draftProse = draft.prompt.trim();
           if (draft.kindOverride) patch.kindOverride = draft.kindOverride;
           if (draft.structured) patch.structured = draft.structured;
           await onApproveDraft?.(entry.id, patch);
@@ -1807,7 +1813,7 @@
         }
       }
 
-      const refineLabel = refining ? 'Refining…' : (draft.refined ? 'Re-refine' : 'Refine');
+      const refineLabel = refining ? 'Refining…' : 'Refine';
       const refineIcon = refining ? 'fa-circle-notch fa-spin' : 'fa-wand-magic-sparkles';
       const refineTitle = effectiveKind === 'unsorted-image'
         ? 'Refining as a photo — classify hasn\u2019t firmed the kind yet'
@@ -1815,7 +1821,7 @@
 
       // Kind-flip: only meaningful for image kinds. Click toggles
       // photo↔receipt, immediately PATCHes the server so it persists, and
-      // (per locked decision) auto-refines if Zone 3 is empty.
+      // auto-refines only when the textarea is empty (preserves user text).
       const isImageKind = ['photo', 'receipt', 'unsorted-image'].includes(effectiveKind);
       async function handleKindFlip() {
         if (flippingKind) return;
@@ -1830,12 +1836,9 @@
           const r = await window.BabuAI.logPatch(entry.id, { kindOverride: next });
           if (r?.entry) {
             onKindFlipped?.(entry.id, r.entry);
-            // Server now reflects the new kind; clear localStorage override.
             draft.setKindOverride(null);
           }
-          // Auto-refine ONLY if Zone 3 is empty — preserves any hand-edited
-          // refined output the reviewer may have made.
-          if (!draft.refined || !draft.refined.trim()) {
+          if (!draft.prompt || !draft.prompt.trim()) {
             handleRefine();
           }
         } catch (err) {
@@ -1871,22 +1874,6 @@
           {refineError && (
             <div className="review-card-error" role="alert">
               <Icon name="fa-triangle-exclamation" /> {refineError}
-            </div>
-          )}
-
-          {draft.refined && (
-            <div className="review-card-zone review-card-zone--refined">
-              <div className="review-card-refined-label">
-                <Icon name="fa-feather-pointed" /> Refined output
-              </div>
-              <textarea
-                className="review-card-refined-input"
-                value={draft.refined}
-                onChange={e => draft.setRefined(e.target.value)}
-                rows={4}
-                disabled={refining || approving}
-                spellCheck
-              />
             </div>
           )}
 
