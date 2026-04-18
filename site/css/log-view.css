@@ -1257,42 +1257,6 @@
   min-width: 0;
 }
 
-.review-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-.review-card-time {
-  display: inline-flex;
-  align-items: center;
-  padding: 5px 10px;
-  border-radius: var(--radius-full);
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-default);
-  color: var(--text-secondary);
-  font-size: 0.88rem;
-  font-weight: 600;
-}
-.review-card-kind-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  border-radius: var(--radius-full);
-  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
-  color: var(--accent);
-  font-size: 0.88rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 160ms ease, border-color 160ms ease;
-}
-.review-card-kind-toggle:hover {
-  background: color-mix(in srgb, var(--accent) 20%, transparent);
-  border-color: var(--border-accent);
-}
-
 .review-card-zone {
   display: flex;
   flex-direction: column;

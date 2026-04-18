@@ -1656,13 +1656,15 @@
     }
 
     // ─── Phase 11b: artifact pane (Zone 1) — read-only, kind-aware.
+    // Image / audio paths are repo-relative (e.g. trips/{slug}/photos/{id}.jpg).
+    // Static blobs are mounted by the API server, so URL must prefix LOG_API_BASE.
     function ReviewArtifact({ entry, kind }) {
+      const toApiUrl = (p) => /^https?:\/\//.test(p) ? p : `${LOG_API_BASE}/${String(p).replace(/^\/+/, '')}`;
       const isImage = kind === 'photo' || kind === 'receipt' || entry.kind === 'unsorted-image';
       if (isImage) {
         const ip = entry.payload?.imagePath || entry.imagePath;
         if (!ip) return <div className="review-card-artifact review-card-artifact--empty">No image attached</div>;
-        const url = '/' + String(ip).replace(/^\/+/, '');
-        return <img src={url} alt="Captured" className="review-card-artifact review-card-artifact--image" />;
+        return <img src={toApiUrl(ip)} alt="Captured" className="review-card-artifact review-card-artifact--image" />;
       }
       if (kind === 'voice') {
         const audioPath = entry.payload?.audioPath;
@@ -1670,7 +1672,7 @@
         return (
           <div className="review-card-artifact review-card-artifact--voice">
             {audioPath && (
-              <audio controls className="review-card-artifact-audio" src={'/' + String(audioPath).replace(/^\/+/, '')} />
+              <audio controls className="review-card-artifact-audio" src={toApiUrl(audioPath)} />
             )}
             <div className="review-card-artifact-transcript">{transcript}</div>
           </div>
@@ -1691,7 +1693,6 @@
     function ReviewCard({ entry, onApproveDraft, onReject }) {
       const draft = useDraftCache(entry.id);
       const effectiveKind = draft.kindOverride || entry.kind;
-      const isImageKind = ['photo', 'receipt', 'unsorted-image'].includes(entry.kind);
 
       const [refining, setRefining] = useState(false);
       const [refineError, setRefineError] = useState('');
@@ -1735,11 +1736,6 @@
         }
       }
 
-      function flipKind() {
-        const next = effectiveKind === 'receipt' ? 'photo' : 'receipt';
-        draft.setKindOverride(next);
-      }
-
       const refineLabel = refining ? 'Refining…' : (draft.refined ? 'Re-refine' : 'Refine');
       const refineIcon = refining ? 'fa-circle-notch fa-spin' : 'fa-wand-magic-sparkles';
       const kindUnresolved = effectiveKind === 'unsorted-image';
@@ -1749,20 +1745,6 @@
 
       return (
         <article className="review-card review-card-3zone">
-          <header className="review-card-header">
-            <span className="review-card-time">{relativeTime(entry.capturedAt)}</span>
-            {isImageKind && (
-              <button
-                className="review-card-kind-toggle"
-                onClick={flipKind}
-                title={`This is currently classified as ${effectiveKind === 'receipt' ? 'a receipt' : 'a photo'}. Click to flip.`}
-              >
-                <Icon name={effectiveKind === 'receipt' ? 'fa-receipt' : 'fa-camera'} />
-                {effectiveKind === 'receipt' ? ' Receipt' : ' Photo'}
-              </button>
-            )}
-          </header>
-
           <div className="review-card-zone review-card-zone--artifact">
             <ReviewArtifact entry={entry} kind={effectiveKind} />
           </div>
