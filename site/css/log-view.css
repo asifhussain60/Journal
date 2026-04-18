@@ -752,7 +752,7 @@
 .log-entry-thumb--text {
   align-items: flex-start;
   justify-content: flex-start;
-  padding: 32px 14px 10px;
+  padding: 48px 14px 10px;
 }
 .log-entry-thumb-prose {
   width: 100%;
