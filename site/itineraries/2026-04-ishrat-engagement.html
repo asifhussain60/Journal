@@ -176,6 +176,7 @@
             <div class="day-toggle">&#9660;</div>
           </div>
           <div class="day-body">
+            <div class="day-body-inner">
             <div class="event-list">
               <div class="event">
                 <div class="event-time">2:55 PM</div>
@@ -208,6 +209,7 @@
             </div>
             <div class="day-map" id="map1"></div>
           </div>
+          </div>
         </div>
 
         <!-- Day 2 -->
@@ -220,6 +222,7 @@
             <div class="day-toggle">&#9660;</div>
           </div>
           <div class="day-body">
+            <div class="day-body-inner">
             <div class="event-list">
               <div class="event">
                 <div class="event-time">7:30 AM</div>
@@ -269,6 +272,7 @@
             </div>
             <div class="day-map" id="map2"></div>
           </div>
+          </div>
         </div>
 
         <!-- Day 3 -->
@@ -281,6 +285,7 @@
             <div class="day-toggle">&#9660;</div>
           </div>
           <div class="day-body">
+            <div class="day-body-inner">
             <div class="event-list">
               <div class="event">
                 <div class="event-time">7:30 AM</div>
@@ -322,6 +327,7 @@
             </div>
             <div class="day-map" id="map3"></div>
           </div>
+          </div>
         </div>
 
         <!-- Day 4 -->
@@ -334,6 +340,7 @@
             <div class="day-toggle">&#9660;</div>
           </div>
           <div class="day-body">
+            <div class="day-body-inner">
             <div class="event-list">
               <div class="event">
                 <div class="event-time">7:30 AM</div>
@@ -410,6 +417,7 @@
             </div>
             <div class="day-map" id="map4"></div>
           </div>
+          </div>
         </div>
 
         <!-- Day 5 (Featured) -->
@@ -422,6 +430,7 @@
             <div class="day-toggle">&#9660;</div>
           </div>
           <div class="day-body">
+            <div class="day-body-inner">
             <div class="event-list">
               <div class="event">
                 <div class="event-time">7:30 AM</div>
@@ -468,6 +477,7 @@
             </div>
             <div class="day-map" id="map5"></div>
           </div>
+          </div>
         </div>
 
         <!-- Day 6 -->
@@ -480,6 +490,7 @@
             <div class="day-toggle">&#9660;</div>
           </div>
           <div class="day-body">
+            <div class="day-body-inner">
             <div class="event-list">
               <div class="event">
                 <div class="event-time">8:00 AM</div>
@@ -529,6 +540,7 @@
             </div>
             <div class="day-map" id="map6"></div>
           </div>
+          </div>
         </div>
 
         <!-- Day 7 -->
@@ -541,6 +553,7 @@
             <div class="day-toggle">&#9660;</div>
           </div>
           <div class="day-body">
+            <div class="day-body-inner">
             <div class="event-list">
               <div class="event">
                 <div class="event-time">7:30 AM</div>
@@ -610,6 +623,7 @@
             </div>
             <div class="day-map" id="map7"></div>
           </div>
+          </div>
         </div>
 
         <!-- Day 8 -->
@@ -622,6 +636,7 @@
             <div class="day-toggle">&#9660;</div>
           </div>
           <div class="day-body">
+            <div class="day-body-inner">
             <div class="event-list">
               <div class="event">
                 <div class="event-time">7:30 AM</div>
@@ -662,6 +677,7 @@
             </div>
             <div class="day-map" id="map8"></div>
           </div>
+          </div>
         </div>
 
         <!-- Day 9 -->
@@ -674,6 +690,7 @@
             <div class="day-toggle">&#9660;</div>
           </div>
           <div class="day-body">
+            <div class="day-body-inner">
             <div class="event-list">
               <div class="event">
                 <div class="event-time">8:00 AM</div>
@@ -712,6 +729,7 @@
               </div>
             </div>
             <div class="day-map" id="map9"></div>
+          </div>
           </div>
         </div>
 
@@ -1393,6 +1411,7 @@
           html += '    <div class="day-toggle">&#9660;</div>';
           html += '  </div>';
           html += '  <div class="day-body">';
+          html += '    <div class="day-body-inner">';
           html += '    <div class="event-list">';
 
           if (day.events && day.events.length) {
@@ -1422,6 +1441,7 @@
           html += '      </div>';
           html += '      <div class="day-map" id="map' + day.day + '"></div>';
           html += '    </div>';
+          html += '    </div>'; // .day-body-inner
 
           html += '  </div>'; // .day-body
           html += '</div>'; // .day-card

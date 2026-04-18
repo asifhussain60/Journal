@@ -6,5 +6,18 @@
       "Bash(curl -s http://localhost:3001/api/queue/pending)",
       "Bash(lsof -nP -iTCP:3001 -sTCP:LISTEN)"
     ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/ui-reviewer-stop.sh"
+          }
+        ]
+      }
+    ]
   }
 }

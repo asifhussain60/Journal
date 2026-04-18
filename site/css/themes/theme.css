@@ -47,7 +47,6 @@
   --text-primary: #fff7fb;
   --text-secondary: #eddfe8;
   --text-muted: #c9b8d4;
-  --muted: #eddfe8;                /* itinerary alias */
   --text-main: #fff7fb;            /* JSX compat alias */
   --contrast-dark: #2b2240;        /* "always-dark" token for text on tinted surfaces (matches --bg in dark themes, --text in light themes) */
 

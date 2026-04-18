@@ -129,14 +129,13 @@
   cursor: pointer;
 }
 .tweaker-drag-handle {
-  color: var(--text-muted);
+  /* color-mix fades the icon without applying opacity to the whole element */
+  color: color-mix(in srgb, var(--text-muted) 55%, transparent);
   font-size: 0.88rem;
-  opacity: 0.55;
-  transition: opacity var(--motion-fast), color var(--motion-fast), transform var(--motion-fast);
+  transition: color var(--motion-fast), transform var(--motion-fast);
 }
 .tweaker-inspector-header:hover .tweaker-drag-handle,
 .tweaker-floating-header:hover .tweaker-drag-handle {
-  opacity: 1;
   color: var(--accent);
   transform: scale(1.08);
 }
@@ -831,7 +830,6 @@ body[data-tweak-mode="on"] [data-tweak-chrome] * {
   font-family: var(--font-mono);
   font-size: 0.64rem;
   color: var(--text-muted);
-  opacity: 0.75;
   text-transform: none;
   letter-spacing: 0.02em;
 }

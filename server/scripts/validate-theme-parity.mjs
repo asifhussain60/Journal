@@ -228,7 +228,7 @@ function extractLoadedFonts(html) {
 function checkTokenParity() {
   const themeFiles = readdirSync(PATHS.themes).filter(f => f.endsWith('.css'));
   if (!themeFiles.includes('theme.css')) {
-    record('[1/8] Token parity', false, ['theme.css not found — cannot establish baseline.']);
+    record('[1/9] Token parity', false, ['theme.css not found — cannot establish baseline.']);
     return new Set();
   }
   const baseTokens = extractTokens(readFileSync(join(PATHS.themes, 'theme.css'), 'utf8'));
@@ -241,7 +241,7 @@ function checkTokenParity() {
     if (missing.length) violations.push(`  ${file}: missing ${missing.length} token(s): ${missing.slice(0, 5).join(', ')}${missing.length > 5 ? ', …' : ''}`);
     if (extra.length) violations.push(`  ${file}: declares ${extra.length} extra token(s) not in base: ${extra.slice(0, 5).join(', ')}${extra.length > 5 ? ', …' : ''}`);
   }
-  record('[1/8] Token parity across themes',
+  record('[1/9] Token parity across themes',
     violations.length === 0,
     violations.length === 0
       ? [`${themeFiles.length} theme files, ${baseTokens.size} tokens each — all parallel.`]
@@ -279,7 +279,7 @@ function checkHexInComponents() {
       violations.push(`  ${fname}:${i + 1}  ${flagged.join(', ')}  | ${rawLine.trim().slice(0, 80)}`);
     }
   }
-  record('[2/8] Hex literals in enforced component CSS',
+  record('[2/9] Hex literals in enforced component CSS',
     violations.length === 0,
     violations.length === 0
       ? [`${files.length} file(s) scanned (exempt: ${[...SCOPED_EXEMPT].join(', ')}), 0 hex leaks.`]
@@ -327,7 +327,7 @@ function checkPaletteRgba() {
       }
     }
   }
-  record('[3/8] Palette rgba in enforced component CSS',
+  record('[3/9] Palette rgba in enforced component CSS',
     violations.length === 0,
     violations.length === 0
       ? [`${palette.size} palette triplets across ${themeFiles.length} themes — 0 leaks in ${files.length} enforced file(s).`]
@@ -363,7 +363,7 @@ function checkTokenReferences(baseTokens, dynamicTokens) {
   for (const [token, locs] of unknown) {
     violations.push(`  --${token}  (referenced at ${locs.slice(0, 3).join(', ')}${locs.length > 3 ? ` +${locs.length - 3} more` : ''})`);
   }
-  record('[4/8] Token reference validity',
+  record('[4/9] Token reference validity',
     violations.length === 0,
     violations.length === 0
       ? [`All var(--token) references resolve (${globalTokens.size} declared + ${dynamicTokens.size} dynamic).`]
@@ -416,7 +416,7 @@ function checkHtmlHygiene() {
       }
     }
   }
-  record('[5/8] HTML hygiene (HTML + JSX inline styles)',
+  record('[5/9] HTML hygiene (HTML + JSX inline styles)',
     violations.length === 0,
     violations.length === 0
       ? [`${files.length} HTML file(s) scanned — 0 <style> blocks, 0 inline hex/rgba styles (HTML + JSX).`]
@@ -429,12 +429,12 @@ function checkHtmlHygiene() {
 
 function checkSwitcherConsistency() {
   if (!existsSync(PATHS.switcher)) {
-    return record('[6/8] Switcher consistency', false, [`Switcher script not found: ${PATHS.switcher}`]);
+    return record('[6/9] Switcher consistency', false, [`Switcher script not found: ${PATHS.switcher}`]);
   }
   const js = readFileSync(PATHS.switcher, 'utf8');
   const themesArrayMatch = js.match(/const\s+THEMES\s*=\s*\[([\s\S]*?)\n\s*\]\s*;/);
   if (!themesArrayMatch) {
-    return record('[6/8] Switcher consistency', false, ['Could not locate THEMES array in theme-switcher.js.']);
+    return record('[6/9] Switcher consistency', false, ['Could not locate THEMES array in theme-switcher.js.']);
   }
   const arrayBody = themesArrayMatch[1];
   const fileRefs = [...arrayBody.matchAll(/file:\s*['"]([^'"]+)['"]/g)].map(m => m[1]);
@@ -444,7 +444,7 @@ function checkSwitcherConsistency() {
   const violations = [];
   for (const f of missing) violations.push(`  registered but missing on disk: ${f}`);
   for (const f of unregistered) violations.push(`  on disk but not registered in THEMES: ${f}`);
-  record('[6/8] Switcher consistency',
+  record('[6/9] Switcher consistency',
     violations.length === 0,
     violations.length === 0
       ? [`${fileRefs.length} theme(s) registered, ${onDisk.length} on disk — fully aligned.`]
@@ -497,7 +497,7 @@ function checkFontParity() {
     }
   }
   const distinctPrimaries = new Set(stacks.map(s => s.primary)).size;
-  record('[7/8] Font parity (themes ↔ HTML loaders)',
+  record('[7/9] Font parity (themes ↔ HTML loaders)',
     violations.length === 0,
     violations.length === 0
       ? [`${stacks.length} font stack(s) across ${themeFiles.length} themes — ${distinctPrimaries} distinct primaries, all loaded in ${htmlFiles.length} HTML file(s).`]
@@ -510,12 +510,12 @@ function checkFontParity() {
 
 function checkSwatchParity() {
   if (!existsSync(PATHS.switcher)) {
-    return record('[8/8] Switcher swatch parity', false, ['Switcher script not found.']);
+    return record('[8/9] Switcher swatch parity', false, ['Switcher script not found.']);
   }
   const js = readFileSync(PATHS.switcher, 'utf8');
   const themesArrayMatch = js.match(/const\s+THEMES\s*=\s*\[([\s\S]*?)\n\s*\]\s*;/);
   if (!themesArrayMatch) {
-    return record('[8/8] Switcher swatch parity', false, ['Could not locate THEMES array.']);
+    return record('[8/9] Switcher swatch parity', false, ['Could not locate THEMES array.']);
   }
 
   // Parse each theme object — naive parse OK since format is controlled.
@@ -536,11 +536,84 @@ function checkSwatchParity() {
       violations.push(`  ${id} (${file})  swatch(es) not declared anywhere in theme file: ${missing.join(', ')}`);
     }
   }
-  record('[8/8] Switcher swatch parity',
+  record('[8/9] Switcher swatch parity',
     violations.length === 0,
     violations.length === 0
       ? [`${themes.length} theme swatch set(s) — all hex values present in their theme files.`]
       : violations);
+}
+
+// ═══════════════════════════════════════════════════
+// Check 9 — Opacity on text-token selectors
+// Rule: never apply opacity<1 to an element whose primary color is a text
+// token (--text-primary, --text-secondary, --text-muted, --text-main).
+// Opacity degrades contrast in a direction that the carefully tuned token
+// values did not account for. Use a lower-contrast token instead.
+// Severity: MAJOR (not BLOCKER — some animation/loading uses are legitimate).
+// ═══════════════════════════════════════════════════
+
+function checkOpacityOnTextTokens() {
+  const violations = [];
+  const files = listEnforcedComponentFiles();
+
+  for (const fname of files) {
+    const path = join(PATHS.cssDir, fname);
+    const rawLines = fileLines(path);
+
+    // Walk lines accumulating CSS rule blocks, track brace depth.
+    let depth = 0;
+    let inKeyframes = false;
+    let blockStartLine = 0;
+    let blockText = '';
+
+    for (let i = 0; i < rawLines.length; i++) {
+      const line = rawLines[i].replace(/\/\*.*?\*\//g, ''); // strip inline comments
+
+      const opens  = (line.match(/\{/g) || []).length;
+      const closes = (line.match(/\}/g) || []).length;
+
+      // Track @keyframes so we exempt animation frames from this check.
+      if (/@keyframes\b/.test(line)) inKeyframes = true;
+
+      if (opens > 0 && depth === 0) {
+        blockStartLine = i + 1;
+        blockText = '';
+      }
+
+      depth += opens - closes;
+      blockText += line + '\n';
+
+      if (depth === 0 && blockText.trim().length > 0) {
+        // End of a top-level rule block.
+        if (!inKeyframes) {
+          const hasTextTokenColor = /\bcolor\s*:\s*var\s*\(\s*--text-/.test(blockText);
+          const opacityMatch = blockText.match(/\bopacity\s*:\s*(0?\.\d+)/);
+          if (hasTextTokenColor && opacityMatch) {
+            const val = parseFloat(opacityMatch[1]);
+            // Exclude 0 (invisible) — those are animations, not text-on-background.
+            if (val > 0 && val < 1) {
+              violations.push(
+                `  ${fname}:${blockStartLine}  opacity:${opacityMatch[1]} combined with color:var(--text-*) ` +
+                `— use a lower text token instead of reducing opacity`
+              );
+            }
+          }
+        }
+        blockText = '';
+        inKeyframes = false;
+      }
+    }
+  }
+
+  record('[9/9] Opacity on text-token selectors',
+    violations.length === 0,
+    violations.length === 0
+      ? [`${files.length} file(s) scanned — no opacity-on-text-token violations found.`]
+      : [
+          `${violations.length} violation(s) — opacity:<1 applied alongside color:var(--text-*) degrades tuned contrast:`,
+          ...violations.slice(0, 15),
+          violations.length > 15 ? `  … and ${violations.length - 15} more` : null,
+        ].filter(Boolean));
 }
 
 // ═══════════════════════════════════════════════════
@@ -585,4 +658,5 @@ checkHtmlHygiene();
 checkSwitcherConsistency();
 checkFontParity();
 checkSwatchParity();
+checkOpacityOnTextTokens();
 process.exit(emitReport());

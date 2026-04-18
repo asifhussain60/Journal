@@ -100,7 +100,7 @@ html{scroll-behavior:smooth}
 }
 .particle{
   position:absolute;
-  color:rgba(255,224,238,.45);
+  color:color-mix(in srgb, var(--rose) 45%, transparent);
   text-shadow:0 0 14px color-mix(in srgb, var(--rose) 25%, transparent);
   animation:floatParticle linear infinite;
 }
@@ -136,7 +136,7 @@ html{scroll-behavior:smooth}
   width:min(860px,100%);
   border-radius:var(--radius-xl);
   padding:1px;
-  background:linear-gradient(135deg, rgba(255,255,255,.30), var(--white-06), var(--rose-a15));
+  background:linear-gradient(135deg, var(--white-30), var(--white-06), var(--rose-a15));
   box-shadow:var(--shadow);
   overflow:hidden;
 }
@@ -208,7 +208,7 @@ html{scroll-behavior:smooth}
   font-size:.9rem;
   letter-spacing:.14em;
   text-transform:uppercase;
-  color:var(--muted);
+  color:var(--text-secondary);
 }
 .hero-cta-row{margin-top:.6rem}
 .hero-countdown{
@@ -280,7 +280,7 @@ html{scroll-behavior:smooth}
 }
 .stat-card p{
   margin:0;
-  color:var(--muted);
+  color:var(--text-secondary);
   line-height:1.55;
   font-size:.94rem;
 }
@@ -390,7 +390,7 @@ html{scroll-behavior:smooth}
   letter-spacing:.06em;
 }
 .fc-city,.fc-time,.fc-meta{
-  color:var(--muted);
+  color:var(--text-secondary);
   font-size:.9rem;
 }
 .fc-time{margin-top:.3rem}
@@ -511,20 +511,32 @@ html{scroll-behavior:smooth}
    Gives cards room to breathe and puts the map where the eye goes after
    reading the day's flow. */
 .day-body{
-  max-height:0;
+  display:grid;
+  grid-template-rows:0fr;
+  overflow:hidden;
+  padding:0 1.5rem;
+  transition:grid-template-rows .65s cubic-bezier(.22,1,.36,1);
+}
+/* Inner wrapper needed for grid-template-rows accordion trick with multiple children */
+.day-body-inner{
+  min-height:0;
   overflow:hidden;
   display:grid;
   grid-template-columns:1fr;
   gap:1.5rem;
-  padding:0 1.5rem;
-  transition:max-height .75s ease, padding .45s ease;
+  padding-top:0;
+  padding-bottom:0;
+  transition:padding .45s ease;
 }
 .day-card.open .day-body{
-  max-height:3400px;
+  grid-template-rows:1fr;
+}
+.day-card.open .day-body .day-body-inner{
   /* Top padding gives the first event card breathing room away from the
      day-header's bottom edge; without it the card border hugs the day
      container's rim. */
-  padding:1rem 1.5rem 1.5rem;
+  padding-top:1rem;
+  padding-bottom:1.5rem;
 }
 /* Map block: header row (title + Open-in-Google-Maps link) above the map */
 .day-map-block{display:flex;flex-direction:column;gap:.65rem;}
@@ -544,16 +556,17 @@ html{scroll-behavior:smooth}
 .gmaps-deeplink{
   display:inline-flex;align-items:center;gap:.45rem;
   padding:.45rem .85rem;border-radius:999px;
-  background:rgba(232,139,184,.12);border:1px solid rgba(232,139,184,.35);
+  background:var(--rose-a10);border:1px solid color-mix(in srgb, var(--rose) 35%, transparent);
   color:var(--rose);font-size:.82rem;font-weight:500;text-decoration:none;
   transition:background .18s ease, transform .18s ease;
 }
-.gmaps-deeplink:hover{background:rgba(232,139,184,.22);transform:translateY(-1px);}
+.gmaps-deeplink:hover{background:var(--rose-a18);transform:translateY(-1px);}
 .gmaps-deeplink i{font-size:.78rem;}
-/* Snap-close variant: suppress the max-height + padding transition so the
+/* Snap-close variant: suppress the grid-template-rows + padding transitions so the
    old card collapses instantly when a different card is being opened. Keeps
    scroll-to-top math stable. toggleCard() adds this class for ~2 frames. */
-.day-card.no-anim .day-body{
+.day-card.no-anim .day-body,
+.day-card.no-anim .day-body .day-body-inner{
   transition:none !important;
 }
 
@@ -861,21 +874,19 @@ html{scroll-behavior:smooth}
   border-radius:50%;
   border:1px solid transparent;
   background:transparent;
-  color:var(--muted);
+  /* color-mix fades the icon without applying opacity to the whole element */
+  color:color-mix(in srgb, var(--text-secondary) 42%, transparent);
   font-size:.72rem;
   cursor:pointer;
-  opacity:.42;
   transition:
-    opacity .18s ease,
     color .18s ease,
     background-color .18s ease,
     border-color .18s ease,
     transform .18s ease;
 }
-.event-card:hover .event-delete-btn{ opacity:.78; }
+.event-card:hover .event-delete-btn{ color:color-mix(in srgb, var(--text-secondary) 78%, transparent); }
 .event-delete-btn:hover,
 .event-delete-btn:focus-visible{
-  opacity:1;
   color:var(--error);
   background:color-mix(in srgb, var(--error) 14%, transparent);
   border-color:color-mix(in srgb, var(--error) 45%, transparent);
@@ -898,7 +909,7 @@ html{scroll-behavior:smooth}
 .del-modal-backdrop{
   position:absolute;
   inset:0;
-  background:rgba(18,12,30,.72);
+  background:color-mix(in srgb, var(--bg) 72%, transparent);
   backdrop-filter:blur(7px);
   -webkit-backdrop-filter:blur(7px);
 }
@@ -956,7 +967,7 @@ html{scroll-behavior:smooth}
   margin:0 0 1.3rem;
   font-size:.9rem;
   line-height:1.5;
-  color:var(--muted);
+  color:var(--text-secondary);
   max-width:32ch;
 }
 .del-modal-target{
@@ -1096,7 +1107,7 @@ html{scroll-behavior:smooth}
   align-items:center;
   flex-wrap:wrap;
   gap:.55rem;
-  color:var(--muted);
+  color:var(--text-secondary);
   font-size:.7rem;
   font-weight:600;
   text-transform:uppercase;
@@ -1422,14 +1433,13 @@ html{scroll-behavior:smooth}
 .day-weather .weather-hi{color:var(--text);}
 .day-weather .weather-lo{color:var(--text-muted);}
 .day-weather .weather-sep{
-  color:var(--muted);
-  opacity:.55;
+  color:var(--text-muted);
   padding:0 .1rem;
   font-weight:400;
 }
 .day-weather .weather-label{
   font-size:.72rem;
-  color:var(--muted);
+  color:var(--text-secondary);
   font-weight:500;
   letter-spacing:.02em;
   margin-top:.15rem;
@@ -1439,7 +1449,7 @@ html{scroll-behavior:smooth}
   display:flex;
   gap:.85rem;
   font-size:.7rem;
-  color:var(--muted);
+  color:var(--text-secondary);
   font-variant-numeric:tabular-nums;
 }
 .day-weather .weather-meta-item{
@@ -1452,15 +1462,15 @@ html{scroll-behavior:smooth}
   color:var(--rose-2);
 }
 .day-weather[data-severity="warn"]{
-  background:linear-gradient(180deg, rgba(245,180,120,.16) 0%, rgba(245,180,120,.05) 100%);
-  border-color:rgba(245,180,120,.4);
+  background:linear-gradient(180deg, color-mix(in srgb, var(--warning) 16%, transparent) 0%, color-mix(in srgb, var(--warning) 5%, transparent) 100%);
+  border-color:color-mix(in srgb, var(--warning) 40%, transparent);
 }
-.day-weather[data-severity="warn"] .weather-icon{color:rgb(245,180,120);}
+.day-weather[data-severity="warn"] .weather-icon{color:var(--warning);}
 .day-weather[data-severity="alert"]{
-  background:linear-gradient(180deg, rgba(232,100,100,.2) 0%, rgba(232,100,100,.07) 100%);
-  border-color:rgba(232,100,100,.5);
+  background:linear-gradient(180deg, color-mix(in srgb, var(--error) 20%, transparent) 0%, color-mix(in srgb, var(--error) 7%, transparent) 100%);
+  border-color:color-mix(in srgb, var(--error) 50%, transparent);
 }
-.day-weather[data-severity="alert"] .weather-icon{color:rgb(232,100,100);}
+.day-weather[data-severity="alert"] .weather-icon{color:var(--error);}
 
 /* Spend donut — left side of .day-header. SVG + overlaid center text. */
 .day-spend{
@@ -1497,12 +1507,11 @@ html{scroll-behavior:smooth}
 }
 .spend-donut-sub{
   font-size:.56rem;
-  color:var(--muted);
+  color:var(--text-muted);
   text-transform:uppercase;
   letter-spacing:.14em;
   font-weight:600;
   margin-top:.18rem;
-  opacity:.75;
 }
 
 /* Legacy notes pull-quote — replaced by plain-body .event-desc. Kept as
@@ -1514,24 +1523,24 @@ html{scroll-behavior:smooth}
 /* Warning glow on the card — only applied when weather severity ≠ none AND
    the event is outdoor or has a long drive. Set by applyWeatherGlow() in JS. */
 .event.is-weather-warn > .event-card{
-  border-color:rgba(245,180,120,.7);
+  border-color:color-mix(in srgb, var(--warning) 70%, transparent);
   box-shadow:
     inset 0 1px 0 0 var(--white-05),
     0 2px 4px var(--shadow-a30),
     0 12px 28px -14px rgba(0,0,0,.55),
-    0 0 0 1px rgba(245,180,120,.28),
-    0 0 24px -4px rgba(245,180,120,.45),
-    0 18px 40px -20px rgba(245,180,120,.35);
+    0 0 0 1px color-mix(in srgb, var(--warning) 28%, transparent),
+    0 0 24px -4px color-mix(in srgb, var(--warning) 45%, transparent),
+    0 18px 40px -20px color-mix(in srgb, var(--warning) 35%, transparent);
 }
 .event.is-weather-alert > .event-card{
-  border-color:rgba(232,100,100,.78);
+  border-color:color-mix(in srgb, var(--error) 78%, transparent);
   box-shadow:
     inset 0 1px 0 0 var(--white-05),
     0 2px 4px var(--shadow-a30),
     0 12px 28px -14px rgba(0,0,0,.55),
-    0 0 0 1px rgba(232,100,100,.36),
-    0 0 28px -4px rgba(232,100,100,.55),
-    0 18px 40px -20px rgba(232,100,100,.4);
+    0 0 0 1px color-mix(in srgb, var(--error) 36%, transparent),
+    0 0 28px -4px color-mix(in srgb, var(--error) 55%, transparent),
+    0 18px 40px -20px color-mix(in srgb, var(--error) 40%, transparent);
 }
 
 /* ═══ DAY MAPS ═══ */
@@ -1560,7 +1569,7 @@ html{scroll-behavior:smooth}
   box-shadow:2px 2px 3px var(--shadow-a30);
 }
 .leaflet-control-attribution{
-  background:rgba(39,32,55,.80)!important;
+  background:color-mix(in srgb, var(--bg) 80%, transparent)!important;
   color:var(--text)!important;
 }
 .leaflet-popup-content-wrapper,
@@ -1661,7 +1670,7 @@ html{scroll-behavior:smooth}
   font-size:.9rem;
 }
 .dining-loc,.dining-addr,.dining-for{
-  color:var(--muted);
+  color:var(--text-secondary);
   line-height:1.5;
   font-size:.91rem;
 }
@@ -1681,7 +1690,7 @@ html{scroll-behavior:smooth}
   padding:1.1rem 1.15rem;
   border-radius:var(--radius-md);
   background:var(--white-06);
-  color:var(--muted);
+  color:var(--text-secondary);
   line-height:1.65;
 }
 .note strong{color:var(--text)}
@@ -1803,7 +1812,7 @@ html{scroll-behavior:smooth}
   white-space:nowrap;
 }
 .budget-stat-label{
-  color:var(--muted);
+  color:var(--text-secondary);
   font-size:.78rem;
   margin-top:.4rem;
   letter-spacing:.02em;
@@ -1863,7 +1872,7 @@ html{scroll-behavior:smooth}
   font-size:.66rem;
   letter-spacing:.18em;
   text-transform:uppercase;
-  color:var(--muted);
+  color:var(--text-secondary);
 }
 .budget-sort-group{
   display:inline-flex;
@@ -1877,7 +1886,7 @@ html{scroll-behavior:smooth}
   padding:.3rem .7rem;
   border:none;
   background:transparent;
-  color:var(--muted);
+  color:var(--text-secondary);
   font-size:.74rem;
   font-weight:500;
   letter-spacing:.02em;
@@ -1931,7 +1940,7 @@ html{scroll-behavior:smooth}
   border-radius:var(--radius-md);
   background:var(--white-05);
   border:1px dashed var(--white-12);
-  color:var(--muted);
+  color:var(--text-secondary);
   font-size:.85rem;
   text-align:center;
 }
@@ -1989,7 +1998,7 @@ html{scroll-behavior:smooth}
   margin-top:.45rem;
   border-radius:var(--radius-sm);
   background:var(--white-06);
-  color:var(--muted);
+  color:var(--text-secondary);
   font-size:.82rem;
 }
 .budget-txn-date{
@@ -2020,13 +2029,13 @@ html{scroll-behavior:smooth}
   font-size:.62rem;
   letter-spacing:.08em;
   white-space:nowrap;
-  color:var(--muted);
+  color:var(--text-secondary);
 }
 .budget-panel-footer{
   margin-top:1.1rem;
   padding-top:.85rem;
   border-top:1px solid var(--white-08);
-  color:var(--muted);
+  color:var(--text-secondary);
   font-size:.85rem;
 }
 .budget-panel-footer span{color:var(--gold)}
@@ -2050,7 +2059,7 @@ html{scroll-behavior:smooth}
 .itn-footer{
   padding:3.5rem var(--gutter) 5rem;
   text-align:center;
-  color:var(--muted);
+  color:var(--text-secondary);
 }
 .script-text{
   font-family:"Great Vibes",cursive;
@@ -2077,7 +2086,7 @@ html{scroll-behavior:smooth}
   display:none;
   place-items:center;
   padding:1.5rem;
-  background:rgba(35,28,50,.70);
+  background:color-mix(in srgb, var(--bg) 70%, transparent);
   backdrop-filter:blur(10px);
   z-index:120;
 }
@@ -2088,7 +2097,7 @@ html{scroll-behavior:smooth}
   overflow:auto;
   border-radius:var(--radius-xl);
   padding:1.75rem 1.5rem;
-  background:linear-gradient(180deg, rgba(56,46,68,.97), rgba(46,38,58,.97));
+  background:linear-gradient(180deg, color-mix(in srgb, var(--bg-secondary) 97%, transparent), color-mix(in srgb, var(--bg) 97%, transparent));
   border:1px solid var(--white-10);
   box-shadow:var(--shadow);
 }
@@ -2154,7 +2163,7 @@ html{scroll-behavior:smooth}
   text-transform:uppercase;
   margin-bottom:.35rem;
 }
-.j-text{line-height:1.6;color:var(--muted)}
+.j-text{line-height:1.6;color:var(--text-secondary)}
 
 /* ═══ SCROLL REVEAL ═══ */
 
@@ -2201,6 +2210,7 @@ html{scroll-behavior:smooth}
   .day-body{
     grid-template-columns:1fr;
   }
+  .day-card.open .day-body .day-body-inner{padding:0 1.15rem 1.15rem}
   .day-map{
     min-height:260px;
   }
@@ -2214,7 +2224,6 @@ html{scroll-behavior:smooth}
   .day-card{margin-left:0}
   .day-title{font-size:1.5rem}
   .day-header{padding:1rem 1.15rem}
-  .day-card.open .day-body{padding:0 1.15rem 1.15rem}
   .event:not(:has(.event-card)){
     grid-template-columns:48px minmax(0,1fr);
     gap:.75rem;
@@ -2272,7 +2281,7 @@ html{scroll-behavior:smooth}
 .alt-modal-backdrop{
   position:absolute;
   inset:0;
-  background:rgba(18,12,30,.72);
+  background:color-mix(in srgb, var(--bg) 72%, transparent);
   backdrop-filter:blur(6px);
   -webkit-backdrop-filter:blur(6px);
 }
@@ -2363,7 +2372,7 @@ html{scroll-behavior:smooth}
   height:32px;
   background:var(--white-05);
   border:1px solid var(--white-10);
-  color:var(--muted);
+  color:var(--text-secondary);
   font-size:.9rem;
   line-height:1;
   cursor:pointer;
@@ -2394,7 +2403,7 @@ html{scroll-behavior:smooth}
   flex-direction:column;
   gap:.85rem;
   padding:.25rem 0 1rem;
-  color:var(--muted);
+  color:var(--text-secondary);
   font-size:.95rem;
 }
 .alt-modal-progress{
@@ -2420,7 +2429,7 @@ html{scroll-behavior:smooth}
 }
 .alt-modal-status{
   text-align:center;
-  color:var(--muted);
+  color:var(--text-secondary);
   font-size:.9rem;
   letter-spacing:.005em;
   transition:opacity .18s ease, transform .18s ease;
@@ -2492,8 +2501,8 @@ html{scroll-behavior:smooth}
 .alt-modal-error{
   padding:1rem 1.1rem;
   border-radius:10px;
-  background:rgba(255,110,110,.10);
-  border:1px solid rgba(255,110,110,.28);
+  background:color-mix(in srgb, var(--error) 10%, transparent);
+  border:1px solid color-mix(in srgb, var(--error) 28%, transparent);
   color:var(--error);
   font-size:.92rem;
   line-height:1.5;
@@ -2623,13 +2632,12 @@ html{scroll-behavior:smooth}
   border-radius:5px;
   background:var(--white-05);
   border:1px solid var(--white-12);
-  color:var(--muted);
+  color:var(--text-muted);
   font-family:"JetBrains Mono","DM Mono",ui-monospace,monospace;
   font-size:.64rem;
   font-weight:500;
   letter-spacing:.05em;
   text-transform:uppercase;
-  opacity:.75;
   pointer-events:none;
 }
 
