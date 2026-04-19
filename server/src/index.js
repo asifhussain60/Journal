@@ -43,6 +43,7 @@
 //   PATCH /api/publish-sessions/:id      — publish-sessions.js (Phase 11d.1)
 //   POST /api/publish-sessions/:id/abandon — publish-sessions.js (Phase 11d.1)
 //   GET  /api/trip-spend                — trip-spend.js (YNAB)
+//   GET  /api/config                    — core.js (feature flags)
 //   POST /api/trip-refine-all            — trip-refine-all.js (Refine All coordinator)
 //   POST /api/trip-refine-field          — trip-refine-all.js (single-field Re-synth)
 //

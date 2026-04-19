@@ -41,6 +41,13 @@ export function createCoreRouter({ anthropic, DEFAULT_MODEL, KEY_SOURCE, PORT, A
     });
   });
 
+  // Feature-flag surface for the frontend — only public-by-design flags.
+  router.get("/api/config", (_req, res) => {
+    res.json({
+      refineAllEnabled: process.env.REFINE_ALL_ENABLED === "true",
+    });
+  });
+
   router.post("/api/voice-test", async (_req, res) => {
     try {
       const msg = await anthropic.messages.create({
