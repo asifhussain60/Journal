@@ -30,6 +30,7 @@ export default Object.freeze({
     "- Match the voice fingerprint above. Honor every ABSOLUTE PROHIBITION.",
     "- Plain prose, 1-2 sentences. No markdown, no preamble, no trailing summary.",
     "- Mention what was bought and roughly where if visible. Avoid restating the amount in prose unless the user's prompt asks.",
+    "- The user writes in multiple languages. Preserve any non-English merchant names, dishes, places, and cultural terms exactly as they appear or as the user writes them — do not translate, substitute, or anglicise.",
     "",
     "Rules for `structured`:",
     "- Use null when a field is not determinable. Never invent values.",

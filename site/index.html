@@ -1817,6 +1817,16 @@
             draft.setPrompt(r.refined);
             if (r.structured) draft.setStructured(r.structured);
             if (isReviewed) setLastSaved(r.refined);
+            // When vision was skipped for a known reason (HEIC from iPhone,
+            // oversized, unreadable) the refine still succeeds on text, but
+            // the prose is poorer than with an image. Nudge the user so they
+            // know why this entry looks less grounded.
+            if (r?.vision && r.vision.used === false && r.vision.reason && /^format-|^too-large/.test(r.vision.reason)) {
+              const hint = r.vision.reason === 'format-heic'
+                ? 'HEIC photo — vision skipped. Re-export as JPG for richer refinement.'
+                : `Vision skipped (${r.vision.reason.replace(/-/g, ' ')}). Refined from text only.`;
+              window.notify?.info?.('Refined without vision', { description: hint });
+            }
           } else {
             setRefineError('No refined text returned');
           }
@@ -2656,12 +2666,53 @@
         }
       }
 
+      // Re-encode HEIC/HEIF to JPEG before upload — Anthropic vision rejects
+      // HEIC, and the browser will happily decode it via <img> on macOS /
+      // iOS. For browsers that can't decode HEIC (Chrome on Windows/Linux)
+      // we send the original bytes through and let the server skip vision;
+      // the text-only refine still produces prose, and the UI surfaces the
+      // skip reason on the card.
+      async function normalizeImageForUpload(file) {
+        if (!file) return file;
+        const mime = (file.type || '').toLowerCase();
+        const name = (file.name || '').toLowerCase();
+        const isHeic = mime.includes('heic') || mime.includes('heif') || /\.(heic|heif)$/.test(name);
+        if (!isHeic) return file;
+        try {
+          const url = URL.createObjectURL(file);
+          const img = await new Promise((res, rej) => {
+            const i = new Image();
+            i.onload = () => res(i);
+            i.onerror = () => rej(new Error('decode-failed'));
+            i.src = url;
+          });
+          const canvas = document.createElement('canvas');
+          // Cap dimension so we don't emit an oversized JPEG from a 48MP iPhone shot.
+          const MAX = 2400;
+          const scale = Math.min(1, MAX / Math.max(img.naturalWidth, img.naturalHeight));
+          canvas.width = Math.round(img.naturalWidth * scale);
+          canvas.height = Math.round(img.naturalHeight * scale);
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          URL.revokeObjectURL(url);
+          const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.9));
+          if (!blob) return file;
+          const base = name.replace(/\.(heic|heif)$/i, '') || 'photo';
+          return new File([blob], `${base}.jpg`, { type: 'image/jpeg', lastModified: file.lastModified });
+        } catch {
+          // Browser couldn't decode HEIC — upload original and let the server
+          // route through text-only refine with a clear skip reason.
+          return file;
+        }
+      }
+
       async function capturePhoto(file, sourceRef) {
         if (!file) return;
         setCapturing(true);
         try {
+          const normalized = await normalizeImageForUpload(file);
           const form = new FormData();
-          form.append('photo', file);
+          form.append('photo', normalized);
           const r = await fetch(`${LOG_API_BASE}/api/log/capture`, { method: 'POST', body: form });
           const d = await r.json().catch(() => ({ ok: false, error: 'non-JSON response' }));
           if (d.ok) {
@@ -2690,8 +2741,9 @@
         if (!file) return;
         setReceiptProcessing(true);
         try {
+          const normalized = await normalizeImageForUpload(file);
           const form = new FormData();
-          form.append('photo', file);
+          form.append('photo', normalized);
           form.append('kind', 'receipt');
           const r = await fetch(`${LOG_API_BASE}/api/log/capture`, { method: 'POST', body: form });
           const d = await r.json();
@@ -2702,12 +2754,12 @@
             await window.BabuAI.logRefine(d.id, { note: '', persist: true });
           } catch (refineErr) {
             window.notify?.warning?.('Refine failed — receipt added but unpolished', {
-              description: refineErr.message || String(refineErr),
+              description: friendlyError(refineErr),
             });
           }
           loadEntries();
         } catch (err) {
-          window.notify?.error?.('Receipt capture failed', { description: err.message || String(err) });
+          window.notify?.error?.('Receipt capture failed', { description: friendlyError(err) });
         } finally {
           setReceiptProcessing(false);
           if (receiptInputRef.current) receiptInputRef.current.value = '';

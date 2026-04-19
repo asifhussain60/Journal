@@ -47,13 +47,18 @@ export function sniffImageExt(buf) {
   return null;
 }
 
-/** Map sniffed ext to an Anthropic media_type for vision messages. */
+/** Anthropic vision supports only this set. Anything else (e.g. HEIC from
+ *  iPhone) must be skipped or converted before sending. */
+export const VISION_SUPPORTED_EXTS = ["jpg", "png", "gif", "webp"];
+
+/** Map a vision-supported sniffed ext to an Anthropic media_type. Returns
+ *  null for formats Anthropic cannot ingest — caller should skip vision. */
 export function extToMediaType(ext) {
   if (ext === "jpg") return "image/jpeg";
   if (ext === "png") return "image/png";
   if (ext === "gif") return "image/gif";
   if (ext === "webp") return "image/webp";
-  return "image/jpeg";
+  return null;
 }
 
 /** Read trips/manifest.json and return the active trip slug. Throws if missing. */

@@ -95,6 +95,9 @@ async function loadEntryImageBlock(row) {
   const ext = sniffImageExt(buf);
   if (!ext) return { skipped: "unknown-format" };
   const mediaType = extToMediaType(ext);
+  // Vision-unsupported formats (notably HEIC from iPhone). Refine still works
+  // text-only; the client sees `vision: { used: false, reason: "format-heic" }`.
+  if (!mediaType) return { skipped: `format-${ext}` };
   return {
     block: {
       type: "image",
@@ -506,6 +509,10 @@ export function createLogRouter({ queueValidators, anthropic, DEFAULT_MODEL, cla
           "- Return plain prose only — no markdown, no headings, no preamble, no trailing commentary.",
           "- If the note is one sentence, keep it one sentence. Don't pad.",
           "- Do not add a closing moral or summary.",
+          "- The user writes in multiple languages. Preserve any non-English words,",
+          "  transliterated phrases (Urdu/Hindi/Arabic etc.), names, dishes, places, and",
+          "  cultural terms exactly as written — do not translate, substitute, or anglicise",
+          "  them. They are authentic voice, not typos.",
         ].join("\n");
 
         const textContent = [

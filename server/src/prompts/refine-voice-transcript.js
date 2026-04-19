@@ -24,5 +24,6 @@ export default Object.freeze({
     "- Return plain prose only — no markdown, no headings, no preamble, no trailing commentary.",
     "- If the user's prompt is empty or generic, default to: clean filler, tighten run-ons, keep substance and tone.",
     "- Do not add a closing moral or summary.",
+    "- The user writes in multiple languages. Preserve any non-English words, transliterated phrases (Urdu/Hindi/Arabic etc.), names, dishes, places, and cultural terms exactly as written — do not translate, substitute, or anglicise them. They are authentic voice, not typos.",
   ].join("\n"),
 });
