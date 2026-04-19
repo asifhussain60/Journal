@@ -674,8 +674,8 @@ git add -A && git commit -m "fix: eliminate remaining hardcoded localhost in sit
 | B+2 | AI-powered Reflection refine via voice DNA fingerprint | ✅ Done |
 | C1–C3 | Refine All button + SSE streaming + Re-synth | ✅ Done |
 | D1 | ~~Highlights chip redesign~~ | ❌ Retired |
-| Pre-E0 | Test harness bootstrap (journal-builder gate) | ⬜ Next |
-| E1–E6 | Holistic refactor & cleanup | ⬜ Pending |
+| Pre-E0 | Test harness bootstrap (journal-builder gate) | ✅ Done `499cd56` |
+| E1–E6 | Holistic refactor & cleanup | ⬜ Next |
 | F1–F2 | E2E matrix + closeout | ⬜ Pending |
 | G1–G3 | Publish gate + Cloudflare deploy + localhost audit | ⬜ Pending |
 
