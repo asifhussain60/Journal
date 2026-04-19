@@ -201,7 +201,7 @@
       return (
         <div className="glass-card glass-card--pad fade-enter stagger-2">
           <div className="dayone-preview-head">
-            <span className="inline-accent"><Icon name="fa-markdown" /> Markdown Export</span>
+            <span className="inline-accent"><Icon name="fa-file-code" /> Markdown Export</span>
           </div>
           <div className="dayone-preview-body">
             {md}
@@ -589,7 +589,7 @@
 
                   <div className="form-actions">
                     <button className="btn btn-primary"><Icon name="fa-wand-magic-sparkles" /> Refine with Voice DNA</button>
-                    <button className="btn btn-secondary"><Icon name="fa-save" /> Save Draft</button>
+                    <button className="btn btn-secondary"><Icon name="fa-floppy-disk" /> Save Draft</button>
                   </div>
                 </div>
               </div>
@@ -967,12 +967,12 @@
           {!loading && content && (
             <aside className={`notes-sidebar ${notesOpen ? 'open' : 'collapsed'}`}>
               <button className="notes-toggle" onClick={() => setNotesOpen(o => !o)} title={notesOpen ? 'Collapse Notes' : 'Expand Notes'}>
-                <Icon name={notesOpen ? 'fa-angles-right' : 'fa-sticky-note'} size="0.75em" />
+                <Icon name={notesOpen ? 'fa-angles-right' : 'fa-note-sticky'} size="0.75em" />
               </button>
               {notesOpen && (
                 <div className="notes-content">
                   <div className="notes-panel-header">
-                    <Icon name="fa-sticky-note" size="0.75em" />
+                    <Icon name="fa-note-sticky" size="0.75em" />
                     <span>Chapter Notes</span>
                     <span className="notes-count">{notes.length}</span>
                   </div>
@@ -1219,7 +1219,7 @@
                       </button>
                       {hasNotes && (
                         <span className="para-note-indicator" title={paraNotes.length + ' note' + (paraNotes.length > 1 ? 's' : '')}>
-                          <Icon name="fa-sticky-note" size="0.6em" />
+                          <Icon name="fa-note-sticky" size="0.6em" />
                           {paraNotes.length > 1 && <span className="note-count-badge">{paraNotes.length}</span>}
                         </span>
                       )}
@@ -1246,7 +1246,7 @@
                 ) : <div></div>}
 
                 <button className="chapter-nav-btn center" onClick={() => onBack('memoir')}>
-                  <Icon name="fa-th-large" size="0.85em" /> All Chapters
+                  <Icon name="fa-table-cells-large" size="0.85em" /> All Chapters
                 </button>
 
                 {nextChapter && nextChapter.file ? (

@@ -391,7 +391,7 @@
            // ─── Right pane — results (or manual form) ────────────
       '    <section class="insert-results" aria-label="Candidates" id="insert-results-pane">',
       '      <div class="insert-results-empty" id="insert-results-empty">',
-      '        <div class="insert-results-empty-icon" aria-hidden="true"><i class="fa-solid fa-sparkles"></i></div>',
+      '        <div class="insert-results-empty-icon" aria-hidden="true"><i class="fa-solid fa-wand-magic-sparkles"></i></div>',
       '        <div class="insert-results-empty-title">Ask the AI for 3 options</div>',
       '        <div class="insert-results-empty-sub">Pick a chip on the left, or type what you\u2019re looking for. I\u2019ll search real venues near the prior stop and return 3 candidates.</div>',
       '      </div>',
@@ -854,7 +854,7 @@
     el.className = 'insert-chat-turn insert-chat-turn--ai is-loading';
     el.setAttribute('data-turn-id', turnId);
     el.innerHTML =
-      '<div class="insert-chat-who"><i class="fa-solid fa-sparkles" aria-hidden="true"></i>AI</div>' +
+      '<div class="insert-chat-who"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>AI</div>' +
       '<div class="insert-chat-bubble">' +
       '  <div class="insert-chat-progress" aria-hidden="true"><div class="insert-chat-progress-bar"></div></div>' +
       '  <div class="insert-chat-status">' + escHtml(PROGRESS_STEPS[0]) + '</div>' +

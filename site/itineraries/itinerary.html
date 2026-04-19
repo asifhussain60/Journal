@@ -161,7 +161,7 @@
         </div>
       </div>
       <div class="budget-verify" id="budgetVerify" hidden>
-        <i class="fa-solid fa-shield-check" aria-hidden="true"></i>
+        <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
         <span class="budget-verify-text">Totals verified</span>
       </div>
     </div>
@@ -400,9 +400,9 @@
         // Time column (outside the card, left of the rail). The pin toggle
         // lives here because "is this time fixed?" maps naturally to the
         // time display: anchors (flights, reservations) show a filled pin,
-        // flex rows reveal an outline pin on row hover. Clicking flips
+        // flex rows reveal a muted pin on row hover. Clicking flips
         // time_mode via /api/pin-event (see itinerary-reorder.js).
-        var pinIcon = (timeMode === 'anchor') ? 'fa-solid fa-thumbtack' : 'fa-regular fa-thumbtack';
+        var pinIcon = 'fa-solid fa-thumbtack';
         var pinLabel = (timeMode === 'anchor') ? 'Unpin (let time flex)' : 'Pin this time';
         parts.push('  <div class="event-time-col">');
         if (t.head) parts.push('    <span class="event-time-head">' + escHtml(t.head) + '</span>');
@@ -2467,7 +2467,7 @@
         var icon = el.querySelector('i');
         if (data.verified) {
           txt.textContent = 'Totals verified';
-          icon.className = 'fa-solid fa-shield-check';
+          icon.className = 'fa-solid fa-circle-check';
         } else {
           el.classList.add('is-warn');
           txt.textContent = 'Drift: ' + fmtMoney(data.discrepancy);

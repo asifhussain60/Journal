@@ -3033,7 +3033,7 @@ html{scroll-behavior:smooth}
   appearance:none;
   border:0;
   background:transparent;
-  color:color-mix(in srgb, var(--text-primary) 50%, transparent);
+  color:color-mix(in srgb, var(--text-primary) 35%, transparent);
   width:20px;
   height:20px;
   padding:0;
@@ -3043,13 +3043,18 @@ html{scroll-behavior:smooth}
   cursor:pointer;
   font-size:.72rem;
   opacity:0;
-  transition:opacity .18s ease, color .18s ease, background-color .18s ease;
+  transition:opacity .18s ease, color .18s ease, background-color .18s ease, transform .18s ease;
 }
-/* Reveal on row hover / focus-within; keep on for anchors so the
-   "fixed time" signal is always visible at a glance. */
+/* Flex rows: reveal on hover; anchor rows: always visible. */
 .event:hover .event-pin-btn,
-.event:focus-within .event-pin-btn,
-.event[data-time-mode="anchor"] .event-pin-btn{ opacity:1; }
+.event:focus-within .event-pin-btn{ opacity:1; }
+
+/* Anchor rows: always-visible accent pin — upright orientation signals
+   "this time is fixed". */
+.event[data-time-mode="anchor"] .event-pin-btn{
+  opacity:1;
+  color:var(--accent);
+}
 
 .event-pin-btn:hover{
   color:var(--accent);
@@ -3061,11 +3066,6 @@ html{scroll-behavior:smooth}
   opacity:1;
 }
 
-/* Anchor rows: filled pin in accent. Glance signal — the user can spot
-   fixed times without hovering every row. */
-.event[data-time-mode="anchor"] .event-pin-btn{
-  color:var(--accent);
-}
 .event[data-time-mode="anchor"] .event-pin-btn:hover{
   color:color-mix(in srgb, var(--accent) 80%, white);
 }

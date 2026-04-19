@@ -338,7 +338,7 @@ async function handlePinToggle(btn) {
   const row = btn.closest('.event');
   if (row) row.setAttribute('data-time-mode', next);
   const icon = btn.querySelector('i');
-  if (icon) icon.className = next === 'anchor' ? 'fa-solid fa-thumbtack' : 'fa-regular fa-thumbtack';
+  if (icon) icon.className = 'fa-solid fa-thumbtack';
   btn.setAttribute('title', next === 'anchor' ? 'Unpin (let time flex)' : 'Pin this time');
   btn.setAttribute('aria-label', next === 'anchor' ? 'Unpin (let time flex)' : 'Pin this time');
 
@@ -356,7 +356,7 @@ async function handlePinToggle(btn) {
     if (!res.ok) {
       // Revert.
       if (row) row.setAttribute('data-time-mode', ev.time_mode || 'flex');
-      if (icon) icon.className = ev.time_mode === 'anchor' ? 'fa-solid fa-thumbtack' : 'fa-regular fa-thumbtack';
+      if (icon) icon.className = 'fa-solid fa-thumbtack';
       const n = notify();
       if (n) n.error('Could not change pin state: ' + (res.body?.error || `HTTP ${res.status}`));
       return;
