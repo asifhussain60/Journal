@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════
    ITINERARY — Trip itinerary components
-   Hero, flight/day/dining cards, timeline, budget panel,
+   Hero, flight/day cards, timeline, budget panel,
    footer, FAB, modal. Paired with themes/theme.css for
    all color/font/shadow tokens.
 
@@ -1783,55 +1783,6 @@ html{scroll-behavior:smooth}
   color:var(--gold);
   font-size:.82rem;
   white-space:nowrap;
-}
-
-/* ═══ DINING GUIDE ═══ */
-
-.dining-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
-  gap:1.1rem;
-}
-.dining-card{
-  position:relative;
-  padding:1.2rem 1.25rem;
-  border-radius:var(--radius-lg);
-  background:linear-gradient(180deg, var(--white-10), var(--white-05));
-  border:1px solid var(--white-08);
-  overflow:hidden;
-  transition:transform .28s ease, border-color .28s ease, box-shadow .28s ease;
-}
-.dining-card::before{
-  content:"";
-  position:absolute;
-  inset:auto auto -3rem -3rem;
-  width:7rem;height:7rem;
-  background:radial-gradient(circle, var(--rose-a06), transparent 70%);
-  pointer-events:none;
-}
-.dining-card:hover{
-  transform:translateY(-3px);
-  border-color:var(--white-18);
-  box-shadow:var(--shadow-soft);
-}
-.dining-name{
-  font-family:"Cormorant Garamond",serif;
-  font-size:1.55rem;
-  margin-bottom:.2rem;
-}
-.dining-cuisine{
-  color:var(--rose-2);
-  margin-bottom:.5rem;
-  font-size:.9rem;
-}
-.dining-loc,.dining-addr,.dining-for{
-  color:var(--text-secondary);
-  line-height:1.5;
-  font-size:.91rem;
-}
-.dining-for{
-  margin-top:.6rem;
-  color:var(--gold);
 }
 
 /* ═══ NOTES ═══ */

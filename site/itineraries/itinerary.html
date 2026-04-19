@@ -123,9 +123,6 @@
       </div>
     </section>
 
-    <!-- DINING GUIDE — rendered from trip.days dining events -->
-    <section class="itn-section" id="diningSection" hidden></section>
-
     <!-- NOTES — rendered from trip metadata -->
     <section class="itn-section" id="notesSection" hidden></section>
 
@@ -1452,40 +1449,6 @@
         sec.hidden = false;
       }
 
-      function renderDiningGuide(trip) {
-        var sec = document.getElementById('diningSection');
-        if (!sec || !trip.days) return;
-        var diners = [];
-        trip.days.forEach(function(day) {
-          (day.events || []).forEach(function(ev) {
-            var tag = String(ev.tag || '').toUpperCase();
-            if (tag === 'DINING' || tag === 'CAFE') {
-              diners.push({
-                name: ev.event || '',
-                cuisine: ev.category || '',
-                venue: ev.venue || ev.address || '',
-                day: day.day,
-                title: day.title || ''
-              });
-            }
-          });
-        });
-        if (!diners.length) { sec.hidden = true; return; }
-        var html = '<div class="section-header"><div class="overline">Dining</div><h2>Dining Guide</h2><div class="divider"><span class="divider-heart">&hearts;</span></div></div>';
-        html += '<div class="dining-grid">';
-        diners.forEach(function(d) {
-          html += '<div class="dining-card">';
-          html += '<div class="dining-name">' + escHtml(d.name) + '</div>';
-          if (d.cuisine) html += '<div class="dining-cuisine">' + escHtml(d.cuisine) + '</div>';
-          if (d.venue) html += '<div class="dining-addr">' + escHtml(d.venue) + '</div>';
-          html += '<div class="dining-for">Day ' + d.day + ' \u2014 ' + escHtml(d.title) + '</div>';
-          html += '</div>';
-        });
-        html += '</div>';
-        sec.innerHTML = html;
-        sec.hidden = false;
-      }
-
       function renderNotes(trip) {
         var sec = document.getElementById('notesSection');
         if (!sec) return;
@@ -1586,7 +1549,6 @@
               renderHero(data.trip);
               renderFlights(data.trip);
               renderItinerary(data.trip, { preserveState: preserve });
-              renderDiningGuide(data.trip);
               renderNotes(data.trip);
               renderJournalDays(data.trip);
               renderFooter(data.trip);
@@ -2606,7 +2568,7 @@
         }
         var html = '';
         cats.forEach(function(c, idx) {
-          html += '<div class="budget-cat' + (idx === 0 ? ' open' : '') + '">';
+          html += '<div class="budget-cat">';
           html += '  <div class="budget-cat-header" onclick="toggleBudgetCat(this)">';
           html += '    <span class="budget-cat-icon">' + esc(c.icon) + '</span>';
           html += '    <span class="budget-cat-name">' + esc(c.name) + '</span>';
