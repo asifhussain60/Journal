@@ -2532,33 +2532,16 @@
         if (!host) return;
         var pct = Number(totals.percentLeft) || 0;
         var tone = availableTone(pct);
-        // Per-account tiles replace the generic "Spent" tile when account
-        // data is present. SAPPHIRE = collective, UNITED = Ishrat's card.
-        var sapphireTotal = accounts && accounts['SAPPHIRE'] ? accounts['SAPPHIRE'].total : null;
-        var unitedTotal   = accounts && accounts['UNITED']   ? accounts['UNITED'].total   : null;
-        var hasAccounts = sapphireTotal !== null || unitedTotal !== null;
-        host.classList.toggle('budget-summary--accounts', hasAccounts);
-        var html = '';
-        if (hasAccounts) {
-          html += '<div class="budget-stat budget-stat--sapphire">' +
-            '<div class="budget-stat-value">' + esc(fmtMoney(sapphireTotal || 0)) + '</div>' +
-            '<div class="budget-stat-label">Sapphire</div>' +
-            '</div>';
-          html += '<div class="budget-stat budget-stat--united">' +
-            '<div class="budget-stat-value">' + esc(fmtMoney(unitedTotal || 0)) + '</div>' +
-            '<div class="budget-stat-label">United</div>' +
-            '</div>';
-        } else {
-          html += '<div class="budget-stat">' +
-            '<div class="budget-stat-value">' + esc(fmtMoney(totals.spent)) + '</div>' +
-            '<div class="budget-stat-label">Spent</div>' +
-            '</div>';
-        }
-        html += '<div class="budget-stat budget-stat--available ' + tone + '">' +
+        host.classList.remove('budget-summary--accounts');
+        host.innerHTML =
+          '<div class="budget-stat">' +
+          '<div class="budget-stat-value">' + esc(fmtMoney(totals.spent)) + '</div>' +
+          '<div class="budget-stat-label">Spent</div>' +
+          '</div>' +
+          '<div class="budget-stat budget-stat--available ' + tone + '">' +
           '<div class="budget-stat-value">' + esc(fmtMoney(totals.available)) + '</div>' +
           '<div class="budget-stat-label">Available <span class="budget-stat-pct">' + Math.round(pct * 100) + '% left</span></div>' +
           '</div>';
-        host.innerHTML = html;
       }
 
       function sortCategories(cats, mode) {
