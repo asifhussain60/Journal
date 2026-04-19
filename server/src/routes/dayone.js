@@ -55,14 +55,32 @@ function entryHasPhoto(row) {
   return !!(rel && typeof rel === "string");
 }
 
-function formatBundle({ tripCtx, slug, entries }) {
-  const title = niceTitle(tripCtx, slug);
-  const dateRange = formatDateRange(entries);
-  const location = tripCtx?.location || tripCtx?.origin?.label || "";
-  const metaParts = [dateRange, location].filter(Boolean);
-  const metaLine = metaParts.length ? `*${metaParts.join(" · ")}*` : "";
+function sanitizeCompose(raw) {
+  const obj = raw && typeof raw === "object" ? raw : {};
+  const title = typeof obj.title === "string" ? obj.title.trim() : "";
+  const context = typeof obj.context === "string" ? obj.context.trim() : "";
+  const reflection = typeof obj.reflection === "string" ? obj.reflection.trim() : "";
+  const highlights = Array.isArray(obj.highlights)
+    ? obj.highlights.map(h => (typeof h === "string" ? h.trim() : "")).filter(Boolean).slice(0, 5)
+    : [];
+  return { title, context, highlights, reflection };
+}
 
-  const blocks = [];
+function buildDefaultMetadata(tripCtx, entries) {
+  const parts = [];
+  const regions = Array.isArray(tripCtx?.regions) ? tripCtx.regions.filter(Boolean) : [];
+  if (regions.length) parts.push(regions.slice(0, 3).join(" · "));
+  if (tripCtx?.vibe) parts.push(tripCtx.vibe);
+  const kinds = Array.from(new Set((entries || []).map(r => r?.kind).filter(Boolean)));
+  if (kinds.length) parts.push(kinds.map(k => `#${k}`).join(" "));
+  return parts.join("  •  ");
+}
+
+function formatBundle({ tripCtx, slug, entries, compose: composeRaw }) {
+  const compose = sanitizeCompose(composeRaw);
+
+  // Story blocks (one paragraph per entry, with [{attachment}] placeholders).
+  const storyBlocks = [];
   const photoEntryOrder = [];
   for (const row of entries) {
     const prose = entryProse(row);
@@ -74,16 +92,44 @@ function formatBundle({ tripCtx, slug, entries }) {
       photoEntryOrder.push(row);
     }
     if (prose) block.push(prose);
-    blocks.push(block.join("\n\n"));
+    storyBlocks.push(block.join("\n\n"));
   }
 
-  const out = [`# ${title}`];
-  if (metaLine) out.push("", metaLine);
-  out.push("");
-  for (let i = 0; i < blocks.length; i++) {
-    out.push(blocks[i]);
-    if (i < blocks.length - 1) out.push("");
+  // Title + Context fall back to computed defaults when the user skipped them.
+  const title = compose.title || niceTitle(tripCtx, slug);
+  const context = compose.context
+    || [formatDateRange(entries), tripCtx?.location || tripCtx?.origin?.label || ""].filter(Boolean).join(" · ");
+  const metadata = buildDefaultMetadata(tripCtx, entries);
+
+  // Photo interleaving: drop a mid-story photo between Highlights and Story
+  // (first photo), and between Story and Reflection (second photo). Any
+  // remaining photos stay inline with their source entry in the Story body.
+  // We don't reorder — we simply let the Story section own every placeholder,
+  // which keeps the HTML renderer's photoIdx counter trivially in sync.
+
+  const out = [];
+  out.push(`# ${title}`);
+  if (context) {
+    out.push("", "## Context", context);
   }
+  if (compose.highlights.length) {
+    out.push("", "## Highlights");
+    for (const h of compose.highlights) out.push(`- ${h}`);
+  }
+  if (storyBlocks.length) {
+    out.push("", "## Story", "");
+    for (let i = 0; i < storyBlocks.length; i++) {
+      out.push(storyBlocks[i]);
+      if (i < storyBlocks.length - 1) out.push("");
+    }
+  }
+  if (compose.reflection) {
+    out.push("", "## Reflection", compose.reflection);
+  }
+  if (metadata) {
+    out.push("", "## Metadata", `*${metadata}*`);
+  }
+
   return { markdown: out.join("\n"), photoEntryOrder };
 }
 
@@ -161,6 +207,26 @@ function renderHtml({ markdown, photos }) {
       parts.push(`<h1>${escapeHtml(block.slice(2).trim())}</h1>`);
       continue;
     }
+    if (block.startsWith("## ")) {
+      const firstLineEnd = block.indexOf("\n");
+      const heading = (firstLineEnd === -1 ? block.slice(3) : block.slice(3, firstLineEnd)).trim();
+      const rest = firstLineEnd === -1 ? "" : block.slice(firstLineEnd + 1).trim();
+      parts.push(`<h2>${escapeHtml(heading)}</h2>`);
+      if (!rest) continue;
+      // Bullet list (every non-empty line starts with "- ").
+      const lines = rest.split(/\n/);
+      if (lines.every(l => /^-\s+/.test(l))) {
+        parts.push(`<ul>${lines.map(l => `<li>${escapeHtml(l.replace(/^-\s+/, ""))}</li>`).join("")}</ul>`);
+        continue;
+      }
+      // Italic single-line meta (Metadata section).
+      if (lines.length === 1 && /^\*[^*]+\*$/.test(lines[0])) {
+        parts.push(`<p><em>${escapeHtml(lines[0].slice(1, -1))}</em></p>`);
+        continue;
+      }
+      parts.push(`<p>${escapeHtml(rest).replace(/\n/g, "<br>")}</p>`);
+      continue;
+    }
     if (block === "[{attachment}]") {
       const p = photos[photoIdx++];
       if (p) parts.push(`<p><img src="${p.dataUrl}" alt="${escapeHtml(p.filename)}" /></p>`);
@@ -185,7 +251,7 @@ export function createDayoneRouter() {
 
   router.post("/api/dayone/bundle", express.json(), async (req, res) => {
     try {
-      const { tripSlug, entryIds, journal } = req.body ?? {};
+      const { tripSlug, entryIds, journal, compose } = req.body ?? {};
       if (!Array.isArray(entryIds) || entryIds.length === 0) {
         return res.status(400).json({ ok: false, error: "entryIds (non-empty array) required" });
       }
@@ -205,7 +271,7 @@ export function createDayoneRouter() {
       let tripCtx = null;
       try { tripCtx = await readTripObj(slug); } catch { /* best-effort */ }
 
-      const { markdown, photoEntryOrder } = formatBundle({ tripCtx, slug, entries: ordered });
+      const { markdown, photoEntryOrder } = formatBundle({ tripCtx, slug, entries: ordered, compose });
       const photos = await loadPhotos(collectPhotoPaths(photoEntryOrder));
       const html = renderHtml({ markdown, photos });
 

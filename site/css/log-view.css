@@ -204,9 +204,8 @@
 
 /* ─── Source Filter Chips (scoped inside .log-panel-control) ─── */
 
-.log-filter-bar {
-  /* Was second row in the panel; with the tab bar removed it sits alone. */
-}
+/* .log-filter-bar: was second row in the panel; with the tab bar removed it
+   sits alone. Rule kept for selector targeting; no properties needed. */
 .log-chip-row {
   display: flex;
   gap: 8px;
@@ -1202,4 +1201,345 @@
   padding: 0 8px;
   font-size: 0.9rem;
   gap: 5px;
+}
+
+/* ═══════════════════════════════════════════════════
+   DayOne Composer — Phase 11d
+   Six-section authoring surface shown only in the
+   Reviewed lane. Visual rhythm: prominent Title,
+   balanced two-axis grid for secondary fields, subtle
+   read-only Metadata pill at the foot.
+   ═══════════════════════════════════════════════════ */
+
+.dayone-composer {
+  margin: 0 0 22px;
+  padding: 22px 24px 20px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(160deg,
+    color-mix(in srgb, var(--accent) 9%, var(--bg-tertiary)) 0%,
+    var(--bg-tertiary) 70%);
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--border-default));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent) 10%, transparent) inset,
+    var(--shadow-sm);
+  display: grid;
+  grid-template-columns: 1fr;
+  row-gap: 14px;
+  font-family: 'Inter', var(--font-sans);
+}
+
+.dayone-composer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed color-mix(in srgb, var(--accent) 22%, var(--border-default));
+}
+.dayone-composer-head-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.dayone-composer-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display, var(--font-serif));
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--accent);
+}
+.dayone-composer-eyebrow i { font-size: 1rem; }
+.dayone-composer-hint {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+.dayone-composer-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-default);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
+}
+.dayone-composer-reset:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border-default));
+}
+
+/* ─── Field primitives ─── */
+.dayone-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.dayone-field-label,
+.dayone-field-label-row .dayone-field-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.dayone-field-label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.dayone-field-meta {
+  font-size: 0.75rem;
+  color: color-mix(in srgb, var(--text-muted) 80%, transparent);
+  align-self: flex-end;
+}
+
+/* ─── Title — the hero input ─── */
+.dayone-field--title { position: relative; }
+.dayone-title-input {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border-default));
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-display, var(--font-serif));
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: 0.005em;
+  line-height: 1.25;
+  transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+}
+.dayone-title-input::placeholder {
+  color: var(--text-muted);
+  font-style: italic;
+  font-weight: 400;
+}
+.dayone-title-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+  background: color-mix(in srgb, var(--bg-primary) 92%, var(--accent));
+}
+.dayone-field--title .dayone-field-meta {
+  position: absolute;
+  top: 2px;
+  right: 0;
+}
+
+/* ─── Context — one-liner with "Use trip" restore ─── */
+.dayone-field--context { position: relative; }
+.dayone-context-input {
+  width: 100%;
+  padding: 9px 13px;
+  padding-right: 118px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.98rem;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+.dayone-context-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+.dayone-context-reset {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  border: none;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--accent);
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 140ms ease;
+}
+.dayone-context-reset:hover {
+  background: color-mix(in srgb, var(--accent) 32%, transparent);
+}
+
+/* ─── Highlights — editable bullet list ─── */
+.dayone-highlights {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.dayone-highlight {
+  display: grid;
+  grid-template-columns: 22px 1fr 30px;
+  align-items: center;
+  gap: 8px;
+}
+.dayone-highlight-bullet {
+  justify-self: center;
+  font-size: 1.2rem;
+  line-height: 1;
+  color: var(--accent);
+  opacity: 0.8;
+}
+.dayone-highlight--draft .dayone-highlight-bullet {
+  opacity: 0.5;
+  font-weight: 700;
+}
+.dayone-highlight-input {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.98rem;
+  transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+}
+.dayone-highlight--draft .dayone-highlight-input {
+  background: transparent;
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--border-default));
+}
+.dayone-highlight-input:focus {
+  outline: none;
+  border-style: solid;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+  background: var(--bg-primary);
+}
+.dayone-highlight-remove,
+.dayone-highlight-add {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease, transform 140ms ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+.dayone-highlight-remove:hover {
+  background: color-mix(in srgb, var(--error) 18%, transparent);
+  color: var(--error);
+}
+.dayone-highlight-add {
+  color: var(--accent);
+}
+.dayone-highlight-add:hover {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  transform: scale(1.08);
+}
+.dayone-highlights-tools {
+  margin-top: 2px;
+  display: flex;
+  justify-content: flex-start;
+}
+.dayone-suggest-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  border: 1px solid color-mix(in srgb, var(--accent) 32%, var(--border-default));
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--accent);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
+}
+.dayone-suggest-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+.dayone-suggest-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ─── Reflection — textarea ─── */
+.dayone-reflection-input {
+  width: 100%;
+  padding: 10px 13px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-display, var(--font-serif));
+  font-size: 1.02rem;
+  line-height: 1.55;
+  resize: vertical;
+  min-height: 78px;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+.dayone-reflection-input::placeholder {
+  color: var(--text-muted);
+  font-style: italic;
+}
+.dayone-reflection-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+/* ─── Metadata — read-only pill line ─── */
+.dayone-metadata-pill {
+  padding: 8px 14px;
+  border-radius: var(--radius-full);
+  background: var(--bg-card);
+  border: 1px dashed var(--border-default);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  letter-spacing: 0.01em;
+  line-height: 1.4;
+  width: fit-content;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ─── Two-column balance for mid-width screens ─── */
+@media (min-width: 780px) {
+  .dayone-composer {
+    grid-template-columns: 1fr 1fr;
+    column-gap: 22px;
+  }
+  .dayone-composer-head,
+  .dayone-field--title,
+  .dayone-field--context,
+  .dayone-field--highlights,
+  .dayone-field--reflection,
+  .dayone-field--metadata {
+    grid-column: 1 / -1;
+  }
+  /* Pair Context + Metadata on wide rails once both exist, if we ever want
+     them side-by-side. For now both stay full-width for legibility. */
 }

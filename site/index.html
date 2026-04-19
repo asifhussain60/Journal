@@ -2005,6 +2005,259 @@
       );
     }
 
+    // ─── Phase 11d: DayOne Composer
+    // Six-section authoring surface that sits above the Reviewed cards. The
+    // cards themselves feed the Story section at Copy time; this component
+    // owns Title / Context / Highlights / Reflection, derives Metadata
+    // read-only, and persists user-typed fields per trip in localStorage so
+    // the composer survives reload and re-copies.
+    function DayOneComposer({ tripSlug, tripCtx, reviewedRows, value, onChange }) {
+      const [highlightDraft, setHighlightDraft] = useState('');
+
+      // Context auto-derivation — built when empty or the user resets it.
+      const autoContext = useMemo(() => {
+        if (!tripCtx) return '';
+        const travelers = Array.isArray(tripCtx.travelers) ? tripCtx.travelers.join(' & ') : '';
+        const dateRange = (() => {
+          const s = tripCtx?.dates?.start;
+          const e = tripCtx?.dates?.end;
+          if (!s) return '';
+          const fmt = (iso) => {
+            const d = new Date(iso + 'T00:00:00');
+            if (isNaN(d.getTime())) return iso;
+            const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            return `${MONTHS[d.getMonth()]} ${d.getDate()}`;
+          };
+          if (!e || e === s) return `${fmt(s)}, ${s.slice(0,4)}`;
+          const year = s.slice(0, 4);
+          return `${fmt(s)}–${fmt(e)}, ${year}`;
+        })();
+        const base = tripCtx?.base || '';
+        return [travelers, dateRange, base].filter(Boolean).join(' · ');
+      }, [tripCtx]);
+
+      // Metadata pill — read-only summary line, rebuilt on any dependency change.
+      const metadataLine = useMemo(() => {
+        const parts = [];
+        const regions = Array.isArray(tripCtx?.regions) ? tripCtx.regions.filter(Boolean) : [];
+        if (regions.length) parts.push(regions.slice(0, 3).join(' · '));
+        if (tripCtx?.vibe) parts.push(tripCtx.vibe);
+        const kinds = Array.from(new Set((reviewedRows || []).map(r => r.kind).filter(Boolean)));
+        if (kinds.length) parts.push(kinds.map(k => `#${k}`).join(' '));
+        return parts.join('  •  ');
+      }, [tripCtx, reviewedRows]);
+
+      // Seed Context with the auto-derived line the first time we see the
+      // trip (user can overwrite freely; once dirty we never clobber it).
+      useEffect(() => {
+        if (!autoContext) return;
+        if (value.context && value.context.trim()) return;
+        onChange({ ...value, context: autoContext });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, [autoContext]);
+
+      function update(patch) { onChange({ ...value, ...patch }); }
+
+      function addHighlight(text) {
+        const t = (text ?? '').trim();
+        if (!t) return;
+        update({ highlights: [...(value.highlights || []), t] });
+        setHighlightDraft('');
+      }
+      function removeHighlight(idx) {
+        const next = [...(value.highlights || [])];
+        next.splice(idx, 1);
+        update({ highlights: next });
+      }
+      function editHighlight(idx, text) {
+        const next = [...(value.highlights || [])];
+        next[idx] = text;
+        update({ highlights: next });
+      }
+
+      // Suggest Highlights — take the opening sentence of each reviewed
+      // entry's refined prose, cap at five, de-dupe. This is a fast local
+      // fallback; an AI-synth endpoint can replace this function later
+      // without touching the UI contract.
+      function suggestHighlights() {
+        const out = [];
+        const seen = new Set();
+        for (const row of reviewedRows || []) {
+          const prose = row?.draft?.prose || row?.payload?.text || '';
+          const first = String(prose).split(/(?<=[.!?])\s+/)[0]?.trim();
+          if (!first) continue;
+          const key = first.slice(0, 120).toLowerCase();
+          if (seen.has(key)) continue;
+          seen.add(key);
+          out.push(first.length > 200 ? first.slice(0, 197) + '…' : first);
+          if (out.length >= 5) break;
+        }
+        if (!out.length) {
+          window.notify?.info?.('Nothing to suggest', { description: 'Approve a few entries first — highlights pull from your refined prose.' });
+          return;
+        }
+        update({ highlights: out });
+        window.notify?.success?.(`Pulled ${out.length} highlight${out.length === 1 ? '' : 's'}`);
+      }
+
+      const hasAny = !!(value.title?.trim() || value.reflection?.trim() || (value.highlights || []).length);
+      const storyCount = (reviewedRows || []).length;
+
+      return (
+        <section className="dayone-composer" aria-label="DayOne entry composer">
+          <header className="dayone-composer-head">
+            <div className="dayone-composer-head-text">
+              <span className="dayone-composer-eyebrow"><Icon name="fa-feather-pointed" /> Compose your DayOne entry</span>
+              <span className="dayone-composer-hint">
+                {storyCount > 0
+                  ? `${storyCount} ${storyCount === 1 ? 'entry below becomes' : 'entries below become'} the Story.`
+                  : 'Approve entries below — they become your Story.'}
+              </span>
+            </div>
+            {hasAny && (
+              <button
+                type="button"
+                className="dayone-composer-reset"
+                onClick={() => {
+                  if (!confirm('Clear Title, Highlights, and Reflection?')) return;
+                  onChange({ title: '', context: autoContext, highlights: [], reflection: '' });
+                }}
+                title="Reset all user-typed composer fields"
+              >
+                <Icon name="fa-rotate-left" /> Reset
+              </button>
+            )}
+          </header>
+
+          <div className="dayone-field dayone-field--title">
+            <label htmlFor="dayone-title" className="dayone-field-label">Title</label>
+            <input
+              id="dayone-title"
+              className="dayone-title-input"
+              type="text"
+              maxLength={90}
+              value={value.title || ''}
+              onChange={e => update({ title: e.target.value })}
+              placeholder="A short, specific line — the soul of the entry"
+              aria-describedby="dayone-title-meta"
+            />
+            <div id="dayone-title-meta" className="dayone-field-meta">
+              {(value.title || '').length}/90
+            </div>
+          </div>
+
+          <div className="dayone-field dayone-field--context">
+            <label htmlFor="dayone-context" className="dayone-field-label">Context</label>
+            <input
+              id="dayone-context"
+              className="dayone-context-input"
+              type="text"
+              value={value.context || ''}
+              onChange={e => update({ context: e.target.value })}
+              placeholder="Where, when, who"
+            />
+            {autoContext && value.context !== autoContext && (
+              <button
+                type="button"
+                className="dayone-context-reset"
+                onClick={() => update({ context: autoContext })}
+                title="Restore auto-derived context"
+              >
+                <Icon name="fa-wand-magic-sparkles" /> Use trip
+              </button>
+            )}
+          </div>
+
+          <div className="dayone-field dayone-field--highlights">
+            <div className="dayone-field-label-row">
+              <label className="dayone-field-label">Highlights</label>
+              <span className="dayone-field-meta">{(value.highlights || []).length}/5 bullets</span>
+            </div>
+            <ul className="dayone-highlights">
+              {(value.highlights || []).map((h, i) => (
+                <li key={i} className="dayone-highlight">
+                  <span className="dayone-highlight-bullet" aria-hidden="true">•</span>
+                  <input
+                    className="dayone-highlight-input"
+                    type="text"
+                    value={h}
+                    onChange={e => editHighlight(i, e.target.value)}
+                    placeholder="Key moment…"
+                  />
+                  <button
+                    type="button"
+                    className="dayone-highlight-remove"
+                    onClick={() => removeHighlight(i)}
+                    title="Remove this highlight"
+                    aria-label="Remove highlight"
+                  >
+                    <Icon name="fa-xmark" />
+                  </button>
+                </li>
+              ))}
+              {(value.highlights || []).length < 5 && (
+                <li className="dayone-highlight dayone-highlight--draft">
+                  <span className="dayone-highlight-bullet" aria-hidden="true">+</span>
+                  <input
+                    className="dayone-highlight-input"
+                    type="text"
+                    value={highlightDraft}
+                    onChange={e => setHighlightDraft(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') { e.preventDefault(); addHighlight(highlightDraft); }
+                    }}
+                    placeholder="Add a key moment…  (Enter to add)"
+                  />
+                  {highlightDraft.trim() && (
+                    <button
+                      type="button"
+                      className="dayone-highlight-add"
+                      onClick={() => addHighlight(highlightDraft)}
+                      title="Add this highlight"
+                    >
+                      <Icon name="fa-plus" />
+                    </button>
+                  )}
+                </li>
+              )}
+            </ul>
+            <div className="dayone-highlights-tools">
+              <button
+                type="button"
+                className="dayone-suggest-btn"
+                onClick={suggestHighlights}
+                disabled={!storyCount}
+                title="Pull the opening sentence from each Reviewed entry"
+              >
+                <Icon name="fa-sparkles" /> Suggest from entries
+              </button>
+            </div>
+          </div>
+
+          <div className="dayone-field dayone-field--reflection">
+            <label htmlFor="dayone-reflection" className="dayone-field-label">Reflection</label>
+            <textarea
+              id="dayone-reflection"
+              className="dayone-reflection-input"
+              rows={3}
+              value={value.reflection || ''}
+              onChange={e => update({ reflection: e.target.value })}
+              placeholder="What it meant. What stuck. What you'll carry from today."
+            />
+          </div>
+
+          {metadataLine && (
+            <div className="dayone-field dayone-field--metadata">
+              <label className="dayone-field-label">Metadata</label>
+              <div className="dayone-metadata-pill" title="Auto-derived from trip + entry kinds">
+                {metadataLine}
+              </div>
+            </div>
+          )}
+        </section>
+      );
+    }
+
     function LogModule() {
       // Tab UI removed in this iteration; the entire view is the inbox lane.
       // Filter is still applied via matchesLogTab so the visible set stays
@@ -2035,6 +2288,11 @@
       const [dayoneJournals, setDayoneJournals] = useState([]);
       const [dayoneJournal, setDayoneJournal] = useState('');
       const [dayonePushing, setDayonePushing] = useState(false);
+      const [tripCtx, setTripCtx] = useState(null);
+      // Composer survives reload per-trip. Cleared on successful
+      // Delete-Reviewed (the sink that ends the Copy → paste → archive cycle).
+      const [compose, setCompose] = useState({ title: '', context: '', highlights: [], reflection: '' });
+      const composeKey = tripSlug ? `journal.dayone.compose.${tripSlug}` : null;
       // Unlocks the "Delete Reviewed Entries" button after a successful Copy
       // in the current session. Resets on reload so stale tabs must re-copy.
       const [copiedOnce, setCopiedOnce] = useState(false);
@@ -2066,6 +2324,36 @@
       }
 
       useEffect(() => { loadEntries(); }, []);
+
+      // Hydrate composer + trip context whenever the active trip changes.
+      useEffect(() => {
+        if (!tripSlug) return;
+        try {
+          const raw = localStorage.getItem(`journal.dayone.compose.${tripSlug}`);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            setCompose({
+              title: typeof parsed?.title === 'string' ? parsed.title : '',
+              context: typeof parsed?.context === 'string' ? parsed.context : '',
+              highlights: Array.isArray(parsed?.highlights) ? parsed.highlights.filter(h => typeof h === 'string') : [],
+              reflection: typeof parsed?.reflection === 'string' ? parsed.reflection : '',
+            });
+          } else {
+            setCompose({ title: '', context: '', highlights: [], reflection: '' });
+          }
+        } catch { /* ignore malformed cache */ }
+        fetch(`${LOG_API_BASE}/api/trip/${encodeURIComponent(tripSlug)}/full`)
+          .then(r => r.json())
+          .then(d => { if (d?.ok) setTripCtx(d.trip); })
+          .catch(() => { /* composer still usable without trip metadata */ });
+      }, [tripSlug]);
+
+      // Persist composer edits — debounced via the reducer-free pattern: every
+      // change writes synchronously to localStorage. The payload is tiny.
+      useEffect(() => {
+        if (!composeKey) return;
+        try { localStorage.setItem(composeKey, JSON.stringify(compose)); } catch {}
+      }, [compose, composeKey]);
 
       // Single canonical filter pipeline — source of truth is `entries`.
       // Order: tab (inbox only) → source → review-lane split.
@@ -2211,7 +2499,7 @@
           const r = await fetch(`${LOG_API_BASE}/api/dayone/bundle`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tripSlug, entryIds, journal: dayoneJournal }),
+            body: JSON.stringify({ tripSlug, entryIds, journal: dayoneJournal, compose }),
           });
           const d = await r.json();
           if (!d?.ok) throw new Error(d?.error || 'bundle failed');
@@ -2247,6 +2535,9 @@
           if (!d?.ok) throw new Error(d?.error || 'delete failed');
           setEntries(prev => prev.filter(e => !isReviewed(e)));
           setCopiedOnce(false);
+          // Composer has done its job — clear so the next trip/session starts fresh.
+          setCompose({ title: '', context: '', highlights: [], reflection: '' });
+          if (composeKey) { try { localStorage.removeItem(composeKey); } catch {} }
           window.notify?.success?.(`Deleted ${d.entryCount} reviewed entries`, {
             description: d.photoCount ? `${d.photoCount} photo${d.photoCount === 1 ? '' : 's'} removed from disk.` : undefined,
           });
@@ -2467,6 +2758,16 @@
                     </button>
                   </div>
                 </div>
+              )}
+
+              {tab === 'inbox' && reviewView === 'reviewed' && (
+                <DayOneComposer
+                  tripSlug={tripSlug}
+                  tripCtx={tripCtx}
+                  reviewedRows={applyOrder(visible.filter(isReviewed))}
+                  value={compose}
+                  onChange={setCompose}
+                />
               )}
 
               <div className="log-entries">
