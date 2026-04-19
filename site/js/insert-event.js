@@ -806,6 +806,7 @@
 
     fetch(API_BASE + '/api/suggest-insert', {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
       signal: state.aiAbortCtrl.signal,
@@ -1021,6 +1022,7 @@
 
     fetch(API_BASE + '/api/insert-event', {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         tripSlug: slug,

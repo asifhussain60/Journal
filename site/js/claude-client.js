@@ -14,7 +14,10 @@
     if (host === "localhost" || host === "127.0.0.1" || host === "") {
       return "http://localhost:3001";
     }
-    return "https://journal-api.kashkole.com";
+    // Production: use same-origin relative paths. The Cloudflare Worker
+    // at journal.kashkole.com proxies /api/* to journal-api.kashkole.com,
+    // eliminating cross-origin preflight issues entirely.
+    return "";
   }
 
   const BASE = (window.BABU_AI_PROXY_URL || defaultApiBase()).replace(/\/+$/, "");

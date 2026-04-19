@@ -9,10 +9,12 @@
 # after first deploy via the project settings in the dashboard.
 
 name = "journal"
+main = "site-worker.js"
 compatibility_date = "2025-10-01"
 
 [assets]
 directory = "./site"
+binding = "ASSETS"
 # Treat 404s as SPA-style: fall back to index.html. Works for our itinerary
 # pages since they're top-level .html files, and for any future client-side
 # routing.

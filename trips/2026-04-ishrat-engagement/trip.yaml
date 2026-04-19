@@ -150,10 +150,28 @@
           "lat": 40.55395,
           "lng": -74.338093,
           "place_id": "openstreetmap:street:polyline:28596989",
-          "geocoded_at": "2026-04-19T16:29:38.581Z"
+          "geocoded_at": "2026-04-19T16:29:38.581Z",
+          "drive_min_to_next": 7
         },
         {
-          "time": "12:30 PM",
+          "time": "8:37 AM",
+          "event": "Dinner at The Pho House",
+          "venue": "Wick Plaza, 1199 Amboy Ave, Edison, NJ 08837",
+          "tag": "DINING",
+          "phone": "(732) 744-0123",
+          "rating": 4.7,
+          "notes": "Walk over in the same plaza for Shark Tank-famous rotisserie dough cones with soft serve. Open till 11 PM. [Shifted from 7:30 PM so it starts after Pho House dinner ends at ~7:45 PM.]",
+          "category": "Ice Cream · Sweet Cones",
+          "duration_min": 75,
+          "time_mode": "flex",
+          "lat": 40.529456,
+          "lng": -74.317879,
+          "place_id": "openstreetmap:street:polyline:28596916",
+          "geocoded_at": "2026-04-19T16:29:38.581Z",
+          "drive_min_to_next": 23
+        },
+        {
+          "time": "10:15 AM",
           "event": "Hotel Rest / Long Nap",
           "venue": "Home2 Suites by Hilton, 3 Jersey Ave, New Brunswick, NJ 08901",
           "tag": "REST",
@@ -166,26 +184,11 @@
           "lat": 40.480371,
           "lng": -74.467663,
           "place_id": "openstreetmap:street:polyline:28594523",
-          "geocoded_at": "2026-04-19T16:29:38.581Z"
+          "geocoded_at": "2026-04-19T16:29:38.581Z",
+          "drive_min_to_next": 24
         },
         {
-          "time": "6:30 PM",
-          "event": "Dinner at The Pho House",
-          "venue": "Wick Plaza, 1199 Amboy Ave, Edison, NJ 08837",
-          "tag": "DINING",
-          "phone": "(732) 225-8889",
-          "rating": 4.6,
-          "notes": "Vietnamese pho and rice plates (~15 min) — light and perfect for evening.",
-          "category": "Vietnamese · Pho & Rice Bowls",
-          "duration_min": 75,
-          "time_mode": "flex",
-          "lat": 40.529456,
-          "lng": -74.317879,
-          "place_id": "openstreetmap:street:polyline:28596916",
-          "geocoded_at": "2026-04-19T16:29:38.581Z"
-        },
-        {
-          "time": "8:00 PM",
+          "time": "1:39 PM",
           "event": "Dessert at Crispy Cones",
           "venue": "Wick Plaza, 1199 Amboy Ave, Edison, NJ 08837",
           "tag": "DINING",

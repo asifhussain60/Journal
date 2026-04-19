@@ -1458,7 +1458,7 @@
     const LOG_API_BASE = (window.BabuAI?.baseUrl ?? (
       window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === ''
         ? 'http://localhost:3001'
-        : 'https://journal-api.kashkole.com'
+        : '' // production: same-origin, Worker proxies /api/* to journal-api.kashkole.com
     ));
 
     const KIND_BADGE = {
@@ -2714,7 +2714,7 @@
 
       // Fetch feature flags on mount
       useEffect(() => {
-        fetch(`${LOG_API_BASE}/api/config`)
+        fetch(`${LOG_API_BASE}/api/config`, { credentials: 'include' })
           .then(r => r.json())
           .then(d => { if (d) setFeatureFlags(d); })
           .catch(() => {});
@@ -2722,7 +2722,7 @@
 
       // Fetch tag corpus on mount
       useEffect(() => {
-        fetch(`${LOG_API_BASE}/api/tag-corpus/top`)
+        fetch(`${LOG_API_BASE}/api/tag-corpus/top`, { credentials: 'include' })
           .then(r => r.json())
           .then(d => { if (d?.ok) setTagCorpus(d.top || []); })
           .catch(() => {});
@@ -2771,6 +2771,7 @@
           if (!tripSlug) return;
           fetch(`${LOG_API_BASE}/api/trip-edit`, {
             method: 'POST',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               tripSlug,
@@ -2784,7 +2785,7 @@
                 lastSavedTagsRef.current = nextTags; // advance rollback anchor
                 window.notify?.success?.('Tags saved', { duration: 1500 });
                 // Re-fetch corpus to include new tags
-                fetch(`${LOG_API_BASE}/api/tag-corpus/top`)
+                fetch(`${LOG_API_BASE}/api/tag-corpus/top`, { credentials: 'include' })
                   .then(r => r.json())
                   .then(d2 => { if (d2?.ok) setTagCorpus(d2.top || []); })
                   .catch(() => {});
@@ -2809,6 +2810,7 @@
         const next = [...current.filter(t => t !== tag), tag].slice(-50);
         fetch(`${LOG_API_BASE}/api/trip-edit`, {
           method: 'POST',
+          credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             tripSlug,
@@ -2876,6 +2878,7 @@
         try {
           const resp = await fetch(`${LOG_API_BASE}/api/trip-refine-all`, {
             method: 'POST',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json', 'Accept': 'text/event-stream' },
             body: JSON.stringify({
               tripId: tripSlug,
@@ -2979,6 +2982,7 @@
                 if (patches.length) {
                   const patchResp = await fetch(`${LOG_API_BASE}/api/trip-edit`, {
                     method: 'POST',
+                    credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ tripSlug, patches, baseVersion }),
                   }).then(r => r.json());
@@ -3039,6 +3043,7 @@
           })();
           const d = await fetch(`${LOG_API_BASE}/api/trip-refine-field`, {
             method: 'POST',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ tripId: tripSlug, requestId, field: 'narrative', photos, title: compose.title || '', subtitle: compose.context || '', dateRange, baseVersion }),
           }).then(r => r.json());
@@ -3054,6 +3059,7 @@
           // Persist to server
           const patchResp = await fetch(`${LOG_API_BASE}/api/trip-edit`, {
             method: 'POST',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               tripSlug,
@@ -3140,7 +3146,7 @@
 
       function loadEntries() {
         setLoading(true);
-        fetch(`${LOG_API_BASE}/api/log`)
+        fetch(`${LOG_API_BASE}/api/log`, { credentials: 'include' })
           .then(r => r.json())
           .then(data => {
             if (data.ok) { setEntries(data.entries); setTripSlug(data.tripSlug); }
@@ -3161,7 +3167,7 @@
         // Skip re-fetch if we already have this date's weather memoised on state.
         if (compose.weather?.date === date) return;
         let cancelled = false;
-        fetch(`${LOG_API_BASE}/api/weather?slug=${encodeURIComponent(tripSlug)}&date=${encodeURIComponent(date)}`)
+        fetch(`${LOG_API_BASE}/api/weather?slug=${encodeURIComponent(tripSlug)}&date=${encodeURIComponent(date)}`, { credentials: 'include' })
           .then(r => r.json())
           .then(d => {
             if (cancelled) return;
@@ -3194,7 +3200,7 @@
             setCompose({ title: '', context: '', reflection: '', date: todayIso(), weather: null });
           }
         } catch { /* ignore malformed cache */ }
-        fetch(`${LOG_API_BASE}/api/trip/${encodeURIComponent(tripSlug)}/full`)
+        fetch(`${LOG_API_BASE}/api/trip/${encodeURIComponent(tripSlug)}/full`, { credentials: 'include' })
           .then(r => r.json())
           .then(d => {
             if (d?.ok) {
@@ -3322,7 +3328,7 @@
 
       // Fetch DayOne journals on mount; default selection to the first.
       useEffect(() => {
-        fetch(`${LOG_API_BASE}/api/dayone/journals`)
+        fetch(`${LOG_API_BASE}/api/dayone/journals`, { credentials: 'include' })
           .then(r => r.json())
           .then(d => {
             if (!d?.ok || !Array.isArray(d.journals)) return;
@@ -3353,6 +3359,7 @@
         try {
           const r = await fetch(`${LOG_API_BASE}/api/dayone/bundle`, {
             method: 'POST',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ tripSlug, entryIds, journal: dayoneJournal, compose: { ...compose, dayoneTags } }),
           });
@@ -3389,7 +3396,7 @@
           const endpoint = lane === 'reviewed'
             ? `/api/trips/${encodeURIComponent(slug)}/reviewed`
             : `/api/trips/${encodeURIComponent(slug)}/unreviewed`;
-          const r = await fetch(`${LOG_API_BASE}${endpoint}`, { method: 'DELETE' });
+          const r = await fetch(`${LOG_API_BASE}${endpoint}`, { method: 'DELETE', credentials: 'include' });
           const d = await r.json();
           if (!d?.ok) throw new Error(d?.error || 'reset failed');
 
@@ -3426,7 +3433,7 @@
         try {
           const slug = tripSlug;
           if (!slug) throw new Error('no active trip');
-          const r = await fetch(`${LOG_API_BASE}/api/trips/${encodeURIComponent(slug)}/reviewed`, { method: 'DELETE' });
+          const r = await fetch(`${LOG_API_BASE}/api/trips/${encodeURIComponent(slug)}/reviewed`, { method: 'DELETE', credentials: 'include' });
           const d = await r.json();
           if (!d?.ok) throw new Error(d?.error || 'delete failed');
           setEntries(prev => prev.filter(e => !isReviewed(e)));
@@ -3449,7 +3456,7 @@
         if (!entry) return;
         setRejectTarget(null);
         try {
-          const r = await fetch(`${LOG_API_BASE}/api/log/${encodeURIComponent(entry.id)}`, { method: 'DELETE' });
+          const r = await fetch(`${LOG_API_BASE}/api/log/${encodeURIComponent(entry.id)}`, { method: 'DELETE', credentials: 'include' });
           const d = await r.json();
           if (!d.ok) throw new Error(d.error || 'delete failed');
           setEntries(prev => prev.filter(e => e.id !== entry.id));
@@ -3476,6 +3483,7 @@
           if (targetReviewStatus) payload.reviewStatus = targetReviewStatus;
           const r = await fetch(`${LOG_API_BASE}/api/log/capture`, {
             method: 'POST',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
           });
@@ -3541,7 +3549,7 @@
           const form = new FormData();
           form.append('photo', normalized);
           if (targetReviewStatus) form.append('reviewStatus', targetReviewStatus);
-          const r = await fetch(`${LOG_API_BASE}/api/log/capture`, { method: 'POST', body: form });
+          const r = await fetch(`${LOG_API_BASE}/api/log/capture`, { method: 'POST', credentials: 'include', body: form });
           const d = await r.json().catch(() => ({ ok: false, error: 'non-JSON response' }));
           if (d.ok) {
             window.notify?.success(`Photo captured: ${file.name || 'image'}`);
@@ -3582,7 +3590,7 @@
           form.append('photo', normalized);
           form.append('kind', 'receipt');
           if (targetReviewStatus) form.append('reviewStatus', targetReviewStatus);
-          const r = await fetch(`${LOG_API_BASE}/api/log/capture`, { method: 'POST', body: form });
+          const r = await fetch(`${LOG_API_BASE}/api/log/capture`, { method: 'POST', credentials: 'include', body: form });
           const d = await r.json();
           if (!d.ok) throw new Error(d.error || 'capture failed');
           window.notify?.success?.('Receipt uploaded — refining…');
