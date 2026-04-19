@@ -3187,3 +3187,121 @@ html{scroll-behavior:smooth}
     0 0 0 6px var(--accent);
 }
 
+/* ═══ TIMING CONFLICT — danger glow on infeasible events ═══
+   Applied only to current-day events where the schedule math proves the
+   transition is impossible (overlap, insufficient drive gap). The glow
+   is layered over the card's normal shadow so theme accent + state
+   shadows compose without conflict. Pulse is subtle — 3s ease so it
+   reads as a calm warning, not an alarm. */
+
+@keyframes conflict-pulse{
+  0%,100%{
+    box-shadow:
+      0 0 0 1.5px color-mix(in srgb, var(--error) 55%, transparent),
+      0 0 8px  color-mix(in srgb, var(--error) 25%, transparent),
+      0 0 20px color-mix(in srgb, var(--error) 12%, transparent);
+  }
+  50%{
+    box-shadow:
+      0 0 0 2px color-mix(in srgb, var(--error) 70%, transparent),
+      0 0 14px color-mix(in srgb, var(--error) 35%, transparent),
+      0 0 32px color-mix(in srgb, var(--error) 18%, transparent);
+  }
+}
+.event[data-timing-conflict] > .event-card{
+  border-color:color-mix(in srgb, var(--error) 50%, transparent);
+  animation:conflict-pulse 3s ease-in-out infinite;
+}
+/* Conflict badge — sits inline below the event meta, inside the
+   summary row. Terse label + icon so it reads in the visual flow
+   without demanding a hover. */
+.event-conflict-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:.35rem;
+  margin-top:.3rem;
+  padding:.2rem .55rem;
+  border-radius:999px;
+  font-size:.7rem;
+  font-weight:600;
+  letter-spacing:.03em;
+  color:var(--error);
+  background:color-mix(in srgb, var(--error) 10%, transparent);
+  border:1px solid color-mix(in srgb, var(--error) 22%, transparent);
+  white-space:nowrap;
+  line-height:1.4;
+}
+.event-conflict-badge i{
+  font-size:.68rem;
+}
+@media (prefers-reduced-motion:reduce){
+  .event[data-timing-conflict] > .event-card{ animation:none; }
+}
+/* Mobile: badge shrinks gracefully */
+@media (max-width:680px){
+  .event-conflict-badge{
+    font-size:.64rem;
+    padding:.15rem .4rem;
+    gap:.25rem;
+  }
+}
+
+/* ═══ SMALL-PHONE BREAKPOINT (iPhone SE 375px, Galaxy S21 360px) ═══
+   Tightens spacing so nothing overflows on narrow viewports.
+   Inherits everything from the 680px breakpoint above. */
+@media (max-width:420px){
+  .hero-card-inner{ padding:1rem 1rem; }
+  .hero-name-left,.hero-name-right{ font-size:clamp(1.8rem,8vw,2.4rem); }
+  .hero-amp{ font-size:clamp(2rem,9vw,2.6rem); }
+  .hero-subtitle{ font-size:clamp(.95rem,3.5vw,1.15rem); }
+  .stat-card{ padding:.85rem .9rem; }
+  .stat-card strong{ font-size:1.4rem; }
+  .day-header{
+    grid-template-columns:auto minmax(0,1fr) auto;
+    gap:.75rem;
+    padding:.85rem .75rem;
+  }
+  /* Hide weather widget on very small phones — saves ~80px/row */
+  .day-weather{ display:none; }
+  .day-title{ font-size:1.25rem; }
+  .day-label{ font-size:.68rem; }
+  .day-body{ padding:0 .75rem; }
+  .day-card.open .day-body .day-body-inner{ padding:0 .65rem .85rem; }
+  .event:has(.event-card){
+    grid-template-columns:44px 24px minmax(0,1fr);
+  }
+  .event-card{
+    grid-template-columns:40px minmax(0,1fr) auto;
+    gap:.45rem;
+    padding:.65rem .6rem;
+    border-radius:10px;
+  }
+  .event-icon{ width:40px; height:40px; font-size:1rem; border-radius:10px; }
+  .event-title{ font-size:.92rem; }
+  .event-meta{ font-size:.68rem; }
+  .event-meta-dot{ margin:0 .2rem; }
+  .event-time-col{ padding-right:.35rem; padding-top:.65rem; }
+  .event-time-col .event-time-head{ font-size:.75rem; }
+  .event-rail-num{ width:22px; height:22px; font-size:.75rem; top:.7rem; }
+  .event-rail::before,
+  .event-list > .event:first-child .event-rail::before{ top:1rem; }
+  .event-list > .event:last-child .event-rail::before{ height:1rem; }
+  .event-action-rail{ gap:.25rem; }
+  .event-delete-btn,
+  .alt-find-btn{ width:24px; height:24px; font-size:.65rem; }
+  .event-pin-btn{ width:16px; height:16px; font-size:.6rem; }
+  .event-conflict-badge{ font-size:.6rem; padding:.1rem .3rem; gap:.2rem; }
+  .itn-section{ padding:1rem .75rem; border-radius:var(--radius-lg); }
+  .section-header h2{ font-size:clamp(1.6rem,5vw,2rem); }
+  /* Flight cards: single column */
+  .flight-card{ padding:1rem 1rem; gap:.85rem; }
+  .fc-airport{ font-size:1.6rem; }
+  .fc-route{ min-width:120px; }
+  /* Budget mobile toggle */
+  .budget-mobile-toggle{ width:42px; height:42px; font-size:1.2rem; }
+  .fab{ font-size:.82rem; padding:.55rem .85rem; bottom:4.5rem; }
+  /* Modal panels: full-width on small phones */
+  .del-modal-panel{ width:calc(100vw - 1rem); padding:1.5rem 1.25rem 1.25rem; }
+  .alt-modal-panel{ width:calc(100vw - .75rem); border-radius:12px; }
+}
+

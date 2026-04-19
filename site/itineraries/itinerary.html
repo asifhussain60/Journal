@@ -736,6 +736,12 @@
         // mid-trip and the scroll lands on the correct anchor.
         recomputeItineraryStates();
 
+        // Flag timing conflicts on today's events (overlap / drive-gap).
+        // Runs via requestIdleCallback so it never blocks first paint.
+        if (typeof flagTimingConflicts === 'function') {
+          try { flagTimingConflicts(trip); } catch (e) { console.warn('[TIMING]', e); }
+        }
+
         if (preserve && snap) {
           // Restore exact scroll position — no smooth, no jump to a target.
           // The user stays anchored where they were before the refresh.
@@ -1938,8 +1944,15 @@
 
     // Single idempotent 60s tick — re-classifies so event state flips
     // through done → current → upcoming as the day progresses.
+    // Also re-evaluates timing conflicts (an event crossing into "done"
+    // may clear a conflict that was flagged earlier).
     if (window.__itineraryTickInterval) clearInterval(window.__itineraryTickInterval);
-    window.__itineraryTickInterval = setInterval(recomputeItineraryStates, 60 * 1000);
+    window.__itineraryTickInterval = setInterval(function() {
+      recomputeItineraryStates();
+      if (typeof flagTimingConflicts === 'function' && window.__tripData) {
+        try { flagTimingConflicts(window.__tripData); } catch (_) {}
+      }
+    }, 60 * 1000);
 
     // Scroll target into view, accounting for the fixed nav. If the target
     // day contains a "current" event, scroll to that event; otherwise the
@@ -2234,7 +2247,141 @@
         if (!severity || severity === 'none') return;
         applyGlowToDayEvents(header.closest('.day-card'), severity);
       });
+      // Re-evaluate timing conflicts now that drive data is available.
+      if (window.__tripData) flagTimingConflicts(window.__tripData);
     }
+
+    // ─── Timing-conflict detection (current day only) ─────────────────
+    // Runs off the main thread via requestIdleCallback (setTimeout fallback)
+    // so it never blocks paint or scroll. Examines consecutive events on
+    // today's day-card only. Flags overlap + insufficient drive gap by
+    // setting data-timing-conflict on the .event row and injecting a
+    // one-line badge inside .event-summary-text.
+    //
+    // Conflict rules:
+    //  1. OVERLAP  — Event B starts before Event A finishes.
+    //  2. DRIVE    — Gap between A's end and B's start is less than the
+    //               drive_min_to_next on event A.
+    //  3. BUFFER   — After accounting for A's duration + drive, Event B
+    //               starts < 5 min after the earliest possible arrival.
+    //
+    // Events without a parseable time are skipped (they can't conflict).
+    // Past events (data-state="done") are skipped — the conflict is moot.
+    var _conflictRafId = null;
+    function flagTimingConflicts(trip) {
+      // Debounce: cancel any pending idle callback from a prior call.
+      if (_conflictRafId) {
+        (typeof cancelIdleCallback === 'function' ? cancelIdleCallback : clearTimeout)(_conflictRafId);
+      }
+      var schedule = typeof requestIdleCallback === 'function' ? requestIdleCallback : function(fn) { return setTimeout(fn, 0); };
+      _conflictRafId = schedule(function() { _flagTimingConflictsSync(trip); });
+    }
+
+    function _parseConflictTime(dateIso, rawTime) {
+      if (!dateIso || !rawTime) return null;
+      // Strip leading ~ (approximate times) before the same parse logic
+      // used by recomputeItineraryStates.
+      var s = String(rawTime).replace(/^~\s*/, '').trim();
+      var m = s.match(/^(\d{1,2}):?(\d{2})?\s*(AM|PM|am|pm)?$/);
+      if (!m) return null;
+      var h = parseInt(m[1], 10);
+      var min = m[2] ? parseInt(m[2], 10) : 0;
+      var period = m[3] ? m[3].toUpperCase() : '';
+      if (period === 'PM' && h < 12) h += 12;
+      if (period === 'AM' && h === 12) h = 0;
+      var parts = dateIso.split('-');
+      if (parts.length !== 3) return null;
+      return new Date(
+        parseInt(parts[0], 10),
+        parseInt(parts[1], 10) - 1,
+        parseInt(parts[2], 10),
+        h, min, 0, 0
+      );
+    }
+
+    function _flagTimingConflictsSync(trip) {
+      if (!trip || !Array.isArray(trip.days)) return;
+      var todayIso = (function() {
+        var d = new Date();
+        return d.getFullYear() + '-' +
+          String(d.getMonth() + 1).padStart(2, '0') + '-' +
+          String(d.getDate()).padStart(2, '0');
+      })();
+
+      // Clean all previous conflict markers across every day.
+      document.querySelectorAll('.event[data-timing-conflict]').forEach(function(el) {
+        el.removeAttribute('data-timing-conflict');
+        var badge = el.querySelector('.event-conflict-badge');
+        if (badge) badge.remove();
+      });
+
+      // Find today's day object.
+      var todayDay = trip.days.find(function(d) { return d.date === todayIso; });
+      if (!todayDay || !todayDay.events || todayDay.events.length < 2) return;
+
+      var dayDate = todayDay.date;
+      var events = todayDay.events;
+      var now = Date.now();
+
+      // Walk consecutive pairs.
+      for (var i = 0; i < events.length - 1; i++) {
+        var evA = events[i];
+        var evB = events[i + 1];
+        var startA = _parseConflictTime(dayDate, evA.time);
+        var startB = _parseConflictTime(dayDate, evB.time);
+        if (!startA || !startB) continue;
+
+        // Skip if both events are already done — conflict is moot.
+        var durA = parseInt(evA.duration_min, 10);
+        if (!durA || isNaN(durA)) durA = 30; // sensible default
+        var endA = startA.getTime() + durA * 60000;
+        if (endA < now && startB.getTime() + 30 * 60000 < now) continue;
+
+        var driveMin = parseInt(evA.drive_min_to_next, 10);
+        if (isNaN(driveMin)) driveMin = 0;
+
+        var reason = null;
+        var earliestArrival = endA + driveMin * 60000;
+
+        if (startB.getTime() < endA) {
+          // Event B starts before A even finishes.
+          var overlapMin = Math.ceil((endA - startB.getTime()) / 60000);
+          reason = 'Overlaps previous by ' + overlapMin + ' min';
+        } else if (driveMin > 0 && startB.getTime() < earliestArrival) {
+          // Can't physically get there in time.
+          var shortfall = Math.ceil((earliestArrival - startB.getTime()) / 60000);
+          reason = shortfall + ' min short for ' + driveMin + ' min drive';
+        } else if (driveMin > 0 && (startB.getTime() - earliestArrival) < 5 * 60000) {
+          // Technically possible but dangerously tight (< 5 min buffer).
+          reason = 'Tight — only ' + Math.floor((startB.getTime() - earliestArrival) / 60000) + ' min buffer after drive';
+        }
+
+        if (!reason) continue;
+
+        // Find the DOM row for event B (it's the one that can't start on time).
+        var dayCard = document.querySelector('.day-card[data-day-date="' + dayDate + '"]');
+        if (!dayCard) continue;
+        var row = dayCard.querySelector('.event[data-event-idx="' + (i + 1) + '"]');
+        if (!row) continue;
+
+        row.setAttribute('data-timing-conflict', reason);
+        // Inject badge into .event-summary-text (below meta, above body).
+        var summaryText = row.querySelector('.event-summary-text');
+        if (summaryText && !summaryText.querySelector('.event-conflict-badge')) {
+          var badge = document.createElement('span');
+          badge.className = 'event-conflict-badge';
+          badge.setAttribute('role', 'status');
+          badge.innerHTML = '<i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>' + _escHtmlConflict(reason);
+          summaryText.appendChild(badge);
+        }
+      }
+    }
+    function _escHtmlConflict(s) {
+      var d = document.createElement('span');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+    window.flagTimingConflicts = flagTimingConflicts;
 
     // ─── Day spend donut ─────────────────────────────────────────────────
     // Fetches YNAB-sourced spend for the whole trip range in one call and
