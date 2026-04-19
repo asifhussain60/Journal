@@ -1796,5 +1796,55 @@
     "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-63c0cda7-7cd8-4b22-96bd-b64be7a985f0.yaml",
     "actor": "app",
     "status": "applied"
+  },
+  {
+    "schemaVersion": "1",
+    "id": "efeea64b-73e6-4e23-8a49-ead0a648836a",
+    "createdAt": "2026-04-19T14:21:48.668Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "Swap event 3.2 → Gusto Grill",
+    "patch": [
+      {
+        "op": "replace",
+        "path": "/days/2/events/1/event",
+        "value": "Gusto Grill"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/1/venue",
+        "value": "1050 Route 18 North, East Brunswick, NJ 08816"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/1/phone",
+        "value": "(732) 651-2737"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/1/rating",
+        "value": 4.4
+      }
+    ],
+    "inversePatch": [
+      {
+        "op": "replace",
+        "path": "/days/2/events/1/phone",
+        "value": "(732) 238-5800"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/1/venue",
+        "value": "N-Thai Palace, 1020 Route 18, East Brunswick, NJ 08816"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/1/event",
+        "value": "Light Lunch with Stephanie"
+      }
+    ],
+    "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-efeea64b-73e6-4e23-8a49-ead0a648836a.yaml",
+    "actor": "app",
+    "status": "applied"
   }
 ]
