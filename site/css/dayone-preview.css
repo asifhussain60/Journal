@@ -13,6 +13,50 @@
   gap: var(--space-4);
 }
 
+/* ─── Breadcrumb (top) ───────────────────────────── */
+.dayone-preview-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.92rem;
+  color: var(--text-muted);
+}
+
+.dayone-preview-breadcrumb-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font: inherit;
+  cursor: pointer;
+  transition: color var(--motion-fast), background var(--motion-fast), border-color var(--motion-fast);
+}
+
+.dayone-preview-breadcrumb-link:hover:not(:disabled) {
+  color: var(--accent);
+  background: var(--accent-a06);
+  border-color: var(--border-accent);
+}
+
+.dayone-preview-breadcrumb-link:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dayone-preview-breadcrumb-sep {
+  color: var(--text-muted);
+  user-select: none;
+}
+
+.dayone-preview-breadcrumb-current {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
 /* ─── Loading + empty states ─────────────────────── */
 .dayone-preview-loading,
 .dayone-preview-empty {
@@ -95,107 +139,22 @@
   border-top: 1px solid var(--border-subtle);
 }
 
-.dayone-preview-context {
+/* ─── Reflection (long-form, headline section) ───── */
+.dayone-preview-reflection {
   margin: 0;
-  font-size: 1.02rem;
-  color: var(--text-secondary);
+  font-family: var(--font-serif);
+  font-size: 1.18rem;
+  line-height: 1.7;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  letter-spacing: 0.005em;
 }
 
-.dayone-preview-context--empty {
+.dayone-preview-reflection--empty {
+  font-family: 'Inter', var(--font-sans);
+  font-size: 1rem;
   color: var(--text-muted);
   font-style: italic;
-}
-
-/* ─── Highlights (editable bullet list) ──────────── */
-.dayone-preview-highlights {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.dayone-preview-highlight-row {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-2);
-}
-
-.dayone-preview-highlight-bullet {
-  flex: 0 0 auto;
-  width: 1.4rem;
-  text-align: center;
-  color: var(--accent);
-  line-height: 1.6;
-  user-select: none;
-}
-
-.dayone-preview-highlight-input {
-  flex: 1 1 auto;
-  min-width: 0;
-  padding: 6px 10px;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  color: var(--text-primary);
-  font: inherit;
-  transition: border-color var(--motion-fast), background var(--motion-fast);
-}
-
-.dayone-preview-highlight-input:hover,
-.dayone-preview-highlight-input:focus {
-  background: var(--accent-a06);
-  border-color: var(--border-accent);
-  outline: none;
-}
-
-.dayone-preview-highlight-remove {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: color var(--motion-fast), border-color var(--motion-fast), background var(--motion-fast);
-}
-
-.dayone-preview-highlight-remove:hover {
-  color: var(--error);
-  border-color: color-mix(in srgb, var(--error) 35%, transparent);
-  background: color-mix(in srgb, var(--error) 10%, transparent);
-}
-
-.dayone-preview-highlight-add {
-  align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: 6px 12px;
-  margin-top: var(--space-1);
-  background: var(--accent-a08);
-  border: 1px dashed var(--border-accent);
-  border-radius: var(--radius-sm);
-  color: var(--accent);
-  font-size: 0.92rem;
-  cursor: pointer;
-  transition: background var(--motion-fast), border-color var(--motion-fast);
-}
-
-.dayone-preview-highlight-add:hover {
-  background: var(--accent-a14);
-  border-style: solid;
-}
-
-.dayone-preview-highlight-add:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
 }
 
 /* ─── Story blocks (1:1 per card) ────────────────── */
@@ -347,7 +306,6 @@
   color: var(--success);
 }
 
-.dayone-preview-back-btn,
 .dayone-preview-copy-btn {
   display: inline-flex;
   align-items: center;
@@ -358,21 +316,6 @@
   font-weight: 600;
   cursor: pointer;
   transition: background var(--motion-fast), border-color var(--motion-fast), color var(--motion-fast), transform var(--motion-fast);
-}
-
-.dayone-preview-back-btn {
-  background: transparent;
-  border: 1px solid var(--border-default);
-  color: var(--text-secondary);
-}
-
-.dayone-preview-back-btn:hover {
-  border-color: var(--border-accent);
-  color: var(--text-primary);
-  background: var(--accent-a06);
-}
-
-.dayone-preview-copy-btn {
   background: var(--accent);
   border: 1px solid var(--accent);
   color: var(--contrast-dark);
@@ -423,7 +366,6 @@
     flex-direction: column;
     align-items: stretch;
   }
-  .dayone-preview-back-btn,
   .dayone-preview-copy-btn {
     justify-content: center;
   }

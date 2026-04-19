@@ -3,10 +3,13 @@
 // GET  /api/dayone/journals     → curated DayOne journal shortlist.
 // POST /api/dayone/compose      → build a structured bundle from entry IDs and
 //                                 return JSON the preview UI can bind to:
-//                                   { title, context, highlights[],
+//                                   { title, reflection,
 //                                     story[{ entryId, photoRef, prose }],
 //                                     metadata, tags[], photoCount }
 //                                 No markdown/HTML emit. Cheap (no base64).
+//                                 Canonical sections: Title → Reflection →
+//                                 Story → Metadata. Context and Highlights
+//                                 were dropped on 2026-04-19 (preview redesign).
 // POST /api/dayone/bundle       → emit clipboard-ready markdown + HTML. Body:
 //                                   { tripSlug, journal, ...payload }
 //                                 Where `payload` is one of:
@@ -58,7 +61,6 @@ function entryHasPhoto(row) {
 function sanitizeCompose(raw) {
   const obj = raw && typeof raw === "object" ? raw : {};
   const title = typeof obj.title === "string" ? obj.title.trim() : "";
-  const context = typeof obj.context === "string" ? obj.context.trim() : "";
   const reflection = typeof obj.reflection === "string" ? obj.reflection.trim().slice(0, 2000) : "";
   const date = typeof obj.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(obj.date) ? obj.date : "";
   // Weather is client-fetched and sent back so the bundle stays deterministic
@@ -75,7 +77,7 @@ function sanitizeCompose(raw) {
   const dayoneTags = Array.isArray(obj.dayoneTags)
     ? obj.dayoneTags.map(t => (typeof t === "string" ? t.trim() : "")).filter(Boolean).slice(0, 30)
     : [];
-  return { title, context, reflection, date, weather, dayoneTags };
+  return { title, reflection, date, weather, dayoneTags };
 }
 
 // "2026-04-19" → "April 19, 2026" — human-friendly rendering for the
@@ -105,39 +107,22 @@ function buildDefaultMetadata(tripCtx, entries, date, weather) {
   return parts.join("  •  ");
 }
 
-// Auto-suggest Highlights bullets — one short sentence per card with prose,
-// up to `max`. Prefers cards with photos (they tend to anchor a moment).
-// User always overrides; this just seeds the field.
-function autoSuggestHighlights(entries, max = 5) {
-  const out = [];
-  const candidates = [...entries].sort((a, b) => {
-    const ap = entryHasPhoto(a) ? 0 : 1;
-    const bp = entryHasPhoto(b) ? 0 : 1;
-    return ap - bp;
-  });
-  for (const row of candidates) {
-    if (out.length >= max) break;
-    const prose = entryProse(row);
-    if (!prose) continue;
-    const firstSentence = (prose.match(/[^.!?]+[.!?]?/) || [prose])[0].trim();
-    if (firstSentence) out.push(firstSentence);
-  }
-  return out;
-}
-
 // Build the structured bundle from raw entries + trip context. This is the
 // shape the preview UI binds to and the shape the client edits and posts back
 // to /bundle when it's time to copy. Pure: no I/O.
+//
+// Canonical sections (locked 2026-04-19, post-preview-redesign):
+//   Title → Reflection → Story → Metadata
+// Context and Highlights were dropped from the bundle render — Context lives
+// in the Composer UI for the author's reference but doesn't ship; the per-card
+// prose carries the moment-by-moment beats that Highlights used to summarize.
 function composeStructured({ tripCtx, slug, entries, hints = {} }) {
   const title = (typeof hints.title === "string" && hints.title.trim())
     || niceTitle(tripCtx, slug);
 
-  const context = (typeof hints.context === "string" && hints.context.trim())
-    || [formatDateRange(entries), tripCtx?.location || tripCtx?.origin?.label || ""].filter(Boolean).join(" · ");
-
-  const highlights = Array.isArray(hints.highlights)
-    ? hints.highlights.map(h => String(h).trim()).filter(Boolean).slice(0, 5)
-    : autoSuggestHighlights(entries);
+  // Reflection is the bundle-level emotional through-line. Sourced from the
+  // composer's user-authored or AI-refined reflection field; empty is fine.
+  const reflection = typeof hints.reflection === "string" ? hints.reflection.trim() : "";
 
   // 1:1 — each card becomes one Story block. Empty (no prose, no photo) cards
   // are dropped at this layer; the client can re-include them by editing prose.
@@ -168,7 +153,7 @@ function composeStructured({ tripCtx, slug, entries, hints = {} }) {
   const metadata = (typeof hints.metadata === "string" && hints.metadata.trim())
     || buildDefaultMetadata(tripCtx, entries, hints.date, hints.weather);
 
-  return { title, context, highlights, story, metadata, tags };
+  return { title, reflection, story, metadata, tags };
 }
 
 // Validate + normalize a client-edited structured payload before emit. Trusts
@@ -176,11 +161,10 @@ function composeStructured({ tripCtx, slug, entries, hints = {} }) {
 function sanitizeComposed(raw) {
   const obj = raw && typeof raw === "object" ? raw : {};
   const title = typeof obj.title === "string" ? obj.title.trim() : "";
-  const context = typeof obj.context === "string" ? obj.context.trim() : "";
+  // Reflection cap mirrors sanitizeCompose's 2000-char reflection guard
+  // (legacy precedent) — it's the main long-form bundle-level field.
+  const reflection = typeof obj.reflection === "string" ? obj.reflection.trim().slice(0, 5000) : "";
   const metadata = typeof obj.metadata === "string" ? obj.metadata.trim() : "";
-  const highlights = Array.isArray(obj.highlights)
-    ? obj.highlights.map(h => (typeof h === "string" ? h.trim() : "")).filter(Boolean).slice(0, 5)
-    : [];
   const tags = Array.isArray(obj.tags)
     ? obj.tags.map(t => (typeof t === "string" ? t.trim() : "")).filter(Boolean).slice(0, 30)
     : [];
@@ -212,22 +196,18 @@ function sanitizeComposed(raw) {
         };
       }).filter(Boolean)
     : [];
-  return { title, context, highlights, story, metadata, tags };
+  return { title, reflection, story, metadata, tags };
 }
 
 // Serialize a structured bundle to DayOne markdown. Returns photoEntryOrder
 // shaped so collectPhotoPaths/loadPhotos work the same as the legacy path.
 function emitFromStructured(structured) {
-  const { title, context, highlights, story, metadata, tags } = structured;
+  const { title, reflection, story, metadata, tags } = structured;
 
   const out = [];
   out.push(`# ${title || "Untitled"}`);
-  if (context) {
-    out.push("", "## Context", context);
-  }
-  if (Array.isArray(highlights) && highlights.length) {
-    out.push("", "## Highlights", "");
-    for (const h of highlights) out.push(`- ${h}`);
+  if (reflection) {
+    out.push("", "## Reflection", reflection);
   }
 
   const photoEntryOrder = [];
@@ -265,27 +245,18 @@ function emitFromStructured(structured) {
 
 // Legacy path: server composes from raw entries + the old hints shape, then
 // emits. Kept so the unmodified clipboard call site still works during the
-// preview-feature rollout.
+// preview-feature rollout. Maps the legacy `compose.reflection` field into
+// the new structured `reflection` slot so existing callers keep working.
 function formatBundle({ tripCtx, slug, entries, compose: composeRaw }) {
   const composeHints = sanitizeCompose(composeRaw);
   const hints = {
     title: composeHints.title,
-    context: composeHints.context,
+    reflection: composeHints.reflection,
     date: composeHints.date,
     weather: composeHints.weather,
     tags: composeHints.dayoneTags,
-    // Legacy callers never asked for Highlights — suppress auto-suggest so
-    // the existing clipboard path produces byte-identical output.
-    highlights: [],
   };
   const structured = composeStructured({ tripCtx, slug, entries, hints });
-  // Legacy "Reflection" field was a single bundle-level paragraph. Inject it
-  // as a synthetic Context append so it still ships when callers pass it.
-  if (composeHints.reflection) {
-    structured.context = structured.context
-      ? `${structured.context}\n\n${composeHints.reflection}`
-      : composeHints.reflection;
-  }
   return emitFromStructured(structured);
 }
 
@@ -466,7 +437,7 @@ export function createDayoneRouter() {
       let markdown, photoEntryOrder, entryCount;
       if (composed && typeof composed === "object") {
         const sanitized = sanitizeComposed(composed);
-        if (!sanitized.story.length && !sanitized.highlights.length && !sanitized.context) {
+        if (!sanitized.story.length && !sanitized.reflection && !sanitized.title) {
           return res.status(400).json({ ok: false, error: "composed payload is empty" });
         }
         ({ markdown, photoEntryOrder } = emitFromStructured(sanitized));

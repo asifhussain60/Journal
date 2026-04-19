@@ -2875,20 +2875,25 @@
 
     // ─── DayOne Copy Preview ─────────────────────────────────────────────
     // Replaces the Story cards with a faithful render of the eventual
-    // clipboard payload. Title, Context, and Tags stay live-bound to the
-    // composer above (their fields render below the preview unchanged).
-    // Editable here: Highlights bullets and per-card include/exclude.
-    // Validation rules (DoR §12): hard-block Copy on empty title,
-    // >10 photos, >30 tags, >5 highlights.
+    // clipboard payload. Title, Reflection, and Tags stay live-bound to the
+    // composer above. Editable here: per-card include/exclude only — every
+    // other field is authored in the Composer and the preview just renders
+    // the result.
+    //
+    // Canonical sections (locked 2026-04-19):
+    //   Title (H1) → Reflection → Story → Metadata
+    // Context and Highlights were dropped — Context lives in the Composer
+    // for the author's reference but doesn't ship; per-card prose carries
+    // the moment-by-moment beats Highlights used to summarize.
+    //
+    // Validation: hard-block Copy on empty title, >10 photos, >30 tags.
     const DAYONE_PREVIEW_LIMITS = Object.freeze({
       maxTitleLen: 90,
       maxPhotos: 10,
       maxTags: 30,
-      maxHighlights: 5,
-      maxHighlightLen: 280,
     });
 
-    function validatePreview({ title, photoCount, tagCount, highlightCount }) {
+    function validatePreview({ title, photoCount, tagCount }) {
       if (!title || !title.trim()) return { ok: false, reason: 'Title required to copy' };
       if (photoCount > DAYONE_PREVIEW_LIMITS.maxPhotos) {
         return { ok: false, reason: `${photoCount} photos selected — DayOne accepts at most ${DAYONE_PREVIEW_LIMITS.maxPhotos}` };
@@ -2896,16 +2901,13 @@
       if (tagCount > DAYONE_PREVIEW_LIMITS.maxTags) {
         return { ok: false, reason: `${tagCount} tags — DayOne accepts at most ${DAYONE_PREVIEW_LIMITS.maxTags}` };
       }
-      if (highlightCount > DAYONE_PREVIEW_LIMITS.maxHighlights) {
-        return { ok: false, reason: `${highlightCount} highlights — keep it to ${DAYONE_PREVIEW_LIMITS.maxHighlights}` };
-      }
       return { ok: true, reason: 'Ready to copy' };
     }
 
     const DayonePreview = memo(function DayonePreview({
       composed,
       title,
-      context,
+      reflection,
       metadata,
       tags,
       onComposedChange,
@@ -2914,9 +2916,27 @@
       busy,
       loading,
     }) {
+      const breadcrumb = (
+        <nav className="dayone-preview-breadcrumb" aria-label="Preview navigation">
+          <button
+            type="button"
+            className="dayone-preview-breadcrumb-link"
+            onClick={onBack}
+            disabled={busy}
+            aria-label="Back to cards"
+          >
+            <Icon name="fa-arrow-left" />
+            <span>Cards</span>
+          </button>
+          <span className="dayone-preview-breadcrumb-sep" aria-hidden>›</span>
+          <span className="dayone-preview-breadcrumb-current" aria-current="page">Preview</span>
+        </nav>
+      );
+
       if (loading) {
         return (
           <div className="dayone-preview">
+            {breadcrumb}
             <div className="dayone-preview-loading" role="status" aria-live="polite">
               <Icon name="fa-circle-notch fa-spin" />
               <span>Composing preview…</span>
@@ -2927,13 +2947,13 @@
       if (!composed) {
         return (
           <div className="dayone-preview">
+            {breadcrumb}
             <div className="dayone-preview-empty" role="status" aria-live="polite">Nothing to preview.</div>
           </div>
         );
       }
 
       const story = Array.isArray(composed.story) ? composed.story : [];
-      const highlights = Array.isArray(composed.highlights) ? composed.highlights : [];
       const includedStory = story.filter(s => s.include !== false);
       const photoCount = includedStory.filter(s => s.photoRef).length;
 
@@ -2941,34 +2961,12 @@
         title,
         photoCount,
         tagCount: (tags || []).length,
-        highlightCount: highlights.length,
       });
 
-      function updateHighlights(next) {
-        onComposedChange({ ...composed, highlights: next });
-      }
-      function updateStory(next) {
-        onComposedChange({ ...composed, story: next });
-      }
-
-      function setHighlightAt(idx, value) {
-        const next = highlights.slice();
-        next[idx] = value;
-        updateHighlights(next);
-      }
-      function removeHighlightAt(idx) {
-        const next = highlights.slice();
-        next.splice(idx, 1);
-        updateHighlights(next);
-      }
-      function addHighlight() {
-        if (highlights.length >= DAYONE_PREVIEW_LIMITS.maxHighlights) return;
-        updateHighlights([...highlights, '']);
-      }
       function toggleStoryInclude(idx) {
         const next = story.slice();
         next[idx] = { ...next[idx], include: next[idx].include === false };
-        updateStory(next);
+        onComposedChange({ ...composed, story: next });
       }
 
       const photoSrc = (imagePath) => /^https?:\/\//.test(imagePath)
@@ -2977,11 +2975,13 @@
 
       const titleClass = title && title.trim() ? 'dayone-preview-h1' : 'dayone-preview-h1 is-empty';
       const titleText = title && title.trim() ? title.trim() : 'Untitled — set a title above';
+      const reflectionText = (reflection || '').trim();
       const validationClass = `dayone-preview-validation ${validation.ok ? 'is-ok' : 'is-error'}`;
       const validationIcon = validation.ok ? 'fa-circle-check' : 'fa-triangle-exclamation';
 
       return (
         <div className="dayone-preview">
+          {breadcrumb}
           <article className="dayone-preview-paper" aria-label="DayOne paste preview">
             <span className="dayone-preview-paper-eyebrow">
               <Icon name="fa-eye" /> Preview · what DayOne will receive
@@ -2989,58 +2989,20 @@
 
             <h1 className={titleClass}>{titleText}</h1>
 
-            {context && (
-              <section className="dayone-preview-section">
-                <h2 className="dayone-preview-h2">Context</h2>
-                <p className="dayone-preview-context">{context}</p>
-              </section>
-            )}
-
             <section className="dayone-preview-section">
-              <h2 className="dayone-preview-h2">Highlights</h2>
-              <ul className="dayone-preview-highlights">
-                {highlights.map((h, idx) => (
-                  <li key={idx} className="dayone-preview-highlight-row">
-                    <span className="dayone-preview-highlight-bullet" aria-hidden>•</span>
-                    <input
-                      type="text"
-                      className="dayone-preview-highlight-input"
-                      value={h}
-                      maxLength={DAYONE_PREVIEW_LIMITS.maxHighlightLen}
-                      onChange={e => setHighlightAt(idx, e.target.value)}
-                      placeholder="Highlight…"
-                      aria-label={`Highlight ${idx + 1}`}
-                    />
-                    <button
-                      type="button"
-                      className="dayone-preview-highlight-remove"
-                      onClick={() => removeHighlightAt(idx)}
-                      title="Remove highlight"
-                      aria-label={`Remove highlight ${idx + 1}`}
-                    >
-                      <Icon name="fa-xmark" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-              <button
-                type="button"
-                className="dayone-preview-highlight-add"
-                onClick={addHighlight}
-                disabled={highlights.length >= DAYONE_PREVIEW_LIMITS.maxHighlights}
-                title={highlights.length >= DAYONE_PREVIEW_LIMITS.maxHighlights
-                  ? `Max ${DAYONE_PREVIEW_LIMITS.maxHighlights} highlights`
-                  : 'Add a highlight bullet'}
-              >
-                <Icon name="fa-plus" /> Add highlight
-              </button>
+              <h2 className="dayone-preview-h2">Reflection</h2>
+              {reflectionText
+                ? <p className="dayone-preview-reflection">{reflectionText}</p>
+                : <p className="dayone-preview-reflection dayone-preview-reflection--empty">
+                    No reflection — write one in the Composer above.
+                  </p>}
             </section>
 
             <section className="dayone-preview-section">
               <h2 className="dayone-preview-h2">Story</h2>
               <div className="dayone-preview-story">
                 {story.length === 0 && (
-                  <p className="dayone-preview-context dayone-preview-context--empty">
+                  <p className="dayone-preview-reflection dayone-preview-reflection--empty">
                     No story blocks — approve some entries first.
                   </p>
                 )}
@@ -3092,16 +3054,6 @@
           </article>
 
           <div className="dayone-preview-actions">
-            <button
-              type="button"
-              className="dayone-preview-back-btn"
-              onClick={onBack}
-              disabled={busy}
-              aria-label="Back to cards"
-            >
-              <Icon name="fa-arrow-left" />
-              <span>Back to cards</span>
-            </button>
             <span className={validationClass} role="status" aria-live="polite">
               <Icon name={validationIcon} />
               <span>{validation.reason}</span>
@@ -3903,7 +3855,7 @@
               entryIds,
               hints: {
                 title: compose.title || '',
-                context: compose.context || '',
+                reflection: compose.reflection || '',
                 date: compose.date || '',
                 weather: compose.weather || null,
                 tags: dayoneTags || [],
@@ -3913,22 +3865,21 @@
           const d = await r.json();
           if (!d?.ok) throw new Error(d?.error || 'compose failed');
 
-          // Restore localStorage draft for this trip (DoR §9: persistence).
-          // Draft is keyed per-tripSlug so switching trips doesn't bleed state.
+          // Restore localStorage draft for this trip. Draft only persists
+          // per-card include flags now (Highlights are gone, every other
+          // field lives in the Composer). Keyed per-tripSlug so switching
+          // trips doesn't bleed state.
           let next = d.composed;
           try {
             const raw = tripSlug && localStorage.getItem(`dayone_preview_draft:${tripSlug}`);
             if (raw) {
               const draft = JSON.parse(raw);
-              if (draft && Array.isArray(draft.story) && Array.isArray(draft.highlights)) {
-                // Trust draft for highlights + per-block include flags only;
-                // server-derived photoRef/prose/entryId stay authoritative.
+              if (draft && Array.isArray(draft.story)) {
                 const draftIncludeMap = new Map(
                   draft.story.filter(s => s && s.entryId).map(s => [s.entryId, s.include !== false])
                 );
                 next = {
                   ...d.composed,
-                  highlights: draft.highlights,
                   story: d.composed.story.map(block => ({
                     ...block,
                     include: draftIncludeMap.has(block.entryId)
@@ -3971,13 +3922,13 @@
         }
         setPreviewBusy(true);
         try {
-          // Build the final structured payload: composer-bound title/context/
-          // tags layered onto the locally-edited composed (highlights + story
-          // include flags). Server re-sanitizes regardless.
+          // Build the final structured payload: composer-bound title /
+          // reflection / tags layered onto the locally-edited composed
+          // (per-card include flags). Server re-sanitizes regardless.
           const finalComposed = {
             ...previewComposed,
             title: compose.title || previewComposed.title,
-            context: compose.context || previewComposed.context,
+            reflection: compose.reflection || previewComposed.reflection || '',
             tags: dayoneTags && dayoneTags.length ? dayoneTags : previewComposed.tags,
           };
           const r = await fetch(`${LOG_API_BASE}/api/dayone/bundle`, {
@@ -4022,15 +3973,13 @@
         setPreviewMode(false);
       }
 
-      // Persist preview-only edits (highlights + per-block include flags)
-      // to localStorage on every change. Composer-bound fields (title, etc.)
-      // already have their own persistence. Save is debounced via React's
-      // own re-render cadence — no extra timer needed.
+      // Persist preview-only edits (per-card include flags) to localStorage
+      // on every change. Composer-bound fields (title, reflection, tags)
+      // have their own persistence — the preview only owns the include flags.
       useEffect(() => {
         if (!previewMode || !previewComposed || !tripSlug) return;
         try {
           const draft = {
-            highlights: previewComposed.highlights || [],
             story: (previewComposed.story || []).map(s => ({
               entryId: s.entryId,
               include: s.include !== false,
@@ -4406,14 +4355,14 @@
               className="log-dayone-push-btn"
               onClick={handleDayoneCopy}
               disabled={dayonePushing || previewLoading || !dayoneJournals.length}
-              title="Click to preview · ⌘/Ctrl-click to skip preview and copy directly"
-              aria-label={dayonePushing ? 'Copying to DayOne' : previewLoading ? 'Opening preview' : 'Copy to DayOne'}
+              title="Click to preview the DayOne entry · ⌘/Ctrl-click to skip preview and copy directly"
+              aria-label={dayonePushing ? 'Copying to DayOne' : previewLoading ? 'Opening preview' : 'Preview and copy DayOne entry'}
             >
-              <Icon name={(dayonePushing || previewLoading) ? 'fa-circle-notch fa-spin' : 'fa-copy'} />
+              <Icon name={(dayonePushing || previewLoading) ? 'fa-circle-notch fa-spin' : 'fa-eye'} />
               <span className="btn-label">
-                {dayonePushing ? ' Copying…'
-                  : previewLoading ? ' Opening preview…'
-                  : ' Copy to DayOne'}
+                {dayonePushing ? 'Copying…'
+                  : previewLoading ? 'Opening preview…'
+                  : 'Preview & Copy'}
               </span>
             </button>
           </div>
@@ -4679,7 +4628,7 @@
                   <DayonePreview
                     composed={previewComposed}
                     title={compose.title}
-                    context={compose.context}
+                    reflection={compose.reflection}
                     metadata={previewComposed?.metadata || ''}
                     tags={dayoneTags}
                     onComposedChange={setPreviewComposed}

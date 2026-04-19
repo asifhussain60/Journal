@@ -66,104 +66,88 @@
 .log-module .log-chip i,
 .log-module .log-action-btn i { font-size: var(--row-icon); line-height: 1; }
 
-/* ─── Push-to-DayOne controls (Phase 11b) — now hosted inside the composer's
-   footer action row (.dayone-actions). The legacy .log-dayone-push wrapper is
-   gone; .log-dayone-push-controls retains the journal-select + copy-button
-   pill styling. */
+/* ─── Reviewed-lane footer controls — three standard buttons in a row:
+   journal select (secondary), Preview & Copy (primary), Delete (destructive).
+   Decoupled (no fused pill); shared height + radius + padding for visual
+   parity. Hosted inside the composer's .dayone-actions row. */
 .log-dayone-push-controls {
   display: inline-flex;
-  align-items: stretch;
-  gap: 0;
-  border-radius: var(--radius-full);
-  background: linear-gradient(135deg,
-    color-mix(in srgb, var(--accent) 28%, transparent) 0%,
-    color-mix(in srgb, var(--accent) 14%, transparent) 100%);
-  border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
-  box-shadow:
-    0 0 22px rgba(var(--accent-rgb), 0.18),
-    var(--shadow-md);
-  overflow: hidden;
+  align-items: center;
+  gap: var(--space-3);
 }
+
+/* Shared button shape so all three controls measure the same. */
+.log-dayone-journal-select,
+.log-dayone-push-btn,
+.log-reviewed-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 42px;
+  padding: 0 18px;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 0.98rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+/* Secondary — target journal selector. */
 .log-dayone-journal-select {
   appearance: none;
   -webkit-appearance: none;
-  border: none;
-  background: var(--bg-tertiary);
+  background: var(--panel);
   color: var(--text-primary);
-  padding: 14px 36px 14px 18px;
-  font-family: inherit;
-  font-size: 1.05rem;
-  font-weight: 600;
-  cursor: pointer;
-  border-right: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  border: 1px solid var(--border-default);
+  padding-right: 36px;
   background-image: linear-gradient(45deg, transparent 50%, var(--text-muted) 50%),
                     linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
   background-position: calc(100% - 18px) center, calc(100% - 13px) center;
   background-size: 5px 5px, 5px 5px;
   background-repeat: no-repeat;
-  transition: background-color 160ms ease;
 }
 .log-dayone-journal-select:hover:not(:disabled) {
-  background-color: var(--bg-card-hover);
+  border-color: var(--border-accent);
+  background-color: var(--accent-a06);
 }
 .log-dayone-journal-select:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-.log-dayone-push-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 28px;
-  border: none;
-  background: transparent;
-  color: var(--accent);
-  font-family: inherit;
-  font-size: 1.1rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  transition: background 160ms ease, color 160ms ease;
-}
-.log-dayone-push-btn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent) 22%, transparent);
-}
-.log-dayone-push-btn:disabled {
-  opacity: 0.55;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
-/* Destructive companion to the Copy-to-DayOne pill. Stays locked (disabled
-   styling) until a successful Copy in the session, so the "copy first" flow
-   is visually enforced, not just behaviourally. */
+/* Primary — Preview & Copy. Solid accent so it reads as the main action. */
+.log-dayone-push-btn {
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: var(--contrast-dark);
+  box-shadow: var(--shadow-sm);
+}
+.log-dayone-push-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+.log-dayone-push-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Destructive — outlined ghost so it sits below the primary in hierarchy
+   but is unmistakably destructive. Stays locked (disabled styling) until a
+   successful Copy in the session. */
 .log-reviewed-delete-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 22px;
-  border-radius: var(--radius-full);
-  border: 1px solid color-mix(in srgb, var(--error) 50%, transparent);
-  background: linear-gradient(135deg,
-    color-mix(in srgb, var(--error) 22%, transparent) 0%,
-    color-mix(in srgb, var(--error) 10%, transparent) 100%);
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--error) 55%, transparent);
   color: var(--error);
-  font-family: inherit;
-  font-size: 1.05rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 .log-reviewed-delete-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg,
-    color-mix(in srgb, var(--error) 32%, transparent) 0%,
-    color-mix(in srgb, var(--error) 16%, transparent) 100%);
-  border-color: color-mix(in srgb, var(--error) 68%, transparent);
-  box-shadow: 0 0 16px color-mix(in srgb, var(--error) 32%, transparent);
-  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--error) 12%, transparent);
+  border-color: var(--error);
 }
 .log-reviewed-delete-btn:disabled {
-  opacity: 0.45;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
