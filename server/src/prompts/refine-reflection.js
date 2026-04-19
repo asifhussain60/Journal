@@ -1,7 +1,7 @@
 // prompts/refine-reflection.js — AI-powered trip reflection using voice DNA.
 // Two modes:
 //   1. Blank input → generate a reflection from approved captions
-//   2. User draft → enhance it in context of the captions
+//   2. User draft → polish the user's OWN text into journal voice (entries = context only)
 
 export default Object.freeze({
   name: "refine-reflection",
@@ -23,14 +23,19 @@ export default Object.freeze({
     "- Optionally, a user-written draft reflection.",
     "",
     "Your task:",
-    "- If no draft is provided: write a 2-4 sentence reflection that captures the emotional core of this day/trip. Draw only from the entries provided.",
-    "- If a draft IS provided: enhance and refine it — keep the user's intent and facts, improve the voice to match the fingerprint, and weave in context from the entries. Keep it concise (2-5 sentences).",
+    "- If NO draft is provided: write a 2-4 sentence reflection that captures the emotional core of this day/trip. Draw only from the entries provided.",
+    "- If a draft IS provided: you are polishing the user's OWN words into journal voice.",
+    "  STRICT RULES when a draft is provided:",
+    "  1. PRESERVE every specific observation, scene, and fact the user mentioned — even if phrased casually or colloquially.",
+    "  2. Rewrite the SENTENCES into the voice style, but do not replace, drop, or swap out the user's content for content from the entries.",
+    "  3. The entries are CONTEXT ONLY — use them to add one detail or texture if it enriches the draft, but the user's draft is the primary content.",
+    "  4. If the user wrote something that violates the voice fingerprint (e.g. a cliché phrase), rephrase it — do not delete the underlying observation.",
+    "  5. Keep it concise (2-5 sentences). Do not pad.",
     "",
-    "Rules:",
-    "- Match the voice fingerprint exactly. Obey every ABSOLUTE PROHIBITION.",
+    "Rules (both modes):",
     "- No markdown, no headings, no bullet points. Plain prose only.",
     "- No preamble like 'Here is the reflection:'. No trailing commentary.",
-    "- Do not invent events, people, or places not in the entries.",
+    "- Do not invent events, people, or places not in the entries or draft.",
     "- End naturally. No closing moral, lesson, or summary sentence.",
     "- Return ONLY the refined prose. Nothing else.",
   ].join("\n"),

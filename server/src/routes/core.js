@@ -135,10 +135,17 @@ export function createCoreRouter({ anthropic, DEFAULT_MODEL, KEY_SOURCE, PORT, A
     if (title) userParts.push(`Trip: ${title}`);
     if (context) userParts.push(`Context: ${context}`);
     if (date) userParts.push(`Date: ${date}`);
-    userParts.push("", "Approved entries:");
+
+    const hasDraft = draft && typeof draft === "string" && draft.trim();
+    if (hasDraft) {
+      // Draft goes FIRST so the model treats it as primary content, not an afterthought.
+      userParts.push("", "User's draft to refine (preserve the content, polish the voice):", draft.trim(), "");
+    }
+
+    userParts.push("Approved entries (context):");
     entries.filter(Boolean).forEach((e, i) => userParts.push(`${i + 1}. ${e}`));
-    if (draft && typeof draft === "string" && draft.trim()) {
-      userParts.push("", "User's draft reflection:", draft.trim());
+    if (!hasDraft) {
+      userParts.push("", "No draft provided — generate a reflection from the entries above.");
     }
 
     try {
