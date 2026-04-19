@@ -1449,7 +1449,7 @@
       voice:            { icon: 'fa-microphone',    label: 'Voice' },
       note:             { icon: 'fa-note-sticky',   label: 'Note' },
       itinerary:        { icon: 'fa-calendar-days', label: 'Itinerary' },
-      'unsorted-image': { icon: 'fa-image',         label: 'Image' },
+      'unsorted-image': { icon: 'fa-camera',        label: 'Photo' },
     };
 
     // Phase 11b: dummy preview entries — one per kind. Always rendered at the
@@ -1494,6 +1494,15 @@
         return ext ? `${ext} photo` : 'Photo';
       }
       return '(item)';
+    }
+
+    // Source-filter matcher — 'photo' pill matches both firmed photos and
+    // unsorted-image rows (pre-classify). Every other source is a literal
+    // kind match. Mirrors server-side predicate in routes/log.js.
+    function matchesLogSource(entry, source) {
+      if (!source || source === 'all') return true;
+      if (source === 'photo') return entry.kind === 'photo' || entry.kind === 'unsorted-image';
+      return entry.kind === source;
     }
 
     function matchesLogTab(entry, tab) {
@@ -1728,7 +1737,7 @@
       const flipTarget = kind === 'receipt' ? 'Photo' : 'Receipt';
       const title = clickable
         ? `Click to switch to ${flipTarget}`
-        : (kind === 'unsorted-image' ? 'Image kind not yet classified' : badge.label);
+        : (kind === 'unsorted-image' ? 'Photo kind not yet classified' : badge.label);
       return (
         <button
           type="button"
@@ -2481,7 +2490,7 @@
       // Order: tab (inbox only) → source → review-lane split.
       const baseVisible = entries
         .filter(e => matchesLogTab(e, tab))
-        .filter(e => sourceFilter === 'all' ? true : e.kind === sourceFilter);
+        .filter(e => matchesLogSource(e, sourceFilter));
 
       // Phase 11b: review lifecycle applies to ALL kinds in the Inbox tab.
       // Unreviewed lane shows entries with reviewStatus ∈ {unreviewed, in_review}.
@@ -2502,9 +2511,7 @@
       // for any such entry — they never hit the server. Dummies respect the
       // active Source filter so the filter behaves consistently across both
       // real and preview entries.
-      const filteredDummies = sourceFilter === 'all'
-        ? DUMMY_ENTRIES
-        : DUMMY_ENTRIES.filter(e => e.kind === sourceFilter);
+      const filteredDummies = DUMMY_ENTRIES.filter(e => matchesLogSource(e, sourceFilter));
 
       // Drag-and-drop ordering on the Reviewed lane only. The order array
       // is per-trip and lives in localStorage; entries not in the array
@@ -2687,15 +2694,23 @@
         }
       }
 
+      // Captures initiated from the Reviewed lane should land approved so the
+      // new row shows up in the active tab, not back in Unreviewed. Server
+      // honors `reviewStatus` on /api/log/capture when it's a legal initial
+      // transition ('unreviewed' → 'approved').
+      const targetReviewStatus = reviewView === 'reviewed' ? 'approved' : null;
+
       async function captureNote() {
         const text = noteText.trim();
         if (!text) return;
         setCapturing(true);
         try {
+          const payload = { kind: 'note', text };
+          if (targetReviewStatus) payload.reviewStatus = targetReviewStatus;
           const r = await fetch(`${LOG_API_BASE}/api/log/capture`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ kind: 'note', text }),
+            body: JSON.stringify(payload),
           });
           const d = await r.json();
           if (d.ok) { setNoteText(''); window.notify?.success('Note captured'); loadEntries(); }
@@ -2754,6 +2769,7 @@
           const normalized = await normalizeImageForUpload(file);
           const form = new FormData();
           form.append('photo', normalized);
+          if (targetReviewStatus) form.append('reviewStatus', targetReviewStatus);
           const r = await fetch(`${LOG_API_BASE}/api/log/capture`, { method: 'POST', body: form });
           const d = await r.json().catch(() => ({ ok: false, error: 'non-JSON response' }));
           if (d.ok) {
@@ -2786,6 +2802,7 @@
           const form = new FormData();
           form.append('photo', normalized);
           form.append('kind', 'receipt');
+          if (targetReviewStatus) form.append('reviewStatus', targetReviewStatus);
           const r = await fetch(`${LOG_API_BASE}/api/log/capture`, { method: 'POST', body: form });
           const d = await r.json();
           if (!d.ok) throw new Error(d.error || 'capture failed');

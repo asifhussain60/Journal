@@ -1574,5 +1574,32 @@
     "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-d7ada6d0-8dc0-4a26-9756-c930989b8f86.yaml",
     "actor": "app",
     "status": "applied"
+  },
+  {
+    "schemaVersion": "1",
+    "id": "123efc08-a4e3-4679-9e20-7c9e7dbd39f8",
+    "createdAt": "2026-04-19T10:21:59.538Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "auto-geocode",
+    "patch": [
+      {
+        "op": "add",
+        "path": "/coords",
+        "value": {
+          "lat": 40.48622,
+          "lng": -74.45182
+        }
+      }
+    ],
+    "inversePatch": [
+      {
+        "op": "remove",
+        "path": "/coords"
+      }
+    ],
+    "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-123efc08-a4e3-4679-9e20-7c9e7dbd39f8.yaml",
+    "actor": "auto",
+    "status": "applied"
   }
 ]

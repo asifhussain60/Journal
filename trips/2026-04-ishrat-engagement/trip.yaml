@@ -677,5 +677,9 @@
   "created": "2026-04-14",
   "last_updated": "2026-04-17",
   "photo_count": 0,
-  "journal_entries": 9
+  "journal_entries": 9,
+  "coords": {
+    "lat": 40.48622,
+    "lng": -74.45182
+  }
 }

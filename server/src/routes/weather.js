@@ -18,7 +18,7 @@
 // unauthenticated but we still want to be polite.
 
 import express from "express";
-import { readTripObj } from "../lib/trip-edit-ops.js";
+import { readTripObj, applyTripEdit } from "../lib/trip-edit-ops.js";
 
 const CACHE = new Map();
 const CACHE_TTL_MS = 30 * 60 * 1000;
@@ -75,11 +75,36 @@ async function resolveTripCoords(slug) {
   for (const q of queries) {
     try {
       const hit = await geocodeQuery(q);
-      if (hit) { GEOCODE_CACHE.set(slug, hit); return hit; }
+      if (hit) {
+        GEOCODE_CACHE.set(slug, hit);
+        // Persist the resolved coords back to trip.yaml so every future server
+        // boot (and the human, browsing the file) can see them. Best-effort —
+        // a failed write logs but never blocks the weather call.
+        persistTripCoords(slug, { lat: hit.lat, lng: hit.lng }).catch((err) => {
+          console.warn(`[weather] persist coords ${slug}: ${err?.message ?? err}`);
+        });
+        return hit;
+      }
     } catch { /* try next candidate */ }
   }
   GEOCODE_CACHE.set(slug, { failed: "geocode-empty", at: Date.now() });
   return null;
+}
+
+// One-shot write of resolved coords back to trip.yaml using the Phase 6
+// trip-edit flow so the edit is snapshotted + recorded in edit-log.json.
+// Guarded: skip if coords are already present or the trip.yaml read failed.
+async function persistTripCoords(slug, coords) {
+  let trip;
+  try { trip = await readTripObj(slug); } catch { return; }
+  if (typeof trip?.coords?.lat === "number" && typeof trip?.coords?.lng === "number") return;
+  const patch = [{
+    op: "coords" in (trip || {}) ? "replace" : "add",
+    path: "/coords",
+    value: { lat: coords.lat, lng: coords.lng },
+  }];
+  const result = await applyTripEdit(slug, { intent: "auto-geocode", patch, actor: "auto" });
+  if (!result.ok) throw new Error(result.error || "applyTripEdit failed");
 }
 
 // Open-Meteo WMO weather codes → icon + label + outdoor severity.

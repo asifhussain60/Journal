@@ -24,7 +24,7 @@ import { fromPending } from "../adapters/fromPending.js";
 import { fromVoiceInbox } from "../adapters/fromVoiceInbox.js";
 import { fromItineraryInbox } from "../adapters/fromItineraryInbox.js";
 import { fromDeadLetter } from "../adapters/fromDeadLetter.js";
-import { applyInitialStates, assertInitial, assertTransition, TransitionError } from "../lib/workflow-state.js";
+import { applyInitialStates, assertInitial, assertTransition, TransitionError, INITIAL_STATES } from "../lib/workflow-state.js";
 import { readTripObj } from "../lib/trip-edit-ops.js";
 import { loadPrompt } from "../prompts/index.js";
 import { fileURLToPath } from "node:url";
@@ -183,9 +183,15 @@ export function createLogRouter({ queueValidators, anthropic, DEFAULT_MODEL, cla
       ];
 
       // --- Source filter
+      // 'photo' matches both firmed photos and pre-classify unsorted-image rows
+      // so the Photo pill shows a freshly-uploaded image before classify fires.
       let visible = entries;
       if (source && source !== "all") {
-        visible = visible.filter((e) => e.kind === source);
+        visible = visible.filter((e) =>
+          source === "photo"
+            ? e.kind === "photo" || e.kind === "unsorted-image"
+            : e.kind === source
+        );
       }
 
       // --- Placement filter
@@ -296,6 +302,26 @@ export function createLogRouter({ queueValidators, anthropic, DEFAULT_MODEL, cla
         });
       }
 
+      // Honor an explicit targetReviewStatus from the client (set when the
+      // capture happens on the Reviewed lane) so the row lands in the active
+      // lane instead of always starting in Unreviewed. Runs after assertInitial
+      // so the state-machine invariants still hold on the transition itself.
+      const requestedReviewStatus = req.body?.reviewStatus;
+      if (requestedReviewStatus && requestedReviewStatus !== INITIAL_STATES.reviewStatus) {
+        try {
+          assertTransition("reviewStatus", row.reviewStatus, requestedReviewStatus);
+          row.reviewStatus = requestedReviewStatus;
+          if (requestedReviewStatus === "approved") {
+            row.reviewedAt = new Date().toISOString();
+          }
+        } catch (err) {
+          if (err instanceof TransitionError) {
+            return res.status(400).json({ ok: false, error: err.message });
+          }
+          throw err;
+        }
+      }
+
       const { count } = await appendQueueRow(slug, "pending", row);
       shadow("queue-pending", row);
 
@@ -305,7 +331,7 @@ export function createLogRouter({ queueValidators, anthropic, DEFAULT_MODEL, cla
         classifyQueue.enqueue({ slug, id: row.id, imagePath: row.payload.imagePath });
       }
 
-      res.json({ ok: true, id: row.id, kind: row.kind, tripSlug: slug, count });
+      res.json({ ok: true, id: row.id, kind: row.kind, reviewStatus: row.reviewStatus, tripSlug: slug, count });
     } catch (err) {
       res.status(500).json({ ok: false, error: err?.message ?? String(err) });
     }
