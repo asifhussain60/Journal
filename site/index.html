@@ -2827,6 +2827,15 @@
       const handleRefineAll = useCallback((...args) => handleRefineAllImplRef.current?.(...args), []);
       const handleReSynth    = useCallback((...args) => handleReSynthImplRef.current?.(...args), []);
 
+      // E4: debug logger — gated by localStorage.DEBUG_REFINE === 'true'
+      function debugRefineLog(label, data) {
+        if (typeof localStorage !== 'undefined' && localStorage.getItem('DEBUG_REFINE') === 'true') {
+          console.groupCollapsed(`[refine-all] ${label}`);
+          if (data !== undefined) console.log(data);
+          console.groupEnd();
+        }
+      }
+
       // Refine All handler (C2) — SSE streaming, atomic commit (D10, D12)
       // (Registered in handleRefineAllImplRef so the stable useCallback proxy always calls the latest closure.)
       async function handleRefineAllImpl() {
@@ -2886,6 +2895,7 @@
             throw new Error(err.error || `HTTP ${resp.status}`);
           }
 
+          debugRefineLog('SSE connected', { status: resp.status, requestId });
           const reader = resp.body.getReader();
           const decoder = new TextDecoder();
           let buf = '';
@@ -2983,13 +2993,20 @@
                   }
                 }
                 window.notify?.success?.('Refine All complete');
+                debugRefineLog('complete', data);
               } else if (event === 'error') {
-                throw new Error(Object.values(data.errors || {}).join('; ') || 'Refine All failed');
+                // E4: name which orchestrator(s) failed in the toast
+                const failedParts = Object.entries(data.errors || {}).map(([k, v]) => `${k}: ${v}`);
+                debugRefineLog('SSE error', data.errors);
+                throw new Error(failedParts.join('; ') || 'Refine All failed');
+              } else {
+                debugRefineLog(`event:${event}`, data);
               }
             }
           }
         } catch (err) {
           if (err.name === 'AbortError') return;
+          debugRefineLog('error caught', { message: err.message });
           setRefineState(rs => ({
             reflection: { ...rs.reflection, status: rs.reflection.status === 'edited' ? 'edited' : 'failed' },
             tags: { status: 'failed' },
