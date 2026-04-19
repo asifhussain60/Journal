@@ -2477,21 +2477,6 @@
             </div>
             <div className="dayone-composer-head-actions">
               {captureActions}
-              {hasAny && (
-                <button
-                  type="button"
-                  className="dayone-composer-reset"
-                  onClick={() => {
-                    if (!confirm('Clear Title and Reflection?')) return;
-                    onChange({ title: '', context: autoContext, reflection: '' });
-                  }}
-                  title="Reset user-typed fields"
-                  aria-label="Reset user-typed fields"
-                >
-                  <Icon name="fa-rotate-left" />
-                  <span className="btn-label"> Reset</span>
-                </button>
-              )}
             </div>
           </header>
 
@@ -2566,6 +2551,21 @@
                 >
                   <Icon name={reflectionRefining ? 'fa-circle-notch fa-spin' : 'fa-wand-magic-sparkles'} />
                 </button>
+                {hasAny && (
+                  <button
+                    type="button"
+                    className="dayone-composer-reset"
+                    onClick={() => {
+                      if (!confirm('Clear Title and Reflection?')) return;
+                      onChange({ title: '', context: autoContext, reflection: '' });
+                    }}
+                    title="Reset user-typed fields"
+                    aria-label="Reset user-typed fields"
+                  >
+                    <Icon name="fa-rotate-left" />
+                    <span className="btn-label"> Reset</span>
+                  </button>
+                )}
               </div>
             </div>
             {/* Status badges row (D9) */}
