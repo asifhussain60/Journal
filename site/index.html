@@ -1528,6 +1528,38 @@
       return new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     }
 
+    // Turn a server-sent error string into something presentable. Defense in
+    // depth — the server already sanitises upstream Anthropic errors, but old
+    // callers, non-refine endpoints, and network-layer errors still surface
+    // raw "NNN {json...}" blobs. We unwrap the JSON body if we see one, and
+    // otherwise trim to a single short line.
+    function friendlyError(raw) {
+      if (!raw) return 'Something went wrong.';
+      const s = typeof raw === 'string' ? raw : (raw?.message || String(raw));
+      const jsonStart = s.indexOf('{');
+      if (jsonStart >= 0) {
+        try {
+          const body = JSON.parse(s.slice(jsonStart));
+          const inner = body?.error?.message || body?.error?.error?.message;
+          if (typeof inner === 'string' && inner.trim()) return inner.trim();
+        } catch { /* not JSON — fall through */ }
+      }
+      const statusMatch = /^(\d{3})\b/.exec(s);
+      if (statusMatch) {
+        const byCode = {
+          '400': 'Request was invalid — the image or input may be unreadable.',
+          '401': 'Not authorized.',
+          '413': 'Input was too large.',
+          '429': 'Rate-limited — try again shortly.',
+          '500': 'Server error — try again.',
+          '502': 'AI service is temporarily unavailable.',
+          '503': 'Service is temporarily unavailable.',
+        };
+        if (byCode[statusMatch[1]]) return byCode[statusMatch[1]];
+      }
+      return s.length > 180 ? s.slice(0, 177) + '…' : s;
+    }
+
     // ─── Visual thumbnail: photo-forward; iconic tile otherwise ───
     function LogEntryThumb({ entry }) {
       const kind = entry.kind;
@@ -1789,7 +1821,7 @@
             setRefineError('No refined text returned');
           }
         } catch (err) {
-          setRefineError(err.message || String(err));
+          setRefineError(friendlyError(err));
         } finally {
           setRefining(false);
         }
@@ -1954,7 +1986,17 @@
 
           {refineError && (
             <div className="review-card-error" role="alert">
-              <Icon name="fa-triangle-exclamation" /> {refineError}
+              <Icon name="fa-triangle-exclamation" />
+              <span className="review-card-error-msg">{refineError}</span>
+              <button
+                type="button"
+                className="review-card-error-dismiss"
+                onClick={() => setRefineError('')}
+                aria-label="Dismiss error"
+                title="Dismiss"
+              >
+                <Icon name="fa-xmark" />
+              </button>
             </div>
           )}
 
@@ -2613,17 +2655,19 @@
           const form = new FormData();
           form.append('photo', file);
           const r = await fetch(`${LOG_API_BASE}/api/log/capture`, { method: 'POST', body: form });
-          const d = await r.json();
+          const d = await r.json().catch(() => ({ ok: false, error: 'non-JSON response' }));
           if (d.ok) {
-            window.notify?.success('Photo captured');
+            window.notify?.success(`Photo captured: ${file.name || 'image'}`);
             loadEntries();
             // Server runs Vision classify async (~1\u20132s). Re-load shortly to
             // pick up the firmed kind so the card shows photo/receipt instead
             // of the transient unsorted-image.
             setTimeout(loadEntries, 2000);
-          } else window.notify?.error('Photo capture failed', { description: d.error });
+          } else {
+            window.notify?.error('Photo capture failed', { description: friendlyError(d.error || `HTTP ${r.status}`) });
+          }
         } catch (err) {
-          window.notify?.error('Photo capture failed', { description: err.message });
+          window.notify?.error('Photo capture failed', { description: friendlyError(err) });
         } finally {
           setCapturing(false);
           if (sourceRef?.current) sourceRef.current.value = '';
@@ -2794,9 +2838,19 @@
             multiple
             ref={photoLibraryRef}
             style={{ display: 'none' }}
-            onChange={e => {
+            onChange={async e => {
               const files = Array.from(e.target.files || []);
-              files.forEach(f => capturePhoto(f, photoLibraryRef));
+              if (!files.length) return;
+              // Serialize uploads — pending.json is a read-modify-write queue
+              // and the server's per-file mutex protects against concurrent
+              // writers, but firing N parallel fetches still double-triggers
+              // loadEntries and spams the classify queue. Sequential keeps
+              // toasts + refreshes in lockstep with visible progress.
+              for (const f of files) {
+                try { await capturePhoto(f, null); }
+                catch { /* capturePhoto handles its own toast */ }
+              }
+              if (photoLibraryRef.current) photoLibraryRef.current.value = '';
             }}
           />
           <input

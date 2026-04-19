@@ -9,6 +9,7 @@
 import { readFile, writeFile, rename, mkdir, stat } from "node:fs/promises";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -66,29 +67,48 @@ export async function getActiveTripSlug() {
   return slug;
 }
 
-/** Crash-safe write: temp file + rename. */
+/** Crash-safe write: temp file + rename. The tmp suffix carries a per-call
+ *  UUID so two concurrent writers never clobber each other's staging file. */
 export async function atomicWriteJSON(filePath, data) {
   await mkdir(path.dirname(filePath), { recursive: true });
-  const tmp = `${filePath}.${process.pid}.tmp`;
+  const tmp = `${filePath}.${process.pid}.${randomUUID().slice(0, 8)}.tmp`;
   await writeFile(tmp, JSON.stringify(data, null, 2) + "\n", "utf8");
   await rename(tmp, filePath);
 }
 
-/** Append one row to trips/{slug}/{name}.json. Creates the file if absent. */
+/** Per-path mutex chain so read-modify-write helpers don't race when called
+ *  concurrently. Keyed by absolute file path; the chain dissolves once its
+ *  last waiter settles so the map doesn't grow unbounded. */
+const _writeChains = new Map();
+function withFileLock(filePath, work) {
+  const prev = _writeChains.get(filePath) ?? Promise.resolve();
+  const next = prev.catch(() => {}).then(work);
+  _writeChains.set(filePath, next);
+  next.finally(() => {
+    if (_writeChains.get(filePath) === next) _writeChains.delete(filePath);
+  });
+  return next;
+}
+
+/** Append one row to trips/{slug}/{name}.json. Creates the file if absent.
+ *  Guarded by a per-file mutex so concurrent callers don't lose rows via a
+ *  read-modify-write race (e.g. multi-photo library uploads). */
 export async function appendQueueRow(slug, name, row) {
   const filePath = path.join(TRIPS_DIR, slug, `${name}.json`);
-  let items = [];
-  try {
-    const raw = await readFile(filePath, "utf8");
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) items = parsed;
-    else if (Array.isArray(parsed?.items)) items = parsed.items;
-  } catch (err) {
-    if (err.code !== "ENOENT") throw err;
-  }
-  items.push(row);
-  await atomicWriteJSON(filePath, items);
-  return { filePath, count: items.length };
+  return withFileLock(filePath, async () => {
+    let items = [];
+    try {
+      const raw = await readFile(filePath, "utf8");
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) items = parsed;
+      else if (Array.isArray(parsed?.items)) items = parsed.items;
+    } catch (err) {
+      if (err.code !== "ENOENT") throw err;
+    }
+    items.push(row);
+    await atomicWriteJSON(filePath, items);
+    return { filePath, count: items.length };
+  });
 }
 
 /** Read trips/{slug}/{name}.json. Returns [] when file missing. */

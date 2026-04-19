@@ -1166,7 +1166,7 @@
 
 .review-card-error {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   padding: 8px 10px;
   border-radius: var(--radius-sm);
@@ -1175,6 +1175,35 @@
   color: var(--error);
   font-size: 0.9rem;
   line-height: 1.4;
+  min-width: 0;
+}
+.review-card-error > i { padding-top: 2px; flex-shrink: 0; }
+.review-card-error-msg {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-height: 8.4em;  /* ~6 lines before we scroll, so a verbose upstream
+                         payload still fits without ballooning the card */
+  overflow-y: auto;
+}
+.review-card-error-dismiss {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--error);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  transition: background 140ms ease;
+}
+.review-card-error-dismiss:hover {
+  background: color-mix(in srgb, var(--error) 22%, transparent);
 }
 
 /* ─── Action footer ─── */

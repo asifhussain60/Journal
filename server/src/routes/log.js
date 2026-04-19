@@ -38,6 +38,32 @@ const FINGERPRINT_PATH = path.resolve(__dirname, "../../../reference/voice-finge
 // text alone, it just loses the location/mood read from the image.
 const REFINE_VISION_MAX_BYTES = 4 * 1024 * 1024;
 
+// Turn a noisy upstream error into something the user can act on. The Anthropic
+// SDK stringifies its error message as `"400 {...json...}"` which is useless on
+// screen. Prefer the inner `error.message` when present, map common status
+// codes to a short English sentence otherwise, and only fall back to the raw
+// message if nothing cleaner is available.
+function friendlyUpstreamError(err) {
+  const inner = err?.error?.error?.message || err?.error?.message;
+  if (inner && typeof inner === "string") return inner;
+  const raw = typeof err?.message === "string" ? err.message : String(err);
+  const statusMatch = /^(\d{3})\b/.exec(raw);
+  if (statusMatch) {
+    const status = Number(statusMatch[1]);
+    const byCode = {
+      400: "Couldn't process that request — the image or input may be unreadable.",
+      401: "Not authorized to call the AI service.",
+      413: "Input was too large to refine.",
+      429: "AI service is rate-limited right now — try again in a minute.",
+      500: "AI service returned an upstream error.",
+      502: "AI service is temporarily unavailable.",
+      503: "AI service is temporarily unavailable.",
+    };
+    if (byCode[status]) return byCode[status];
+  }
+  return raw.length > 160 ? raw.slice(0, 157) + "…" : raw;
+}
+
 // Resolve `row.payload.imagePath` (stored as a repo-relative POSIX path like
 // "trips/slug/photos/ph_abc.jpg") to an absolute path on disk. Returns null if
 // the payload doesn't carry a photo reference or the path escapes REPO_ROOT.
@@ -610,7 +636,11 @@ export function createLogRouter({ queueValidators, anthropic, DEFAULT_MODEL, cla
         vision: visionMeta,
       });
     } catch (err) {
-      res.status(502).json({ ok: false, error: err?.message ?? String(err) });
+      // Upstream AI failures are user-recoverable (bad image, rate limit, etc),
+      // so return HTTP 200 with ok:false. The client's getJSON still treats
+      // ok:false as a thrown error — we just stop polluting the browser's
+      // network console with red 502 lines that aren't actionable.
+      res.status(200).json({ ok: false, error: friendlyUpstreamError(err) });
     }
   });
 
