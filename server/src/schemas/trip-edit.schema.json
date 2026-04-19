@@ -67,6 +67,28 @@
         "additionalProperties": true
       }
     },
-    "notes": { "type": "string" }
+    "notes": { "type": "string" },
+    "narrative": { "type": "string", "maxLength": 4000 },
+    "narrativeAiHashes": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[a-f0-9]{16}$" },
+      "default": []
+    },
+    "highlightsAiHashes": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[a-f0-9]{16}$" },
+      "default": []
+    },
+    "dayoneTags": {
+      "type": "array",
+      "items": { "type": "string", "maxLength": 50 },
+      "default": []
+    },
+    "rejectedAiTags": {
+      "type": "array",
+      "items": { "type": "string", "maxLength": 50 },
+      "default": [],
+      "maxItems": 50
+    }
   }
 }
