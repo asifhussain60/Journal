@@ -1445,107 +1445,51 @@
   background: color-mix(in srgb, var(--bg-primary) 92%, var(--accent));
 }
 
-/* ─── Highlights — editable bullet list ─── */
-.dayone-highlights {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.dayone-highlight {
-  display: grid;
-  grid-template-columns: 22px 1fr 30px;
-  align-items: center;
-  gap: 8px;
-}
-.dayone-highlight-bullet {
-  justify-self: center;
-  font-size: 1.2rem;
-  line-height: 1;
-  color: color-mix(in srgb, var(--accent) 80%, transparent);
-}
-.dayone-highlight--draft .dayone-highlight-bullet {
-  color: color-mix(in srgb, var(--accent) 50%, transparent);
-  font-weight: 700;
-}
-.dayone-highlight-input {
+/* ─── Reflection — single textarea with inline refine button ─── */
+.dayone-reflection-input {
   width: 100%;
-  padding: 8px 12px;
+  padding: 10px 14px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-default);
   background: var(--bg-primary);
   color: var(--text-primary);
   font-family: inherit;
   font-size: 0.98rem;
-  transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+  line-height: 1.55;
+  resize: vertical;
+  min-height: 72px;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
 }
-.dayone-highlight--draft .dayone-highlight-input {
-  background: transparent;
-  border-style: dashed;
-  border-color: color-mix(in srgb, var(--accent) 28%, var(--border-default));
-}
-.dayone-highlight-input:focus {
+.dayone-reflection-input:focus {
   outline: none;
-  border-style: solid;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
-  background: var(--bg-primary);
 }
-.dayone-highlight-remove,
-.dayone-highlight-add {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: none;
-  background: transparent;
+.dayone-reflection-input::placeholder {
   color: var(--text-muted);
-  cursor: pointer;
-  transition: background 140ms ease, color 140ms ease, transform 140ms ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.9rem;
+  font-style: italic;
 }
-.dayone-highlight-remove:hover {
-  background: color-mix(in srgb, var(--error) 18%, transparent);
-  color: var(--error);
-}
-.dayone-highlight-add {
-  color: var(--accent);
-}
-.dayone-highlight-add:hover {
-  background: color-mix(in srgb, var(--accent) 22%, transparent);
-  transform: scale(1.08);
-}
-.dayone-highlights-tools {
-  margin-top: 2px;
-  display: flex;
-  justify-content: flex-start;
-}
-.dayone-suggest-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 6px 14px;
-  border-radius: var(--radius-full);
+.dayone-reflection-refine {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
   border: 1px solid color-mix(in srgb, var(--accent) 32%, var(--border-default));
   background: color-mix(in srgb, var(--accent) 10%, transparent);
   color: var(--accent);
-  font-family: inherit;
-  font-size: 0.82rem;
-  font-weight: 600;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
   transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
 }
-.dayone-suggest-btn:hover:not(:disabled) {
+.dayone-reflection-refine:hover:not(:disabled) {
   background: color-mix(in srgb, var(--accent) 22%, transparent);
   border-color: var(--accent);
-  transform: translateY(-1px);
+  transform: scale(1.08);
 }
-.dayone-suggest-btn:disabled {
-  opacity: 0.45;
+.dayone-reflection-refine:disabled {
+  opacity: 0.4;
   cursor: not-allowed;
 }
 

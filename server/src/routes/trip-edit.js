@@ -82,7 +82,7 @@ export function createTripEditRouter({ anthropic, DEFAULT_MODEL }) {
 
       // Allowlist patch paths
       const ALLOWED_PATHS = new Set([
-        "/narrative", "/narrativeAiHashes", "/highlights", "/highlightsAiHashes",
+        "/narrative", "/narrativeAiHashes", "/reflection", "/highlights", "/highlightsAiHashes",
         "/dayoneTags", "/rejectedAiTags",
       ]);
       const ALLOWED_PREFIXES = [
