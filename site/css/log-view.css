@@ -72,6 +72,9 @@
   margin: var(--section-gap) auto 0;
   display: flex;
   justify-content: center;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
 }
 .log-dayone-push-controls {
   display: inline-flex;
@@ -133,6 +136,40 @@
 }
 .log-dayone-push-btn:disabled {
   opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Destructive companion to the Copy-to-DayOne pill. Stays locked (disabled
+   styling) until a successful Copy in the session, so the "copy first" flow
+   is visually enforced, not just behaviourally. */
+.log-reviewed-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 22px;
+  border-radius: var(--radius-full);
+  border: 1px solid color-mix(in srgb, var(--error) 50%, transparent);
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--error) 22%, transparent) 0%,
+    color-mix(in srgb, var(--error) 10%, transparent) 100%);
+  color: var(--error);
+  font-family: inherit;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+.log-reviewed-delete-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--error) 32%, transparent) 0%,
+    color-mix(in srgb, var(--error) 16%, transparent) 100%);
+  border-color: color-mix(in srgb, var(--error) 68%, transparent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--error) 32%, transparent);
+  transform: translateY(-1px);
+}
+.log-reviewed-delete-btn:disabled {
+  opacity: 0.45;
   cursor: not-allowed;
 }
 

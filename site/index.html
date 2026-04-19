@@ -2035,6 +2035,11 @@
       const [dayoneJournals, setDayoneJournals] = useState([]);
       const [dayoneJournal, setDayoneJournal] = useState('');
       const [dayonePushing, setDayonePushing] = useState(false);
+      // Unlocks the "Delete Reviewed Entries" button after a successful Copy
+      // in the current session. Resets on reload so stale tabs must re-copy.
+      const [copiedOnce, setCopiedOnce] = useState(false);
+      const [deleteReviewedOpen, setDeleteReviewedOpen] = useState(false);
+      const [deletingReviewed, setDeletingReviewed] = useState(false);
       const photoCameraRef = useRef(null);
       const photoLibraryRef = useRef(null);
       const receiptInputRef = useRef(null);
@@ -2216,6 +2221,7 @@
             'text/html': htmlBlob,
             'text/plain': textBlob,
           })]);
+          setCopiedOnce(true);
           window.notify?.success?.(`Copied ${d.entryCount} entries`, {
             description: `Paste into "${d.journal}" in DayOne.`,
           });
@@ -2225,6 +2231,32 @@
           setDayonePushing(false);
         }
       }
+      // Bulk-delete every Reviewed-lane entry for the active trip. Gated on
+      // copiedOnce: the button only opens the modal after a successful Copy
+      // to DayOne in this session, so the prose has a durable home before
+      // the source rows are archived + photo files are removed on disk.
+      async function confirmDeleteReviewed() {
+        if (deletingReviewed) return;
+        setDeleteReviewedOpen(false);
+        setDeletingReviewed(true);
+        try {
+          const slug = tripSlug;
+          if (!slug) throw new Error('no active trip');
+          const r = await fetch(`${LOG_API_BASE}/api/trips/${encodeURIComponent(slug)}/reviewed`, { method: 'DELETE' });
+          const d = await r.json();
+          if (!d?.ok) throw new Error(d?.error || 'delete failed');
+          setEntries(prev => prev.filter(e => !isReviewed(e)));
+          setCopiedOnce(false);
+          window.notify?.success?.(`Deleted ${d.entryCount} reviewed entries`, {
+            description: d.photoCount ? `${d.photoCount} photo${d.photoCount === 1 ? '' : 's'} removed from disk.` : undefined,
+          });
+        } catch (err) {
+          window.notify?.error?.('Delete failed', { description: err.message || String(err) });
+        } finally {
+          setDeletingReviewed(false);
+        }
+      }
+
       async function confirmReject() {
         const entry = rejectTarget;
         if (!entry) return;
@@ -2518,7 +2550,7 @@
             </div>
           </section>
 
-          {/* ── Copy to DayOne — bundles Reviewed entries onto the clipboard ── */}
+          {/* ── Copy-to-DayOne + Delete-Reviewed action strip ── */}
           {reviewView === 'reviewed' && (
             <div className="log-dayone-push">
               <div className="log-dayone-push-controls">
@@ -2545,6 +2577,20 @@
                   {dayonePushing ? 'Copying…' : 'Copy to DayOne'}
                 </button>
               </div>
+              {entries.some(isReviewed) && (
+                <button
+                  className="log-reviewed-delete-btn"
+                  onClick={() => setDeleteReviewedOpen(true)}
+                  disabled={!copiedOnce || deletingReviewed}
+                  title={copiedOnce
+                    ? 'Permanently delete all Reviewed entries for this trip'
+                    : 'Copy to DayOne first — this unlocks once the bundle is safely on your clipboard'}
+                >
+                  <Icon name={deletingReviewed ? 'fa-circle-notch fa-spin' : 'fa-trash-can'} />
+                  {' '}
+                  {deletingReviewed ? 'Deleting…' : 'Delete Reviewed Entries'}
+                </button>
+              )}
             </div>
           )}
 
@@ -2558,6 +2604,25 @@
             onCancel={() => setRejectTarget(null)}
             onConfirm={confirmReject}
           />
+
+          {/* ── Delete-all-reviewed confirmation modal ── */}
+          {(() => {
+            const reviewedRows = entries.filter(isReviewed);
+            const reviewedCount = reviewedRows.length;
+            const photoCount = reviewedRows.filter(e => e?.payload?.imagePath || e?.imagePath).length;
+            return (
+              <ConfirmModal
+                open={deleteReviewedOpen}
+                title={`Permanently delete ${reviewedCount} reviewed ${reviewedCount === 1 ? 'entry' : 'entries'}?`}
+                message={photoCount
+                  ? `${photoCount} photo${photoCount === 1 ? '' : 's'} will be removed from disk. This cannot be undone.`
+                  : 'This cannot be undone.'}
+                confirmLabel="Delete forever"
+                onCancel={() => setDeleteReviewedOpen(false)}
+                onConfirm={confirmDeleteReviewed}
+              />
+            );
+          })()}
         </div>
       );
     }

@@ -14,7 +14,7 @@
 
 import express from "express";
 import { randomUUID } from "node:crypto";
-import { mkdir, writeFile, readFile } from "node:fs/promises";
+import { mkdir, writeFile, readFile, unlink } from "node:fs/promises";
 import path from "node:path";
 import multer from "multer";
 import { getActiveTripSlug, appendQueueRow, readQueue, atomicWriteJSON, TRIPS_DIR, REPO_ROOT, sniffImageExt, extToMediaType } from "../lib/receipts.js";
@@ -636,6 +636,66 @@ export function createLogRouter({ queueValidators, anthropic, DEFAULT_MODEL, cla
 
       if (!removed) return res.status(404).json({ ok: false, error: "entry not found" });
       res.json({ ok: true, id, removed });
+    } catch (err) {
+      res.status(500).json({ ok: false, error: err?.message ?? String(err) });
+    }
+  });
+
+  // DELETE /api/trips/:slug/reviewed — bulk-clear the Reviewed lane after the
+  // entries have been copied to DayOne. Prose is archived into a dated JSONL
+  // under the trip's .trash/ (DayOne is the primary archive; this is just an
+  // ops escape hatch). Photo files are hard-removed — the cloud library is
+  // the authoritative photo backup.
+  router.delete("/api/trips/:slug/reviewed", async (req, res) => {
+    try {
+      const slug = req.params.slug;
+      if (!slug || typeof slug !== "string") {
+        return res.status(400).json({ ok: false, error: "slug required" });
+      }
+      // Defence-in-depth: slug is used to compose on-disk paths.
+      if (slug.includes("/") || slug.includes("\\") || slug.includes("..")) {
+        return res.status(400).json({ ok: false, error: "invalid slug" });
+      }
+
+      const items = await readQueue(slug, "pending");
+      const reviewed = items.filter((r) => r?.reviewStatus === "approved");
+      const rest = items.filter((r) => r?.reviewStatus !== "approved");
+
+      if (reviewed.length === 0) {
+        return res.json({ ok: true, entryCount: 0, photoCount: 0 });
+      }
+
+      // Archive reviewed rows as JSONL (one row per line — easier to grep
+      // later than a pretty-printed array).
+      const ts = new Date().toISOString().replace(/[:.]/g, "-");
+      const trashDir = path.join(TRIPS_DIR, slug, ".trash");
+      await mkdir(trashDir, { recursive: true });
+      const trashPath = path.join(trashDir, `entries-${ts}.jsonl`);
+      const trashBody = reviewed.map((r) => JSON.stringify(r)).join("\n") + "\n";
+      await writeFile(trashPath, trashBody, "utf8");
+
+      // Rewrite pending.json without the reviewed rows.
+      const pendingPath = path.join(TRIPS_DIR, slug, "pending.json");
+      await atomicWriteJSON(pendingPath, rest);
+
+      // Hard-remove referenced photo files. ENOENT is fine (already gone);
+      // other errors are logged but don't fail the request — the trash file
+      // already has the row reference, so an ops recovery can still work.
+      let photoCount = 0;
+      for (const row of reviewed) {
+        const abs = resolveEntryImagePath(row);
+        if (!abs) continue;
+        try {
+          await unlink(abs);
+          photoCount += 1;
+        } catch (err) {
+          if (err.code !== "ENOENT") {
+            console.warn(`[reviewed-delete] unlink ${abs}: ${err.message}`);
+          }
+        }
+      }
+
+      res.json({ ok: true, entryCount: reviewed.length, photoCount });
     } catch (err) {
       res.status(500).json({ ok: false, error: err?.message ?? String(err) });
     }
