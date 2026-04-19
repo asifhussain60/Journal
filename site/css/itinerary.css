@@ -654,7 +654,11 @@ html{scroll-behavior:smooth}
 }
 
 /* ─── Timeline wrapper (new renderer only) ─────────────────────────── */
-/* Middle column sized for the 28px numbered disc + halo breathing room. */
+/* Middle column sized for the 28px numbered disc + halo breathing room.
+   Column-gap on the last column gives breathing room between the numbered
+   sequence disc and the event card's left border — prevents the halo and
+   card edge from visually colliding. Time↔rail gap stays 0 because the
+   time column already carries its own padding-right. */
 .event:has(.event-card){
   display:grid;
   grid-template-columns:68px 34px minmax(0,1fr);
@@ -663,6 +667,9 @@ html{scroll-behavior:smooth}
   border:none;
   padding:0;
   box-shadow:none;
+}
+.event:has(.event-card) > .event-card{
+  margin-left:12px;  /* breathing room: disc halo → card border */
 }
 
 /* ═══ NEW CARD FILLERS — chips, drive-time, alt-venue ═══ */

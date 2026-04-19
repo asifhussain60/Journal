@@ -306,7 +306,11 @@
 }
 
 /* ═══════════════════════════════════════════════════
-   4. Entry Feed — strict 2-column grid (1-col on narrow)
+   4. Entry Feed — density-aware grid
+   Default matches legacy 3-col; density modifier classes
+   (--compact, --comfortable, --detail) override columns
+   and card sizing. ReviewCard uses container queries so
+   narrower columns auto-shrink internal zones.
    ═══════════════════════════════════════════════════ */
 
 .log-entries {
@@ -319,6 +323,253 @@
 }
 @media (max-width: 720px) {
   .log-entries { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ─── Density: Compact (4-up, scan-first) ─── */
+.log-entries--compact {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+@media (max-width: 1280px) {
+  .log-entries--compact { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 900px) {
+  .log-entries--compact { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .log-entries--compact { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Compact card sizing — uniform grid cells regardless of artifact kind.
+   Strategy: lock the card to a fixed total height so photo/receipt/note
+   align perfectly in the 4-up grid. The three zones inside (artifact,
+   prompt, actions) each get a fixed height. Textarea width/height mirror
+   the media preview so the composer reads as "notes about the thing
+   above." Font sizes unified so placeholder and typed content match. */
+
+/* ---- Card shell: fixed height, tighter padding/gap ---- */
+.log-entries--compact .review-card {
+  font-size: 0.82rem;
+  height: 360px;            /* 120 artifact + 120 prompt + 30 actions + gaps/padding */
+  padding: 12px;
+  gap: 10px;
+}
+
+/* ---- Zone 1: artifact preview — fixed 120 × full-width ---- */
+.log-entries--compact .review-card-zone--artifact {
+  height: 120px;
+  max-height: 120px;
+  min-height: 120px;
+  flex: 0 0 120px;
+}
+.log-entries--compact .review-card-artifact {
+  height: 120px;
+}
+.log-entries--compact .review-card-artifact--image {
+  height: 120px;
+  max-height: 120px;
+  object-fit: cover;
+}
+.log-entries--compact .review-card-artifact--text,
+.log-entries--compact .review-card-artifact--voice {
+  font-size: 0.82rem;
+  line-height: 1.4;
+  padding: 10px 12px;
+}
+.log-entries--compact .review-card-artifact--empty {
+  font-size: 0.82rem;
+}
+.log-entries--compact .review-card-kind-badge {
+  font-size: 0.7rem;
+  padding: 3px 8px;
+}
+.log-entries--compact .review-card-kind-badge i { font-size: 0.78rem; }
+
+/* ---- Zone 2: prompt textarea — matches media preview geometry ---- */
+.log-entries--compact .review-card-zone--prompt {
+  flex: 0 0 auto;
+  gap: 0;
+}
+.log-entries--compact .review-card-prompt-input {
+  width: 100%;
+  height: 120px;            /* same height as media above */
+  min-height: 120px;
+  max-height: 120px;
+  padding: 10px 12px;
+  font-size: 0.82rem;       /* same size as placeholder */
+  line-height: 1.4;
+  resize: none;
+  overflow-y: auto;
+  border-style: solid;
+}
+.log-entries--compact .review-card-prompt-input::placeholder {
+  font-size: 0.82rem;       /* explicitly match for browsers that scale it */
+}
+
+/* ---- Zone 3: action footer — smaller, tighter, icon-forward ---- */
+.log-entries--compact .review-card-actions {
+  flex: 0 0 auto;
+  gap: 6px;
+  padding-top: 8px;
+  margin-top: auto;          /* pin to bottom when card has slack */
+}
+.log-entries--compact .review-card-actions .log-action-btn,
+.log-entries--compact .log-action-btn {
+  height: 30px;
+  padding: 0 8px;
+  font-size: 0.78rem;
+  gap: 4px;
+}
+.log-entries--compact .log-action-btn i,
+.log-entries--compact .log-module .log-action-btn i {
+  font-size: 0.85rem;       /* was var(--row-icon) 1.15rem — too big for compact */
+}
+.log-entries--compact .log-action-btn .btn-label {
+  display: none;             /* icons only in compact to keep buttons short */
+}
+
+/* ─── Density: Comfortable (3-up, balanced) ─── */
+.log-entries--comfortable {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+@media (max-width: 1100px) {
+  .log-entries--comfortable { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 720px) {
+  .log-entries--comfortable { grid-template-columns: minmax(0, 1fr); }
+}
+.log-entries--comfortable .review-card-zone--artifact {
+  max-height: 180px;
+}
+.log-entries--comfortable .review-card-prompt-input {
+  min-height: 56px;
+}
+
+/* ─── Density: Detail — explicit alias of current default ─── */
+.log-entries--detail {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* ═══════════════════════════════════════════════════
+   4b. Time-bucket headers
+   Render between groups of cards. Spans all columns of
+   the grid so the header visually breaks the flow.
+   ═══════════════════════════════════════════════════ */
+
+.log-bucket-header {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin: 18px 0 4px;
+  padding: 0 4px;
+}
+.log-bucket-header:first-child { margin-top: 4px; }
+.log-bucket-header .log-bucket-label {
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  letter-spacing: 0.3px;
+  color: var(--mauve, var(--accent));
+  font-weight: 500;
+}
+.log-bucket-header .log-bucket-meta {
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.log-bucket-header .log-bucket-rule {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--accent) 18%, transparent) 0%,
+    transparent 100%);
+}
+
+/* Date header — shown only when multiple dates exist in the lane */
+.log-date-header {
+  grid-column: 1 / -1;
+  margin: 22px 0 6px;
+  padding: 10px 0 4px;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  color: var(--accent);
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.log-date-header:first-child { margin-top: 0; }
+.log-date-header .log-date-meta {
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* ═══════════════════════════════════════════════════
+   4c. Density toggle pill
+   Matches Source chip-row aesthetic, right-aligned.
+   ═══════════════════════════════════════════════════ */
+
+.log-density-toggle {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.log-density-toggle-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.log-density-toggle-group {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  background: var(--bg-secondary);
+  border: var(--log-border);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-sm);
+}
+.log-density-btn {
+  padding: 6px 14px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 500;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 160ms ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.log-density-btn:hover {
+  color: var(--text-secondary);
+}
+.log-density-btn[aria-pressed="true"] {
+  background: linear-gradient(135deg,
+    rgba(var(--accent-rgb), 0.22) 0%,
+    rgba(var(--accent-rgb), 0.08) 100%);
+  color: var(--accent);
+  font-weight: 600;
+  box-shadow: 0 0 6px rgba(var(--accent-rgb), 0.15);
+}
+.log-density-btn i { font-size: 0.85rem; }
+@media (max-width: 720px) {
+  .log-density-toggle-label { display: none; }
+  .log-density-btn .log-density-btn-label { display: none; }
+  .log-density-btn { padding: 6px 10px; }
 }
 
 .log-empty {
@@ -1771,16 +2022,75 @@
 }
 .dayone-story-body {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--card-gap, 1.6rem);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
 }
-@media (max-width: 1100px) {
+@media (max-width: 1280px) {
+  .dayone-story-body { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 900px) {
   .dayone-story-body { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-@media (max-width: 720px) {
+@media (max-width: 600px) {
   .dayone-story-body { grid-template-columns: minmax(0, 1fr); }
 }
 .dayone-story-body .log-empty { grid-column: 1 / -1; }
+
+/* DayOne Workspace inherits the same Compact card geometry as Log Bank so
+   both tabs read as the same 4-up grid with identical card sizing. */
+.dayone-story-body .review-card {
+  font-size: 0.82rem;
+  height: 360px;
+  padding: 12px;
+  gap: 10px;
+}
+.dayone-story-body .review-card-zone--artifact {
+  height: 120px;
+  max-height: 120px;
+  min-height: 120px;
+  flex: 0 0 120px;
+}
+.dayone-story-body .review-card-artifact { height: 120px; }
+.dayone-story-body .review-card-artifact--image {
+  height: 120px;
+  max-height: 120px;
+  object-fit: cover;
+}
+.dayone-story-body .review-card-artifact--text,
+.dayone-story-body .review-card-artifact--voice {
+  font-size: 0.82rem;
+  line-height: 1.4;
+  padding: 10px 12px;
+}
+.dayone-story-body .review-card-kind-badge {
+  font-size: 0.7rem;
+  padding: 3px 8px;
+}
+.dayone-story-body .review-card-kind-badge i { font-size: 0.78rem; }
+.dayone-story-body .review-card-prompt-input {
+  width: 100%;
+  height: 120px;
+  min-height: 120px;
+  max-height: 120px;
+  padding: 10px 12px;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  resize: none;
+}
+.dayone-story-body .review-card-actions {
+  gap: 6px;
+  padding-top: 8px;
+  margin-top: auto;
+}
+.dayone-story-body .review-card-actions .log-action-btn,
+.dayone-story-body .log-action-btn {
+  height: 30px;
+  padding: 0 8px;
+  font-size: 0.78rem;
+  gap: 4px;
+}
+.dayone-story-body .log-action-btn i { font-size: 0.85rem; }
+.dayone-story-body .log-action-btn .btn-label { display: none; }
 
 /* ─── Metadata — read-only pill line ─── */
 .dayone-metadata-pill {

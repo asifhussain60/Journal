@@ -1555,6 +1555,87 @@
       return new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     }
 
+    // Time-bucket bucketing for Log Bank grouping. Maps an entry's capturedAt
+    // (or createdAt fallback) to a bucket key plus a local ISO date string.
+    // Entries with no timestamp fall into a synthetic 'other' bucket, which
+    // renders below the chronological ones.
+    const LOG_BUCKET_DEFS = [
+      { key: 'morning',   label: 'Morning',   range: '6am – 11am', start: 6,  end: 11 },
+      { key: 'midday',    label: 'Midday',    range: '11am – 3pm', start: 11, end: 15 },
+      { key: 'afternoon', label: 'Afternoon', range: '3pm – 6pm',  start: 15, end: 18 },
+      { key: 'evening',   label: 'Evening',   range: '6pm – late', start: 18, end: 30 },
+      { key: 'other',     label: 'Untimed',   range: '',           start: -1, end: -1 },
+    ];
+    function bucketForEntry(entry) {
+      const ts = entry?.capturedAt || entry?.createdAt;
+      if (!ts) return { bucketKey: 'other', dateKey: 'unknown' };
+      const d = new Date(ts);
+      if (isNaN(d.getTime())) return { bucketKey: 'other', dateKey: 'unknown' };
+      const h = d.getHours();
+      let bucketKey = 'evening';
+      if (h >= 6 && h < 11)       bucketKey = 'morning';
+      else if (h >= 11 && h < 15) bucketKey = 'midday';
+      else if (h >= 15 && h < 18) bucketKey = 'afternoon';
+      else                         bucketKey = 'evening';
+      const dateKey = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      return { bucketKey, dateKey };
+    }
+    // Group entries by date (if multiple) + time bucket. Returns a flat list
+    // of render items: { type: 'date-header' | 'bucket-header' | 'entry' }.
+    // Preserves the input order within each bucket, so upstream sort (newest
+    // first from displayEntries) is honored.
+    function groupEntriesForDensity(entries) {
+      if (!entries || entries.length === 0) return [];
+      const byDate = new Map();
+      for (const entry of entries) {
+        const { bucketKey, dateKey } = bucketForEntry(entry);
+        if (!byDate.has(dateKey)) byDate.set(dateKey, new Map());
+        const bucketMap = byDate.get(dateKey);
+        if (!bucketMap.has(bucketKey)) bucketMap.set(bucketKey, []);
+        bucketMap.get(bucketKey).push(entry);
+      }
+      const todayKey = (() => {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      })();
+      const yesterdayKey = (() => {
+        const d = new Date(); d.setDate(d.getDate() - 1);
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      })();
+      const showDateHeaders = byDate.size > 1;
+      // Sort dates newest-first; 'unknown' sinks to the bottom.
+      const dateKeys = [...byDate.keys()].sort((a, b) => {
+        if (a === 'unknown') return 1;
+        if (b === 'unknown') return -1;
+        return b.localeCompare(a);
+      });
+      const items = [];
+      for (const dateKey of dateKeys) {
+        if (showDateHeaders) {
+          let label;
+          if (dateKey === todayKey) label = 'Today';
+          else if (dateKey === yesterdayKey) label = 'Yesterday';
+          else if (dateKey === 'unknown') label = 'Untimed';
+          else label = new Date(dateKey + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
+          items.push({ type: 'date-header', dateKey, label });
+        }
+        const bucketMap = byDate.get(dateKey);
+        for (const def of LOG_BUCKET_DEFS) {
+          const list = bucketMap.get(def.key);
+          if (!list || !list.length) continue;
+          items.push({
+            type: 'bucket-header',
+            key: `${dateKey}-${def.key}`,
+            label: def.label,
+            range: def.range,
+            count: list.length,
+          });
+          for (const entry of list) items.push({ type: 'entry', entry });
+        }
+      }
+      return items;
+    }
+
     // Turn a server-sent error string into something presentable. Defense in
     // depth — the server already sanitises upstream Anthropic errors, but old
     // callers, non-refine endpoints, and network-layer errors still surface
@@ -2675,6 +2756,16 @@
         try { localStorage.setItem('log_review_view', reviewView); } catch {}
       }, [reviewView]);
       const [sourceFilter, setSourceFilter] = useState('all');
+      // Density mode: Compact (4-col scan) / Comfortable (3-col balanced) / Detail (3-col full).
+      // Persisted in localStorage; Compact is the first-load default so a heavy day of captures
+      // (30-50 entries) is immediately scannable without scrolling. Applies only to Log Bank.
+      const [densityMode, setDensityMode] = useState(() => {
+        try { return localStorage.getItem('log_density_mode') || 'compact'; }
+        catch { return 'compact'; }
+      });
+      useEffect(() => {
+        try { localStorage.setItem('log_density_mode', densityMode); } catch {}
+      }, [densityMode]);
       // Day chip filter UI removed in this iteration; the day filter chain in
       // baseVisible short-circuits with this constant.
       const dayFilter = 'all';
@@ -3885,6 +3976,31 @@
                       />
                     </label>
                   )}
+                  {/* Density toggle — both lanes (Compact / Comfortable / Detail) */}
+                  {tab === 'inbox' && (
+                    <div className="log-density-toggle" role="group" aria-label="Card density">
+                      <span className="log-density-toggle-label">Density</span>
+                      <div className="log-density-toggle-group">
+                        {[
+                          { id: 'compact',     label: 'Compact',     icon: 'fa-grip' },
+                          { id: 'comfortable', label: 'Comfortable', icon: 'fa-table-cells-large' },
+                          { id: 'detail',      label: 'Detail',      icon: 'fa-rectangle-list' },
+                        ].map(m => (
+                          <button
+                            key={m.id}
+                            type="button"
+                            className="log-density-btn"
+                            aria-pressed={densityMode === m.id}
+                            onClick={() => setDensityMode(m.id)}
+                            title={`${m.label} density`}
+                          >
+                            <Icon name={m.icon} />
+                            <span className="log-density-btn-label">{m.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -3965,7 +4081,7 @@
                   onReSynth={handleReSynth}
                 />
               ) : (
-                <div className="log-entries">
+                <div className={`log-entries log-entries--${densityMode}`}>
                 {/* Inline note composer — opens when [+ Note] is clicked. */}
                 {tab === 'inbox' && reviewView === 'unreviewed' && noteComposerOpen && (
                   <article className="review-card review-card--composer">
@@ -4024,11 +4140,32 @@
                     }</p>
                   </div>
                 ) : (
-                  displayEntries.map(entry => {
+                  (reviewView === 'unreviewed'
+                    ? groupEntriesForDensity(displayEntries)
+                    : displayEntries.map(e => ({ type: 'entry', entry: e }))
+                  ).map(item => {
+                    if (item.type === 'date-header') {
+                      return (
+                        <div className="log-date-header" key={`d-${item.dateKey}`}>
+                          <span>{item.label}</span>
+                          <span className="log-date-meta">{item.dateKey}</span>
+                        </div>
+                      );
+                    }
+                    if (item.type === 'bucket-header') {
+                      return (
+                        <div className="log-bucket-header" key={`b-${item.key}`}>
+                          <span className="log-bucket-label">{item.label}</span>
+                          <span className="log-bucket-meta">{item.count} {item.count === 1 ? 'entry' : 'entries'}{item.range ? ` · ${item.range}` : ''}</span>
+                          <span className="log-bucket-rule"></span>
+                        </div>
+                      );
+                    }
                     // Phase 11b: every entry renders as a unified ReviewCard.
                     // Lane is per-entry by reviewStatus — approved entries
                     // get the 'reviewed' shape (Save instead of Approve,
                     // textarea pre-filled with draft.prose).
+                    const entry = item.entry;
                     const lane = entry.reviewStatus === 'approved' ? 'reviewed' : 'unreviewed';
                     const isDummyEntry = typeof entry.id === 'string' && entry.id.startsWith('dummy_');
                     return (
