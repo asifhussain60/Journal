@@ -2501,7 +2501,7 @@
         return '';
       })();
 
-      var state = { data: null, sort: 'total', loading: false };
+      var state = { data: null, sort: 'total', loading: false, availableMax: 0 };
 
       function fmtMoney(n) {
         var v = Number(n) || 0;
@@ -2533,13 +2533,16 @@
       function renderSummary(totals, accounts) {
         var host = document.getElementById('budgetSummary');
         if (!host) return;
-        var pct = Number(totals.percentLeft) || 0;
-        var tone = availableTone(pct);
-        // Progress bar — fills proportional to available balance remaining.
+        var avail = Number(totals.available) || 0;
+        var tone = availableTone(Number(totals.percentLeft) || 0);
+        // Fix the reference max to the first-seen available so bar starts
+        // at 100% = $5,000 and shrinks proportionally as balance depletes.
+        if (!state.availableMax || avail > state.availableMax) state.availableMax = avail;
+        var barPct = state.availableMax > 0 ? avail / state.availableMax : 1;
         var bar = document.getElementById('budgetProgressBar');
         var wrap = document.getElementById('budgetProgressWrap');
         if (bar) {
-          bar.style.width = Math.round(pct * 100) + '%';
+          bar.style.width = Math.round(barPct * 100) + '%';
           bar.className = 'budget-progress-bar ' + tone;
         }
         if (wrap) wrap.className = 'budget-progress-wrap is-loaded';
