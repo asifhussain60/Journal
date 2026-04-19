@@ -206,6 +206,65 @@
   flex-wrap: wrap;
   align-items: center;
 }
+
+/* Journal-date picker — rides inside the Source filter row, right-justified
+   via margin-left:auto so it hugs the right edge even as chips reflow. Shown
+   only on the Reviewed subtab (gated in JSX). */
+.log-date-picker {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border-default));
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--accent);
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+.log-date-picker:hover {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  border-color: var(--accent);
+}
+.log-date-picker i { font-size: 1rem; }
+.log-date-picker-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.log-date-picker-input {
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 0;
+  cursor: pointer;
+  min-width: 128px;
+}
+.log-date-picker-input:focus {
+  outline: none;
+  color: var(--accent);
+}
+.log-date-picker-input::-webkit-calendar-picker-indicator {
+  filter: invert(85%) sepia(12%) saturate(260%) hue-rotate(210deg);
+  cursor: pointer;
+}
+@media (max-width: 600px) {
+  .log-date-picker {
+    margin-left: 0;
+    flex-basis: 100%;
+    justify-content: center;
+  }
+}
 .log-chip-row-label {
   font-size: 1rem;
   font-weight: 700;

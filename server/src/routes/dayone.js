@@ -62,11 +62,26 @@ function sanitizeCompose(raw) {
   const highlights = Array.isArray(obj.highlights)
     ? obj.highlights.map(h => (typeof h === "string" ? h.trim() : "")).filter(Boolean).slice(0, 5)
     : [];
-  return { title, context, highlights };
+  const date = typeof obj.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(obj.date) ? obj.date : "";
+  return { title, context, highlights, date };
 }
 
-function buildDefaultMetadata(tripCtx, entries) {
+// "2026-04-19" → "April 19, 2026" — human-friendly rendering for the
+// Metadata bullet. Invalid input yields the raw string so nothing is lost.
+function formatDateHuman(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || "");
+  if (!m) return iso || "";
+  const monthIdx = parseInt(m[2], 10) - 1;
+  const day = parseInt(m[3], 10);
+  const year = m[1];
+  if (monthIdx < 0 || monthIdx > 11) return iso;
+  return `${MONTH_NAMES[monthIdx]} ${day}, ${year}`;
+}
+
+function buildDefaultMetadata(tripCtx, entries, date) {
   const parts = [];
+  const human = formatDateHuman(date);
+  if (human) parts.push(human);
   const regions = Array.isArray(tripCtx?.regions) ? tripCtx.regions.filter(Boolean) : [];
   if (regions.length) parts.push(regions.slice(0, 3).join(" · "));
   if (tripCtx?.vibe) parts.push(tripCtx.vibe);
@@ -98,7 +113,7 @@ function formatBundle({ tripCtx, slug, entries, compose: composeRaw }) {
   const title = compose.title || niceTitle(tripCtx, slug);
   const context = compose.context
     || [formatDateRange(entries), tripCtx?.location || tripCtx?.origin?.label || ""].filter(Boolean).join(" · ");
-  const metadata = buildDefaultMetadata(tripCtx, entries);
+  const metadata = buildDefaultMetadata(tripCtx, entries, compose.date);
 
   // Photos ride inline with their source entry in the Story body. The Story
   // section owns every [{attachment}] placeholder, which keeps the HTML
