@@ -487,15 +487,92 @@ git add -A && git commit -m "refine-all(F2): E2E verified, framework.md updated,
 
 ---
 
+## Phase G — Publish Gate & Production URLs
+
+> Goal: merging to `main` deploys `site/` to Cloudflare automatically, and every API call works in both `localhost` dev and `journal.kashkole.com` production without config changes.
+
+### Commit G1 — Fix hardcoded localhost in Budget Pill
+
+**Problem:** `fetchSummary()` in `site/index.html` (Phase 8: Budget Pill) uses hardcoded `http://localhost:3001/api/usage/summary` — broken in production.
+
+**Fix:** Replace the four hardcoded `http://localhost:3001` references in `fetchSummary()` with `BabuAI.baseUrl` (already loaded by `claude-client.js` before the React block). The `LOG_API_BASE` already does this correctly; `fetchSummary` is the straggler.
+
+```
+Gate: curl production URL after deploy → Budget Pill loads.
+```
+
+```bash
+git add site/index.html && git commit -m "fix: fetchSummary uses BabuAI.baseUrl instead of hardcoded localhost"
+```
+
+### Commit G2 — Add Cloudflare deploy step to release workflow
+
+**Problem:** `.github/workflows/release.yml` only runs `release-please` on push to main. No deploy happens.
+
+**Fix:** Add a `deploy` job after `release-please` that runs `npx wrangler deploy` using the existing `wrangler.toml`. Requires a `CLOUDFLARE_API_TOKEN` repo secret (already configured or will be added once).
+
+```yaml
+# .github/workflows/release.yml — append this job
+deploy:
+  name: Deploy to Cloudflare
+  needs: release-please
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
+    - name: Deploy site
+      uses: cloudflare/wrangler-action@v3
+      with:
+        apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+```
+
+```
+Gate: push to main → Actions tab shows green deploy → journal.kashkole.com serves updated site.
+```
+
+```bash
+git add .github/workflows/release.yml && git commit -m "ci: add Cloudflare deploy on merge to main"
+```
+
+### Commit G3 — Audit all fetch calls for relative/API-base correctness
+
+Quick grep-and-verify pass. Every `fetch()` in `site/` must use one of:
+- Relative path (e.g. `fetch('/data/...')`) — for static assets served by Cloudflare
+- `BabuAI.baseUrl + path` or `BabuAI.request(path)` — for server API calls
+- `LOG_API_BASE + path` — acceptable (it delegates to `BabuAI.baseUrl`)
+
+No raw `http://localhost` should remain anywhere in `site/`.
+
+```
+Gate: grep -r "localhost:3001" site/ returns zero results.
+```
+
+```bash
+git add -A && git commit -m "fix: eliminate remaining hardcoded localhost in site/"
+```
+
+### 🛑 Phase G STOP — User Verification Required
+
+**Where:** Open `journal.kashkole.com` in your browser (production).
+
+1. **Site loads** — The page appears, no blank screen, no console errors about failed fetches.
+2. **Budget Pill works** — Top-right shows your API spend (or a "server offline" warning if your Mac is asleep — that's expected).
+3. **Trip Log loads** — Click Log, entries appear if server is running.
+4. **Composer works** — Open a trip, Refine All button visible, tags section visible.
+5. **GitHub Actions** — Check the Actions tab on the repo. The deploy job should be green.
+6. **Dev still works** — Open `localhost:5173` (or however you serve locally). Everything works as before.
+
+---
+
 ## Acceptance Criteria (Definition of Done)
 
-1. All commits (A1–A10, B1–B2, C1–C3, D1, E1–E6, F1–F2) land on `refine-all-redesign-v2`.
+1. All commits (A1–A10, B1–B2, C1–C3, D1, E1–E6, F1–F2, G1–G3) land on `refine-all-redesign-v2`.
 2. Every gate in every commit passes.
 3. Every user-verification STOP is explicitly confirmed.
 4. `2026-04-ishrat-engagement` can be Refine-All'd end-to-end without manual intervention.
 5. No regression in: per-photo Refine, DayOne bundle generation for legacy trips, trip-edit assistant chat flow, voice fingerprint hot-reload, any existing Composer field behavior.
 6. Full WCAG 2.2 AA on redesigned surfaces.
 7. `framework.md` reflects the new flow and all 14 DoR decisions.
+8. Merging to `main` triggers Cloudflare deploy; production site works with no hardcoded localhost URLs.
 
 ---
 
