@@ -268,6 +268,115 @@ export function createTripRefineAllRouter({ anthropic }) {
 
     const input = { fingerprint, fingerprintLight, title, subtitle, dateRange, captions, corpus };
 
+    // --- SSE mode (Accept: text/event-stream) ---
+    const wantsSSE = (req.headers.accept || "").includes("text/event-stream");
+
+    if (wantsSSE) {
+      res.writeHead(200, {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+        "X-Accel-Buffering": "no",
+      });
+      const send = (event, data) => {
+        res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+      };
+
+      // Run narrative with streaming API, highlights and tags in parallel
+      const narrativePromise = (async () => {
+        const { system, user } = buildNarrativeInput(input);
+        const prompt = loadPrompt("synthesize-trip-narrative");
+        const startMs = Date.now();
+        let accumulated = "";
+
+        const stream = await anthropic.messages.stream({
+          model: prompt.model,
+          max_tokens: 2048,
+          system,
+          messages: [{ role: "user", content: user }],
+        });
+
+        let tokenBatch = "";
+        let tokenCount = 0;
+        for await (const event of stream) {
+          if (event.type === "content_block_delta" && event.delta?.type === "text_delta") {
+            const text = event.delta.text;
+            accumulated += text;
+            tokenBatch += text;
+            tokenCount++;
+            // Flush every 16 tokens or more
+            if (tokenCount >= 16) {
+              send("narrative.delta", { text: tokenBatch });
+              tokenBatch = "";
+              tokenCount = 0;
+            }
+          }
+        }
+        // Flush remaining
+        if (tokenBatch) send("narrative.delta", { text: tokenBatch });
+
+        const finalMsg = await stream.finalMessage();
+        const latencyMs = Date.now() - startMs;
+        const parsed = extractJsonObject(accumulated.trim());
+        if (!parsed || typeof parsed.value !== "string") {
+          throw new Error("narrative: invalid JSON response");
+        }
+        const result = {
+          value: parsed.value.trim(),
+          hash: hashField(parsed.value.trim()),
+          reasoning: String(parsed.reasoning || "").trim(),
+          meta: { model: finalMsg.model, latencyMs, usage: finalMsg.usage },
+        };
+        send("narrative.done", { value: result.value, hash: result.hash, reasoning: result.reasoning });
+        return result;
+      })();
+
+      const highlightsPromise = runHighlights(anthropic, input).then((r) => {
+        send("highlights.done", { values: r.values, hashes: r.hashes, reasoning: r.reasoning });
+        return r;
+      });
+
+      const tagsPromise = runTags(anthropic, input).then((r) => {
+        r.values = r.values.filter((t) => !rejectedSet.has(normalizeTag(t)));
+        send("tags.done", { values: r.values, reasoning: r.reasoning });
+        return r;
+      });
+
+      const [nResult, hResult, tResult] = await Promise.allSettled([narrativePromise, highlightsPromise, tagsPromise]);
+
+      const errors = {};
+      if (nResult.status === "rejected") errors.narrative = nResult.reason?.message || String(nResult.reason);
+      if (hResult.status === "rejected") errors.highlights = hResult.reason?.message || String(hResult.reason);
+      if (tResult.status === "rejected") errors.tags = tResult.reason?.message || String(tResult.reason);
+
+      if (Object.keys(errors).length > 0) {
+        send("error", { errors });
+        res.end();
+        return;
+      }
+
+      // Log usage
+      logOrchestratorUsage(nResult.value.meta, "synthesize-trip-narrative", tripId, requestId);
+      logOrchestratorUsage(hResult.value.meta, "suggest-highlights", tripId, requestId);
+      logOrchestratorUsage(tResult.value.meta, "suggest-tags", tripId, requestId);
+
+      const response = {
+        ok: true,
+        narrative: { value: nResult.value.value, hash: nResult.value.hash, reasoning: nResult.value.reasoning },
+        highlights: { values: hResult.value.values, hashes: hResult.value.hashes, reasoning: hResult.value.reasoning },
+        tags: { values: tResult.value.values, reasoning: tResult.value.reasoning },
+      };
+
+      _idempotencyCache.set(idempKey, { ts: Date.now(), response });
+      _captionsCache.set(`${tripId}:${cHash}`, { ts: Date.now(), response });
+
+      send("complete", response);
+      res.end();
+      return;
+    }
+
+    // --- Batch JSON mode (default) ---
+
     // Fan-out with Promise.allSettled (D10 revised — no Promise.all)
     const [narrativeResult, highlightsResult, tagsResult] = await Promise.allSettled([
       runNarrative(anthropic, input),
