@@ -1846,5 +1846,60 @@
     "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-efeea64b-73e6-4e23-8a49-ead0a648836a.yaml",
     "actor": "app",
     "status": "applied"
+  },
+  {
+    "schemaVersion": "1",
+    "id": "33cb0dc9-d2d1-41df-ae36-c810dddc2cc6",
+    "createdAt": "2026-04-19T14:44:09.603Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "Swap event 4.3 → Nazranaa",
+    "patch": [
+      {
+        "op": "replace",
+        "path": "/days/3/events/2/event",
+        "value": "Nazranaa"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/2/venue",
+        "value": "16 Marconi Ave, Iselin, NJ 08830"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/2/phone",
+        "value": "(732) 283-1808"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/2/rating",
+        "value": 4.8
+      }
+    ],
+    "inversePatch": [
+      {
+        "op": "replace",
+        "path": "/days/3/events/2/rating",
+        "value": 4.5
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/2/phone",
+        "value": "(732) 762-5425"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/2/venue",
+        "value": "137 NJ-27, Edison, NJ 08820"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/2/event",
+        "value": "Rangreza"
+      }
+    ],
+    "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-33cb0dc9-d2d1-41df-ae36-c810dddc2cc6.yaml",
+    "actor": "app",
+    "status": "applied"
   }
 ]
