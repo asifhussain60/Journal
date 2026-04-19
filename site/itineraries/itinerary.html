@@ -140,6 +140,9 @@
           <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i>
         </button>
       </div>
+      <div class="budget-progress-wrap" id="budgetProgressWrap" aria-hidden="true">
+        <div class="budget-progress-bar" id="budgetProgressBar"></div>
+      </div>
       <div class="budget-summary" id="budgetSummary">
         <div class="budget-stat budget-stat--skeleton"><div class="budget-stat-value">—</div><div class="budget-stat-label">Spent</div></div>
         <div class="budget-stat budget-stat--skeleton"><div class="budget-stat-value">—</div><div class="budget-stat-label">Available</div></div>
@@ -2532,6 +2535,14 @@
         if (!host) return;
         var pct = Number(totals.percentLeft) || 0;
         var tone = availableTone(pct);
+        // Progress bar — fills proportional to available balance remaining.
+        var bar = document.getElementById('budgetProgressBar');
+        var wrap = document.getElementById('budgetProgressWrap');
+        if (bar) {
+          bar.style.width = Math.round(pct * 100) + '%';
+          bar.className = 'budget-progress-bar ' + tone;
+        }
+        if (wrap) wrap.className = 'budget-progress-wrap is-loaded';
         host.classList.remove('budget-summary--accounts');
         host.innerHTML =
           '<div class="budget-stat">' +
@@ -2540,7 +2551,7 @@
           '</div>' +
           '<div class="budget-stat budget-stat--available ' + tone + '">' +
           '<div class="budget-stat-value">' + esc(fmtMoney(totals.available)) + '</div>' +
-          '<div class="budget-stat-label">Available <span class="budget-stat-pct">' + Math.round(pct * 100) + '% left</span></div>' +
+          '<div class="budget-stat-label">Available</div>' +
           '</div>';
       }
 

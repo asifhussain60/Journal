@@ -1891,6 +1891,27 @@ html{scroll-behavior:smooth}
   transition:opacity .25s ease;
 }
 .budget-summary.is-refreshing{ opacity:.55; }
+/* Progress bar — sits above both tiles, fills with available balance */
+.budget-progress-wrap{
+  height:8px;
+  border-radius:var(--radius-pill);
+  background:var(--white-08);
+  margin-bottom:.85rem;
+  overflow:hidden;
+  opacity:0;
+  transition:opacity .3s ease;
+}
+.budget-progress-wrap.is-loaded{ opacity:1; }
+.budget-progress-bar{
+  height:100%;
+  border-radius:var(--radius-pill);
+  width:0%;
+  transition:width .9s cubic-bezier(.22,1,.36,1);
+  background:var(--text-muted);
+}
+.budget-progress-bar.is-ok{ background:var(--success); }
+.budget-progress-bar.is-warn{ background:var(--warning); }
+.budget-progress-bar.is-danger{ background:var(--error); }
 /* Enable container-query units (cqi) on the stat so big numbers scale with
    the tile's own width instead of the viewport. Without this the clamp in
    .budget-stat-value falls back to viewport-based sizing. */
@@ -1926,19 +1947,11 @@ html{scroll-behavior:smooth}
 }
 .budget-stat-label{
   color:var(--text-secondary);
-  font-size:.78rem;
-  margin-top:.4rem;
-  letter-spacing:.02em;
-}
-.budget-stat-pct{
-  display:block;
-  font-size:.62rem;
-  letter-spacing:.14em;
-  text-transform:uppercase;
-  margin-top:.2rem;
-  opacity:.85;
-  font-variant-numeric:tabular-nums;
+  font-size:.88rem;
   font-weight:600;
+  margin-top:.45rem;
+  letter-spacing:.04em;
+  text-transform:uppercase;
 }
 
 /* Available tile tone — green (ok) / orange (warn) / red (danger).
