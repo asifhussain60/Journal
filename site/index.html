@@ -3222,7 +3222,6 @@
       const [resetOpen, setResetOpen] = useState(false);
       const [resetting, setResetting] = useState(false);
       const photoCameraRef = useRef(null);
-      const videoCameraRef = useRef(null);
       const photoLibraryRef = useRef(null);
       const receiptInputRef = useRef(null);
 
@@ -3804,9 +3803,6 @@
                 <button onClick={() => { setPhotoMenuOpen(false); photoCameraRef.current?.click(); }}>
                   <Icon name="fa-camera-retro" /> Take photo
                 </button>
-                <button onClick={() => { setPhotoMenuOpen(false); videoCameraRef.current?.click(); }}>
-                  <Icon name="fa-video" /> Record video
-                </button>
                 <button onClick={() => { setPhotoMenuOpen(false); photoLibraryRef.current?.click(); }}>
                   <Icon name="fa-images" /> Choose from library
                 </button>
@@ -3996,14 +3992,6 @@
             ref={photoCameraRef}
             style={{ display: 'none' }}
             onChange={e => capturePhoto(e.target.files?.[0], photoCameraRef)}
-          />
-          <input
-            type="file"
-            accept="video/*"
-            capture="environment"
-            ref={videoCameraRef}
-            style={{ display: 'none' }}
-            onChange={e => capturePhoto(e.target.files?.[0], videoCameraRef)}
           />
           <input
             type="file"
