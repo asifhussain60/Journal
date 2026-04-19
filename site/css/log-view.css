@@ -365,7 +365,8 @@
 .log-entries--compact .review-card-artifact {
   height: 120px;
 }
-.log-entries--compact .review-card-artifact--image {
+.log-entries--compact .review-card-artifact--image,
+.log-entries--compact .review-card-artifact--video {
   height: 120px;
   max-height: 120px;
   object-fit: cover;
@@ -661,6 +662,34 @@
 .log-entry-thumb--video i    { color: var(--info); }
 .log-entry-thumb--note i     { color: var(--accent); }
 .log-entry-thumb--itinerary i { color: var(--accent); }
+
+/* Video preview thumb — first-frame poster + play overlay */
+.log-entry-thumb--video-preview video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.log-entry-thumb-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--bg) 60%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  backdrop-filter: blur(4px);
+}
+.log-entry-thumb-play i {
+  color: var(--text);
+  font-size: 0.9rem;
+  margin-left: 2px; /* optical center — play triangle tilts right */
+}
 
 /* Text-content thumb — show prose with vertical scroll, same frame dimensions */
 .log-entry-thumb--text {
@@ -1484,6 +1513,13 @@
   display: block;
   object-fit: cover;
 }
+.review-card-artifact--video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: var(--bg-tertiary);
+}
 .review-card-artifact--voice {
   display: flex;
   flex-direction: column;
@@ -2052,7 +2088,8 @@
   flex: 0 0 120px;
 }
 .dayone-story-body .review-card-artifact { height: 120px; }
-.dayone-story-body .review-card-artifact--image {
+.dayone-story-body .review-card-artifact--image,
+.dayone-story-body .review-card-artifact--video {
   height: 120px;
   max-height: 120px;
   object-fit: cover;

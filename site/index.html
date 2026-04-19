@@ -1700,6 +1700,19 @@
           );
         }
       }
+      if (kind === 'video') {
+        const vp = entry.payload?.videoPath || entry.videoPath;
+        if (vp) {
+          const src = /^https?:\/\//.test(vp) ? vp : `${LOG_API_BASE}/${vp.replace(/^\//, '')}`;
+          return (
+            <div className="log-entry-thumb log-entry-thumb--video-preview">
+              <video src={src} muted playsInline preload="metadata" />
+              <span className="log-entry-thumb-play" aria-hidden="true"><Icon name="fa-play" /></span>
+              {rel && <span className="log-entry-thumb-time">{rel}</span>}
+            </div>
+          );
+        }
+      }
       // Text-bearing kinds: show content instead of icon
       const textContent = kind === 'note'  ? (entry.payload?.text || entry.notes || '')
                         : kind === 'voice' ? (entry.payload?.transcript || '')
@@ -1888,6 +1901,19 @@
             )}
             <div className="review-card-artifact-transcript">{transcript}</div>
           </div>
+        );
+      }
+      if (kind === 'video') {
+        const videoPath = entry.payload?.videoPath || entry.videoPath;
+        if (!videoPath) return <div className="review-card-artifact review-card-artifact--empty">No video attached</div>;
+        return (
+          <video
+            controls
+            playsInline
+            preload="metadata"
+            className="review-card-artifact review-card-artifact--video"
+            src={toApiUrl(videoPath)}
+          />
         );
       }
       if (kind === 'note') {
@@ -2157,16 +2183,18 @@
                 <span className="btn-label">Reject</span>
               </button>
             )}
-            <button
-              className="log-action-btn log-action-btn--refine"
-              onClick={handleRefine}
-              disabled={approving || refining || unapproving}
-              title={refineTitle}
-              aria-label={typeof refineLabel === 'string' ? refineLabel : 'Refine'}
-            >
-              <Icon name={refineIcon} />
-              <span className="btn-label">{refineLabel}</span>
-            </button>
+            {effectiveKind !== 'video' && (
+              <button
+                className="log-action-btn log-action-btn--refine"
+                onClick={handleRefine}
+                disabled={approving || refining || unapproving}
+                title={refineTitle}
+                aria-label={typeof refineLabel === 'string' ? refineLabel : 'Refine'}
+              >
+                <Icon name={refineIcon} />
+                <span className="btn-label">{refineLabel}</span>
+              </button>
+            )}
             {!isReviewed && (
               <button
                 className="log-action-btn log-action-btn--approve"
@@ -3194,6 +3222,7 @@
       const [resetOpen, setResetOpen] = useState(false);
       const [resetting, setResetting] = useState(false);
       const photoCameraRef = useRef(null);
+      const videoCameraRef = useRef(null);
       const photoLibraryRef = useRef(null);
       const receiptInputRef = useRef(null);
 
@@ -3208,11 +3237,11 @@
       const [dropOver, setDropOver] = useState(null);
       const dragDepthRef = useRef(0);
 
-      // Close the Photo menu on outside click
+      // Close the Media menu on outside click
       useEffect(() => {
         if (!photoMenuOpen) return;
         function onDoc(e) {
-          if (!e.target.closest?.('.log-capture-action--photo')) setPhotoMenuOpen(false);
+          if (!e.target.closest?.('.log-capture-action--media')) setPhotoMenuOpen(false);
         }
         document.addEventListener('click', onDoc);
         return () => document.removeEventListener('click', onDoc);
@@ -3673,30 +3702,35 @@
 
       async function capturePhoto(file, sourceRef) {
         if (!file) return;
-        if (!file.type || !file.type.startsWith('image/')) {
-          window.notify?.warning?.('Skipped — not an image', { description: file.name || 'file' });
+        const mime = file.type || '';
+        const isImage = mime.startsWith('image/');
+        const isVideo = mime.startsWith('video/');
+        if (!isImage && !isVideo) {
+          window.notify?.warning?.('Skipped — not an image or video', { description: file.name || 'file' });
           return;
         }
         setCapturing(true);
         try {
-          const normalized = await normalizeImageForUpload(file);
+          const payload = isVideo ? file : await normalizeImageForUpload(file);
           const form = new FormData();
-          form.append('photo', normalized);
+          form.append('photo', payload);
           if (targetReviewStatus) form.append('reviewStatus', targetReviewStatus);
           const r = await fetch(`${LOG_API_BASE}/api/log/capture`, { method: 'POST', credentials: 'include', body: form });
           const d = await r.json().catch(() => ({ ok: false, error: 'non-JSON response' }));
           if (d.ok) {
-            window.notify?.success(`Photo captured: ${file.name || 'image'}`);
+            const label = isVideo ? 'Video' : 'Photo';
+            window.notify?.success(`${label} captured: ${file.name || (isVideo ? 'clip' : 'image')}`);
             loadEntries();
-            // Server runs Vision classify async (~1\u20132s). Re-load shortly to
-            // pick up the firmed kind so the card shows photo/receipt instead
-            // of the transient unsorted-image.
-            setTimeout(loadEntries, 2000);
+            // Photos land as 'unsorted-image' and Vision firms them (~1–2s);
+            // videos land as 'video' immediately. A follow-up reload still
+            // costs little and keeps the lane in sync either way.
+            if (isImage) setTimeout(loadEntries, 2000);
           } else {
-            window.notify?.error('Photo capture failed', { description: friendlyError(d.error || `HTTP ${r.status}`) });
+            const label = isVideo ? 'Video' : 'Photo';
+            window.notify?.error(`${label} capture failed`, { description: friendlyError(d.error || `HTTP ${r.status}`) });
           }
         } catch (err) {
-          window.notify?.error('Photo capture failed', { description: friendlyError(err) });
+          window.notify?.error('Capture failed', { description: friendlyError(err) });
         } finally {
           setCapturing(false);
           if (sourceRef?.current) sourceRef.current.value = '';
@@ -3757,18 +3791,21 @@
       const captureActionsNode = (
         <div className="log-capture-actions">
           <button
-            className="log-capture-action log-capture-action--photo"
+            className="log-capture-action log-capture-action--media"
             onClick={e => { e.stopPropagation(); setPhotoMenuOpen(o => !o); }}
             disabled={capturing}
-            title="Add a photo"
-            aria-label="Add a photo"
+            title="Add a photo or video"
+            aria-label="Add a photo or video"
           >
-            <Icon name="fa-camera" />
-            <span className="btn-label">Photo</span>
+            <Icon name="fa-photo-film" />
+            <span className="btn-label">Media</span>
             {photoMenuOpen && (
               <div className="log-capture-menu" onClick={e => e.stopPropagation()}>
                 <button onClick={() => { setPhotoMenuOpen(false); photoCameraRef.current?.click(); }}>
                   <Icon name="fa-camera-retro" /> Take photo
+                </button>
+                <button onClick={() => { setPhotoMenuOpen(false); videoCameraRef.current?.click(); }}>
+                  <Icon name="fa-video" /> Record video
                 </button>
                 <button onClick={() => { setPhotoMenuOpen(false); photoLibraryRef.current?.click(); }}>
                   <Icon name="fa-images" /> Choose from library
@@ -3962,7 +3999,15 @@
           />
           <input
             type="file"
-            accept="image/*"
+            accept="video/*"
+            capture="environment"
+            ref={videoCameraRef}
+            style={{ display: 'none' }}
+            onChange={e => capturePhoto(e.target.files?.[0], videoCameraRef)}
+          />
+          <input
+            type="file"
+            accept="image/*,video/*"
             multiple
             ref={photoLibraryRef}
             style={{ display: 'none' }}

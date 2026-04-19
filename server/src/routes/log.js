@@ -65,12 +65,26 @@ function friendlyUpstreamError(err) {
 // Resolve `row.payload.imagePath` (stored as a repo-relative POSIX path like
 // "trips/slug/photos/ph_abc.jpg") to an absolute path on disk. Returns null if
 // the payload doesn't carry a photo reference or the path escapes REPO_ROOT.
+// Photo-only by design — Vision callers must not be handed a video buffer.
 function resolveEntryImagePath(row) {
   const rel = row?.payload?.imagePath || row?.imagePath;
   if (!rel || typeof rel !== "string") return null;
   const abs = path.resolve(REPO_ROOT, rel);
   // Guard: never leave the repo root (defense-in-depth; rel is server-written,
   // but a compromised pending.json shouldn't give us arbitrary file-read).
+  if (!abs.startsWith(REPO_ROOT + path.sep)) return null;
+  return abs;
+}
+
+// Resolve any on-disk media for a row — photo, receipt, or video — to an
+// absolute path. For cleanup/delete callers that need to unlink the file
+// without caring what format it is.
+function resolveEntryMediaPath(row) {
+  const rel =
+    row?.payload?.imagePath || row?.imagePath ||
+    row?.payload?.videoPath || row?.videoPath;
+  if (!rel || typeof rel !== "string") return null;
+  const abs = path.resolve(REPO_ROOT, rel);
   if (!abs.startsWith(REPO_ROOT + path.sep)) return null;
   return abs;
 }
@@ -107,13 +121,15 @@ async function loadEntryImageBlock(row) {
 }
 
 const MAX_PHOTO_BYTES = 10 * 1024 * 1024; // 10 MB
+const MAX_VIDEO_BYTES = 100 * 1024 * 1024; // 100 MB — short phone clips
 
-const photoUpload = multer({
+const mediaUpload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: MAX_PHOTO_BYTES },
+  limits: { fileSize: MAX_VIDEO_BYTES },
   fileFilter: (_req, file, cb) => {
-    if (!/^image\//.test(file.mimetype || "")) {
-      return cb(new Error("only image/* uploads are accepted"));
+    const mime = file.mimetype || "";
+    if (!/^(image|video)\//.test(mime)) {
+      return cb(new Error("only image/* or video/* uploads are accepted"));
     }
     cb(null, true);
   },
@@ -217,10 +233,11 @@ export function createLogRouter({ queueValidators, anthropic, DEFAULT_MODEL, cla
     }
   });
 
-  // POST /api/log/capture — write a photo or note to the pending queue
-  // note:  application/json   { kind: "note", text: "..." }
-  // photo: multipart/form-data  field "photo" = image file
-  router.post("/api/log/capture", photoUpload.single("photo"), async (req, res) => {
+  // POST /api/log/capture — write a photo, video, or note to the pending queue
+  // note:   application/json    { kind: "note", text: "..." }
+  // media:  multipart/form-data field "photo" = image or video file
+  //         (field name kept as "photo" for backward-compat; routing is by mime)
+  router.post("/api/log/capture", mediaUpload.single("photo"), async (req, res) => {
     try {
       const slug = req.query.slug || (await getActiveTripSlug());
       const now = new Date().toISOString();
@@ -228,48 +245,89 @@ export function createLogRouter({ queueValidators, anthropic, DEFAULT_MODEL, cla
       let row;
 
       if (req.file) {
-        // --- Photo capture
         const buf = req.file.buffer;
-        const ext = sniffImageExt(buf) ?? "jpg";
-        const id = `ph_${randomUUID().replace(/-/g, "").slice(0, 20)}`;
-        const filename = `${id}.${ext}`;
-        const photosDir = path.join(TRIPS_DIR, slug, "photos");
-        await mkdir(photosDir, { recursive: true });
-        const imagePath = path.join(photosDir, filename);
-        await writeFile(imagePath, buf);
+        const mime = req.file.mimetype || "";
+        const isVideo = /^video\//.test(mime);
 
-        const relPath = `trips/${slug}/photos/${filename}`;
+        if (isVideo) {
+          // --- Video capture: store in videos/, no classify, kind=video directly
+          if (buf.length > MAX_VIDEO_BYTES) {
+            return res.status(413).json({ ok: false, error: "video exceeds 100 MB" });
+          }
+          const ext = (mime.split("/")[1] || "mp4").replace(/[^a-z0-9]/gi, "").toLowerCase() || "mp4";
+          const id = `vid_${randomUUID().replace(/-/g, "").slice(0, 20)}`;
+          const filename = `${id}.${ext}`;
+          const videosDir = path.join(TRIPS_DIR, slug, "videos");
+          await mkdir(videosDir, { recursive: true });
+          await writeFile(path.join(videosDir, filename), buf);
+          const relPath = `trips/${slug}/videos/${filename}`;
 
-        // Phase 11b: image lands as 'unsorted-image' and the classify queue
-        // promotes it to 'photo' or 'receipt' asynchronously. If anthropic is
-        // unavailable (no key, no queue), the row stays 'unsorted-image' and
-        // the reviewer firms it via the kind toggle on the review card.
-        // Caller can short-circuit classification by passing an explicit
-        // `kind` form field — used by the [+ Receipt] capture flow which
-        // already knows the kind at upload time.
-        const requestedKind = req.body?.kind;
-        const explicitKind = (requestedKind === "photo" || requestedKind === "receipt") ? requestedKind : null;
-        row = {
-          schemaVersion: "2",
-          id,
-          createdAt: now,
-          capturedAt: now,
-          tripSlug: slug,
-          kind: explicitKind || (classifyQueue ? "unsorted-image" : "photo"),
-          source: "app",
-          status: "pending",
-          memoryWorthy: false,
-          placement: { source: "unsorted" },
-          route: { journal: "none", ynab: "na" },
-          imagePath: relPath,
-          payload: {
+          row = {
+            schemaVersion: "2",
+            id,
+            createdAt: now,
+            capturedAt: now,
+            tripSlug: slug,
+            kind: "video",
+            source: "app",
+            status: "pending",
+            memoryWorthy: false,
+            placement: { source: "unsorted" },
+            route: { journal: "none", ynab: "na" },
+            payload: {
+              videoPath: relPath,
+              mime,
+              bytes: buf.length,
+            },
+          };
+          applyInitialStates(row);
+          assertInitial(row);
+        } else {
+          // --- Photo capture
+          if (buf.length > MAX_PHOTO_BYTES) {
+            return res.status(413).json({ ok: false, error: "photo exceeds 10 MB" });
+          }
+          const ext = sniffImageExt(buf) ?? "jpg";
+          const id = `ph_${randomUUID().replace(/-/g, "").slice(0, 20)}`;
+          const filename = `${id}.${ext}`;
+          const photosDir = path.join(TRIPS_DIR, slug, "photos");
+          await mkdir(photosDir, { recursive: true });
+          const imagePath = path.join(photosDir, filename);
+          await writeFile(imagePath, buf);
+
+          const relPath = `trips/${slug}/photos/${filename}`;
+
+          // Phase 11b: image lands as 'unsorted-image' and the classify queue
+          // promotes it to 'photo' or 'receipt' asynchronously. If anthropic is
+          // unavailable (no key, no queue), the row stays 'unsorted-image' and
+          // the reviewer firms it via the kind toggle on the review card.
+          // Caller can short-circuit classification by passing an explicit
+          // `kind` form field — used by the [+ Receipt] capture flow which
+          // already knows the kind at upload time.
+          const requestedKind = req.body?.kind;
+          const explicitKind = (requestedKind === "photo" || requestedKind === "receipt") ? requestedKind : null;
+          row = {
+            schemaVersion: "2",
+            id,
+            createdAt: now,
+            capturedAt: now,
+            tripSlug: slug,
+            kind: explicitKind || (classifyQueue ? "unsorted-image" : "photo"),
+            source: "app",
+            status: "pending",
+            memoryWorthy: false,
+            placement: { source: "unsorted" },
+            route: { journal: "none", ynab: "na" },
             imagePath: relPath,
-            mime: req.file.mimetype || `image/${ext}`,
-            bytes: buf.length,
-          },
-        };
-        applyInitialStates(row);
-        assertInitial(row);
+            payload: {
+              imagePath: relPath,
+              mime: mime || `image/${ext}`,
+              bytes: buf.length,
+            },
+          };
+          applyInitialStates(row);
+          assertInitial(row);
+        }
       } else if (req.body?.kind === "note") {
         // --- Note capture
         const text = String(req.body.text ?? "").trim();
@@ -739,12 +797,13 @@ export function createLogRouter({ queueValidators, anthropic, DEFAULT_MODEL, cla
       const pendingPath = path.join(TRIPS_DIR, slug, "pending.json");
       await atomicWriteJSON(pendingPath, rest);
 
-      // Hard-remove referenced photo files. ENOENT is fine (already gone);
-      // other errors are logged but don't fail the request — the trash file
-      // already has the row reference, so an ops recovery can still work.
+      // Hard-remove referenced media files (photos, receipts, videos).
+      // ENOENT is fine (already gone); other errors are logged but don't fail
+      // the request — the trash file already has the row reference, so an
+      // ops recovery can still work.
       let photoCount = 0;
       for (const row of reviewed) {
-        const abs = resolveEntryImagePath(row);
+        const abs = resolveEntryMediaPath(row);
         if (!abs) continue;
         try {
           await unlink(abs);
@@ -796,10 +855,10 @@ export function createLogRouter({ queueValidators, anthropic, DEFAULT_MODEL, cla
       const pendingPath = path.join(TRIPS_DIR, slug, "pending.json");
       await atomicWriteJSON(pendingPath, rest);
 
-      // Hard-remove referenced photo files.
+      // Hard-remove referenced media files (photos, receipts, videos).
       let photoCount = 0;
       for (const row of toRemove) {
-        const abs = resolveEntryImagePath(row);
+        const abs = resolveEntryMediaPath(row);
         if (!abs) continue;
         try {
           await unlink(abs);
