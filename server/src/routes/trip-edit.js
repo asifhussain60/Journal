@@ -258,6 +258,12 @@ export function createTripEditRouter({ anthropic, DEFAULT_MODEL }) {
         constraints: normalizedConstraints,
       }, null, 2);
 
+      // Timing instrumentation — splits the total into Sonnet+web_search
+      // and Gemini-verify so we can target the right tier of optimization.
+      // Grep with: rg '\[FIND-ALT:TIMING\]' server/logs or server stdout.
+      const tStart = Date.now();
+
+      const tSonnetStart = Date.now();
       const msg = await anthropic.messages.create({
         model: prompt.model ?? DEFAULT_MODEL,
         max_tokens: 2048,
@@ -265,16 +271,19 @@ export function createTripEditRouter({ anthropic, DEFAULT_MODEL }) {
         messages: [{ role: "user", content: userMsg }],
         tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 4 }],
       });
+      const sonnetMs = Date.now() - tSonnetStart;
       const raw = msg.content.filter((b) => b.type === "text").map((b) => b.text).join("").trim();
       const parsed = extractJsonObject(raw);
       if (!parsed || !Array.isArray(parsed.alternatives)) {
         logExtractFailure(prompt.name, raw);
+        console.log("[FIND-ALT:TIMING]", JSON.stringify({ slug, dayIndex, eventIndex, sonnetMs, verifyMs: 0, totalMs: Date.now() - tStart, status: "extract-failed" }));
         return res.json({ ok: false, model: msg.model, usage: msg.usage, error: "model did not return alternatives", rawText: raw });
       }
 
       // Post-process with Gemini's Google-Search grounding. Parallel fan-out
       // adds ~1s worst-case. Google data wins when present; Sonnet's stays
       // as fallback. Unverified venues get verified:false so UI can warn.
+      const tVerifyStart = Date.now();
       let alternatives = parsed.alternatives;
       if (geminiAvailable()) {
         alternatives = await Promise.all(parsed.alternatives.map(async (alt) => {
@@ -295,6 +304,18 @@ export function createTripEditRouter({ anthropic, DEFAULT_MODEL }) {
           };
         }));
       }
+      const verifyMs = Date.now() - tVerifyStart;
+      const totalMs = Date.now() - tStart;
+      console.log("[FIND-ALT:TIMING]", JSON.stringify({
+        slug, dayIndex, eventIndex,
+        sonnetMs, verifyMs, totalMs,
+        altCount: alternatives.length,
+        verifiedCount: alternatives.filter((a) => a.verified).length,
+        webSearches: msg.usage?.server_tool_use?.web_search_requests ?? null,
+        cacheRead: msg.usage?.cache_read_input_tokens ?? 0,
+        cacheCreate: msg.usage?.cache_creation_input_tokens ?? 0,
+        status: "ok",
+      }));
 
       res.json({
         ok: true,
