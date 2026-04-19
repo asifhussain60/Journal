@@ -27,11 +27,7 @@ import { fromDeadLetter } from "../adapters/fromDeadLetter.js";
 import { applyInitialStates, assertInitial, assertTransition, TransitionError, INITIAL_STATES } from "../lib/workflow-state.js";
 import { readTripObj } from "../lib/trip-edit-ops.js";
 import { loadPrompt } from "../prompts/index.js";
-import { fileURLToPath } from "node:url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const FINGERPRINT_PATH = path.resolve(__dirname, "../../../reference/voice-fingerprint.md");
+import { getFingerprint, FINGERPRINT_PATH_RESOLVED } from "../lib/voice-fingerprint.js";
 
 // Vision payload budget for refine: stay well under Anthropic's ~5MB base64 cap.
 // Above this we skip vision rather than fail the call — refine still works from
@@ -473,7 +469,7 @@ export function createLogRouter({ queueValidators, anthropic, DEFAULT_MODEL, cla
       // Compose context — voice fingerprint is required; trip is best-effort.
       let fingerprint;
       try {
-        fingerprint = await readFile(FINGERPRINT_PATH, "utf8");
+        fingerprint = await getFingerprint();
       } catch (err) {
         return res.status(500).json({ ok: false, error: `voice-fingerprint unreadable: ${err.message}` });
       }
