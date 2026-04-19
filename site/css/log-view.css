@@ -66,16 +66,10 @@
 .log-module .log-chip i,
 .log-module .log-action-btn i { font-size: var(--row-icon); line-height: 1; }
 
-/* ─── Push-to-DayOne surface (Phase 11b) ─── */
-.log-dayone-push {
-  width: var(--log-width);
-  margin: var(--section-gap) auto 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 14px;
-  flex-wrap: wrap;
-}
+/* ─── Push-to-DayOne controls (Phase 11b) — now hosted inside the composer's
+   footer action row (.dayone-actions). The legacy .log-dayone-push wrapper is
+   gone; .log-dayone-push-controls retains the journal-select + copy-button
+   pill styling. */
 .log-dayone-push-controls {
   display: inline-flex;
   align-items: stretch;
@@ -285,8 +279,7 @@
 }
 .log-empty i {
   font-size: 3.3rem;
-  color: var(--accent);
-  opacity: 0.55;
+  color: color-mix(in srgb, var(--accent) 55%, transparent);
 }
 .log-empty p { margin: 0; max-width: 36ch; }
 
@@ -349,8 +342,7 @@
   font-size: 2.8rem;
   line-height: 1;
   text-align: center;
-  color: var(--accent);
-  opacity: 0.75;
+  color: color-mix(in srgb, var(--accent) 75%, transparent);
 }
 
 /* Per-kind icon tint — thumb stays lavender; only the icon shifts */
@@ -556,7 +548,7 @@
 .log-status-dot--unreviewed { background: var(--warning); box-shadow: 0 0 7px color-mix(in srgb, var(--warning) 55%, transparent); }
 .log-status-dot--in_review  { background: var(--info);    box-shadow: 0 0 7px color-mix(in srgb, var(--info) 55%, transparent); }
 .log-status-dot--approved   { background: var(--success); box-shadow: 0 0 7px color-mix(in srgb, var(--success) 55%, transparent); }
-.log-status-dot--rejected   { background: var(--error);   opacity: 0.7; }
+.log-status-dot--rejected   { background: color-mix(in srgb, var(--error) 70%, transparent); }
 
 .log-action-btn {
   flex: 1 1 auto;
@@ -1205,14 +1197,14 @@
 
 /* ═══════════════════════════════════════════════════
    DayOne Composer — Phase 11d
-   Six-section authoring surface shown only in the
-   Reviewed lane. Visual rhythm: prominent Title,
-   balanced two-axis grid for secondary fields, subtle
-   read-only Metadata pill at the foot.
+   Single authoring surface for the Reviewed lane. Own
+   structure: header (eyebrow + capture actions) →
+   Title/Context 1×2 grid → Highlights → Story (the
+   reviewed cards inline) → Metadata pill → action row.
    ═══════════════════════════════════════════════════ */
 
 .dayone-composer {
-  margin: 0 0 22px;
+  margin: 0;
   padding: 22px 24px 20px;
   border-radius: var(--radius-lg);
   background: linear-gradient(160deg,
@@ -1222,9 +1214,9 @@
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--accent) 10%, transparent) inset,
     var(--shadow-sm);
-  display: grid;
-  grid-template-columns: 1fr;
-  row-gap: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
   font-family: 'Inter', var(--font-sans);
 }
 
@@ -1232,8 +1224,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding-bottom: 12px;
+  gap: 16px;
+  padding-bottom: 14px;
   border-bottom: 1px dashed color-mix(in srgb, var(--accent) 22%, var(--border-default));
 }
 .dayone-composer-head-text {
@@ -1242,12 +1234,19 @@
   gap: 2px;
   min-width: 0;
 }
+.dayone-composer-head-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
 .dayone-composer-eyebrow {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   font-family: var(--font-display, var(--font-serif));
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   font-weight: 600;
   letter-spacing: 0.01em;
   color: var(--accent);
@@ -1302,12 +1301,36 @@
 .dayone-field-meta {
   font-size: 0.75rem;
   color: color-mix(in srgb, var(--text-muted) 80%, transparent);
-  align-self: flex-end;
+}
+.dayone-field-restore {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  border: none;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--accent);
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 140ms ease;
+}
+.dayone-field-restore:hover {
+  background: color-mix(in srgb, var(--accent) 32%, transparent);
 }
 
-/* ─── Title — the hero input ─── */
-.dayone-field--title { position: relative; }
-.dayone-title-input {
+/* ─── Title + Context — 1×2 grid, matched hero styling ─── */
+.dayone-title-context {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+@media (max-width: 780px) {
+  .dayone-title-context { grid-template-columns: 1fr; }
+}
+.dayone-hero-input {
   width: 100%;
   padding: 10px 14px;
   border-radius: var(--radius-md);
@@ -1315,68 +1338,22 @@
   background: var(--bg-primary);
   color: var(--text-primary);
   font-family: var(--font-display, var(--font-serif));
-  font-size: 1.55rem;
+  font-size: 1.25rem;
   font-weight: 600;
   letter-spacing: 0.005em;
-  line-height: 1.25;
+  line-height: 1.35;
   transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
 }
-.dayone-title-input::placeholder {
+.dayone-hero-input::placeholder {
   color: var(--text-muted);
   font-style: italic;
   font-weight: 400;
 }
-.dayone-title-input:focus {
+.dayone-hero-input:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
   background: color-mix(in srgb, var(--bg-primary) 92%, var(--accent));
-}
-.dayone-field--title .dayone-field-meta {
-  position: absolute;
-  top: 2px;
-  right: 0;
-}
-
-/* ─── Context — one-liner with "Use trip" restore ─── */
-.dayone-field--context { position: relative; }
-.dayone-context-input {
-  width: 100%;
-  padding: 9px 13px;
-  padding-right: 118px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-default);
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  font-family: inherit;
-  font-size: 0.98rem;
-  transition: border-color 140ms ease, box-shadow 140ms ease;
-}
-.dayone-context-input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
-}
-.dayone-context-reset {
-  position: absolute;
-  right: 6px;
-  bottom: 6px;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  border-radius: var(--radius-full);
-  border: none;
-  background: color-mix(in srgb, var(--accent) 18%, transparent);
-  color: var(--accent);
-  font-family: inherit;
-  font-size: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 140ms ease;
-}
-.dayone-context-reset:hover {
-  background: color-mix(in srgb, var(--accent) 32%, transparent);
 }
 
 /* ─── Highlights — editable bullet list ─── */
@@ -1398,11 +1375,10 @@
   justify-self: center;
   font-size: 1.2rem;
   line-height: 1;
-  color: var(--accent);
-  opacity: 0.8;
+  color: color-mix(in srgb, var(--accent) 80%, transparent);
 }
 .dayone-highlight--draft .dayone-highlight-bullet {
-  opacity: 0.5;
+  color: color-mix(in srgb, var(--accent) 50%, transparent);
   font-weight: 700;
 }
 .dayone-highlight-input {
@@ -1484,30 +1460,48 @@
   cursor: not-allowed;
 }
 
-/* ─── Reflection — textarea ─── */
-.dayone-reflection-input {
-  width: 100%;
-  padding: 10px 13px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-default);
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  font-family: var(--font-display, var(--font-serif));
-  font-size: 1.02rem;
-  line-height: 1.55;
-  resize: vertical;
-  min-height: 78px;
-  transition: border-color 140ms ease, box-shadow 140ms ease;
+/* ─── Story — reviewed cards inline inside the composer ─── */
+.dayone-story {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px dashed color-mix(in srgb, var(--accent) 22%, var(--border-default));
 }
-.dayone-reflection-input::placeholder {
+.dayone-story-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: var(--text-muted);
-  font-style: italic;
 }
-.dayone-reflection-input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+.dayone-story-label i { color: var(--accent); }
+.dayone-story-count {
+  margin-left: 4px;
+  padding: 2px 9px;
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: none;
 }
+.dayone-story-body {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--card-gap, 1.6rem);
+}
+@media (max-width: 1100px) {
+  .dayone-story-body { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 720px) {
+  .dayone-story-body { grid-template-columns: minmax(0, 1fr); }
+}
+.dayone-story-body .log-empty { grid-column: 1 / -1; }
 
 /* ─── Metadata — read-only pill line ─── */
 .dayone-metadata-pill {
@@ -1526,20 +1520,16 @@
   white-space: nowrap;
 }
 
-/* ─── Two-column balance for mid-width screens ─── */
-@media (min-width: 780px) {
-  .dayone-composer {
-    grid-template-columns: 1fr 1fr;
-    column-gap: 22px;
-  }
-  .dayone-composer-head,
-  .dayone-field--title,
-  .dayone-field--context,
-  .dayone-field--highlights,
-  .dayone-field--reflection,
-  .dayone-field--metadata {
-    grid-column: 1 / -1;
-  }
-  /* Pair Context + Metadata on wide rails once both exist, if we ever want
-     them side-by-side. For now both stay full-width for legibility. */
+/* ─── Footer action row — Journal select + Copy + Delete ─── */
+.dayone-actions {
+  margin-top: 4px;
+  padding-top: 16px;
+  border-top: 1px dashed color-mix(in srgb, var(--accent) 22%, var(--border-default));
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: flex-end;
+  align-items: center;
 }
+.dayone-actions .log-dayone-push-controls { margin: 0; }
+

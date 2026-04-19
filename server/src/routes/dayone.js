@@ -59,11 +59,10 @@ function sanitizeCompose(raw) {
   const obj = raw && typeof raw === "object" ? raw : {};
   const title = typeof obj.title === "string" ? obj.title.trim() : "";
   const context = typeof obj.context === "string" ? obj.context.trim() : "";
-  const reflection = typeof obj.reflection === "string" ? obj.reflection.trim() : "";
   const highlights = Array.isArray(obj.highlights)
     ? obj.highlights.map(h => (typeof h === "string" ? h.trim() : "")).filter(Boolean).slice(0, 5)
     : [];
-  return { title, context, highlights, reflection };
+  return { title, context, highlights };
 }
 
 function buildDefaultMetadata(tripCtx, entries) {
@@ -101,11 +100,9 @@ function formatBundle({ tripCtx, slug, entries, compose: composeRaw }) {
     || [formatDateRange(entries), tripCtx?.location || tripCtx?.origin?.label || ""].filter(Boolean).join(" · ");
   const metadata = buildDefaultMetadata(tripCtx, entries);
 
-  // Photo interleaving: drop a mid-story photo between Highlights and Story
-  // (first photo), and between Story and Reflection (second photo). Any
-  // remaining photos stay inline with their source entry in the Story body.
-  // We don't reorder — we simply let the Story section own every placeholder,
-  // which keeps the HTML renderer's photoIdx counter trivially in sync.
+  // Photos ride inline with their source entry in the Story body. The Story
+  // section owns every [{attachment}] placeholder, which keeps the HTML
+  // renderer's photoIdx counter trivially in sync with photoEntryOrder.
 
   const out = [];
   out.push(`# ${title}`);
@@ -122,9 +119,6 @@ function formatBundle({ tripCtx, slug, entries, compose: composeRaw }) {
       out.push(storyBlocks[i]);
       if (i < storyBlocks.length - 1) out.push("");
     }
-  }
-  if (compose.reflection) {
-    out.push("", "## Reflection", compose.reflection);
   }
   if (metadata) {
     out.push("", "## Metadata", `*${metadata}*`);
