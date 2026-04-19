@@ -358,6 +358,33 @@ Post this checklist and **wait for go-ahead** before Phase E.
 
 Industry-standard best-practice sweep across the Refine All surface and adjacent code. Not a full-site overhaul — scope is bounded to code touched in Phases A–D **plus** directly-adjacent SPA infrastructure that affects UX consistency.
 
+### Pre-E0 — Test harness bootstrap *(journal-builder gate — must land before E1)*
+
+> **CORTEX governance note:** As of 2026-04-19, `.github/agents/journal-builder.agent.md` is active.
+> All Phase E+ work runs under journal-builder's TDD discipline. No E-series commit is approved without
+> tests written first. Pre-E0 stands up the harness so that gate is mechanically enforceable.
+
+**Actions:**
+1. Add to `server/package.json` scripts:
+   ```json
+   "test": "node --test 'src/**/*.test.js'",
+   "test:watch": "node --test --watch 'src/**/*.test.js'"
+   ```
+   Zero new runtime dependencies — uses Node 18+ built-in test runner.
+2. Create `server/src/lib/tag-normalize.test.js` — pure function, ideal TDD entry point.
+   Cover: empty string, whitespace trimming, slug normalization, unicode emoji passthrough, max-length enforcement.
+3. Create `server/src/lib/hash-field.test.js` — covers determinism, 16-hex output, empty input.
+4. Create `server/src/routes/trip-edit.test.js` — covers baseVersion 409 conflict guard (D11), patch allowlist rejection of unknown paths, successful patch response shape includes `version`.
+5. Add `npm test` step to `.github/workflows/ci.yml` (after install, before any deploy).
+
+**Gate:** `cd server && npm test` exits 0. CI passes. Failing tests are blocked from merge.
+
+```bash
+git add -A && git commit -m "refine-all(Pre-E0): test harness bootstrap — Node built-in runner, tag-normalize/hash-field/trip-edit coverage"
+```
+
+---
+
 ### Commit E1 — Accessibility audit (WCAG 2.2 AA)
 - Every interactive element is a semantic element: `<button type="button">` or `<a href>`. No `<div onClick>` or `<span onClick>` for interactions.
 - ARIA: `role="listbox"` on typeahead dropdown, `role="option"` on items, `aria-selected` on hover/focus, `aria-expanded` on the dropdown trigger.
@@ -556,7 +583,7 @@ git add -A && git commit -m "fix: eliminate remaining hardcoded localhost in sit
 
 ## Acceptance Criteria (Definition of Done)
 
-1. All commits (A1–A10, B1–B2, B+1–B+2, C1–C3, E1–E6, F1–F2, G1–G3) land on `refine-all-redesign-v2`.
+1. All commits (A1–A10, B1–B2, B+1–B+2, C1–C3, Pre-E0, E1–E6, F1–F2, G1–G3) land on `refine-all-redesign-v2`.
 2. Every gate in every commit passes.
 3. Every user-verification STOP is explicitly confirmed.
 4. `2026-04-ishrat-engagement` can be Refine-All'd end-to-end without manual intervention.
@@ -573,8 +600,9 @@ git add -A && git commit -m "fix: eliminate remaining hardcoded localhost in sit
 | B1–B2 | TagInput component + Composer integration | ✅ Done |
 | B+1 | Replace Highlights with Reflection textarea + fix TagInput Enter | ✅ Done |
 | B+2 | AI-powered Reflection refine via voice DNA fingerprint | ✅ Done |
-| C1–C3 | Refine All button + SSE streaming + Re-synth | ⬜ Next |
+| C1–C3 | Refine All button + SSE streaming + Re-synth | ✅ Done |
 | D1 | ~~Highlights chip redesign~~ | ❌ Retired |
+| Pre-E0 | Test harness bootstrap (journal-builder gate) | ⬜ Next |
 | E1–E6 | Holistic refactor & cleanup | ⬜ Pending |
 | F1–F2 | E2E matrix + closeout | ⬜ Pending |
 | G1–G3 | Publish gate + Cloudflare deploy + localhost audit | ⬜ Pending |
