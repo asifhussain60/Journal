@@ -296,13 +296,20 @@
   overflow: hidden;
   margin: 0 auto 3rem auto;
   max-width: 60%;
-  background: var(--glass-bg);
-  backdrop-filter: blur(24px) saturate(150%);
-  -webkit-backdrop-filter: blur(24px) saturate(150%);
-  border: 1px solid var(--glass-border);
-  border-top: 1px solid var(--glass-border-light);
-  border-left: 1px solid var(--glass-border-light);
-  box-shadow: var(--glass-shadow);
+  background: linear-gradient(
+    150deg,
+    color-mix(in srgb, var(--mauve) 16%, var(--bg-card, rgba(255,255,255,0.08))) 0%,
+    color-mix(in srgb, var(--lavender) 8%, transparent) 55%,
+    color-mix(in srgb, var(--gold) 5%, transparent) 100%
+  );
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid color-mix(in srgb, var(--mauve) 25%, var(--glass-border));
+  border-top: 1px solid color-mix(in srgb, var(--lavender) 35%, var(--glass-border-light));
+  border-left: 1px solid color-mix(in srgb, var(--lavender) 30%, var(--glass-border-light));
+  box-shadow:
+    var(--glass-shadow),
+    0 0 60px color-mix(in srgb, var(--mauve) 10%, transparent);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -311,18 +318,25 @@
   transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 .trip-hero:hover {
-  background: var(--glass-bg-hover);
+  background: linear-gradient(
+    150deg,
+    color-mix(in srgb, var(--mauve) 22%, var(--bg-card, rgba(255,255,255,0.12))) 0%,
+    color-mix(in srgb, var(--lavender) 12%, transparent) 55%,
+    color-mix(in srgb, var(--gold) 8%, transparent) 100%
+  );
   transform: translateY(-6px);
-  box-shadow: var(--glass-shadow-hover);
-  border-color: rgba(255,255,255,.32);
+  border-color: color-mix(in srgb, var(--mauve) 45%, rgba(255,255,255,.32));
+  box-shadow:
+    var(--glass-shadow-hover),
+    0 0 80px color-mix(in srgb, var(--mauve) 18%, transparent);
 }
 .trip-hero::before {
   content: '';
   position: absolute;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  width: 400px; height: 400px;
-  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 10%, transparent) 0%, transparent 70%);
+  width: 480px; height: 480px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--mauve) 20%, transparent) 0%, transparent 70%);
   z-index: -1;
 }
 
