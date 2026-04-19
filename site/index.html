@@ -2542,7 +2542,7 @@
         }
       }
 
-      const hasAny = !!(value.title?.trim() || (value.reflection || '').trim());
+      const hasAny = !!(value.title?.trim() || (value.reflection || '').trim() || dayoneTags.length > 0);
       const storyCount = (reviewedRows || []).length;
 
       return (
@@ -2637,11 +2637,12 @@
                     type="button"
                     className="dayone-composer-reset"
                     onClick={() => {
-                      if (!confirm('Clear Title and Reflection?')) return;
+                      if (!confirm('Clear all fields?')) return;
                       onChange({ title: '', context: autoContext, reflection: '' });
+                      onTagsChange?.([]);
                     }}
-                    title="Reset user-typed fields"
-                    aria-label="Reset user-typed fields"
+                    title="Reset all user-typed fields"
+                    aria-label="Reset all user-typed fields"
                   >
                     <Icon name="fa-rotate-left" />
                     <span className="btn-label"> Reset</span>
@@ -3472,6 +3473,31 @@
           setDayonePushing(false);
         }
       }
+      // Shared clear-path for Reviewed-lane resets — wipes tags, AI suggestions,
+      // and refine badges locally, then fire-and-forget PATCH /dayoneTags=[] so
+      // a fail doesn't roll back into the just-reset UI.
+      function clearComposerTagsAndRefine(slug) {
+        // Abort any in-flight Refine All stream first — its token handler at ~3070
+        // merges into dayoneTags via stale closure and would resurrect tags.
+        if (refineAbortRef.current) { refineAbortRef.current.abort(); refineAbortRef.current = null; }
+        if (tagSaveTimerRef.current) { clearTimeout(tagSaveTimerRef.current); tagSaveTimerRef.current = null; }
+        setDayoneTags([]);
+        lastSavedTagsRef.current = [];
+        setAiSuggestedTags([]);
+        setRefineState({ reflection: { status: 'idle', hashes: [] }, tags: { status: 'idle' } });
+        if (!slug) return;
+        fetch(`${LOG_API_BASE}/api/trip-edit`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tripSlug: slug,
+            patches: [{ op: 'add', path: '/dayoneTags', value: [] }],
+            baseVersion: 'skip',
+          }),
+        }).catch(() => {});
+      }
+
       // Bulk-delete every Reviewed-lane entry for the active trip. Gated on
       // copiedOnce: the button only opens the modal after a successful Copy
       // to DayOne in this session, so the prose has a durable home before
@@ -3496,6 +3522,7 @@
             setCopiedOnce(false);
             setCompose({ title: '', context: '', reflection: '', date: todayIso(), weather: null });
             if (composeKey) { try { localStorage.removeItem(composeKey); } catch {} }
+            clearComposerTagsAndRefine(slug);
           } else {
             const removedIds = entries.filter(isUnreviewed).map(e => e.id);
             setEntries(prev => prev.filter(e => !isUnreviewed(e)));
@@ -3532,6 +3559,7 @@
           // Composer has done its job — clear so the next trip/session starts fresh.
           setCompose({ title: '', context: '', reflection: '', date: todayIso(), weather: null });
           if (composeKey) { try { localStorage.removeItem(composeKey); } catch {} }
+          clearComposerTagsAndRefine(slug);
           window.notify?.success?.(`Deleted ${d.entryCount} reviewed entries`, {
             description: d.photoCount ? `${d.photoCount} photo${d.photoCount === 1 ? '' : 's'} removed from disk.` : undefined,
           });
