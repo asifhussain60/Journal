@@ -1,13 +1,13 @@
 // routes/trip-refine-all.js — Refine All coordinator (D10, D11, D12).
-// POST /api/trip-refine-all — fan-out to three orchestrators, atomic response.
-// POST /api/trip-refine-field — single-field re-synth (D10 complement).
+// POST /api/trip-refine-all — fan-out to two orchestrators (narrative + tags), atomic response.
+// POST /api/trip-refine-field — single-field re-synth (D10 complement, narrative only).
 
 import express from "express";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { loadPrompt } from "../prompts/index.js";
 import { readTripObj, tripYamlPath } from "../lib/trip-edit-ops.js";
-import { getFingerprint, getFingerprintLight } from "../lib/voice-fingerprint.js";
+import { getFingerprint } from "../lib/voice-fingerprint.js";
 import { getTopN } from "../lib/tag-corpus.js";
 import { normalizeTag } from "../lib/tag-normalize.js";
 import { hashField } from "../lib/hash-field.js";
@@ -68,20 +68,6 @@ function buildNarrativeInput({ fingerprint, title, subtitle, dateRange, captions
   return { system, user: userParts.join("\n") };
 }
 
-function buildHighlightsInput({ fingerprintLight, title, subtitle, dateRange, captions }) {
-  const prompt = loadPrompt("suggest-highlights");
-  const system = prompt.system.replace("{{FINGERPRINT_LIGHT}}", fingerprintLight);
-  const userParts = [
-    `Trip: ${title || "Untitled"}`,
-    subtitle ? `Subtitle: ${subtitle}` : null,
-    dateRange ? `Dates: ${dateRange}` : null,
-    "",
-    "Approved photo captions:",
-    ...captions.map((c, i) => `${i + 1}. ${c}`),
-  ].filter((l) => l !== null);
-  return { system, user: userParts.join("\n") };
-}
-
 function buildTagsInput({ title, subtitle, dateRange, captions, corpus }) {
   const prompt = loadPrompt("suggest-tags");
   const corpusLines = corpus.length
@@ -120,35 +106,6 @@ async function runNarrative(anthropic, input) {
   return {
     value: parsed.value.trim(),
     hash: hashField(parsed.value.trim()),
-    reasoning: String(parsed.reasoning || "").trim(),
-    meta: { model: msg.model, latencyMs, usage: msg.usage },
-  };
-}
-
-async function runHighlights(anthropic, input) {
-  const { system, user } = buildHighlightsInput(input);
-  const prompt = loadPrompt("suggest-highlights");
-  const startMs = Date.now();
-  const msg = await anthropic.messages.create({
-    model: prompt.model,
-    max_tokens: 1024,
-    system,
-    messages: [{ role: "user", content: user }],
-  });
-  const latencyMs = Date.now() - startMs;
-  const text = msg.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim();
-  const parsed = extractJsonObject(text);
-  if (!parsed || !Array.isArray(parsed.items)) {
-    throw new Error("highlights: invalid JSON response");
-  }
-  const values = parsed.items
-    .filter((s) => typeof s === "string")
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .slice(0, 5);
-  return {
-    values,
-    hashes: values.map(hashField),
     reasoning: String(parsed.reasoning || "").trim(),
     meta: { model: msg.model, latencyMs, usage: msg.usage },
   };
@@ -259,14 +216,13 @@ export function createTripRefineAllRouter({ anthropic }) {
       return res.status(400).json({ ok: false, error: "no captions in photos — approve some entries first" });
     }
 
-    // Load fingerprints + corpus in parallel
-    const [fingerprint, fingerprintLight, corpus] = await Promise.all([
+    // Load fingerprint + corpus in parallel
+    const [fingerprint, corpus] = await Promise.all([
       getFingerprint(),
-      getFingerprintLight(),
       getTopN(50),
     ]);
 
-    const input = { fingerprint, fingerprintLight, title, subtitle, dateRange, captions, corpus };
+    const input = { fingerprint, title, subtitle, dateRange, captions, corpus };
 
     // --- SSE mode (Accept: text/event-stream) ---
     const wantsSSE = (req.headers.accept || "").includes("text/event-stream");
@@ -282,7 +238,7 @@ export function createTripRefineAllRouter({ anthropic }) {
         res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
       };
 
-      // Run narrative with streaming API, highlights and tags in parallel
+      // Run narrative with streaming API, tags in parallel
       const narrativePromise = (async () => {
         const { system, user } = buildNarrativeInput(input);
         const prompt = loadPrompt("synthesize-trip-narrative");
@@ -331,22 +287,16 @@ export function createTripRefineAllRouter({ anthropic }) {
         return result;
       })();
 
-      const highlightsPromise = runHighlights(anthropic, input).then((r) => {
-        send("highlights.done", { values: r.values, hashes: r.hashes, reasoning: r.reasoning });
-        return r;
-      });
-
       const tagsPromise = runTags(anthropic, input).then((r) => {
         r.values = r.values.filter((t) => !rejectedSet.has(normalizeTag(t)));
         send("tags.done", { values: r.values, reasoning: r.reasoning });
         return r;
       });
 
-      const [nResult, hResult, tResult] = await Promise.allSettled([narrativePromise, highlightsPromise, tagsPromise]);
+      const [nResult, tResult] = await Promise.allSettled([narrativePromise, tagsPromise]);
 
       const errors = {};
       if (nResult.status === "rejected") errors.narrative = nResult.reason?.message || String(nResult.reason);
-      if (hResult.status === "rejected") errors.highlights = hResult.reason?.message || String(hResult.reason);
       if (tResult.status === "rejected") errors.tags = tResult.reason?.message || String(tResult.reason);
 
       if (Object.keys(errors).length > 0) {
@@ -357,13 +307,11 @@ export function createTripRefineAllRouter({ anthropic }) {
 
       // Log usage
       logOrchestratorUsage(nResult.value.meta, "synthesize-trip-narrative", tripId, requestId);
-      logOrchestratorUsage(hResult.value.meta, "suggest-highlights", tripId, requestId);
       logOrchestratorUsage(tResult.value.meta, "suggest-tags", tripId, requestId);
 
       const response = {
         ok: true,
         narrative: { value: nResult.value.value, hash: nResult.value.hash, reasoning: nResult.value.reasoning },
-        highlights: { values: hResult.value.values, hashes: hResult.value.hashes, reasoning: hResult.value.reasoning },
         tags: { values: tResult.value.values, reasoning: tResult.value.reasoning },
       };
 
@@ -378,16 +326,14 @@ export function createTripRefineAllRouter({ anthropic }) {
     // --- Batch JSON mode (default) ---
 
     // Fan-out with Promise.allSettled (D10 revised — no Promise.all)
-    const [narrativeResult, highlightsResult, tagsResult] = await Promise.allSettled([
+    const [narrativeResult, tagsResult] = await Promise.allSettled([
       runNarrative(anthropic, input),
-      runHighlights(anthropic, input),
       runTags(anthropic, input),
     ]);
 
     // All-or-nothing: if any rejected, return errors
     const errors = {};
     if (narrativeResult.status === "rejected") errors.narrative = narrativeResult.reason?.message || String(narrativeResult.reason);
-    if (highlightsResult.status === "rejected") errors.highlights = highlightsResult.reason?.message || String(highlightsResult.reason);
     if (tagsResult.status === "rejected") errors.tags = tagsResult.reason?.message || String(tagsResult.reason);
 
     if (Object.keys(errors).length > 0) {
@@ -395,7 +341,6 @@ export function createTripRefineAllRouter({ anthropic }) {
     }
 
     const narrative = narrativeResult.value;
-    const highlights = highlightsResult.value;
     const tags = tagsResult.value;
 
     // Filter AI tags through rejectedAiTags
@@ -403,13 +348,11 @@ export function createTripRefineAllRouter({ anthropic }) {
 
     // Log usage
     logOrchestratorUsage(narrative.meta, "synthesize-trip-narrative", tripId, requestId);
-    logOrchestratorUsage(highlights.meta, "suggest-highlights", tripId, requestId);
     logOrchestratorUsage(tags.meta, "suggest-tags", tripId, requestId);
 
     const response = {
       ok: true,
       narrative: { value: narrative.value, hash: narrative.hash, reasoning: narrative.reasoning },
-      highlights: { values: highlights.values, hashes: highlights.hashes, reasoning: highlights.reasoning },
       tags: { values: tags.values, reasoning: tags.reasoning },
     };
 
@@ -433,8 +376,8 @@ export function createTripRefineAllRouter({ anthropic }) {
     if (!tripId || !requestId || !field) {
       return res.status(400).json({ ok: false, error: "tripId, requestId, and field are required" });
     }
-    if (!["narrative", "highlights"].includes(field)) {
-      return res.status(400).json({ ok: false, error: "field must be 'narrative' or 'highlights'" });
+    if (field !== "narrative") {
+      return res.status(400).json({ ok: false, error: "field must be 'narrative'" });
     }
 
     // Idempotency
@@ -451,22 +394,12 @@ export function createTripRefineAllRouter({ anthropic }) {
     }
 
     try {
-      let result;
-      if (field === "narrative") {
-        const fingerprint = await getFingerprint();
-        result = await runNarrative(anthropic, { fingerprint, title, subtitle, dateRange, captions });
-        logOrchestratorUsage(result.meta, "synthesize-trip-narrative", tripId, requestId);
-        const response = { ok: true, field, value: result.value, hash: result.hash, reasoning: result.reasoning };
-        _idempotencyCache.set(idempKey, { ts: Date.now(), response });
-        return res.json(response);
-      } else {
-        const fingerprintLight = await getFingerprintLight();
-        result = await runHighlights(anthropic, { fingerprintLight, title, subtitle, dateRange, captions });
-        logOrchestratorUsage(result.meta, "suggest-highlights", tripId, requestId);
-        const response = { ok: true, field, values: result.values, hashes: result.hashes, reasoning: result.reasoning };
-        _idempotencyCache.set(idempKey, { ts: Date.now(), response });
-        return res.json(response);
-      }
+      const fingerprint = await getFingerprint();
+      const result = await runNarrative(anthropic, { fingerprint, title, subtitle, dateRange, captions });
+      logOrchestratorUsage(result.meta, "synthesize-trip-narrative", tripId, requestId);
+      const response = { ok: true, field, value: result.value, hash: result.hash, reasoning: result.reasoning };
+      _idempotencyCache.set(idempKey, { ts: Date.now(), response });
+      return res.json(response);
     } catch (err) {
       return res.status(500).json({ ok: false, error: err?.message || String(err) });
     }

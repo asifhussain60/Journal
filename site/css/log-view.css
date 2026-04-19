@@ -1493,6 +1493,108 @@
   cursor: not-allowed;
 }
 
+/* ─── Reflection action group (quick refine + Refine All) ─── */
+.dayone-reflection-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.dayone-refine-all-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border-default));
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
+}
+.dayone-refine-all-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 26%, transparent);
+  border-color: var(--accent);
+  transform: scale(1.03);
+}
+.dayone-refine-all-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ─── Refine state badges row (D9) ─── */
+.dayone-refine-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 0;
+}
+.dayone-refine-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+  transition: background 200ms ease;
+}
+.dayone-refine-badge--pending,
+.dayone-refine-badge--streaming {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 28%, transparent);
+  color: var(--accent);
+}
+.dayone-refine-badge--success {
+  background: color-mix(in srgb, var(--success) 10%, transparent);
+  border-color: color-mix(in srgb, var(--success) 30%, transparent);
+  color: color-mix(in srgb, var(--success) 90%, var(--text-primary));
+}
+.dayone-refine-badge--edited {
+  background: color-mix(in srgb, var(--warning) 10%, transparent);
+  border-color: color-mix(in srgb, var(--warning) 30%, transparent);
+  color: color-mix(in srgb, var(--warning) 90%, var(--text-primary));
+}
+.dayone-refine-badge--failed {
+  background: color-mix(in srgb, var(--error) 10%, transparent);
+  border-color: color-mix(in srgb, var(--error) 30%, transparent);
+  color: color-mix(in srgb, var(--error) 90%, var(--text-primary));
+}
+.dayone-refine-badge-action {
+  margin-left: 4px;
+  padding: 1px 7px;
+  border-radius: var(--radius-full);
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.dayone-refine-badge-action:hover {
+  background: color-mix(in srgb, currentColor 14%, transparent);
+}
+
+/* Subtle shimmer on textarea while streaming */
+.dayone-reflection-input--streaming {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
+  animation: refine-pulse 1.8s ease-in-out infinite;
+}
+@keyframes refine-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent); }
+  50%       { box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 8%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dayone-reflection-input--streaming { animation: none; }
+}
+
 /* ─── Story — reviewed cards inline inside the composer ─── */
 .dayone-story {
   display: flex;

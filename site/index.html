@@ -2299,6 +2299,12 @@
       onTagsChange,
       tagCorpus,
       featureFlags,
+      refineState = { reflection: { status: 'idle', hashes: [] }, tags: { status: 'idle' } },
+      reflectionEdited = false,
+      aiSuggestedTags = [],
+      onRejectAiTag,
+      onRefineAll,
+      onReSynth,
     }) {
       const [reflectionRefining, setReflectionRefining] = useState(false);
 
@@ -2482,24 +2488,75 @@
           <div className="dayone-field dayone-field--reflection">
             <div className="dayone-field-label-row">
               <label htmlFor="dayone-reflection" className="dayone-field-label">Reflection</label>
-              <button
-                type="button"
-                className="dayone-reflection-refine"
-                onClick={refineReflection}
-                disabled={reflectionRefining || !storyCount}
-                title="Draft a reflection from your entries"
-                aria-label="Refine reflection"
-              >
-                <Icon name={reflectionRefining ? 'fa-circle-notch fa-spin' : 'fa-wand-magic-sparkles'} />
-              </button>
+              <div className="dayone-reflection-actions">
+                {featureFlags?.refineAllEnabled && (
+                  <button
+                    type="button"
+                    className="dayone-refine-all-btn"
+                    onClick={onRefineAll}
+                    disabled={refineState.reflection.status === 'pending' || refineState.reflection.status === 'streaming' || refineState.tags.status === 'pending' || !storyCount}
+                    title="Run full AI narrative + tag generation"
+                    aria-label="Refine All"
+                  >
+                    <Icon name={refineState.reflection.status === 'pending' || refineState.reflection.status === 'streaming' ? 'fa-circle-notch fa-spin' : 'fa-wand-magic-sparkles'} />
+                    <span className="btn-label"> Refine All</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="dayone-reflection-refine"
+                  onClick={refineReflection}
+                  disabled={reflectionRefining || !storyCount}
+                  title="Quick AI enhance of reflection (voice DNA)"
+                  aria-label="Refine reflection"
+                >
+                  <Icon name={reflectionRefining ? 'fa-circle-notch fa-spin' : 'fa-wand-magic-sparkles'} />
+                </button>
+              </div>
             </div>
+            {/* Status badges row (D9) */}
+            {(refineState.reflection.status !== 'idle' || refineState.tags.status !== 'idle') && (
+              <div className="dayone-refine-badges" aria-live="polite">
+                {refineState.reflection.status !== 'idle' && (() => {
+                  const s = refineState.reflection.status;
+                  const isEdited = reflectionEdited && (s === 'success' || s === 'edited');
+                  const badgeStatus = isEdited ? 'edited' : s;
+                  return (
+                    <span
+                      className={`dayone-refine-badge dayone-refine-badge--${badgeStatus}`}
+                      title={refineState.reflection.reasoning || ''}
+                    >
+                      {badgeStatus === 'edited' && <><Icon name="fa-pen" /> Reflection edited<button type="button" className="dayone-refine-badge-action" onClick={onReSynth}>Re-synth</button></>}
+                      {badgeStatus === 'streaming' && <><Icon name="fa-circle-notch fa-spin" /> Writing…</>}
+                      {badgeStatus === 'pending' && <><Icon name="fa-circle-notch fa-spin" /> Thinking…</>}
+                      {badgeStatus === 'success' && !isEdited && <><Icon name="fa-check" /> Reflection</>}
+                      {badgeStatus === 'failed' && <><Icon name="fa-triangle-exclamation" /> Failed<button type="button" className="dayone-refine-badge-action" onClick={onRefineAll}>Retry</button></>}
+                    </span>
+                  );
+                })()}
+                {refineState.tags.status !== 'idle' && (() => {
+                  const s = refineState.tags.status;
+                  return (
+                    <span
+                      className={`dayone-refine-badge dayone-refine-badge--${s}`}
+                      title={refineState.tags.reasoning || ''}
+                    >
+                      {s === 'pending' && <><Icon name="fa-circle-notch fa-spin" /> Tags…</>}
+                      {s === 'success' && <><Icon name="fa-check" /> Tags</>}
+                      {s === 'failed' && <><Icon name="fa-triangle-exclamation" /> Tags failed</>}
+                    </span>
+                  );
+                })()}
+              </div>
+            )}
             <textarea
               id="dayone-reflection"
-              className="dayone-reflection-input"
+              className={`dayone-reflection-input${refineState.reflection.status === 'streaming' ? ' dayone-reflection-input--streaming' : ''}`}
               rows={3}
               value={value.reflection || ''}
               onChange={e => update({ reflection: e.target.value })}
               placeholder="How was this day? What stood out?"
+              aria-busy={refineState.reflection.status === 'streaming'}
             />
           </div>
 
@@ -2512,9 +2569,9 @@
               value={dayoneTags || []}
               onChange={onTagsChange || (() => {})}
               corpus={tagCorpus || []}
-              aiSuggestions={[]}
+              aiSuggestions={aiSuggestedTags || []}
               rejectedAiTags={tripCtx?.rejectedAiTags || []}
-              onRejectAi={() => {}}
+              onRejectAi={onRejectAiTag || (() => {})}
             />
           </div>
 
@@ -2590,6 +2647,12 @@
       const [tagCorpus, setTagCorpus] = useState([]);
       const [featureFlags, setFeatureFlags] = useState({});
       const tagSaveTimerRef = useRef(null);
+      // Refine All state (D9)
+      const [tripVersion, setTripVersion] = useState(null);
+      const [refineState, setRefineState] = useState({ reflection: { status: 'idle', hashes: [] }, tags: { status: 'idle' } });
+      const [aiSuggestedTags, setAiSuggestedTags] = useState([]);
+      const [reflectionIsAiClean, setReflectionIsAiClean] = useState(true);
+      const refineAbortRef = useRef(null);
 
       // Fetch feature flags on mount
       useEffect(() => {
@@ -2615,6 +2678,30 @@
           setDayoneTags([]);
         }
       }, [tripCtx]);
+
+      // Hydrate refineState.reflection.hashes from tripCtx (D4)
+      useEffect(() => {
+        const hashes = Array.isArray(tripCtx?.narrativeAiHashes) ? tripCtx.narrativeAiHashes : [];
+        setRefineState(rs => ({ ...rs, reflection: { ...rs.reflection, hashes } }));
+      }, [tripCtx]);
+
+      // Compute reflectionIsAiClean via SubtleCrypto (D4 — edited = hash not in set)
+      useEffect(() => {
+        const hashes = refineState.reflection.hashes;
+        const text = (compose.reflection || '').trim();
+        if (!hashes.length || !text) {
+          setReflectionIsAiClean(true); // no AI history → treat as clean
+          return;
+        }
+        let cancelled = false;
+        const enc = new TextEncoder().encode(text);
+        crypto.subtle.digest('SHA-256', enc).then(buf => {
+          if (cancelled) return;
+          const hex = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
+          setReflectionIsAiClean(hashes.includes(hex));
+        });
+        return () => { cancelled = true; };
+      }, [compose.reflection, refineState.reflection.hashes]);
 
       // Debounced save of tags to server
       function handleTagsChange(nextTags) {
@@ -2650,6 +2737,228 @@
             });
         }, 400);
       }
+      // Reject an AI-suggested tag (D14): add to rejectedAiTags, remove from suggestions
+      function handleRejectAiTag(tag) {
+        setAiSuggestedTags(prev => prev.filter(t => t !== tag));
+        if (!tripSlug) return;
+        // Read current rejectedAiTags to maintain FIFO cap of 50
+        const current = Array.isArray(tripCtx?.rejectedAiTags) ? tripCtx.rejectedAiTags : [];
+        const next = [...current.filter(t => t !== tag), tag].slice(-50);
+        fetch(`${LOG_API_BASE}/api/trip-edit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tripSlug,
+            patches: [{ op: 'replace', path: '/rejectedAiTags', value: next }],
+            baseVersion: 'skip',
+          }),
+        }).catch(() => {});
+      }
+
+      // Refine All handler (C2) — SSE streaming, atomic commit (D10, D12)
+      async function handleRefineAll() {
+        const rows = (tab === 'inbox' && reviewView === 'reviewed')
+          ? applyOrder(visible.filter(isReviewed)) : [];
+        if (!rows.length) {
+          window.notify?.info?.('Nothing to refine', { description: 'Approve a few entries first.' });
+          return;
+        }
+        // Build photos list: entries with prose (captions-only per D6)
+        const photos = rows
+          .map(r => ({ caption: r?.draft?.prose || r?.payload?.text || '' }))
+          .filter(r => r.caption.trim());
+        if (!photos.length) {
+          window.notify?.info?.('No prose found', { description: 'Entries need refined text first.' });
+          return;
+        }
+        // Abort any in-flight refine
+        if (refineAbortRef.current) { refineAbortRef.current.abort(); }
+        const controller = new AbortController();
+        refineAbortRef.current = controller;
+
+        const requestId = crypto.randomUUID();
+        const baseVersion = tripVersion || 'skip';
+        const reflectionEdited = refineState.reflection.hashes.length > 0 && !reflectionIsAiClean;
+
+        setRefineState(rs => ({
+          reflection: { ...rs.reflection, status: reflectionEdited ? 'edited' : 'pending' },
+          tags: { status: 'pending' },
+        }));
+
+        // Date range for context
+        const dateRange = (() => {
+          const s = tripCtx?.dates?.start; const e = tripCtx?.dates?.end;
+          if (!s) return '';
+          const fmt = (iso) => { const d = new Date(iso + 'T00:00:00'); return isNaN(d.getTime()) ? iso : `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+          return e && e !== s ? `${fmt(s)} to ${fmt(e)}` : fmt(s);
+        })();
+
+        try {
+          const resp = await fetch(`${LOG_API_BASE}/api/trip-refine-all`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'text/event-stream' },
+            body: JSON.stringify({
+              tripId: tripSlug,
+              requestId,
+              baseVersion,
+              photos,
+              title: compose.title || '',
+              subtitle: compose.context || '',
+              dateRange,
+            }),
+            signal: controller.signal,
+          });
+          if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}));
+            throw new Error(err.error || `HTTP ${resp.status}`);
+          }
+
+          const reader = resp.body.getReader();
+          const decoder = new TextDecoder();
+          let buf = '';
+          let narrativeValue = null;
+          let narrativeHash = null;
+          let narrativeReasoning = '';
+          let tagsResult = null;
+
+          // Process SSE stream
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buf += decoder.decode(value, { stream: true });
+            const parts = buf.split('\n\n');
+            buf = parts.pop(); // keep incomplete chunk
+            for (const chunk of parts) {
+              const eventLine = chunk.match(/^event: (.+)$/m);
+              const dataLine = chunk.match(/^data: (.+)$/ms);
+              if (!eventLine || !dataLine) continue;
+              const event = eventLine[1].trim();
+              let data;
+              try { data = JSON.parse(dataLine[1]); } catch { continue; }
+
+              if (event === 'narrative.delta' && !reflectionEdited) {
+                // Stream narrative tokens into reflection textarea
+                setCompose(c => ({ ...c, reflection: (c.reflection || '') + (data.text || '') }));
+                setRefineState(rs => ({ ...rs, reflection: { ...rs.reflection, status: 'streaming' } }));
+              } else if (event === 'narrative.done' && !reflectionEdited) {
+                narrativeValue = data.value;
+                narrativeHash = data.hash;
+                narrativeReasoning = data.reasoning || '';
+                setCompose(c => ({ ...c, reflection: data.value }));
+                setRefineState(rs => ({
+                  ...rs,
+                  reflection: { status: 'success', hashes: [...rs.reflection.hashes, data.hash].filter((h, i, a) => a.indexOf(h) === i), reasoning: data.reasoning },
+                }));
+              } else if (event === 'tags.done') {
+                tagsResult = data;
+                setAiSuggestedTags(data.values || []);
+                setRefineState(rs => ({
+                  ...rs,
+                  tags: { status: 'success', reasoning: data.reasoning },
+                }));
+              } else if (event === 'complete') {
+                // Build patches (D10 \u2014 respecting edited-skip for reflection)
+                const patches = [];
+                if (!reflectionEdited && narrativeValue !== null) {
+                  patches.push({ op: 'replace', path: '/reflection', value: narrativeValue });
+                  const prevHashes = Array.isArray(tripCtx?.narrativeAiHashes) ? tripCtx.narrativeAiHashes : [];
+                  const nextHashes = [...new Set([...prevHashes, narrativeHash])];
+                  patches.push({ op: 'replace', path: '/narrativeAiHashes', value: nextHashes });
+                }
+                if (tagsResult) {
+                  // Merge: union(currentTags, aiTags) - rejectedAiTags (D14)
+                  const rejected = new Set(Array.isArray(tripCtx?.rejectedAiTags) ? tripCtx.rejectedAiTags : []);
+                  const merged = [...new Set([...dayoneTags, ...(tagsResult.values || []).filter(t => !rejected.has(t))])];
+                  patches.push({ op: 'replace', path: '/dayoneTags', value: merged });
+                  setDayoneTags(merged);
+                }
+                if (patches.length) {
+                  const patchResp = await fetch(`${LOG_API_BASE}/api/trip-edit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tripSlug, patches, baseVersion }),
+                  }).then(r => r.json());
+                  if (!patchResp.ok && patchResp.error === 'Conflict') {
+                    // 409 \u2014 reload trip and retry message
+                    window.notify?.error?.('Refine All: version conflict \u2014 reloaded, please retry');
+                    if (patchResp.version) setTripVersion(patchResp.version);
+                  } else if (patchResp.version) {
+                    setTripVersion(patchResp.version);
+                  }
+                }
+                window.notify?.success?.('Refine All complete');
+              } else if (event === 'error') {
+                throw new Error(Object.values(data.errors || {}).join('; ') || 'Refine All failed');
+              }
+            }
+          }
+        } catch (err) {
+          if (err.name === 'AbortError') return;
+          setRefineState(rs => ({
+            reflection: { ...rs.reflection, status: rs.reflection.status === 'edited' ? 'edited' : 'failed' },
+            tags: { status: 'failed' },
+          }));
+          window.notify?.error?.('Refine All failed', { description: err.message || String(err) });
+        }
+      }
+
+      // Re-synth single field (C3): overwrite reflection with fresh narrative
+      async function handleReSynth() {
+        if (!confirm('Overwrite your edits to the reflection with a fresh AI narrative?')) return;
+        const rows = (tab === 'inbox' && reviewView === 'reviewed')
+          ? applyOrder(visible.filter(isReviewed)) : [];
+        const photos = rows
+          .map(r => ({ caption: r?.draft?.prose || r?.payload?.text || '' }))
+          .filter(r => r.caption.trim());
+        if (!photos.length) {
+          window.notify?.info?.('No prose found', { description: 'Entries need refined text first.' });
+          return;
+        }
+        const requestId = crypto.randomUUID();
+        const baseVersion = tripVersion || 'skip';
+        setRefineState(rs => ({ ...rs, reflection: { ...rs.reflection, status: 'pending' } }));
+        try {
+          const dateRange = (() => {
+            const s = tripCtx?.dates?.start; const e = tripCtx?.dates?.end;
+            if (!s) return '';
+            const fmt = (iso) => { const d = new Date(iso + 'T00:00:00'); return isNaN(d.getTime()) ? iso : `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+            return e && e !== s ? `${fmt(s)} to ${fmt(e)}` : fmt(s);
+          })();
+          const d = await fetch(`${LOG_API_BASE}/api/trip-refine-field`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tripId: tripSlug, requestId, field: 'narrative', photos, title: compose.title || '', subtitle: compose.context || '', dateRange, baseVersion }),
+          }).then(r => r.json());
+          if (!d.ok) throw new Error(d.error || 'Re-synth failed');
+
+          setCompose(c => ({ ...c, reflection: d.value }));
+          const prevHashes = Array.isArray(tripCtx?.narrativeAiHashes) ? tripCtx.narrativeAiHashes : [];
+          const nextHashes = [...new Set([...prevHashes, d.hash])];
+          setRefineState(rs => ({
+            ...rs,
+            reflection: { status: 'success', hashes: nextHashes, reasoning: d.reasoning },
+          }));
+          // Persist to server
+          const patchResp = await fetch(`${LOG_API_BASE}/api/trip-edit`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              tripSlug,
+              patches: [
+                { op: 'replace', path: '/reflection', value: d.value },
+                { op: 'replace', path: '/narrativeAiHashes', value: nextHashes },
+              ],
+              baseVersion,
+            }),
+          }).then(r => r.json());
+          if (patchResp.version) setTripVersion(patchResp.version);
+          window.notify?.success?.('Reflection re-synthesized');
+        } catch (err) {
+          setRefineState(rs => ({ ...rs, reflection: { ...rs.reflection, status: 'failed' } }));
+          window.notify?.error?.('Re-synth failed', { description: err.message || String(err) });
+        }
+      }
+
       // Unlocks the "Delete Reviewed Entries" button after a successful Copy
       // in the current session. Resets on reload so stale tabs must re-copy.
       const [copiedOnce, setCopiedOnce] = useState(false);
@@ -2727,7 +3036,12 @@
         } catch { /* ignore malformed cache */ }
         fetch(`${LOG_API_BASE}/api/trip/${encodeURIComponent(tripSlug)}/full`)
           .then(r => r.json())
-          .then(d => { if (d?.ok) setTripCtx(d.trip); })
+          .then(d => {
+            if (d?.ok) {
+              setTripCtx(d.trip);
+              if (d.version) setTripVersion(d.version);
+            }
+          })
           .catch(() => { /* composer still usable without trip metadata */ });
       }, [tripSlug]);
 
@@ -3321,6 +3635,12 @@
                   onTagsChange={handleTagsChange}
                   tagCorpus={tagCorpus}
                   featureFlags={featureFlags}
+                  refineState={refineState}
+                  reflectionEdited={refineState.reflection.hashes.length > 0 && !reflectionIsAiClean}
+                  aiSuggestedTags={aiSuggestedTags}
+                  onRejectAiTag={handleRejectAiTag}
+                  onRefineAll={handleRefineAll}
+                  onReSynth={handleReSynth}
                 />
               ) : (
                 <div className="log-entries">

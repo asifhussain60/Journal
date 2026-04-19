@@ -6,6 +6,7 @@
 //   GET  /api/trip/:slug/stops  — read per-trip map stops data
 
 import express from "express";
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { loadPrompt } from "../prompts/index.js";
@@ -148,8 +149,11 @@ export function createTripRouter({ anthropic, DEFAULT_MODEL }) {
       return res.status(400).json({ ok: false, error: "invalid slug" });
     }
     try {
+      const { tripYamlPath } = await import("../lib/trip-edit-ops.js");
+      const raw = await readFile(tripYamlPath(slug), "utf8");
+      const version = createHash("sha256").update(raw, "utf8").digest("hex").slice(0, 32);
       const trip = await readTripObj(slug);
-      res.json({ ok: true, trip });
+      res.json({ ok: true, trip, version });
     } catch (err) {
       if (err.code === "ENOENT") return res.status(404).json({ ok: false, error: "trip not found" });
       res.status(500).json({ ok: false, error: err?.message ?? String(err) });

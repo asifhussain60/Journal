@@ -104,7 +104,15 @@ export function createTripEditRouter({ anthropic, DEFAULT_MODEL }) {
         if (!result.ok) {
           return res.status(422).json({ ok: false, error: result.error, errors: result.errors });
         }
-        return res.json({ ok: true, editId: result.id, tripSlug: slug });
+        // Return new version so client can update its baseVersion
+        let newVersion;
+        try {
+          const { readFile: rf } = await import("node:fs/promises");
+          const { tripYamlPath } = await import("../lib/trip-edit-ops.js");
+          const raw = await rf(tripYamlPath(slug), "utf8");
+          newVersion = createHash("sha256").update(raw, "utf8").digest("hex").slice(0, 32);
+        } catch { /* best-effort */ }
+        return res.json({ ok: true, editId: result.id, tripSlug: slug, version: newVersion });
       } catch (err) {
         return res.status(500).json({ ok: false, error: err?.message || String(err) });
       }
