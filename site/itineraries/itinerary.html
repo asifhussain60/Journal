@@ -397,10 +397,17 @@
           ' tabindex="0"' +
           '>');
 
-        // Time column (outside the card, left of the rail)
+        // Time column (outside the card, left of the rail). The pin toggle
+        // lives here because "is this time fixed?" maps naturally to the
+        // time display: anchors (flights, reservations) show a filled pin,
+        // flex rows reveal an outline pin on row hover. Clicking flips
+        // time_mode via /api/pin-event (see itinerary-reorder.js).
+        var pinIcon = (timeMode === 'anchor') ? 'fa-solid fa-thumbtack' : 'fa-regular fa-thumbtack';
+        var pinLabel = (timeMode === 'anchor') ? 'Unpin (let time flex)' : 'Pin this time';
         parts.push('  <div class="event-time-col">');
         if (t.head) parts.push('    <span class="event-time-head">' + escHtml(t.head) + '</span>');
         if (t.period) parts.push('    <span class="event-time-period">' + escHtml(t.period) + '</span>');
+        parts.push('    <button type="button" class="event-pin-btn" data-reorder-pin="1" data-day-idx="' + dayIdx + '" data-event-idx="' + eventIdx + '" aria-label="' + pinLabel + '" title="' + pinLabel + '" onclick="event.stopPropagation()"><i class="' + pinIcon + '" aria-hidden="true"></i></button>');
         parts.push('  </div>');
 
         // Rail — vertical line via ::before pseudo; numbered disc is a real
@@ -455,30 +462,11 @@
           parts.push('          <div class="event-meta">' + metaBits.join('<span class="event-meta-dot" aria-hidden="true">\u00b7</span>') + '</div>');
         }
         parts.push('        </div>');
-        // Action slot — pin + delete + caret. Delete bails out of the
-        // accordion toggle via stopPropagation (same pattern as tel: links
-        // and the alt-find button). The drag affordance lives on the rail
-        // disc (.event-rail-num) — grab the numbered circle to reorder.
-        var delLabel = String(ev.event || '').replace(/'/g, "\\'");
-        // Pin toggle: "anchor" = filled pin (time fixed); "flex" = outline
-        // pin (time auto-packed). Clicking flips time_mode via itinerary-
-        // reorder.js → /api/pin-event.
-        var pinIcon = (timeMode === 'anchor') ? 'fa-solid fa-thumbtack' : 'fa-regular fa-thumbtack';
-        var pinLabel = (timeMode === 'anchor') ? 'Unpin (let time flex)' : 'Pin this time';
-        parts.push('        <div class="event-actions">');
-        parts.push('          <button type="button" class="event-pin-btn" data-reorder-pin="1" data-day-idx="' + dayIdx + '" data-event-idx="' + eventIdx + '" aria-label="' + pinLabel + '" title="' + pinLabel + '" onclick="event.stopPropagation()"><i class="' + pinIcon + '" aria-hidden="true"></i></button>');
-        parts.push('          <button type="button" class="event-delete-btn" aria-label="Delete this stop" title="Delete this stop" onclick="event.stopPropagation(); requestDeleteEvent(' + dayIdx + ',' + eventIdx + ',\'' + escHtml(delLabel) + '\')"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>');
-        // Alt-find corner button — only rendered when this is a numbered stop
-        // AND no alternative venue has been chosen yet. Once an alt is set the
-        // .event-alt--filled card inside the body takes over and the button
-        // disappears (the user has already swapped). Positioned absolutely
-        // beneath the delete button via .alt-find-btn (see itinerary.css).
-        if (num && !(ev.alt_venue && ev.alt_venue.name)) {
-          var altLabel = String(ev.event || '').replace(/'/g, "\\'");
-          parts.push('          <button type="button" class="alt-find-btn" aria-label="Find an alternative venue nearby" title="Find an alternative venue nearby" onclick="event.stopPropagation(); findAlternate(' + dayIdx + ',' + eventIdx + ',\'' + escHtml(altLabel) + '\')"><i class="fa-solid fa-shuffle" aria-hidden="true"></i></button>');
-        }
-        parts.push('          <i class="event-caret fa-solid fa-chevron-down" aria-hidden="true"></i>');
-        parts.push('        </div>');
+        // Caret stays inline with the summary text — it's an expanded/
+        // collapsed indicator tied to the accordion, not a destructive
+        // action. Destructive + AI-swap + pin live in the rail on the
+        // right (see below).
+        parts.push('        <i class="event-caret fa-solid fa-chevron-down" aria-hidden="true"></i>');
         parts.push('      </div>');
 
         // ── Collapsible body — grid-template-rows 0fr→1fr animates height. ──
@@ -516,15 +504,30 @@
             parts.push('            </div>');
             parts.push('          </div>');
           }
-          // No "else" branch — when there's no alt yet, the .alt-find-btn
-          // corner action (rendered above next to the delete button) is the
-          // entry point. Avoids a redundant inline pill inside the body.
+          // No "else" branch — when there's no alt yet, .alt-find-btn in
+          // the action rail (rendered below) is the entry point. Avoids a
+          // redundant inline pill inside the body.
         }
 
         parts.push('        </div>'); // .event-body-inner
         parts.push('      </div>'); // .event-body
 
         parts.push('    </div>'); // .event-details
+
+        // ── Action rail — right-side column inside .event-card. Holds the
+        //    destructive (delete) + constructive (alt-find) buttons in a
+        //    vertically-centred, right-justified stack. Pin toggle moved to
+        //    the time column so it sits with the "is this time fixed?"
+        //    display; the rail stays narrow and predictable.
+        var delLabel = String(ev.event || '').replace(/'/g, "\\'");
+        parts.push('    <div class="event-action-rail" onclick="event.stopPropagation()">');
+        parts.push('      <button type="button" class="event-delete-btn" aria-label="Delete this stop" title="Delete this stop" onclick="event.stopPropagation(); requestDeleteEvent(' + dayIdx + ',' + eventIdx + ',\'' + escHtml(delLabel) + '\')"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>');
+        if (num && !(ev.alt_venue && ev.alt_venue.name)) {
+          var altLabel = String(ev.event || '').replace(/'/g, "\\'");
+          parts.push('      <button type="button" class="alt-find-btn" aria-label="Find an alternative venue nearby" title="Find an alternative venue nearby" onclick="event.stopPropagation(); findAlternate(' + dayIdx + ',' + eventIdx + ',\'' + escHtml(altLabel) + '\')"><i class="fa-solid fa-shuffle" aria-hidden="true"></i></button>');
+        }
+        parts.push('    </div>'); // .event-action-rail
+
         parts.push('  </div>'); // .event-card
         parts.push('</div>');
         return parts.join('\n');

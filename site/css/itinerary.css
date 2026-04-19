@@ -597,7 +597,10 @@ html{scroll-behavior:smooth}
 .event-card,
 .event:not(:has(.event-card)){
   display:grid;
-  grid-template-columns:56px minmax(0,1fr);
+  /* icon | details | action-rail. The rail is `auto` so it hugs its button
+     widths; it was previously delivered by absolute-positioned buttons in
+     the top-right corner which occluded the summary caret + pin. */
+  grid-template-columns:56px minmax(0,1fr) auto;
   gap:.85rem;
   padding:.85rem 1rem;
   border-radius:14px;
@@ -696,18 +699,15 @@ html{scroll-behavior:smooth}
 .event-alt .alt-body{flex:1;min-width:0;}
 .event-alt .alt-name{font-weight:500;color:inherit;}
 .event-alt .alt-meta{font-size:.72rem;color:var(--text-muted);}
-/* Alt-find — round corner button stacked under .event-delete-btn. Same
-   geometry as the delete button (30×30 round, top-right corner) but in the
-   accent palette so the destructive vs. constructive action read at a
-   glance. Only rendered when this stop is numbered AND no alternative is
-   already chosen — the renderer suppresses it once .event-alt--filled
-   takes over. */
+/* Alt-find — sits in .event-action-rail alongside delete. Same circle
+   geometry as the delete button (30×30 round) but in the accent palette
+   so the destructive vs. constructive action read at a glance. Only
+   rendered when this stop is numbered AND no alternative is already
+   chosen — the renderer suppresses it once .event-alt--filled takes over. */
 .alt-find-btn{
-  position:absolute;
-  /* Stacks below .event-delete-btn (30px tall + 8px top + 6px gap = 44px). */
-  top:44px;
-  right:8px;
-  z-index:3;
+  /* Lives in .event-action-rail alongside delete + pin. Same circle
+     geometry as the delete button in the accent palette so destructive
+     vs. constructive actions read at a glance. */
   display:grid;
   place-items:center;
   width:30px;
@@ -736,11 +736,17 @@ html{scroll-behavior:smooth}
   outline:none;
 }
 
-/* Time column — right-aligned, sits outside the card */
+/* Time column — right-aligned, sits outside the card.
+   Flex column so the pin toggle can stack cleanly below the period
+   (the pin reads as a modifier on the time display: filled = fixed,
+   outline = auto-packed by the recalc engine). */
 .event-time-col{
   padding-top:1rem;
   padding-right:.85rem;
-  text-align:right;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:.35rem;
   font-family:"Inter","SF Pro Display","Helvetica Neue",system-ui,sans-serif;
   color:var(--rose-2);
   font-variant-numeric:tabular-nums;
@@ -759,7 +765,6 @@ html{scroll-behavior:smooth}
   font-weight:700;
   letter-spacing:.18em;
   color:var(--text-muted);
-  margin-top:.2rem;
 }
 
 /* Rail column: vertical hairline + node dot per event, aligned with card top */
@@ -1002,25 +1007,20 @@ html{scroll-behavior:smooth}
   background:color-mix(in srgb, var(--rose) 16%, transparent);
 }
 
-/* Action cluster — caret only. Delete button is positioned absolutely
-   on the .event-card at the top-right corner so destructive intent is
-   visually separated from primary navigation.
-   position:relative anchors the pin/drag affordances added in Phase 12. */
-.event-actions{
-  flex:0 0 auto;
+/* ── Action rail — right-side column inside .event-card ─────────────
+   Holds delete / pin / alt-find as a single vertically-centred stack,
+   right-justified. Replaces the prior absolute-positioned overlays that
+   sat at top:8/top:44 and stacked on top of the summary caret. */
+.event-action-rail{
   display:flex;
-  align-items:center;
-  gap:.35rem;
-  margin-top:.2rem;
-  position:relative;
+  flex-direction:column;
+  align-items:flex-end;
+  justify-content:center;     /* vertical middle inside the card */
+  gap:.4rem;
+  align-self:stretch;
+  padding-left:.35rem;
 }
 .event-delete-btn{
-  /* Inside the card border at the top-right corner — overhanging would risk
-     clipping by .day-card{overflow:hidden} on the first event in an open day. */
-  position:absolute;
-  top:8px;
-  right:8px;
-  z-index:3;
   display:grid;
   place-items:center;
   width:30px;
@@ -2388,10 +2388,17 @@ html{scroll-behavior:smooth}
     grid-template-columns:54px 28px minmax(0,1fr);
   }
   .event-card{
-    grid-template-columns:48px minmax(0,1fr);
-    gap:.75rem;
+    /* Keep the action rail as the 3rd column on mobile; it shrinks to the
+       natural button width + padding so the details column still takes the
+       lion's share. */
+    grid-template-columns:48px minmax(0,1fr) auto;
+    gap:.6rem;
     padding:.8rem .85rem;
   }
+  .event-action-rail{ padding-left:.2rem; gap:.35rem; }
+  .event-delete-btn,
+  .alt-find-btn{ width:26px; height:26px; font-size:.72rem; }
+  .event-pin-btn{ width:18px; height:18px; font-size:.68rem; }
   .event-time-col{ padding-right:.55rem; padding-top:.8rem; }
   .event-time-col .event-time-head{ font-size:.82rem; }
   .event-time-col .event-time-period{ font-size:.55rem; }
@@ -3017,26 +3024,29 @@ html{scroll-behavior:smooth}
 
 /* ═══ DRAG-REORDER (Phase 12) ═══
    SortableJS wiring on .event-list. The drag handle is the numbered disc
-   on the rail (.event-rail-num) — grab the circle to move the card up
-   or down within its day. Pin toggle sits in .event-actions next to the
-   caret and only reveals on hover / focus (or stays on for anchors as a
-   glance signal). */
+   on the rail (.event-rail-num) — grab the circle to move the card up or
+   down within its day. The pin toggle lives in .event-time-col below the
+   period so it reads as a modifier on the time display (filled = fixed,
+   outline = auto-packed by the recalc engine). */
 
 .event-pin-btn{
   appearance:none;
   border:0;
   background:transparent;
-  color:color-mix(in srgb, var(--text-primary) 65%, transparent);
-  width:28px;
-  height:28px;
-  border-radius:8px;
+  color:color-mix(in srgb, var(--text-primary) 50%, transparent);
+  width:20px;
+  height:20px;
+  padding:0;
+  border-radius:6px;
   display:grid;
   place-items:center;
   cursor:pointer;
-  font-size:.85rem;
+  font-size:.72rem;
   opacity:0;
-  transition:opacity .18s ease, color .18s ease, background-color .18s ease, transform .12s ease;
+  transition:opacity .18s ease, color .18s ease, background-color .18s ease;
 }
+/* Reveal on row hover / focus-within; keep on for anchors so the
+   "fixed time" signal is always visible at a glance. */
 .event:hover .event-pin-btn,
 .event:focus-within .event-pin-btn,
 .event[data-time-mode="anchor"] .event-pin-btn{ opacity:1; }
@@ -3051,8 +3061,8 @@ html{scroll-behavior:smooth}
   opacity:1;
 }
 
-/* Anchor rows: pin button reads as filled accent — this is the glance-
-   ability signal so the user can spot fixed times without reading the UI. */
+/* Anchor rows: filled pin in accent. Glance signal — the user can spot
+   fixed times without hovering every row. */
 .event[data-time-mode="anchor"] .event-pin-btn{
   color:var(--accent);
 }
@@ -3163,11 +3173,17 @@ html{scroll-behavior:smooth}
   to{ opacity:1; transform:translateY(0); }
 }
 
-/* Keyboard focus ring on the draggable row itself — signals that Alt+↑/↓
-   will move this card. Matches the accent outline used elsewhere. */
+/* Keyboard focus — show the ring on the rail disc (the drag handle)
+   rather than the whole row, so the focus signal sits with the
+   interactive element instead of painting a rectangle around the card
+   and its timing column. Native focus-visible on :focus means the row
+   still announces to screen readers; the disc ring carries the visual. */
 .event:focus-visible{
-  outline:2px solid var(--accent);
-  outline-offset:3px;
-  border-radius:14px;
+  outline:none;
+}
+.event:focus-visible .event-rail-num[data-reorder-handle]{
+  box-shadow:
+    0 0 0 4px var(--bg),
+    0 0 0 6px var(--accent);
 }
 
