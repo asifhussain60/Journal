@@ -306,6 +306,22 @@ export function createHolidayBudgetRouter({ anthropic }) {
       const rawTotal = Math.round(
         expanded.reduce((s, t) => s + outflowDollars(t.amount), 0) * 100
       ) / 100;
+
+      // 5b. Per-account aggregation — strict card ownership, no LLM.
+      //     SAPPHIRE = collective trip spend, UNITED = Ishrat's card.
+      const acctMap = new Map();
+      for (const t of expanded) {
+        const card = cardBadge(t.account_name);
+        const amt = outflowDollars(t.amount);
+        acctMap.set(card, Math.round(((acctMap.get(card) || 0) + amt) * 100) / 100);
+      }
+      const accounts = {};
+      for (const [card, total] of acctMap.entries()) {
+        accounts[card] = {
+          total,
+          pct: rawTotal > 0 ? Math.round((total / rawTotal) * 10000) / 10000 : 0,
+        };
+      }
       const bucketTotal = Math.round(
         [...bucketByName.values()].reduce((s, b) => s + b.total, 0) * 100
       ) / 100;
@@ -342,6 +358,7 @@ export function createHolidayBudgetRouter({ anthropic }) {
           percentLeft: Math.round(percentLeft * 10000) / 10000,
         },
         categories,
+        accounts,
         verified,
         discrepancy,
         unclassified,

@@ -2527,20 +2527,38 @@
         return 'is-ok';
       }
 
-      function renderSummary(totals) {
+      function renderSummary(totals, accounts) {
         var host = document.getElementById('budgetSummary');
         if (!host) return;
         var pct = Number(totals.percentLeft) || 0;
         var tone = availableTone(pct);
-        host.innerHTML =
-          '<div class="budget-stat">' +
-          '  <div class="budget-stat-value">' + esc(fmtMoney(totals.spent)) + '</div>' +
-          '  <div class="budget-stat-label">Spent</div>' +
-          '</div>' +
-          '<div class="budget-stat budget-stat--available ' + tone + '">' +
-          '  <div class="budget-stat-value">' + esc(fmtMoney(totals.available)) + '</div>' +
-          '  <div class="budget-stat-label">Available <span class="budget-stat-pct">' + Math.round(pct * 100) + '% left</span></div>' +
+        // Per-account tiles replace the generic "Spent" tile when account
+        // data is present. SAPPHIRE = collective, UNITED = Ishrat's card.
+        var sapphireTotal = accounts && accounts['SAPPHIRE'] ? accounts['SAPPHIRE'].total : null;
+        var unitedTotal   = accounts && accounts['UNITED']   ? accounts['UNITED'].total   : null;
+        var hasAccounts = sapphireTotal !== null || unitedTotal !== null;
+        host.classList.toggle('budget-summary--accounts', hasAccounts);
+        var html = '';
+        if (hasAccounts) {
+          html += '<div class="budget-stat budget-stat--sapphire">' +
+            '<div class="budget-stat-value">' + esc(fmtMoney(sapphireTotal || 0)) + '</div>' +
+            '<div class="budget-stat-label">Sapphire</div>' +
+            '</div>';
+          html += '<div class="budget-stat budget-stat--united">' +
+            '<div class="budget-stat-value">' + esc(fmtMoney(unitedTotal || 0)) + '</div>' +
+            '<div class="budget-stat-label">United</div>' +
+            '</div>';
+        } else {
+          html += '<div class="budget-stat">' +
+            '<div class="budget-stat-value">' + esc(fmtMoney(totals.spent)) + '</div>' +
+            '<div class="budget-stat-label">Spent</div>' +
+            '</div>';
+        }
+        html += '<div class="budget-stat budget-stat--available ' + tone + '">' +
+          '<div class="budget-stat-value">' + esc(fmtMoney(totals.available)) + '</div>' +
+          '<div class="budget-stat-label">Available <span class="budget-stat-pct">' + Math.round(pct * 100) + '% left</span></div>' +
           '</div>';
+        host.innerHTML = html;
       }
 
       function sortCategories(cats, mode) {
@@ -2572,10 +2590,30 @@
         }
         var html = '';
         cats.forEach(function(c, idx) {
+          // Per-category account split — aggregate SAPPHIRE / UNITED from
+          // transactions (card badge already set by backend cardBadge()).
+          var catAccts = {};
+          (c.transactions || []).forEach(function(t) {
+            if (!t.card) return;
+            catAccts[t.card] = Math.round(((catAccts[t.card] || 0) + (t.amount || 0)) * 100) / 100;
+          });
+          var splitParts = [];
+          if (catAccts['SAPPHIRE']) splitParts.push('SAP ' + fmtMoney(catAccts['SAPPHIRE']));
+          if (catAccts['UNITED'])   splitParts.push('UNITED ' + fmtMoney(catAccts['UNITED']));
+          // Surface any other cards too (future-proof).
+          Object.keys(catAccts).forEach(function(card) {
+            if (card !== 'SAPPHIRE' && card !== 'UNITED')
+              splitParts.push(card + ' ' + fmtMoney(catAccts[card]));
+          });
           html += '<div class="budget-cat">';
           html += '  <div class="budget-cat-header" onclick="toggleBudgetCat(this)">';
           html += '    <span class="budget-cat-icon">' + esc(c.icon) + '</span>';
-          html += '    <span class="budget-cat-name">' + esc(c.name) + '</span>';
+          html += '    <div class="budget-cat-name-wrap">';
+          html += '      <span class="budget-cat-name">' + esc(c.name) + '</span>';
+          if (splitParts.length) {
+            html += '      <span class="budget-cat-accounts">' + esc(splitParts.join(' \u00b7 ')) + '</span>';
+          }
+          html += '    </div>';
           html += '    <span class="budget-cat-total">' + esc(fmtMoney(c.total)) + '</span>';
           html += '    <span class="budget-cat-chevron">\u25BC</span>';
           html += '  </div>';
@@ -2634,7 +2672,7 @@
 
       function renderAll() {
         if (!state.data) return;
-        renderSummary(state.data.totals);
+        renderSummary(state.data.totals, state.data.accounts);
         renderCategories();
         renderVerify(state.data);
         renderFooter(state.data);
