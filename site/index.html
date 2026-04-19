@@ -99,8 +99,6 @@
       playful:      { bg: 'rgba(210,100,140,0.15)', text: '#BE185D', icon: 'fa-face-smile-beam' },
     };
 
-    const JOURNALS = ['Travel', 'Ishrat\u2019s Trips', 'Asif\u2019s Journal'];
-
     // Load trip data from manifest.json + per-trip entry files
     async function loadTrips() {
       console.log('[API:REQ]', 'data/manifest.json');
@@ -181,38 +179,9 @@
       console.log('[TOAST]', message);
     }
 
-    function copyToClipboard(text) {
-      navigator.clipboard.writeText(text)
-        .then(() => window.notify.success('Copied to DayOne clipboard'))
-        .catch((e) => window.notify.error('Copy failed', { description: e && e.message }));
-    }
-
-    function formatDate(iso) {
-      return new Date(iso + 'T12:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-    }
-
     // =================================================================
     // COMPONENTS
     // =================================================================
-
-    // --- DayOne Code Preview ---
-    function DayOnePreview({ entry, selectedJournal }) {
-      const md = `# ${entry.location} \u2014 ${formatDate(entry.date)}\n\n**Mood:** ${entry.mood}\n**Journal:** ${selectedJournal || entry.journal}\n**Tags:** ${entry.tags.join(', ')}\n\n${entry.text}\n\n*[Refined with Voice DNA]*`;
-
-      return (
-        <div className="glass-card glass-card--pad fade-enter stagger-2">
-          <div className="dayone-preview-head">
-            <span className="inline-accent"><Icon name="fa-file-code" /> Markdown Export</span>
-          </div>
-          <div className="dayone-preview-body">
-            {md}
-          </div>
-          <button className="btn btn-primary btn--block" onClick={() => copyToClipboard(md)}>
-            <Icon name="fa-copy" /> Copy for DayOne
-          </button>
-        </div>
-      );
-    }
 
     // --- Active Trip Hero ---
     function ActiveTripHero({ trips, onNavigate }) {
@@ -277,13 +246,6 @@
               </div>
               <p className="module-description">"What I Wish Babu Taught Me" &mdash; Manage your chapters, incidents, and quotes in a structured, elegant format.</p>
             </div>
-            <div className="glass-card module-card" onClick={() => onNavigate('dayone')}>
-              <div className="module-card-header">
-                <div className="module-icon"><Icon name="fa-feather-pointed" size="1.8em" /></div>
-                <h3 className="module-title">DayOne Journal</h3>
-              </div>
-              <p className="module-description">Draft daily logs, tag locations, and apply your <em>Voice DNA</em> before seamlessly exporting directly to DayOne.</p>
-            </div>
             <div className="glass-card module-card" onClick={() => onNavigate('log')}>
               <div className="module-card-header">
                 <div className="module-icon"><Icon name="fa-layer-group" size="1.8em" /></div>
@@ -298,25 +260,12 @@
 
     // --- Memoir Module ---
     function MemoirModule({ onOpenChapter }) {
-      const [tab, setTab] = useState('chapters');
-      const [searchQuery, setSearchQuery] = useState('');
-      const filteredQuotes = QUOTES_SAMPLE.filter(q =>
-        q.text.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        q.source.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-
       return (
         <div className="container fade-enter">
           <h1 className="page-title">Memoir</h1>
           <p className="page-subtitle">"What I Wish Babu Taught Me" &mdash; Structure, memory banking, and voice refinement.</p>
 
-          <div className="journal-tabs">
-            <button className={`journal-tab ${tab === 'chapters' ? 'active' : ''}`} onClick={() => setTab('chapters')}><Icon name="fa-book" /> Chapters</button>
-            <button className={`journal-tab ${tab === 'incidents' ? 'active' : ''}`} onClick={() => setTab('incidents')}><Icon name="fa-lightbulb" /> Incidents</button>
-            <button className={`journal-tab ${tab === 'quotes' ? 'active' : ''}`} onClick={() => setTab('quotes')}><Icon name="fa-quote-left" /> Quotes</button>
-          </div>
-
-          {tab === 'chapters' && (() => {
+          {(() => {
             const bookMeta = {
               ch00: { bg: '#5e3d7a', border: '#4a2d64', icon: 'fa-door-open' },
               ch01: { bg: '#6e4580', border: '#5a3568', icon: 'fa-person' },
@@ -346,13 +295,17 @@
                             className={`book-spine-card book-${ch.id || 'default'} ${isPlanned ? 'has-lock planned' : ''} ${isClickable ? 'clickable' : ''} ${ch.status === 'active' ? 'active-chapter' : ''}`}
                             onClick={() => isClickable && onOpenChapter && onOpenChapter(ch)}
                           >
-                            <div className="book-binding-top"></div>
-                            <div className="book-body">
+                            <div className="book-light-overlay"></div>
+                            <div className="book-chapter-header">
                               <span className="book-chapter-label">Chapter {ch.num}</span>
-                              <div className="book-cover-icon">
-                                <Icon name={meta.icon} size="4.4em" />
+                            </div>
+                            <div className="book-body">
+                              <div className="book-icon-circle">
+                                <Icon name={meta.icon} size="2.5em" />
                               </div>
                               <h3 className="book-title">{ch.title}</h3>
+                            </div>
+                            <div className="book-footer">
                               <p className="book-subtitle">{ch.subtitle}</p>
                             </div>
                             {isPlanned && (
@@ -360,7 +313,6 @@
                                 <Icon name="fa-lock" size="3.5em" />
                               </div>
                             )}
-                            <div className="book-binding-bottom"></div>
                             <div className="book-pages-edge"></div>
                           </div>
                         );
@@ -372,230 +324,6 @@
               </div>
             );
           })()}
-
-          {tab === 'incidents' && (
-            <div className="grid-cards stagger-1">
-              {INCIDENTS_SAMPLE.map((inc, i) => (
-                <div key={i} className="glass-card incident-card">
-                  <h3 className="incident-title">{inc.title}</h3>
-                  <div className="incident-meta">
-                    <span className="meta-mono-sm">
-                      <Icon name="fa-bookmark" /> Ch {inc.chapter}
-                    </span>
-                    <span className={`badge ${inc.status === 'PLACED' ? 'badge-locked' : inc.status === 'BANKED' ? 'badge-active' : 'badge-planned'}`}>
-                      {inc.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {tab === 'quotes' && (
-            <div className="stagger-1">
-              <input
-                className="input-field input-field--search"
-                placeholder="Search quotes..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-              />
-              <div className="grid-cards">
-                {filteredQuotes.map((q, i) => (
-                  <div key={i} className="glass-card quote-card">
-                    <div className="quote-icon">&ldquo;</div>
-                    <p className="quote-text">{q.text}</p>
-                    <div className="quote-author">
-                      <span>&mdash; {q.source}</span>
-                      <span className="badge badge-active">Ch {q.chapter}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    // --- DayOne Journal Module ---
-    function DayOneModule({ trips }) {
-      const [subTab, setSubTab] = useState('browser');
-      const [selectedTrip, setSelectedTrip] = useState(null);
-      const [selectedEntry, setSelectedEntry] = useState(null);
-
-      // New Entry state
-      const [newMood, setNewMood] = useState('romantic');
-      const [newJournal, setNewJournal] = useState('Ishrat\u2019s Trips');
-      const [newSummary, setNewSummary] = useState('');
-      const [newText, setNewText] = useState('');
-
-      // Entry detail / editor view
-      if (selectedEntry) {
-        return (
-          <div className="container fade-enter">
-            <button className="btn btn-secondary btn--mb" onClick={() => setSelectedEntry(null)}>
-              <Icon name="fa-arrow-left" /> Back
-            </button>
-            <div className="stack">
-              <DayOnePreview entry={selectedEntry} selectedJournal={selectedEntry.journal} />
-              <div className="glass-card glass-card--pad-lg">
-                <h2 className="h-serif-lg">{selectedEntry.summary}</h2>
-                <p className="meta-mono-inline-muted">
-                  {selectedEntry.date} &middot; {selectedEntry.location} &middot; {selectedEntry.mood}
-                </p>
-                <textarea className="input-field" defaultValue={selectedEntry.text} />
-                <button className="btn btn-primary btn--mt btn--block">
-                  <Icon name="fa-wand-magic-sparkles" /> Refine with Voice DNA
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-      }
-
-      return (
-        <div className="container fade-enter">
-          <h1 className="page-title">DayOne Journal</h1>
-          <p className="page-subtitle">Browse trips, edit entries, and sync moments to DayOne.</p>
-
-          <div className="journal-tabs">
-            <button className={`journal-tab ${subTab === 'browser' ? 'active' : ''}`} onClick={() => { setSubTab('browser'); setSelectedTrip(null); }}>
-              <Icon name="fa-map-location-dot" /> Trips
-            </button>
-            <button className={`journal-tab ${subTab === 'editor' ? 'active' : ''}`} onClick={() => setSubTab('editor')}>
-              <Icon name="fa-pen" /> Edit Entry
-            </button>
-            <button className={`journal-tab ${subTab === 'new' ? 'active' : ''}`} onClick={() => setSubTab('new')}>
-              <Icon name="fa-plus" /> New Entry
-            </button>
-          </div>
-
-          {/* --- Browser: Trip List --- */}
-          {subTab === 'browser' && !selectedTrip && (
-            <div className="grid-cards stagger-1">
-              {trips.map(trip => (
-                <div key={trip.id} className="glass-card module-card" onClick={() => setSelectedTrip(trip)}>
-                  <div className="module-icon module-icon--trip">
-                    <Icon name="fa-plane-departure" />
-                  </div>
-                  <h2 className="module-title module-title--md">{trip.location}</h2>
-                  <p className="module-description">{trip.displayDate} &middot; {trip.country} &middot; {trip.entries.length} entries</p>
-                  <div className="tag-row">
-                    {trip.tags.map(tag => <span key={tag} className="badge badge-active">{tag}</span>)}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* --- Browser: Trip Entries --- */}
-          {subTab === 'browser' && selectedTrip && (
-            <div>
-              <button className="btn btn-secondary btn--mb-sm" onClick={() => setSelectedTrip(null)}>
-                <Icon name="fa-arrow-left" /> All Trips
-              </button>
-              <h2 className="h-serif-lg-tight">{selectedTrip.location}</h2>
-              <p className="meta-mono-inline-muted">
-                {selectedTrip.displayDate} &middot; {selectedTrip.country} &middot; {selectedTrip.entries.length} entries
-              </p>
-              <div className="grid-cards stagger stagger-1">
-                {selectedTrip.entries.map((entry, idx) => {
-                  const color = MOOD_COLORS[entry.mood] || MOOD_COLORS.reflective;
-                  return (
-                    <div key={entry.uuid} className="glass-card entry-card" onClick={() => setSelectedEntry(entry)}>
-                      <div className="entry-header">
-                        <span className="entry-date">Day {idx + 1} &middot; {entry.date}</span>
-                        <span className={`entry-mood mood-${entry.mood}`}>
-                          <Icon name={color.icon} /> {entry.mood}
-                        </span>
-                      </div>
-                      <h3 className="entry-title">{entry.summary}</h3>
-                      <p className="entry-preview">{entry.text}</p>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* --- Editor Tab --- */}
-          {subTab === 'editor' && (
-            <div className="stagger-1">
-              <div className="glass-card glass-card--pad-narrow">
-                <h3 className="h-serif-sm">Select a trip and entry to edit</h3>
-                <select className="input-field input-field--mb" onChange={e => { const trip = trips.find(t => t.id === e.target.value); setSelectedTrip(trip || null); setSelectedEntry(null); }}>
-                  <option value="">Choose trip...</option>
-                  {trips.map(t => <option key={t.id} value={t.id}>{t.location} &mdash; {t.displayDate}</option>)}
-                </select>
-                {selectedTrip && (
-                  <select className="input-field" onChange={e => { const entry = selectedTrip.entries.find(en => en.uuid === e.target.value); if (entry) setSelectedEntry(entry); }}>
-                    <option value="">Choose entry...</option>
-                    {selectedTrip.entries.map(en => <option key={en.uuid} value={en.uuid}>{en.date} &mdash; {en.summary}</option>)}
-                  </select>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* --- New Entry Tab --- */}
-          {subTab === 'new' && (
-            <div className="stagger-1">
-              <div className="stack">
-                <DayOnePreview
-                  entry={{
-                    location: 'New Entry',
-                    date: new Date().toISOString().split('T')[0],
-                    mood: newMood,
-                    text: newText || 'Your entry will appear here...',
-                    tags: [newMood, 'ishrat'],
-                    journal: newJournal,
-                  }}
-                  selectedJournal={newJournal}
-                />
-
-                <div className="glass-card glass-card--pad-lg">
-                  <h3 className="h-serif-md">New Entry</h3>
-
-                  <label className="meta-label">Mood</label>
-                  <div className="mood-chips mood-chips--mb">
-                    {MOODS.map(mood => {
-                      const color = MOOD_COLORS[mood] || MOOD_COLORS.reflective;
-                      return (
-                        <div key={mood} className={`mood-chip mood-${mood} ${newMood === mood ? 'selected' : ''}`} onClick={() => setNewMood(mood)}>
-                          <Icon name={color.icon} size="0.9em" />
-                          <span className="chip-label">{mood}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div className="form-grid-2">
-                    <div>
-                      <label className="meta-label">Journal</label>
-                      <select className="input-field" value={newJournal} onChange={e => setNewJournal(e.target.value)}>
-                        {JOURNALS.map(j => <option key={j} value={j}>{j}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="meta-label">Date</label>
-                      <input className="input-field" type="date" defaultValue={new Date().toISOString().split('T')[0]} />
-                    </div>
-                  </div>
-
-                  <label className="meta-label">Summary</label>
-                  <input className="input-field input-field--mb" placeholder="One line that captures the moment" value={newSummary} onChange={e => setNewSummary(e.target.value)} />
-
-                  <label className="meta-label">Entry</label>
-                  <textarea className="input-field" placeholder="Let the moment breathe on the page..." value={newText} onChange={e => setNewText(e.target.value)} />
-
-                  <div className="form-actions">
-                    <button className="btn btn-primary"><Icon name="fa-wand-magic-sparkles" /> Refine with Voice DNA</button>
-                    <button className="btn btn-secondary"><Icon name="fa-floppy-disk" /> Save Draft</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       );
     }
@@ -4831,7 +4559,7 @@
     // MAIN APP
     // =================================================================
 
-    const VALID_PAGES = ['home', 'memoir', 'dayone', 'log'];
+    const VALID_PAGES = ['home', 'memoir', 'log'];
     function pageFromHash() {
       const h = location.hash.replace('#', '');
       return VALID_PAGES.includes(h) ? h : 'home';
@@ -4890,7 +4618,6 @@
             <div className="nav-links">
               <button className={`nav-link ${page === 'home' ? 'active' : ''}`} onClick={() => { setPage('home'); setActiveChapter(null); }}><Icon name="fa-house" /> <span>Dashboard</span></button>
               <button className={`nav-link ${page === 'memoir' || page === 'chapter' ? 'active' : ''}`} onClick={() => { setPage('memoir'); setActiveChapter(null); }}><Icon name="fa-book-open" /> <span>Memoir</span></button>
-              <button className={`nav-link ${page === 'dayone' ? 'active' : ''}`} onClick={() => { setPage('dayone'); setActiveChapter(null); }}><Icon name="fa-feather-pointed" /> <span>DayOne</span></button>
               <button className={`nav-link ${page === 'log' ? 'active' : ''}`} onClick={() => { setPage('log'); setActiveChapter(null); }}><Icon name="fa-layer-group" /> <span>Log</span></button>
               <div data-theme-switcher=""></div>
             </div>
@@ -4899,7 +4626,6 @@
           <main className="page">
             {page === 'home' && <HomePage trips={trips} onNavigate={setPage} />}
             {page === 'memoir' && <MemoirModule onOpenChapter={openChapter} />}
-            {page === 'dayone' && <DayOneModule trips={trips} />}
             {page === 'log' && <LogModule />}
             {page === 'chapter' && activeChapter && (
               <ChapterReader
