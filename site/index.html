@@ -1899,7 +1899,7 @@
         setUnapproving(true);
         try {
           await onSaveDraft?.(entry.id, { reviewStatus: 'unreviewed' }, { silent: true });
-          window.notify?.success?.('Moved back to Unreviewed');
+          window.notify?.success?.('Moved back to Log Bank');
         } catch (err) {
           window.notify?.error?.('Reject failed', { description: err.message || String(err) });
         } finally {
@@ -2610,9 +2610,11 @@
       const tab = 'inbox';
       // Review lane: 'unreviewed' lane shows reviewStatus ∈ {unreviewed,
       // in_review}; 'reviewed' lane shows reviewStatus === 'approved'.
+      // Default to 'reviewed' (DayOne Workspace) so the composition surface
+      // loads first on every visit.
       const [reviewView, setReviewView] = useState(() => {
-        try { return localStorage.getItem('log_review_view') || 'unreviewed'; }
-        catch { return 'unreviewed'; }
+        try { return localStorage.getItem('log_review_view') || 'reviewed'; }
+        catch { return 'reviewed'; }
       });
       useEffect(() => {
         try { localStorage.setItem('log_review_view', reviewView); } catch {}
@@ -2964,6 +2966,8 @@
       const [copiedOnce, setCopiedOnce] = useState(false);
       const [deleteReviewedOpen, setDeleteReviewedOpen] = useState(false);
       const [deletingReviewed, setDeletingReviewed] = useState(false);
+      const [resetOpen, setResetOpen] = useState(false);
+      const [resetting, setResetting] = useState(false);
       const photoCameraRef = useRef(null);
       const photoLibraryRef = useRef(null);
       const receiptInputRef = useRef(null);
@@ -3218,6 +3222,47 @@
       // copiedOnce: the button only opens the modal after a successful Copy
       // to DayOne in this session, so the prose has a durable home before
       // the source rows are archived + photo files are removed on disk.
+      async function confirmReset() {
+        if (resetting) return;
+        setResetOpen(false);
+        setResetting(true);
+        try {
+          const slug = tripSlug;
+          if (!slug) throw new Error('no active trip');
+          const lane = reviewView;
+          const endpoint = lane === 'reviewed'
+            ? `/api/trips/${encodeURIComponent(slug)}/reviewed`
+            : `/api/trips/${encodeURIComponent(slug)}/unreviewed`;
+          const r = await fetch(`${LOG_API_BASE}${endpoint}`, { method: 'DELETE' });
+          const d = await r.json();
+          if (!d?.ok) throw new Error(d?.error || 'reset failed');
+
+          if (lane === 'reviewed') {
+            setEntries(prev => prev.filter(e => !isReviewed(e)));
+            setCopiedOnce(false);
+            setCompose({ title: '', context: '', reflection: '', date: todayIso(), weather: null });
+            if (composeKey) { try { localStorage.removeItem(composeKey); } catch {} }
+          } else {
+            const removedIds = entries.filter(isUnreviewed).map(e => e.id);
+            setEntries(prev => prev.filter(e => !isUnreviewed(e)));
+            for (const id of removedIds) {
+              try { localStorage.removeItem(`journal.draft.${id}`); } catch {}
+            }
+          }
+
+          const tabLabel = lane === 'reviewed' ? 'DayOne Workspace' : 'Log Bank';
+          window.notify?.success?.(`${tabLabel} reset`, {
+            description: d.photoCount
+              ? `${d.entryCount} entries removed, ${d.photoCount} photo${d.photoCount === 1 ? '' : 's'} deleted.`
+              : `${d.entryCount} ${d.entryCount === 1 ? 'entry' : 'entries'} removed.`,
+          });
+        } catch (err) {
+          window.notify?.error?.('Reset failed', { description: err.message || String(err) });
+        } finally {
+          setResetting(false);
+        }
+      }
+
       async function confirmDeleteReviewed() {
         if (deletingReviewed) return;
         setDeleteReviewedOpen(false);
@@ -3463,7 +3508,7 @@
       });
       const emptyStoryNode = loading
         ? (<div className="log-empty"><Icon name="fa-spinner" /> <p>Loading your log…</p></div>)
-        : (<div className="log-empty"><Icon name="fa-inbox" /><p>Nothing approved yet — review some from Unreviewed to see them here.</p></div>);
+        : (<div className="log-empty"><Icon name="fa-inbox" /><p>Nothing approved yet — review some from Log Bank to see them here.</p></div>);
 
       // Reviewed-lane footer: Journal select + Copy-to-DayOne + Delete. Lives
       // inside the composer so all post-composition controls sit together.
@@ -3594,29 +3639,47 @@
                   <div className="log-subtab-bar" role="tablist" aria-label="Photo review">
                     <button
                       role="tab"
-                      aria-selected={reviewView === 'unreviewed'}
-                      className={`log-subtab ${reviewView === 'unreviewed' ? 'active' : ''}`}
-                      onClick={() => setReviewView('unreviewed')}
-                      aria-label="Unreviewed"
-                    >
-                      <Icon name="fa-circle-half-stroke" />
-                      <span className="btn-label"> Unreviewed</span>
-                      {reviewUnreviewedCount > 0 && <span className="log-subtab-badge">{reviewUnreviewedCount}</span>}
-                    </button>
-                    <button
-                      role="tab"
                       aria-selected={reviewView === 'reviewed'}
                       className={`log-subtab ${reviewView === 'reviewed' ? 'active' : ''}`}
                       onClick={() => setReviewView('reviewed')}
-                      aria-label="Reviewed"
+                      aria-label="DayOne Workspace"
                     >
                       <Icon name="fa-circle-check" />
-                      <span className="btn-label"> Reviewed</span>
+                      <span className="btn-label"> DayOne Workspace</span>
                       {reviewReviewedCount > 0 && <span className="log-subtab-badge">{reviewReviewedCount}</span>}
+                    </button>
+                    <button
+                      role="tab"
+                      aria-selected={reviewView === 'unreviewed'}
+                      className={`log-subtab ${reviewView === 'unreviewed' ? 'active' : ''}`}
+                      onClick={() => setReviewView('unreviewed')}
+                      aria-label="Log Bank"
+                    >
+                      <Icon name="fa-circle-half-stroke" />
+                      <span className="btn-label"> Log Bank</span>
+                      {reviewUnreviewedCount > 0 && <span className="log-subtab-badge">{reviewUnreviewedCount}</span>}
                     </button>
                   </div>
 
-                  {reviewView === 'unreviewed' && captureActionsNode}
+                  <div className="log-subtab-right">
+                    {reviewView === 'unreviewed' && captureActionsNode}
+                    {(() => {
+                      const activeCount = reviewView === 'reviewed' ? reviewReviewedCount : reviewUnreviewedCount;
+                      const tabLabel = reviewView === 'reviewed' ? 'DayOne Workspace' : 'Log Bank';
+                      return activeCount > 0 ? (
+                        <button
+                          className="log-subtab-reset-btn"
+                          onClick={() => setResetOpen(true)}
+                          disabled={resetting}
+                          title={`Clear all entries from ${tabLabel}`}
+                          aria-label={resetting ? 'Resetting…' : `Reset ${tabLabel}`}
+                        >
+                          <Icon name={resetting ? 'fa-circle-notch fa-spin' : 'fa-rotate-left'} />
+                          <span className="btn-label"> Reset</span>
+                        </button>
+                      ) : null;
+                    })()}
+                  </div>
                 </div>
               )}
 
@@ -3696,7 +3759,7 @@
                     <p>{
                       tab === 'inbox'
                         ? (reviewView === 'reviewed'
-                            ? 'Nothing approved yet — review some from Unreviewed to see them here.'
+                            ? 'Nothing approved yet — review some from Log Bank to see them here.'
                             : 'Nothing needs attention — everything is up to date.')
                         : `No ${tab} items match these filters.`
                     }</p>
@@ -3739,6 +3802,25 @@
             onCancel={() => setRejectTarget(null)}
             onConfirm={confirmReject}
           />
+
+          {/* ── Reset confirmation modal ── */}
+          {(() => {
+            const lane = reviewView;
+            const tabLabel = lane === 'reviewed' ? 'DayOne Workspace' : 'Log Bank';
+            const laneEntries = lane === 'reviewed' ? entries.filter(isReviewed) : entries.filter(isUnreviewed);
+            const activeCount = laneEntries.length;
+            const photoCount = laneEntries.filter(e => e?.payload?.imagePath || e?.imagePath).length;
+            return (
+              <ConfirmModal
+                open={resetOpen}
+                title={`Reset ${tabLabel}?`}
+                message={`This will permanently remove all ${activeCount} ${activeCount === 1 ? 'entry' : 'entries'}${photoCount ? ` (including ${photoCount} photo${photoCount === 1 ? '' : 's'} on disk)` : ''} from ${tabLabel}. This cannot be undone.`}
+                confirmLabel="Reset forever"
+                onCancel={() => setResetOpen(false)}
+                onConfirm={confirmReset}
+              />
+            );
+          })()}
 
           {/* ── Delete-all-reviewed confirmation modal ── */}
           {(() => {
