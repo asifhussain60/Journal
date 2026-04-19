@@ -3016,42 +3016,36 @@ html{scroll-behavior:smooth}
 }
 
 /* ═══ DRAG-REORDER (Phase 12) ═══
-   SortableJS wiring on .event-list. Pin + drag affordances live in
-   .event-actions alongside delete/caret; they only become visible on
-   row hover to avoid competing with the accordion's primary click
-   affordance. Anchor rows gain a faint pin glyph in the rail so the
-   user can see at a glance which cards are immovable. */
+   SortableJS wiring on .event-list. The drag handle is the numbered disc
+   on the rail (.event-rail-num) — grab the circle to move the card up
+   or down within its day. Pin toggle sits in .event-actions next to the
+   caret and only reveals on hover / focus (or stays on for anchors as a
+   glance signal). */
 
-.event-pin-btn,
-.event-drag-handle{
+.event-pin-btn{
   appearance:none;
   border:0;
   background:transparent;
-  color:var(--text-secondary, color-mix(in srgb, var(--text-primary) 65%, transparent));
-  width:30px;
-  height:30px;
+  color:color-mix(in srgb, var(--text-primary) 65%, transparent);
+  width:28px;
+  height:28px;
   border-radius:8px;
   display:grid;
   place-items:center;
   cursor:pointer;
-  font-size:.9rem;
+  font-size:.85rem;
   opacity:0;
   transition:opacity .18s ease, color .18s ease, background-color .18s ease, transform .12s ease;
 }
-.event-drag-handle{ cursor:grab; }
 .event:hover .event-pin-btn,
-.event:hover .event-drag-handle,
 .event:focus-within .event-pin-btn,
-.event:focus-within .event-drag-handle,
 .event[data-time-mode="anchor"] .event-pin-btn{ opacity:1; }
 
-.event-pin-btn:hover,
-.event-drag-handle:hover{
+.event-pin-btn:hover{
   color:var(--accent);
   background:color-mix(in srgb, var(--accent) 14%, transparent);
 }
-.event-pin-btn:focus-visible,
-.event-drag-handle:focus-visible{
+.event-pin-btn:focus-visible{
   outline:2px solid var(--accent);
   outline-offset:2px;
   opacity:1;
@@ -3066,9 +3060,26 @@ html{scroll-behavior:smooth}
   color:color-mix(in srgb, var(--accent) 80%, white);
 }
 
-/* Disable drag handle affordance on anchors — they can't be reordered. */
-.event[data-time-mode="anchor"] .event-drag-handle{
-  display:none;
+/* Rail disc as drag handle: grab cursor on hover, pressed while active,
+   and a halo ring hint on flex rows so the user knows the disc is
+   interactive. Anchors suppress the ring since they can't be reordered
+   (the SortableJS filter also blocks the drag itself). */
+.event-rail-num[data-reorder-handle]{
+  cursor:grab;
+}
+.event:hover .event-rail-num[data-reorder-handle]{
+  box-shadow:
+    0 0 0 4px var(--bg),
+    0 0 0 6px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.event-rail-num[data-reorder-handle]:active{
+  cursor:grabbing;
+}
+.event[data-time-mode="anchor"] .event-rail-num[data-reorder-handle]{
+  cursor:default;
+}
+.event[data-time-mode="anchor"]:hover .event-rail-num[data-reorder-handle]{
+  box-shadow:0 0 0 4px var(--bg);  /* cancel the drag hint ring */
 }
 
 /* SortableJS lifecycle classes. Keep the moving row legible against the

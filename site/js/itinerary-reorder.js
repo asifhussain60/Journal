@@ -295,7 +295,12 @@ function wireSortable(Sortable, listEl) {
 
   listEl.__sortable = new Sortable(listEl, {
     animation: 180,
-    handle: '.event-drag-handle',
+    // The numbered disc on the rail is the drag handle. Placed on the left
+    // of the card so the grab affordance doesn't compete with the right-
+    // edge delete/alt-find buttons. Unnumbered events hide the disc (see
+    // .event-rail-num:empty) — those are TRAVEL anchors that can't be
+    // reordered anyway, so the filter catches them.
+    handle: '.event-rail-num',
     draggable: '.event',
     filter: '.event[data-time-mode="anchor"]',
     preventOnFilter: false,

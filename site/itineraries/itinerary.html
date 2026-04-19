@@ -406,8 +406,12 @@
         // Rail — vertical line via ::before pseudo; numbered disc is a real
         // element so it can hold the stop number. Disc states (upcoming /
         // current / done) are driven by data-state on the parent .event.
+        // The disc is also the drag handle: grabbing it triggers SortableJS
+        // reorder (see itinerary-reorder.js). Anchors suppress drag via the
+        // Sortable filter and the CSS cursor rule below.
+        var dragTitle = (timeMode === 'anchor') ? '' : ' title="Drag to reorder"';
         parts.push('  <div class="event-rail">');
-        parts.push('    <span class="event-rail-num"' + (num != null ? ' aria-label="Stop ' + num + '"' : '') + '>' + (num != null ? num : '') + '</span>');
+        parts.push('    <span class="event-rail-num" data-reorder-handle="1"' + dragTitle + (num != null ? ' aria-label="Stop ' + num + ' — drag to reorder"' : ' aria-label="Drag to reorder"') + '>' + (num != null ? num : '') + '</span>');
         parts.push('  </div>');
 
         // Card — accordion-style. Click toggles .is-expanded; interactive
@@ -451,20 +455,18 @@
           parts.push('          <div class="event-meta">' + metaBits.join('<span class="event-meta-dot" aria-hidden="true">\u00b7</span>') + '</div>');
         }
         parts.push('        </div>');
-        // Action slot — pin + drag-handle + delete + caret. Delete bails out
-        // of the accordion toggle via stopPropagation (same pattern as tel:
-        // links and the alt-find button) so clicking an action doesn't also
-        // expand the card.
+        // Action slot — pin + delete + caret. Delete bails out of the
+        // accordion toggle via stopPropagation (same pattern as tel: links
+        // and the alt-find button). The drag affordance lives on the rail
+        // disc (.event-rail-num) — grab the numbered circle to reorder.
         var delLabel = String(ev.event || '').replace(/'/g, "\\'");
         // Pin toggle: "anchor" = filled pin (time fixed); "flex" = outline
         // pin (time auto-packed). Clicking flips time_mode via itinerary-
-        // reorder.js → /api/trip-edit. Drag handle lives alongside so the
-        // row has an obvious grip affordance without covering the card body.
+        // reorder.js → /api/pin-event.
         var pinIcon = (timeMode === 'anchor') ? 'fa-solid fa-thumbtack' : 'fa-regular fa-thumbtack';
         var pinLabel = (timeMode === 'anchor') ? 'Unpin (let time flex)' : 'Pin this time';
         parts.push('        <div class="event-actions">');
         parts.push('          <button type="button" class="event-pin-btn" data-reorder-pin="1" data-day-idx="' + dayIdx + '" data-event-idx="' + eventIdx + '" aria-label="' + pinLabel + '" title="' + pinLabel + '" onclick="event.stopPropagation()"><i class="' + pinIcon + '" aria-hidden="true"></i></button>');
-        parts.push('          <button type="button" class="event-drag-handle" data-reorder-handle="1" aria-label="Drag to reorder" title="Drag to reorder" onclick="event.stopPropagation()" tabindex="-1"><i class="fa-solid fa-grip-vertical" aria-hidden="true"></i></button>');
         parts.push('          <button type="button" class="event-delete-btn" aria-label="Delete this stop" title="Delete this stop" onclick="event.stopPropagation(); requestDeleteEvent(' + dayIdx + ',' + eventIdx + ',\'' + escHtml(delLabel) + '\')"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>');
         // Alt-find corner button — only rendered when this is a numbered stop
         // AND no alternative venue has been chosen yet. Once an alt is set the
