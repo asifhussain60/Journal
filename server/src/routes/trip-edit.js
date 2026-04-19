@@ -15,6 +15,7 @@ import { getActiveTripSlug } from "../lib/receipts.js";
 import { applyTripEdit, revertTripEdit, readTripObj, readEditLog, serializeTripObj } from "../lib/trip-edit-ops.js";
 import { shadow } from "../middleware/shadow-write.js";
 import { verifyVenue as geminiVerifyVenue, isAvailable as geminiAvailable } from "../lib/gemini-client.js";
+import { validatePatchPaths, isTagOnlyPatch } from "../lib/patch-validate.js";
 import { extractJsonObject, wrapUserMessage, logExtractFailure } from "../util/json.js";
 
 // Intent tier-0 rule: keyword match on edit verbs routes to intent=edit; otherwise
@@ -54,7 +55,7 @@ export function createTripEditRouter({ anthropic, DEFAULT_MODEL }) {
     // --- Direct-patch path (Refine All atomic commit + tag edits) ---
     if (Array.isArray(patches)) {
       // Tags are always editable; full Refine All patches require the flag.
-      const tagOnlyPatch = patches.every(p => p.path === "/dayoneTags" || p.path === "/rejectedAiTags");
+      const tagOnlyPatch = isTagOnlyPatch(patches);
       if (!tagOnlyPatch && process.env.REFINE_ALL_ENABLED !== "true") {
         return res.status(503).json({ ok: false, error: "refine-all disabled" });
       }
@@ -80,23 +81,10 @@ export function createTripEditRouter({ anthropic, DEFAULT_MODEL }) {
         }
       }
 
-      // Allowlist patch paths
-      const ALLOWED_PATHS = new Set([
-        "/narrative", "/narrativeAiHashes", "/reflection", "/highlights", "/highlightsAiHashes",
-        "/dayoneTags", "/rejectedAiTags",
-      ]);
-      const ALLOWED_PREFIXES = [
-        "/highlights/", "/highlightsAiHashes/", "/dayoneTags/", "/rejectedAiTags/",
-      ];
-      for (const op of patches) {
-        const p = op?.path;
-        if (!p || typeof p !== "string") {
-          return res.status(400).json({ ok: false, error: "each patch must have a path" });
-        }
-        const allowed = ALLOWED_PATHS.has(p) || ALLOWED_PREFIXES.some((pfx) => p.startsWith(pfx));
-        if (!allowed) {
-          return res.status(400).json({ ok: false, error: `patch path not allowed: ${p}` });
-        }
+      // Allowlist patch paths (D11 guard — pure logic lives in lib/patch-validate.js)
+      const pathCheck = validatePatchPaths(patches);
+      if (!pathCheck.ok) {
+        return res.status(400).json({ ok: false, error: pathCheck.error });
       }
 
       try {
