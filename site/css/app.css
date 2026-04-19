@@ -296,20 +296,33 @@
   overflow: hidden;
   margin: 0 auto 3rem auto;
   max-width: 60%;
-  background: linear-gradient(
-    150deg,
-    color-mix(in srgb, var(--mauve) 16%, var(--bg-card, rgba(255,255,255,0.08))) 0%,
-    color-mix(in srgb, var(--lavender) 8%, transparent) 55%,
-    color-mix(in srgb, var(--gold) 5%, transparent) 100%
-  );
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
-  border: 1px solid color-mix(in srgb, var(--mauve) 25%, var(--glass-border));
-  border-top: 1px solid color-mix(in srgb, var(--lavender) 35%, var(--glass-border-light));
-  border-left: 1px solid color-mix(in srgb, var(--lavender) 30%, var(--glass-border-light));
+  /*
+   * Two stacked layers:
+   *  1) Top: frosted glass shine (top-left corner highlight)
+   *  2) Base: --bg-tertiary (lighter surface in every theme) tinted with
+   *     mauve/lavender/gold — always visibly lighter than the page --bg
+   */
+  background:
+    linear-gradient(155deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 40%, transparent 100%),
+    linear-gradient(
+      150deg,
+      color-mix(in srgb, var(--mauve)    22%, var(--bg-tertiary)) 0%,
+      color-mix(in srgb, var(--lavender) 14%, var(--bg-tertiary)) 52%,
+      color-mix(in srgb, var(--gold)     10%, var(--bg-tertiary)) 100%
+    );
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  /* Thick, clearly-visible accent border */
+  border: 2px solid color-mix(in srgb, var(--mauve) 50%, var(--glass-border-light));
+  /* Top-edge bevel: lighter than the rest, simulates glass refraction */
+  border-top-color: color-mix(in srgb, var(--lavender) 65%, rgba(255,255,255,0.45));
+  /* Layered depth shadows + ambient accent glow + inner top highlight */
   box-shadow:
-    var(--glass-shadow),
-    0 0 60px color-mix(in srgb, var(--mauve) 10%, transparent);
+    0 2px 4px  rgba(0,0,0,0.12),
+    0 8px 24px rgba(0,0,0,0.24),
+    0 28px 64px rgba(0,0,0,0.32),
+    0 0 80px color-mix(in srgb, var(--mauve) 18%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--lavender) 50%, rgba(255,255,255,0.20));
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -318,17 +331,23 @@
   transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 .trip-hero:hover {
-  background: linear-gradient(
-    150deg,
-    color-mix(in srgb, var(--mauve) 22%, var(--bg-card, rgba(255,255,255,0.12))) 0%,
-    color-mix(in srgb, var(--lavender) 12%, transparent) 55%,
-    color-mix(in srgb, var(--gold) 8%, transparent) 100%
-  );
-  transform: translateY(-6px);
-  border-color: color-mix(in srgb, var(--mauve) 45%, rgba(255,255,255,.32));
+  background:
+    linear-gradient(155deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.06) 40%, transparent 100%),
+    linear-gradient(
+      150deg,
+      color-mix(in srgb, var(--mauve)    30%, var(--bg-tertiary)) 0%,
+      color-mix(in srgb, var(--lavender) 20%, var(--bg-tertiary)) 52%,
+      color-mix(in srgb, var(--gold)     15%, var(--bg-tertiary)) 100%
+    );
+  transform: translateY(-8px);
+  border-color: color-mix(in srgb, var(--mauve) 70%, rgba(255,255,255,0.5));
+  border-top-color: color-mix(in srgb, var(--lavender) 80%, rgba(255,255,255,0.55));
   box-shadow:
-    var(--glass-shadow-hover),
-    0 0 80px color-mix(in srgb, var(--mauve) 18%, transparent);
+    0 4px 8px  rgba(0,0,0,0.14),
+    0 16px 40px rgba(0,0,0,0.30),
+    0 40px 80px rgba(0,0,0,0.38),
+    0 0 100px color-mix(in srgb, var(--mauve) 24%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--lavender) 65%, rgba(255,255,255,0.28));
 }
 .trip-hero::before {
   content: '';
@@ -336,7 +355,7 @@
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
   width: 480px; height: 480px;
-  background: radial-gradient(circle, color-mix(in srgb, var(--mauve) 20%, transparent) 0%, transparent 70%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--mauve) 22%, transparent) 0%, transparent 70%);
   z-index: -1;
 }
 
