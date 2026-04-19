@@ -2007,10 +2007,10 @@
                 onClick={handleUnapprove}
                 disabled={unapproving || refining || autoSaving}
                 title="Send this back to the Unreviewed lane"
+                aria-label={unapproving ? 'Rejecting' : 'Reject'}
               >
                 <Icon name={unapproving ? 'fa-circle-notch fa-spin' : 'fa-rotate-left'} />
-                {' '}
-                {unapproving ? 'Rejecting…' : 'Reject'}
+                <span className="btn-label">{unapproving ? 'Rejecting…' : 'Reject'}</span>
               </button>
             ) : (
               <button
@@ -2018,8 +2018,10 @@
                 onClick={() => onReject?.(entry)}
                 disabled={approving || refining}
                 title="Reject this entry"
+                aria-label="Reject"
               >
-                <Icon name="fa-trash-can" /> Reject
+                <Icon name="fa-trash-can" />
+                <span className="btn-label">Reject</span>
               </button>
             )}
             <button
@@ -2027,8 +2029,10 @@
               onClick={handleRefine}
               disabled={approving || refining || unapproving}
               title={refineTitle}
+              aria-label={typeof refineLabel === 'string' ? refineLabel : 'Refine'}
             >
-              <Icon name={refineIcon} /> {refineLabel}
+              <Icon name={refineIcon} />
+              <span className="btn-label">{refineLabel}</span>
             </button>
             {!isReviewed && (
               <button
@@ -2036,10 +2040,10 @@
                 onClick={handleCommit}
                 disabled={approving || refining}
                 title="Approve and persist"
+                aria-label={approving ? 'Approving' : 'Approve'}
               >
                 <Icon name={approving ? 'fa-circle-notch fa-spin' : 'fa-check'} />
-                {' '}
-                {approving ? 'Approving…' : 'Approve'}
+                <span className="btn-label">{approving ? 'Approving…' : 'Approve'}</span>
               </button>
             )}
           </footer>
@@ -2179,8 +2183,10 @@
                     onChange({ title: '', context: autoContext, highlights: [] });
                   }}
                   title="Reset user-typed fields"
+                  aria-label="Reset user-typed fields"
                 >
-                  <Icon name="fa-rotate-left" /> Reset
+                  <Icon name="fa-rotate-left" />
+                  <span className="btn-label"> Reset</span>
                 </button>
               )}
             </div>
@@ -2288,8 +2294,10 @@
                 onClick={suggestHighlights}
                 disabled={!storyCount}
                 title="Pull the opening sentence from each Reviewed entry"
+                aria-label="Suggest highlights from entries"
               >
-                <Icon name="fa-sparkles" /> Suggest from entries
+                <Icon name="fa-sparkles" />
+                <span className="btn-label"> Suggest from entries</span>
               </button>
             </div>
           </div>
@@ -2721,8 +2729,10 @@
             onClick={e => { e.stopPropagation(); setPhotoMenuOpen(o => !o); }}
             disabled={capturing}
             title="Add a photo"
+            aria-label="Add a photo"
           >
-            <Icon name="fa-camera" /> Photo
+            <Icon name="fa-camera" />
+            <span className="btn-label">Photo</span>
             {photoMenuOpen && (
               <div className="log-capture-menu" onClick={e => e.stopPropagation()}>
                 <button onClick={() => { setPhotoMenuOpen(false); photoCameraRef.current?.click(); }}>
@@ -2739,17 +2749,20 @@
             onClick={() => receiptInputRef.current?.click()}
             disabled={receiptProcessing}
             title="Add a receipt — image is uploaded and AI-extracted automatically"
+            aria-label={receiptProcessing ? 'Processing receipt' : 'Add a receipt'}
           >
             <Icon name={receiptProcessing ? 'fa-circle-notch fa-spin' : 'fa-receipt'} />
-            {receiptProcessing ? ' Processing…' : ' Receipt'}
+            <span className="btn-label">{receiptProcessing ? ' Processing…' : ' Receipt'}</span>
           </button>
           <button
             className="log-capture-action log-capture-action--note"
             onClick={() => setNoteComposerOpen(o => !o)}
             disabled={capturing}
             title="Add a note — type in your own words"
+            aria-label="Add a note"
           >
-            <Icon name="fa-note-sticky" /> Note
+            <Icon name="fa-note-sticky" />
+            <span className="btn-label">Note</span>
           </button>
         </div>
       );
@@ -2798,10 +2811,10 @@
               onClick={handleDayoneCopy}
               disabled={dayonePushing || !dayoneJournals.length}
               title="Copy every Reviewed entry (photos + text) to the clipboard for pasting into DayOne"
+              aria-label={dayonePushing ? 'Copying to DayOne' : 'Copy to DayOne'}
             >
               <Icon name={dayonePushing ? 'fa-circle-notch fa-spin' : 'fa-copy'} />
-              {' '}
-              {dayonePushing ? 'Copying…' : 'Copy to DayOne'}
+              <span className="btn-label">{dayonePushing ? ' Copying…' : ' Copy to DayOne'}</span>
             </button>
           </div>
           {entries.some(isReviewed) && (
@@ -2812,10 +2825,10 @@
               title={copiedOnce
                 ? 'Permanently delete all Reviewed entries for this trip'
                 : 'Copy to DayOne first — this unlocks once the bundle is safely on your clipboard'}
+              aria-label={deletingReviewed ? 'Deleting reviewed entries' : 'Delete reviewed entries'}
             >
               <Icon name={deletingReviewed ? 'fa-circle-notch fa-spin' : 'fa-trash-can'} />
-              {' '}
-              {deletingReviewed ? 'Deleting…' : 'Delete Reviewed Entries'}
+              <span className="btn-label">{deletingReviewed ? ' Deleting…' : ' Delete Reviewed Entries'}</span>
             </button>
           )}
         </>
@@ -2868,8 +2881,15 @@
                 <div className="log-chip-row">
                   <span className="log-chip-row-label">Source</span>
                   {SOURCES.map(s => (
-                    <button key={s.id} className={`log-chip ${sourceFilter === s.id ? 'active' : ''}`} onClick={() => setSourceFilter(s.id)}>
-                      {s.icon && <Icon name={s.icon} />} {s.label}
+                    <button
+                      key={s.id}
+                      className={`log-chip ${sourceFilter === s.id ? 'active' : ''}`}
+                      onClick={() => setSourceFilter(s.id)}
+                      aria-label={s.label}
+                      title={s.label}
+                    >
+                      {s.icon && <Icon name={s.icon} />}
+                      <span className="btn-label">{s.icon ? ' ' : ''}{s.label}</span>
                     </button>
                   ))}
                 </div>
@@ -2888,8 +2908,10 @@
                       aria-selected={reviewView === 'unreviewed'}
                       className={`log-subtab ${reviewView === 'unreviewed' ? 'active' : ''}`}
                       onClick={() => setReviewView('unreviewed')}
+                      aria-label="Unreviewed"
                     >
-                      <Icon name="fa-circle-half-stroke" /> Unreviewed
+                      <Icon name="fa-circle-half-stroke" />
+                      <span className="btn-label"> Unreviewed</span>
                       {reviewUnreviewedCount > 0 && <span className="log-subtab-badge">{reviewUnreviewedCount}</span>}
                     </button>
                     <button
@@ -2897,8 +2919,10 @@
                       aria-selected={reviewView === 'reviewed'}
                       className={`log-subtab ${reviewView === 'reviewed' ? 'active' : ''}`}
                       onClick={() => setReviewView('reviewed')}
+                      aria-label="Reviewed"
                     >
-                      <Icon name="fa-circle-check" /> Reviewed
+                      <Icon name="fa-circle-check" />
+                      <span className="btn-label"> Reviewed</span>
                       {reviewReviewedCount > 0 && <span className="log-subtab-badge">{reviewReviewedCount}</span>}
                     </button>
                   </div>
@@ -2947,15 +2971,19 @@
                         className="log-action-btn log-action-btn--reject"
                         onClick={() => { setNoteText(''); setNoteComposerOpen(false); }}
                         disabled={capturing}
+                        aria-label="Cancel"
                       >
-                        <Icon name="fa-xmark" /> Cancel
+                        <Icon name="fa-xmark" />
+                        <span className="btn-label">Cancel</span>
                       </button>
                       <button
                         className="log-action-btn log-action-btn--approve"
                         onClick={async () => { await captureNote(); setNoteComposerOpen(false); }}
                         disabled={capturing || !noteText.trim()}
+                        aria-label={capturing ? 'Capturing' : 'Capture'}
                       >
-                        <Icon name={capturing ? 'fa-circle-notch fa-spin' : 'fa-arrow-up'} /> {capturing ? 'Capturing…' : 'Capture'}
+                        <Icon name={capturing ? 'fa-circle-notch fa-spin' : 'fa-arrow-up'} />
+                        <span className="btn-label">{capturing ? 'Capturing…' : 'Capture'}</span>
                       </button>
                     </footer>
                   </article>

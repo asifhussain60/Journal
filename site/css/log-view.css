@@ -956,6 +956,7 @@
    inside .review-card-artifact—{image|voice|text|empty}. */
 
 .review-card {
+  container: review-card / inline-size;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -1561,4 +1562,61 @@
   align-items: center;
 }
 .dayone-actions .log-dayone-push-controls { margin: 0; }
+
+/* ═══════════════════════════════════════════════════
+   Responsive button labels
+   Any icon+text button can wrap its text in
+   <span class="btn-label"> and will collapse to
+   icon-only when its container narrows OR on mobile.
+   Buttons collapse on two axes:
+     1. Container: .review-card (inline-size container)
+        drops labels first so the 3-col card grid stays
+        usable when cells shrink below ~320px.
+     2. Viewport: @media (max-width: 600px) drops
+        labels across the whole Log surface, plus the
+        main nav, so phones never see text bleed.
+   ═══════════════════════════════════════════════════ */
+
+.btn-label { display: inline; }
+
+/* Container query: review-card collapses its action labels first. Kicks in
+   before the flex footer runs out of room in a 3-col grid on a typical
+   laptop. */
+@container review-card (max-width: 320px) {
+  .review-card .btn-label { display: none; }
+  .review-card .log-action-btn {
+    padding-left: 0;
+    padding-right: 0;
+    min-width: 40px;
+    justify-content: center;
+    gap: 0;
+  }
+}
+
+/* Viewport fallback for mobile — the Log surface and main nav collapse
+   aggressively so nothing bleeds on a ≤600px screen. */
+@media (max-width: 600px) {
+  .log-module .btn-label,
+  .site-header .btn-label,
+  .app-header .btn-label {
+    display: none;
+  }
+  .log-module .log-action-btn,
+  .log-module .log-capture-action {
+    padding-left: 0;
+    padding-right: 0;
+    min-width: 40px;
+    justify-content: center;
+    gap: 0;
+  }
+  .log-module .log-dayone-push-btn,
+  .log-module .log-reviewed-delete-btn {
+    padding-left: 14px;
+    padding-right: 14px;
+    min-width: 48px;
+    justify-content: center;
+    gap: 0;
+  }
+}
+
 
