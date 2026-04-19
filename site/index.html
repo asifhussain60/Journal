@@ -1316,10 +1316,9 @@
     const budgetStatus = pct => pct >= 90 ? 'danger' : pct >= 75 ? 'warn' : 'ok';
     let __budgetErrorNotified = false;
     const fetchSummary = () => {
-      console.log('[API:REQ]', 'http://localhost:3001/api/usage/summary');
-      return fetch('http://localhost:3001/api/usage/summary')
+      const summaryUrl = (window.BabuAI?.baseUrl ?? 'http://localhost:3001') + '/api/usage/summary';
+      return fetch(summaryUrl)
         .then(r => {
-          console.log('[API:RES]', 'http://localhost:3001/api/usage/summary', r.status);
           if (r.ok) { __budgetErrorNotified = false; return r.json(); }
           if (!__budgetErrorNotified && window.notify) {
             window.notify.warning('Budget unavailable', { description: 'Server returned ' + r.status });
@@ -1328,7 +1327,6 @@
           return null;
         })
         .catch(err => {
-          console.error('[API:ERR]', 'http://localhost:3001/api/usage/summary', err);
           if (!__budgetErrorNotified && window.notify) {
             window.notify.warning('Budget unavailable', { description: 'Cowork server is offline.' });
             __budgetErrorNotified = true;
