@@ -1966,6 +1966,20 @@ html{scroll-behavior:smooth}
   0%,100%{ box-shadow:0 0 0 0 color-mix(in srgb, var(--error) 0%, transparent); }
   50%    { box-shadow:0 0 0 4px color-mix(in srgb, var(--error) 18%, transparent); }
 }
+/* 3-column layout when per-account tiles replace the generic Spent tile */
+.budget-summary--accounts{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+}
+.budget-stat--sapphire{
+  background:color-mix(in srgb, var(--info) 12%, var(--white-06));
+  border-color:color-mix(in srgb, var(--info) 28%, transparent);
+}
+.budget-stat--sapphire .budget-stat-value{ color:var(--info); }
+.budget-stat--united{
+  background:color-mix(in srgb, var(--warning) 10%, var(--white-06));
+  border-color:color-mix(in srgb, var(--warning) 25%, transparent);
+}
+.budget-stat--united .budget-stat-value{ color:var(--warning); }
 
 /* Controls row — sort toggle + verification pill */
 .budget-controls{
@@ -2079,7 +2093,24 @@ html{scroll-behavior:smooth}
   padding:.85rem 1rem;
   cursor:pointer;
 }
+/* Name + account-split column — wraps vertically inside the 1fr grid cell */
+.budget-cat-name-wrap{
+  display:flex;
+  flex-direction:column;
+  gap:.18rem;
+  min-width:0;
+}
 .budget-cat-name{font-weight:600; font-size:.92rem}
+/* Per-category account breakdown line shown in collapsed header */
+.budget-cat-accounts{
+  font-size:.68rem;
+  color:var(--text-muted);
+  font-variant-numeric:tabular-nums;
+  letter-spacing:.03em;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
 .budget-cat-total{color:var(--gold); font-size:.92rem; font-family:"Inter","SF Pro Display",system-ui,sans-serif; font-weight:600; font-variant-numeric:tabular-nums}
 .budget-cat-chevron{transition:transform .3s ease; opacity:.6}
 .budget-cat.open .budget-cat-chevron{transform:rotate(180deg); opacity:1}
