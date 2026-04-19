@@ -1,21 +1,21 @@
-// routes/dayone.js — Phase 11b Copy-to-DayOne pipeline.
+// routes/dayone.js — Copy-to-DayOne pipeline (Phase 11b + preview workflow).
 //
-// GET  /api/dayone/journals     → available DayOne journals (curated shortlist;
-//                                 CLI has no `list` subcommand so we hand-pick).
-// POST /api/dayone/bundle       → bundle the supplied entry IDs into a single
-//                                 clipboard-ready payload. Body:
-//                                   { tripSlug, entryIds: [...], journal }
-//                                 Returns { markdown, html } where `html`
-//                                 contains inline <img src="data:..."> tags so
-//                                 pasting into DayOne brings the photo bytes
-//                                 with it (not just a file-path reference).
-//
-// Formatting:
-//   - markdown: DayOne-flavoured body with `[{attachment}]` placeholders where
-//     a photo belongs. Kept for plain-text fallback pastes.
-//   - html: the same body rendered as minimal HTML with inline base64 <img>
-//     tags replacing each placeholder — this is the payload that creates a
-//     rich DayOne entry on paste.
+// GET  /api/dayone/journals     → curated DayOne journal shortlist.
+// POST /api/dayone/compose      → build a structured bundle from entry IDs and
+//                                 return JSON the preview UI can bind to:
+//                                   { title, context, highlights[],
+//                                     story[{ entryId, photoRef, prose }],
+//                                     metadata, tags[], photoCount }
+//                                 No markdown/HTML emit. Cheap (no base64).
+// POST /api/dayone/bundle       → emit clipboard-ready markdown + HTML. Body:
+//                                   { tripSlug, journal, ...payload }
+//                                 Where `payload` is one of:
+//                                   - { entryIds[], compose }    legacy: server composes
+//                                   - { composed: { ... } }      preview: client supplies
+//                                                                 the edited structured
+//                                                                 bundle from /compose
+//                                 Returns { markdown, html } — html carries inline
+//                                 <img src="data:..."> tags so paste includes bytes.
 
 import express from "express";
 import { readFile } from "node:fs/promises";
@@ -105,48 +105,147 @@ function buildDefaultMetadata(tripCtx, entries, date, weather) {
   return parts.join("  •  ");
 }
 
-function formatBundle({ tripCtx, slug, entries, compose: composeRaw }) {
-  const compose = sanitizeCompose(composeRaw);
+// Auto-suggest Highlights bullets — one short sentence per card with prose,
+// up to `max`. Prefers cards with photos (they tend to anchor a moment).
+// User always overrides; this just seeds the field.
+function autoSuggestHighlights(entries, max = 5) {
+  const out = [];
+  const candidates = [...entries].sort((a, b) => {
+    const ap = entryHasPhoto(a) ? 0 : 1;
+    const bp = entryHasPhoto(b) ? 0 : 1;
+    return ap - bp;
+  });
+  for (const row of candidates) {
+    if (out.length >= max) break;
+    const prose = entryProse(row);
+    if (!prose) continue;
+    const firstSentence = (prose.match(/[^.!?]+[.!?]?/) || [prose])[0].trim();
+    if (firstSentence) out.push(firstSentence);
+  }
+  return out;
+}
 
-  // Story blocks (one paragraph per entry, with [{attachment}] placeholders).
-  const storyBlocks = [];
-  const photoEntryOrder = [];
+// Build the structured bundle from raw entries + trip context. This is the
+// shape the preview UI binds to and the shape the client edits and posts back
+// to /bundle when it's time to copy. Pure: no I/O.
+function composeStructured({ tripCtx, slug, entries, hints = {} }) {
+  const title = (typeof hints.title === "string" && hints.title.trim())
+    || niceTitle(tripCtx, slug);
+
+  const context = (typeof hints.context === "string" && hints.context.trim())
+    || [formatDateRange(entries), tripCtx?.location || tripCtx?.origin?.label || ""].filter(Boolean).join(" · ");
+
+  const highlights = Array.isArray(hints.highlights)
+    ? hints.highlights.map(h => String(h).trim()).filter(Boolean).slice(0, 5)
+    : autoSuggestHighlights(entries);
+
+  // 1:1 — each card becomes one Story block. Empty (no prose, no photo) cards
+  // are dropped at this layer; the client can re-include them by editing prose.
+  const story = [];
   for (const row of entries) {
     const prose = entryProse(row);
     const hasPhoto = entryHasPhoto(row);
     if (!prose && !hasPhoto) continue;
-    const block = [];
-    if (hasPhoto) {
-      block.push("[{attachment}]");
-      photoEntryOrder.push(row);
-    }
-    if (prose) block.push(prose);
-    storyBlocks.push(block.join("\n\n"));
+    const imagePath = row?.payload?.imagePath || row?.imagePath || null;
+    story.push({
+      entryId: row.id,
+      kind: row.kind,
+      photoRef: hasPhoto && imagePath ? { imagePath, kind: row.kind } : null,
+      prose,
+      include: true,
+    });
   }
 
-  // Title + Context fall back to computed defaults when the user skipped them.
-  const title = compose.title || niceTitle(tripCtx, slug);
-  const context = compose.context
-    || [formatDateRange(entries), tripCtx?.location || tripCtx?.origin?.label || ""].filter(Boolean).join(" · ");
-  const metadata = buildDefaultMetadata(tripCtx, entries, compose.date, compose.weather);
+  const tags = Array.isArray(hints.tags)
+    ? hints.tags.map(t => String(t).trim()).filter(Boolean).slice(0, 30)
+    : (() => {
+        const kindTags = Array.from(new Set(entries.map(r => r?.kind).filter(Boolean)));
+        const tripTags = Array.isArray(tripCtx?.tags) ? tripCtx.tags.filter(Boolean) : [];
+        const merged = Array.from(new Set([...tripTags, ...kindTags]));
+        return merged.slice(0, 30);
+      })();
 
-  // Photos ride inline with their source entry in the Story body. The Story
-  // section owns every [{attachment}] placeholder, which keeps the HTML
-  // renderer's photoIdx counter trivially in sync with photoEntryOrder.
+  const metadata = (typeof hints.metadata === "string" && hints.metadata.trim())
+    || buildDefaultMetadata(tripCtx, entries, hints.date, hints.weather);
+
+  return { title, context, highlights, story, metadata, tags };
+}
+
+// Validate + normalize a client-edited structured payload before emit. Trusts
+// nothing: re-applies the same caps and trims composeStructured uses.
+function sanitizeComposed(raw) {
+  const obj = raw && typeof raw === "object" ? raw : {};
+  const title = typeof obj.title === "string" ? obj.title.trim() : "";
+  const context = typeof obj.context === "string" ? obj.context.trim() : "";
+  const metadata = typeof obj.metadata === "string" ? obj.metadata.trim() : "";
+  const highlights = Array.isArray(obj.highlights)
+    ? obj.highlights.map(h => (typeof h === "string" ? h.trim() : "")).filter(Boolean).slice(0, 5)
+    : [];
+  const tags = Array.isArray(obj.tags)
+    ? obj.tags.map(t => (typeof t === "string" ? t.trim() : "")).filter(Boolean).slice(0, 30)
+    : [];
+  const story = Array.isArray(obj.story)
+    ? obj.story.map(s => {
+        const block = s && typeof s === "object" ? s : {};
+        const include = block.include !== false;
+        if (!include) return null;
+        // Cap prose length to keep clipboard payloads bounded — same precedent
+        // as sanitizeCompose's reflection cap, but prose is the main long-form
+        // field so the budget is larger.
+        const prose = typeof block.prose === "string" ? block.prose.trim().slice(0, 5000) : "";
+        let photoRef = null;
+        if (block.photoRef && typeof block.photoRef === "object"
+            && typeof block.photoRef.imagePath === "string"
+            && block.photoRef.imagePath.trim()) {
+          photoRef = {
+            imagePath: block.photoRef.imagePath.trim(),
+            kind: typeof block.photoRef.kind === "string" ? block.photoRef.kind : null,
+          };
+        }
+        if (!prose && !photoRef) return null;
+        return {
+          entryId: typeof block.entryId === "string" ? block.entryId : null,
+          kind: typeof block.kind === "string" ? block.kind : null,
+          photoRef,
+          prose,
+          include: true,
+        };
+      }).filter(Boolean)
+    : [];
+  return { title, context, highlights, story, metadata, tags };
+}
+
+// Serialize a structured bundle to DayOne markdown. Returns photoEntryOrder
+// shaped so collectPhotoPaths/loadPhotos work the same as the legacy path.
+function emitFromStructured(structured) {
+  const { title, context, highlights, story, metadata, tags } = structured;
 
   const out = [];
-  out.push(`# ${title}`);
+  out.push(`# ${title || "Untitled"}`);
   if (context) {
     out.push("", "## Context", context);
   }
-  if (compose.reflection) {
-    out.push("", "## Reflection", compose.reflection);
+  if (Array.isArray(highlights) && highlights.length) {
+    out.push("", "## Highlights", "");
+    for (const h of highlights) out.push(`- ${h}`);
   }
-  if (storyBlocks.length) {
+
+  const photoEntryOrder = [];
+  if (Array.isArray(story) && story.length) {
     out.push("", "## Story", "");
-    for (let i = 0; i < storyBlocks.length; i++) {
-      out.push(storyBlocks[i]);
-      if (i < storyBlocks.length - 1) out.push("");
+    const blocks = [];
+    for (const s of story) {
+      const lines = [];
+      if (s.photoRef) {
+        lines.push("[{attachment}]");
+        photoEntryOrder.push({ payload: { imagePath: s.photoRef.imagePath } });
+      }
+      if (s.prose) lines.push(s.prose);
+      if (lines.length) blocks.push(lines.join("\n\n"));
+    }
+    for (let i = 0; i < blocks.length; i++) {
+      out.push(blocks[i]);
+      if (i < blocks.length - 1) out.push("");
     }
   }
   if (metadata) {
@@ -154,17 +253,40 @@ function formatBundle({ tripCtx, slug, entries, compose: composeRaw }) {
   }
 
   let body = out.join("\n");
-
   // Escape stray # in body so DayOne CLI doesn't parse them as tags.
   // U+FF03 (fullwidth number sign) renders identically but is tag-inert.
   body = body.replace(/#(?=[A-Za-z])/g, "\uFF03");
-
-  // Append real DayOne tags at the very end (one #Tag per word, blank-separated).
-  if (compose.dayoneTags.length) {
-    body += "\n\n" + compose.dayoneTags.map(t => `#${t}`).join(" ");
+  if (Array.isArray(tags) && tags.length) {
+    body += "\n\n" + tags.map(t => `#${t}`).join(" ");
   }
 
   return { markdown: body, photoEntryOrder };
+}
+
+// Legacy path: server composes from raw entries + the old hints shape, then
+// emits. Kept so the unmodified clipboard call site still works during the
+// preview-feature rollout.
+function formatBundle({ tripCtx, slug, entries, compose: composeRaw }) {
+  const composeHints = sanitizeCompose(composeRaw);
+  const hints = {
+    title: composeHints.title,
+    context: composeHints.context,
+    date: composeHints.date,
+    weather: composeHints.weather,
+    tags: composeHints.dayoneTags,
+    // Legacy callers never asked for Highlights — suppress auto-suggest so
+    // the existing clipboard path produces byte-identical output.
+    highlights: [],
+  };
+  const structured = composeStructured({ tripCtx, slug, entries, hints });
+  // Legacy "Reflection" field was a single bundle-level paragraph. Inject it
+  // as a synthetic Context append so it still ships when callers pass it.
+  if (composeHints.reflection) {
+    structured.context = structured.context
+      ? `${structured.context}\n\n${composeHints.reflection}`
+      : composeHints.reflection;
+  }
+  return emitFromStructured(structured);
 }
 
 function collectPhotoPaths(orderedRows) {
@@ -283,17 +405,15 @@ export function createDayoneRouter() {
     res.json({ ok: true, journals: JOURNALS });
   });
 
-  router.post("/api/dayone/bundle", express.json(), async (req, res) => {
+  // Build a structured bundle the preview UI can bind to. No markdown/HTML
+  // emit and no base64 photo bytes — those are reserved for /bundle so this
+  // endpoint stays cheap to call (and re-call) during preview hydration.
+  router.post("/api/dayone/compose", express.json(), async (req, res) => {
     try {
-      const { tripSlug, entryIds, journal, compose } = req.body ?? {};
+      const { tripSlug, entryIds, hints } = req.body ?? {};
       if (!Array.isArray(entryIds) || entryIds.length === 0) {
         return res.status(400).json({ ok: false, error: "entryIds (non-empty array) required" });
       }
-      const journalLabel = JOURNALS.find(j => j.id === journal || j.label === journal)?.label;
-      if (!journalLabel) {
-        return res.status(400).json({ ok: false, error: `unknown journal: ${journal}` });
-      }
-
       const slug = tripSlug || (await getActiveTripSlug());
       const items = await readQueue(slug, "pending");
       const byId = new Map(items.map(r => [r.id, r]));
@@ -305,14 +425,65 @@ export function createDayoneRouter() {
       let tripCtx = null;
       try { tripCtx = await readTripObj(slug); } catch { /* best-effort */ }
 
-      const { markdown, photoEntryOrder } = formatBundle({ tripCtx, slug, entries: ordered, compose });
+      const structured = composeStructured({ tripCtx, slug, entries: ordered, hints });
+      const photoCount = structured.story.filter(s => s.photoRef).length;
+
+      res.json({
+        ok: true,
+        tripSlug: slug,
+        entryCount: ordered.length,
+        photoCount,
+        composed: structured,
+      });
+    } catch (err) {
+      res.status(500).json({ ok: false, error: err?.message ?? String(err) });
+    }
+  });
+
+  router.post("/api/dayone/bundle", express.json(), async (req, res) => {
+    try {
+      const { tripSlug, entryIds, journal, compose, composed } = req.body ?? {};
+      const journalLabel = JOURNALS.find(j => j.id === journal || j.label === journal)?.label;
+      if (!journalLabel) {
+        return res.status(400).json({ ok: false, error: `unknown journal: ${journal}` });
+      }
+
+      const slug = tripSlug || (await getActiveTripSlug());
+
+      // Two payload shapes:
+      //   - composed: client supplies the edited structured bundle from /compose
+      //   - entryIds[]: legacy path — server composes from raw entries
+      let markdown, photoEntryOrder, entryCount;
+      if (composed && typeof composed === "object") {
+        const sanitized = sanitizeComposed(composed);
+        if (!sanitized.story.length && !sanitized.highlights.length && !sanitized.context) {
+          return res.status(400).json({ ok: false, error: "composed payload is empty" });
+        }
+        ({ markdown, photoEntryOrder } = emitFromStructured(sanitized));
+        entryCount = sanitized.story.length;
+      } else {
+        if (!Array.isArray(entryIds) || entryIds.length === 0) {
+          return res.status(400).json({ ok: false, error: "entryIds (non-empty array) or composed payload required" });
+        }
+        const items = await readQueue(slug, "pending");
+        const byId = new Map(items.map(r => [r.id, r]));
+        const ordered = entryIds.map(id => byId.get(id)).filter(Boolean);
+        if (ordered.length === 0) {
+          return res.status(404).json({ ok: false, error: "no matching entries in pending" });
+        }
+        let tripCtx = null;
+        try { tripCtx = await readTripObj(slug); } catch { /* best-effort */ }
+        ({ markdown, photoEntryOrder } = formatBundle({ tripCtx, slug, entries: ordered, compose }));
+        entryCount = ordered.length;
+      }
+
       const photos = await loadPhotos(collectPhotoPaths(photoEntryOrder));
       const html = renderHtml({ markdown, photos });
 
       res.json({
         ok: true,
         journal: journalLabel,
-        entryCount: ordered.length,
+        entryCount,
         markdown,
         html,
       });
