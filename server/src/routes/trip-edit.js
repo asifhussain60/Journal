@@ -51,17 +51,20 @@ export function createTripEditRouter({ anthropic, DEFAULT_MODEL }) {
   router.post("/api/trip-edit", async (req, res) => {
     const { message, dryRun, tripSlug, tripContext: clientCtx, patches, baseVersion } = req.body ?? {};
 
-    // --- Direct-patch path (Refine All atomic commit) ---
+    // --- Direct-patch path (Refine All atomic commit + tag edits) ---
     if (Array.isArray(patches)) {
-      if (process.env.REFINE_ALL_ENABLED !== "true") {
+      // Tags are always editable; full Refine All patches require the flag.
+      const tagOnlyPatch = patches.every(p => p.path === "/dayoneTags" || p.path === "/rejectedAiTags");
+      if (!tagOnlyPatch && process.env.REFINE_ALL_ENABLED !== "true") {
         return res.status(503).json({ ok: false, error: "refine-all disabled" });
       }
-      if (typeof baseVersion !== "string" || !baseVersion) {
+      const skipVersion = baseVersion === "skip";
+      if (!skipVersion && (typeof baseVersion !== "string" || !baseVersion)) {
         return res.status(400).json({ ok: false, error: "baseVersion required when patches[] present" });
       }
       const slug = tripSlug || clientCtx?.slug || (await getActiveTripSlug());
 
-      // Validate baseVersion (concurrency guard D11)
+      // Validate baseVersion (concurrency guard D11) — skipped for tag-only edits
       let tripRaw;
       try {
         const { readFile } = await import("node:fs/promises");
@@ -70,9 +73,11 @@ export function createTripEditRouter({ anthropic, DEFAULT_MODEL }) {
       } catch (err) {
         return res.status(404).json({ ok: false, error: `trip not found: ${slug}` });
       }
-      const currentVersion = createHash("sha256").update(tripRaw, "utf8").digest("hex").slice(0, 32);
-      if (currentVersion !== baseVersion) {
-        return res.status(409).json({ ok: false, error: "Conflict", currentVersion });
+      if (!skipVersion) {
+        const currentVersion = createHash("sha256").update(tripRaw, "utf8").digest("hex").slice(0, 32);
+        if (currentVersion !== baseVersion) {
+          return res.status(409).json({ ok: false, error: "Conflict", currentVersion });
+        }
       }
 
       // Allowlist patch paths

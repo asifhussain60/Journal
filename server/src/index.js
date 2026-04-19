@@ -46,6 +46,7 @@
 //   GET  /api/config                    — core.js (feature flags)
 //   POST /api/trip-refine-all            — trip-refine-all.js (Refine All coordinator)
 //   POST /api/trip-refine-field          — trip-refine-all.js (single-field Re-synth)
+//   GET  /api/tag-corpus/top             — trip-refine-all.js (cross-trip tag typeahead)
 //
 // CORS is locked to ALLOWED_ORIGINS (defaults cover localhost + prod/dev Pages).
 

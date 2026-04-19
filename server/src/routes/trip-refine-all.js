@@ -472,5 +472,15 @@ export function createTripRefineAllRouter({ anthropic }) {
     }
   });
 
+  // GET /api/tag-corpus/top — cross-trip tag corpus for typeahead
+  router.get("/api/tag-corpus/top", async (_req, res) => {
+    try {
+      const top = await getTopN(50);
+      res.json({ ok: true, top });
+    } catch (err) {
+      res.status(500).json({ ok: false, error: err?.message || String(err) });
+    }
+  });
+
   return router;
 }

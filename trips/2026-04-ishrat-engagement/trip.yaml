@@ -681,5 +681,10 @@
   "coords": {
     "lat": 40.48622,
     "lng": -74.45182
-  }
+  },
+  "dayoneTags": [
+    "engagement",
+    "new-jersey",
+    "spring-2026"
+  ]
 }

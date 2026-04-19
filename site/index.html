@@ -2294,6 +2294,10 @@
       storyCards,
       storyEmpty,
       actionsBar,
+      dayoneTags,
+      onTagsChange,
+      tagCorpus,
+      featureFlags,
     }) {
       const [highlightDraft, setHighlightDraft] = useState('');
 
@@ -2538,6 +2542,21 @@
             </div>
           </div>
 
+          <div className="dayone-field dayone-field--tags">
+            <div className="dayone-field-label-row">
+              <label className="dayone-field-label"><Icon name="fa-tags" /> Tags</label>
+              <span className="dayone-field-meta">{(dayoneTags || []).length} tags</span>
+            </div>
+            <TagInput
+              value={dayoneTags || []}
+              onChange={onTagsChange || (() => {})}
+              corpus={tagCorpus || []}
+              aiSuggestions={[]}
+              rejectedAiTags={tripCtx?.rejectedAiTags || []}
+              onRejectAi={() => {}}
+            />
+          </div>
+
           <div className="dayone-story">
             <div className="dayone-story-label">
               <Icon name="fa-book-open" /> Story
@@ -2604,6 +2623,72 @@
       const todayIso = () => new Date().toISOString().slice(0, 10);
       const [compose, setCompose] = useState({ title: '', context: '', highlights: [], date: todayIso(), weather: null });
       const composeKey = tripSlug ? `journal.dayone.compose.${tripSlug}` : null;
+
+      // --- Tag state (persisted in trip.yaml, not localStorage) ---
+      const [dayoneTags, setDayoneTags] = useState([]);
+      const [tagCorpus, setTagCorpus] = useState([]);
+      const [featureFlags, setFeatureFlags] = useState({});
+      const tagSaveTimerRef = useRef(null);
+
+      // Fetch feature flags on mount
+      useEffect(() => {
+        fetch(`${LOG_API_BASE}/api/config`)
+          .then(r => r.json())
+          .then(d => { if (d) setFeatureFlags(d); })
+          .catch(() => {});
+      }, []);
+
+      // Fetch tag corpus on mount
+      useEffect(() => {
+        fetch(`${LOG_API_BASE}/api/tag-corpus/top`)
+          .then(r => r.json())
+          .then(d => { if (d?.ok) setTagCorpus(d.top || []); })
+          .catch(() => {});
+      }, []);
+
+      // Hydrate dayoneTags from tripCtx when it loads
+      useEffect(() => {
+        if (tripCtx?.dayoneTags && Array.isArray(tripCtx.dayoneTags)) {
+          setDayoneTags(tripCtx.dayoneTags);
+        } else {
+          setDayoneTags([]);
+        }
+      }, [tripCtx]);
+
+      // Debounced save of tags to server
+      function handleTagsChange(nextTags) {
+        setDayoneTags(nextTags);
+        if (tagSaveTimerRef.current) clearTimeout(tagSaveTimerRef.current);
+        tagSaveTimerRef.current = setTimeout(() => {
+          if (!tripSlug) return;
+          fetch(`${LOG_API_BASE}/api/trip-edit`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              tripSlug,
+              patches: [{ op: 'add', path: '/dayoneTags', value: nextTags }],
+              baseVersion: 'skip',
+            }),
+          })
+            .then(r => r.json())
+            .then(d => {
+              if (d?.ok) {
+                window.notify?.success?.('Tags saved', { duration: 1500 });
+                // Re-fetch corpus to include new tags
+                fetch(`${LOG_API_BASE}/api/tag-corpus/top`)
+                  .then(r => r.json())
+                  .then(d2 => { if (d2?.ok) setTagCorpus(d2.top || []); })
+                  .catch(() => {});
+              } else if (d?.error) {
+                window.notify?.error?.(`Tag save failed: ${d.error}`);
+              }
+            })
+            .catch(err => {
+              window.notify?.error?.('Tag save failed — network error');
+              console.error('[Tags]', err);
+            });
+        }, 400);
+      }
       // Unlocks the "Delete Reviewed Entries" button after a successful Copy
       // in the current session. Resets on reload so stale tabs must re-copy.
       const [copiedOnce, setCopiedOnce] = useState(false);
@@ -2834,7 +2919,7 @@
           const r = await fetch(`${LOG_API_BASE}/api/dayone/bundle`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tripSlug, entryIds, journal: dayoneJournal, compose }),
+            body: JSON.stringify({ tripSlug, entryIds, journal: dayoneJournal, compose: { ...compose, dayoneTags } }),
           });
           const d = await r.json();
           if (!d?.ok) throw new Error(d?.error || 'bundle failed');
@@ -3271,6 +3356,10 @@
                   storyCards={reviewedCardsNode}
                   storyEmpty={emptyStoryNode}
                   actionsBar={reviewedActionsNode}
+                  dayoneTags={dayoneTags}
+                  onTagsChange={handleTagsChange}
+                  tagCorpus={tagCorpus}
+                  featureFlags={featureFlags}
                 />
               ) : (
                 <div className="log-entries">
