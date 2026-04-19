@@ -867,10 +867,32 @@
           '  <div class="alt-modal-body" id="alt-modal-body"></div>' +
           '</div>';
         document.body.appendChild(m);
-        m.querySelector('.alt-modal-backdrop').addEventListener('click', closeAltModal);
-        m.querySelector('.alt-modal-close').addEventListener('click', closeAltModal);
+        // Delegated close handler. Bound on the modal root so it survives
+        // any innerHTML reshuffle of the modal body, and using closest()
+        // so the inner <i> icon never swallows the click. Click (not
+        // pointerdown) is deliberate: pointerdown would fire on a touch
+        // drag-start that ends elsewhere (false close on touch devices)
+        // AND keyboard Space/Enter on the focused button synthesizes a
+        // click event, never a pointerdown — so click is the only event
+        // that covers mouse, touch, and keyboard activation cleanly.
+        m.addEventListener('click', function(e) {
+          var closeBtn = e.target.closest && e.target.closest('.alt-modal-close');
+          if (closeBtn) {
+            console.log('[ALT-MODAL] close clicked, in-flight:', !!altInflight);
+            closeAltModal();
+            return;
+          }
+          // Backdrop click closes too — only when the click target IS the
+          // backdrop element itself (not a panel child that bubbled).
+          if (e.target.classList && e.target.classList.contains('alt-modal-backdrop')) {
+            closeAltModal();
+          }
+        });
         document.addEventListener('keydown', function(e) {
-          if (e.key === 'Escape' && !m.hidden) closeAltModal();
+          if (e.key === 'Escape' && !m.hidden) {
+            console.log('[ALT-MODAL] close via Escape, in-flight:', !!altInflight);
+            closeAltModal();
+          }
         });
         return m;
       }
@@ -918,7 +940,10 @@
 
       function cancelAltInflight() {
         if (altInflight && typeof altInflight.abort === 'function') {
-          try { altInflight.abort(); } catch (_) {}
+          try {
+            altInflight.abort();
+            console.log('[ALT-MODAL] aborted in-flight find-alternatives request');
+          } catch (_) {}
         }
         altInflight = null;
       }

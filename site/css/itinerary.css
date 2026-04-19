@@ -2519,6 +2519,10 @@ html{scroll-behavior:smooth}
   position:absolute;
   top:.85rem;
   right:.9rem;
+  /* Stack above sibling content. The loading skeleton's progress bar uses
+     position:absolute and the skeleton cards live in the same scrollable
+     body; z-index:2 guarantees the close affordance always wins. */
+  z-index:2;
   display:grid;
   place-items:center;
   width:32px;
@@ -2532,11 +2536,21 @@ html{scroll-behavior:smooth}
   border-radius:50%;
   transition:background-color .18s ease, color .18s ease, border-color .18s ease, transform .18s ease;
 }
+/* The icon inside the close button shouldn't intercept the click —
+   bubble it straight to the button so closest('.alt-modal-close')
+   in the delegated handler picks it up cleanly. */
+.alt-modal-close > i{
+  pointer-events:none;
+}
 .alt-modal-close:hover{
   background:color-mix(in srgb, var(--rose) 22%, transparent);
   border-color:color-mix(in srgb, var(--rose) 45%, transparent);
   color:var(--text);
   transform:rotate(90deg);
+}
+.alt-modal-close:focus-visible{
+  outline:2px solid var(--rose-2);
+  outline-offset:2px;
 }
 .alt-modal-body{
   padding:1rem 1.25rem 1.25rem;
