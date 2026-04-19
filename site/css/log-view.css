@@ -1624,8 +1624,25 @@
   0%, 100% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent); }
   50%       { box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 8%, transparent); }
 }
+/* E3: skeleton shimmer on textarea while pending (SSE handshake / thinking) */
+.dayone-reflection-input--pending {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border-default));
+  background-image: linear-gradient(
+    90deg,
+    var(--bg-secondary, #1e1e1e) 0%,
+    color-mix(in srgb, var(--accent) 8%, var(--bg-secondary, #1e1e1e)) 50%,
+    var(--bg-secondary, #1e1e1e) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-sweep 1.6s ease-in-out infinite;
+}
+@keyframes skeleton-sweep {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
 @media (prefers-reduced-motion: reduce) {
   .dayone-reflection-input--streaming { animation: none; }
+  .dayone-reflection-input--pending { animation: none; background-image: none; }
 }
 
 /* ─── Story — reviewed cards inline inside the composer ─── */

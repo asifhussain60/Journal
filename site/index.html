@@ -2607,7 +2607,7 @@
             )}
             <textarea
               id="dayone-reflection"
-              className={`dayone-reflection-input${refineState.reflection.status === 'streaming' ? ' dayone-reflection-input--streaming' : ''}`}
+              className={`dayone-reflection-input${refineState.reflection.status === 'streaming' ? ' dayone-reflection-input--streaming' : refineState.reflection.status === 'pending' ? ' dayone-reflection-input--pending' : ''}`}
               rows={3}
               value={value.reflection || ''}
               onChange={e => update({ reflection: e.target.value })}
@@ -2706,6 +2706,7 @@
       const [tagCorpus, setTagCorpus] = useState([]);
       const [featureFlags, setFeatureFlags] = useState({});
       const tagSaveTimerRef = useRef(null);
+      const lastSavedTagsRef = useRef(null); // E3: optimistic rollback anchor
       // Refine All state (D9)
       const [tripVersion, setTripVersion] = useState(null);
       const [refineState, setRefineState] = useState({ reflection: { status: 'idle', hashes: [] }, tags: { status: 'idle' } });
@@ -2764,6 +2765,8 @@
 
       // Debounced save of tags to server
       const handleTagsChange = useCallback(function handleTagsChange(nextTags) {
+        // E3: optimistic update — rollback anchor captured before mutating
+        const prevTags = lastSavedTagsRef.current ?? dayoneTags;
         setDayoneTags(nextTags);
         if (tagSaveTimerRef.current) clearTimeout(tagSaveTimerRef.current);
         tagSaveTimerRef.current = setTimeout(() => {
@@ -2780,6 +2783,7 @@
             .then(r => r.json())
             .then(d => {
               if (d?.ok) {
+                lastSavedTagsRef.current = nextTags; // advance rollback anchor
                 window.notify?.success?.('Tags saved', { duration: 1500 });
                 // Re-fetch corpus to include new tags
                 fetch(`${LOG_API_BASE}/api/tag-corpus/top`)
@@ -2787,15 +2791,17 @@
                   .then(d2 => { if (d2?.ok) setTagCorpus(d2.top || []); })
                   .catch(() => {});
               } else if (d?.error) {
+                setDayoneTags(prevTags); // rollback optimistic update
                 window.notify?.error?.(`Tag save failed: ${d.error}`);
               }
             })
             .catch(err => {
-              window.notify?.error?.('Tag save failed — network error');
+              setDayoneTags(prevTags); // rollback optimistic update
+              window.notify?.error?.('Tag save failed — rolled back');
               console.error('[Tags]', err);
             });
         }, 400);
-      }, [tripSlug]);
+      }, [tripSlug, dayoneTags]);
       // Reject an AI-suggested tag (D14): add to rejectedAiTags, remove from suggestions
       const handleRejectAiTag = useCallback(function handleRejectAiTag(tag) {
         setAiSuggestedTags(prev => prev.filter(t => t !== tag));
@@ -2888,6 +2894,22 @@
           let narrativeReasoning = '';
           let tagsResult = null;
 
+          // E3: SSE token batching — flush every 16 tokens or 100ms to avoid layout thrash
+          let tokenBuf = '';
+          let tokenBatchTimer = null;
+          let batchCount = 0;
+          const BATCH_TOKEN_COUNT = 16;
+          const BATCH_MS = 100;
+          function flushTokenBatch() {
+            if (tokenBuf) {
+              const captured = tokenBuf;
+              setCompose(c => ({ ...c, reflection: (c.reflection || '') + captured }));
+              tokenBuf = '';
+              batchCount = 0;
+            }
+            if (tokenBatchTimer) { clearTimeout(tokenBatchTimer); tokenBatchTimer = null; }
+          }
+
           // Process SSE stream
           while (true) {
             const { done, value } = await reader.read();
@@ -2904,10 +2926,17 @@
               try { data = JSON.parse(dataLine[1]); } catch { continue; }
 
               if (event === 'narrative.delta' && !reflectionEdited) {
-                // Stream narrative tokens into reflection textarea
-                setCompose(c => ({ ...c, reflection: (c.reflection || '') + (data.text || '') }));
-                setRefineState(rs => ({ ...rs, reflection: { ...rs.reflection, status: 'streaming' } }));
+                // Batch tokens — only call setCompose every 16 tokens or 100ms (E3)
+                setRefineState(rs => rs.reflection.status === 'streaming' ? rs : { ...rs, reflection: { ...rs.reflection, status: 'streaming' } });
+                tokenBuf += (data.text || '');
+                batchCount++;
+                if (batchCount >= BATCH_TOKEN_COUNT) {
+                  flushTokenBatch();
+                } else if (!tokenBatchTimer) {
+                  tokenBatchTimer = setTimeout(flushTokenBatch, BATCH_MS);
+                }
               } else if (event === 'narrative.done' && !reflectionEdited) {
+                flushTokenBatch(); // drain any pending batch
                 narrativeValue = data.value;
                 narrativeHash = data.hash;
                 narrativeReasoning = data.reasoning || '';
