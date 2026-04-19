@@ -972,7 +972,9 @@
   align-items: center;
   gap: 6px;
   padding: 8px 14px;
-  border-radius: var(--radius-full);
+  /* Rectangular button shape (matches the popover .log-capture-menu items
+     and the rest of the action-button family in this view). */
+  border-radius: var(--radius-md);
   border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
   background: color-mix(in srgb, var(--accent) 10%, transparent);
   color: var(--accent);
@@ -1105,7 +1107,7 @@
   align-items: center;
   gap: 6px;
   padding: 7px 14px;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-md);
   border: 1px solid color-mix(in srgb, var(--error) 35%, transparent);
   background: color-mix(in srgb, var(--error) 8%, transparent);
   color: var(--error);
@@ -1470,7 +1472,7 @@
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-md);
   border: 1px solid var(--border-default);
   background: var(--bg-card);
   color: var(--text-muted);
