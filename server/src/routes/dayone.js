@@ -73,7 +73,11 @@ function sanitizeCompose(raw) {
       weather = { label, tempF };
     }
   }
-  return { title, context, highlights, date, weather };
+  // dayoneTags — validated string array, max 30 per DayOne limits
+  const dayoneTags = Array.isArray(obj.dayoneTags)
+    ? obj.dayoneTags.map(t => (typeof t === "string" ? t.trim() : "")).filter(Boolean).slice(0, 30)
+    : [];
+  return { title, context, highlights, date, weather, dayoneTags };
 }
 
 // "2026-04-19" → "April 19, 2026" — human-friendly rendering for the
@@ -152,7 +156,18 @@ function formatBundle({ tripCtx, slug, entries, compose: composeRaw }) {
     out.push("", "## Metadata", `*${metadata}*`);
   }
 
-  return { markdown: out.join("\n"), photoEntryOrder };
+  let body = out.join("\n");
+
+  // Escape stray # in body so DayOne CLI doesn't parse them as tags.
+  // U+FF03 (fullwidth number sign) renders identically but is tag-inert.
+  body = body.replace(/#(?=[A-Za-z])/g, "\uFF03");
+
+  // Append real DayOne tags at the very end (one #Tag per word, blank-separated).
+  if (compose.dayoneTags.length) {
+    body += "\n\n" + compose.dayoneTags.map(t => `#${t}`).join(" ");
+  }
+
+  return { markdown: body, photoEntryOrder };
 }
 
 function collectPhotoPaths(orderedRows) {
