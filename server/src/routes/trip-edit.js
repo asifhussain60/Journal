@@ -9,9 +9,10 @@
 //   POST /api/suggest-insert     — AI (Sonnet + web_search) candidates to fill a gap; used by insert-mode modal
 
 import express from "express";
+import { createHash } from "node:crypto";
 import { loadPrompt } from "../prompts/index.js";
 import { getActiveTripSlug } from "../lib/receipts.js";
-import { applyTripEdit, revertTripEdit, readTripObj, readEditLog } from "../lib/trip-edit-ops.js";
+import { applyTripEdit, revertTripEdit, readTripObj, readEditLog, serializeTripObj } from "../lib/trip-edit-ops.js";
 import { shadow } from "../middleware/shadow-write.js";
 import { verifyVenue as geminiVerifyVenue, isAvailable as geminiAvailable } from "../lib/gemini-client.js";
 import { extractJsonObject, wrapUserMessage, logExtractFailure } from "../util/json.js";
@@ -48,7 +49,63 @@ export function createTripEditRouter({ anthropic, DEFAULT_MODEL }) {
   const router = express.Router();
 
   router.post("/api/trip-edit", async (req, res) => {
-    const { message, dryRun, tripSlug, tripContext: clientCtx } = req.body ?? {};
+    const { message, dryRun, tripSlug, tripContext: clientCtx, patches, baseVersion } = req.body ?? {};
+
+    // --- Direct-patch path (Refine All atomic commit) ---
+    if (Array.isArray(patches)) {
+      if (process.env.REFINE_ALL_ENABLED !== "true") {
+        return res.status(503).json({ ok: false, error: "refine-all disabled" });
+      }
+      if (typeof baseVersion !== "string" || !baseVersion) {
+        return res.status(400).json({ ok: false, error: "baseVersion required when patches[] present" });
+      }
+      const slug = tripSlug || clientCtx?.slug || (await getActiveTripSlug());
+
+      // Validate baseVersion (concurrency guard D11)
+      let tripRaw;
+      try {
+        const { readFile } = await import("node:fs/promises");
+        const { tripYamlPath } = await import("../lib/trip-edit-ops.js");
+        tripRaw = await readFile(tripYamlPath(slug), "utf8");
+      } catch (err) {
+        return res.status(404).json({ ok: false, error: `trip not found: ${slug}` });
+      }
+      const currentVersion = createHash("sha256").update(tripRaw, "utf8").digest("hex").slice(0, 32);
+      if (currentVersion !== baseVersion) {
+        return res.status(409).json({ ok: false, error: "Conflict", currentVersion });
+      }
+
+      // Allowlist patch paths
+      const ALLOWED_PATHS = new Set([
+        "/narrative", "/narrativeAiHashes", "/highlights", "/highlightsAiHashes",
+        "/dayoneTags", "/rejectedAiTags",
+      ]);
+      const ALLOWED_PREFIXES = [
+        "/highlights/", "/highlightsAiHashes/", "/dayoneTags/", "/rejectedAiTags/",
+      ];
+      for (const op of patches) {
+        const p = op?.path;
+        if (!p || typeof p !== "string") {
+          return res.status(400).json({ ok: false, error: "each patch must have a path" });
+        }
+        const allowed = ALLOWED_PATHS.has(p) || ALLOWED_PREFIXES.some((pfx) => p.startsWith(pfx));
+        if (!allowed) {
+          return res.status(400).json({ ok: false, error: `patch path not allowed: ${p}` });
+        }
+      }
+
+      try {
+        const result = await applyTripEdit(slug, { intent: "refine-all-patch", patch: patches, actor: "refine-all" });
+        if (!result.ok) {
+          return res.status(422).json({ ok: false, error: result.error, errors: result.errors });
+        }
+        return res.json({ ok: true, editId: result.id, tripSlug: slug });
+      } catch (err) {
+        return res.status(500).json({ ok: false, error: err?.message || String(err) });
+      }
+    }
+
+    // --- Legacy assistant chat path ---
     if (typeof message !== "string" || message.trim().length === 0) {
       return res.status(400).json({ ok: false, error: "message (non-empty string) is required" });
     }

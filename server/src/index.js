@@ -43,6 +43,8 @@
 //   PATCH /api/publish-sessions/:id      — publish-sessions.js (Phase 11d.1)
 //   POST /api/publish-sessions/:id/abandon — publish-sessions.js (Phase 11d.1)
 //   GET  /api/trip-spend                — trip-spend.js (YNAB)
+//   POST /api/trip-refine-all            — trip-refine-all.js (Refine All coordinator)
+//   POST /api/trip-refine-field          — trip-refine-all.js (single-field Re-synth)
 //
 // CORS is locked to ALLOWED_ORIGINS (defaults cover localhost + prod/dev Pages).
 
@@ -74,6 +76,7 @@ import { createHolidayBudgetRouter } from "./routes/holiday-budget.js";
 import { createLogRouter } from "./routes/log.js";
 import { createPublishSessionsRouter } from "./routes/publish-sessions.js";
 import { createDayoneRouter } from "./routes/dayone.js";
+import { createTripRefineAllRouter } from "./routes/trip-refine-all.js";
 import { createClassifyQueue } from "./lib/classify-queue.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -205,6 +208,7 @@ app.use(createHolidayBudgetRouter({ anthropic }));
 app.use(createLogRouter({ queueValidators: QUEUE_VALIDATORS, anthropic, DEFAULT_MODEL, classifyQueue }));
 app.use(createPublishSessionsRouter({ publishSessionValidator }));
 app.use(createDayoneRouter());
+app.use(createTripRefineAllRouter({ anthropic }));
 
 // --- Start -------------------------------------------------------------------
 app.listen(PORT, "127.0.0.1", () => {
