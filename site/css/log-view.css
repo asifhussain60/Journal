@@ -658,6 +658,7 @@
 /* Per-kind icon tint — thumb stays lavender; only the icon shifts */
 .log-entry-thumb--receipt i  { color: var(--success); }
 .log-entry-thumb--voice i    { color: var(--info); }
+.log-entry-thumb--video i    { color: var(--info); }
 .log-entry-thumb--note i     { color: var(--accent); }
 .log-entry-thumb--itinerary i { color: var(--accent); }
 

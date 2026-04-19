@@ -1463,6 +1463,7 @@
 
     const KIND_BADGE = {
       photo:            { icon: 'fa-camera',        label: 'Photo' },
+      video:            { icon: 'fa-video',         label: 'Video' },
       receipt:          { icon: 'fa-receipt',       label: 'Receipt' },
       voice:            { icon: 'fa-microphone',    label: 'Voice' },
       note:             { icon: 'fa-note-sticky',   label: 'Note' },
@@ -1496,6 +1497,13 @@
         payload: { text: 'Reminder: ask the innkeeper about the ferry timetable to Inishbofin. The coastal road past Letterfrack is supposedly worth the detour even if we skip the island.' },
         notes: '',
       },
+      {
+        id: 'dummy_video', kind: 'video', tripSlug: '_dummy', source: 'app',
+        capturedAt: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
+        reviewStatus: 'unreviewed',
+        payload: {},
+        notes: '',
+      },
     ];
 
     function entryPreview(entry) {
@@ -1510,6 +1518,12 @@
         const ip = entry.payload?.imagePath || entry.imagePath || '';
         const ext = (ip.match(/\.([a-z0-9]+)$/i)?.[1] || mime.split('/')[1] || '').toUpperCase();
         return ext ? `${ext} photo` : 'Photo';
+      }
+      if (entry.kind === 'video') {
+        const mime = entry.payload?.mime || '';
+        const vp = entry.payload?.videoPath || entry.videoPath || '';
+        const ext = (vp.match(/\.([a-z0-9]+)$/i)?.[1] || mime.split('/')[1] || '').toUpperCase();
+        return ext ? `${ext} video` : 'Video';
       }
       return '(item)';
     }
@@ -1702,6 +1716,7 @@
 
       const iconByKind = {
         photo:     'fa-camera',
+        video:     'fa-video',
         receipt:   'fa-receipt',
         voice:     'fa-microphone-lines',
         note:      'fa-note-sticky',
@@ -3733,6 +3748,7 @@
       const SOURCES = [
         { id: 'all',     label: 'All' },
         { id: 'photo',   label: 'Photo',   icon: 'fa-camera' },
+        { id: 'video',   label: 'Video',   icon: 'fa-video' },
         { id: 'receipt', label: 'Receipt', icon: 'fa-receipt' },
         { id: 'note',    label: 'Note',    icon: 'fa-note-sticky' },
       ];
