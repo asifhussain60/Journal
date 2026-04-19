@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "1",
+  "mode": "overwrite",
+  "slug": "tales-dark",
+  "tokenMutations": [
+    { "name": "--bg-primary", "value": "#1a1a2e" }
+  ],
+  "scopedOverrides": [
+    { "selector": ".trip-hero", "property": "border-color", "value": "rgba(180,160,220,0.5)" }
+  ]
+}
