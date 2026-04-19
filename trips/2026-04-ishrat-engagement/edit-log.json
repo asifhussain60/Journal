@@ -3069,5 +3069,100 @@
     "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-6b29165b-e0e1-415f-babe-26ae1f2c92d0.yaml",
     "actor": "recalc-times",
     "status": "applied"
+  },
+  {
+    "schemaVersion": "1",
+    "id": "65ae2f38-1e86-44d9-90d1-bad470b8e676",
+    "createdAt": "2026-04-19T20:28:52.212Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "refine-all-patch",
+    "patch": [
+      {
+        "op": "add",
+        "path": "/dayoneTags",
+        "value": [
+          "new-jersey",
+          "snow-day"
+        ]
+      }
+    ],
+    "inversePatch": [
+      {
+        "op": "replace",
+        "path": "/dayoneTags/1",
+        "value": "new-jersey"
+      },
+      {
+        "op": "replace",
+        "path": "/dayoneTags/0",
+        "value": "engagement"
+      },
+      {
+        "op": "add",
+        "path": "/dayoneTags/2",
+        "value": "snow-day"
+      }
+    ],
+    "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-65ae2f38-1e86-44d9-90d1-bad470b8e676.yaml",
+    "actor": "refine-all",
+    "status": "applied"
+  },
+  {
+    "schemaVersion": "1",
+    "id": "8b9774ea-ab6b-4445-a6fa-16b383c8776d",
+    "createdAt": "2026-04-19T20:28:53.464Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "refine-all-patch",
+    "patch": [
+      {
+        "op": "add",
+        "path": "/dayoneTags",
+        "value": [
+          "snow-day"
+        ]
+      }
+    ],
+    "inversePatch": [
+      {
+        "op": "replace",
+        "path": "/dayoneTags/0",
+        "value": "new-jersey"
+      },
+      {
+        "op": "add",
+        "path": "/dayoneTags/1",
+        "value": "snow-day"
+      }
+    ],
+    "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-8b9774ea-ab6b-4445-a6fa-16b383c8776d.yaml",
+    "actor": "refine-all",
+    "status": "applied"
+  },
+  {
+    "schemaVersion": "1",
+    "id": "d4cb95d3-6e8f-4059-a551-c320dcb9c478",
+    "createdAt": "2026-04-19T20:28:54.295Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "refine-all-patch",
+    "patch": [
+      {
+        "op": "add",
+        "path": "/dayoneTags",
+        "value": []
+      }
+    ],
+    "inversePatch": [
+      {
+        "op": "add",
+        "path": "/dayoneTags/0",
+        "value": "snow-day"
+      }
+    ],
+    "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-d4cb95d3-6e8f-4059-a551-c320dcb9c478.yaml",
+    "actor": "refine-all",
+    "status": "applied"
   }
 ]
