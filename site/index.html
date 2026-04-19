@@ -28,6 +28,7 @@
   <link rel="stylesheet" href="css/ai-drawer.css">
   <link rel="stylesheet" href="css/toast.css">
   <link rel="stylesheet" href="css/log-view.css">
+  <link rel="stylesheet" href="css/dayone-preview.css">
 </head>
 <body>
 
@@ -1928,7 +1929,7 @@
     // Zone 2 — editable prompt textarea (curatorial intent, not persisted)
     // Zone 3 — editable refined output (AI result, persisted on Approve)
     // Approve resolution: Zone 3 if non-empty, else Zone 1 (raw artifact).
-    function ReviewCard({ entry, lane, draggable, onReorder, onApproveDraft, onSaveDraft, onReject, onKindFlipped }) {
+    function ReviewCard({ entry, lane, draggable, onReorder, onApproveDraft, onSaveDraft, onReject, onKindFlipped, copied = false }) {
       // Reviewed cards seed the textarea with the canonical prose so the
       // reviewer can see/edit what they previously approved. Unreviewed
       // cards start empty (or whatever localStorage holds).
@@ -2193,9 +2194,14 @@
 
       return (
         <article
-          className={`review-card review-card-3zone ${draggable ? 'is-draggable' : ''} ${isDragOver ? 'is-drag-over' : ''} ${refining ? 'is-refining is-refining-' + (refineAnim || 'shimmer') : ''}`}
+          className={`review-card review-card-3zone ${draggable ? 'is-draggable' : ''} ${isDragOver ? 'is-drag-over' : ''} ${refining ? 'is-refining is-refining-' + (refineAnim || 'shimmer') : ''} ${copied ? 'is-copied' : ''}`}
           {...dragProps}
         >
+          {copied && (
+            <span className="review-card-copied-badge" aria-label="This entry was included in the last DayOne copy">
+              <Icon name="fa-check" /> Copied
+            </span>
+          )}
           <div className="review-card-zone review-card-zone--artifact">
             <ReviewArtifact entry={entry} kind={effectiveKind} />
             <KindBadge
@@ -2547,6 +2553,13 @@
       onRejectAiTag,
       onRefineAll,
       onReSynth,
+      // When previewActive is true, the Story body is replaced by `previewBody`
+      // (the rendered preview) and the actionsBar is replaced by `previewActions`
+      // (Back / Copy / validation). The auto-derived metadata pill is hidden
+      // since the preview emits its own Metadata section.
+      previewActive = false,
+      previewBody = null,
+      previewActions = null,
     }) {
       const [reflectionRefining, setReflectionRefining] = useState(false);
       const refineAllBtnRef = useRef(null);
@@ -2832,17 +2845,19 @@
 
           <div className="dayone-story">
             <div className="dayone-story-label">
-              <Icon name="fa-book-open" /> Story
+              <Icon name="fa-book-open" /> {previewActive ? 'Preview' : 'Story'}
               <span className="dayone-story-count">
                 {storyCount} {storyCount === 1 ? 'entry' : 'entries'}
               </span>
             </div>
             <div className="dayone-story-body">
-              {storyCount > 0 ? storyCards : storyEmpty}
+              {previewActive
+                ? previewBody
+                : (storyCount > 0 ? storyCards : storyEmpty)}
             </div>
           </div>
 
-          {metadataLine && (
+          {!previewActive && metadataLine && (
             <div className="dayone-field dayone-field--metadata">
               <label className="dayone-field-label">Metadata</label>
               <div className="dayone-metadata-pill" title="Auto-derived from trip + entry kinds">
@@ -2851,12 +2866,261 @@
             </div>
           )}
 
-          {actionsBar && (
-            <div className="dayone-actions">{actionsBar}</div>
+          {(previewActive ? previewActions : actionsBar) && (
+            <div className="dayone-actions">{previewActive ? previewActions : actionsBar}</div>
           )}
         </section>
       );
     }); // end memo(DayOneComposer)
+
+    // ─── DayOne Copy Preview ─────────────────────────────────────────────
+    // Replaces the Story cards with a faithful render of the eventual
+    // clipboard payload. Title, Context, and Tags stay live-bound to the
+    // composer above (their fields render below the preview unchanged).
+    // Editable here: Highlights bullets and per-card include/exclude.
+    // Validation rules (DoR §12): hard-block Copy on empty title,
+    // >10 photos, >30 tags, >5 highlights.
+    const DAYONE_PREVIEW_LIMITS = Object.freeze({
+      maxTitleLen: 90,
+      maxPhotos: 10,
+      maxTags: 30,
+      maxHighlights: 5,
+      maxHighlightLen: 280,
+    });
+
+    function validatePreview({ title, photoCount, tagCount, highlightCount }) {
+      if (!title || !title.trim()) return { ok: false, reason: 'Title required to copy' };
+      if (photoCount > DAYONE_PREVIEW_LIMITS.maxPhotos) {
+        return { ok: false, reason: `${photoCount} photos selected — DayOne accepts at most ${DAYONE_PREVIEW_LIMITS.maxPhotos}` };
+      }
+      if (tagCount > DAYONE_PREVIEW_LIMITS.maxTags) {
+        return { ok: false, reason: `${tagCount} tags — DayOne accepts at most ${DAYONE_PREVIEW_LIMITS.maxTags}` };
+      }
+      if (highlightCount > DAYONE_PREVIEW_LIMITS.maxHighlights) {
+        return { ok: false, reason: `${highlightCount} highlights — keep it to ${DAYONE_PREVIEW_LIMITS.maxHighlights}` };
+      }
+      return { ok: true, reason: 'Ready to copy' };
+    }
+
+    const DayonePreview = memo(function DayonePreview({
+      composed,
+      title,
+      context,
+      metadata,
+      tags,
+      onComposedChange,
+      onBack,
+      onCopy,
+      busy,
+      loading,
+    }) {
+      if (loading) {
+        return (
+          <div className="dayone-preview">
+            <div className="dayone-preview-loading" role="status" aria-live="polite">
+              <Icon name="fa-circle-notch fa-spin" />
+              <span>Composing preview…</span>
+            </div>
+          </div>
+        );
+      }
+      if (!composed) {
+        return (
+          <div className="dayone-preview">
+            <div className="dayone-preview-empty" role="status" aria-live="polite">Nothing to preview.</div>
+          </div>
+        );
+      }
+
+      const story = Array.isArray(composed.story) ? composed.story : [];
+      const highlights = Array.isArray(composed.highlights) ? composed.highlights : [];
+      const includedStory = story.filter(s => s.include !== false);
+      const photoCount = includedStory.filter(s => s.photoRef).length;
+
+      const validation = validatePreview({
+        title,
+        photoCount,
+        tagCount: (tags || []).length,
+        highlightCount: highlights.length,
+      });
+
+      function updateHighlights(next) {
+        onComposedChange({ ...composed, highlights: next });
+      }
+      function updateStory(next) {
+        onComposedChange({ ...composed, story: next });
+      }
+
+      function setHighlightAt(idx, value) {
+        const next = highlights.slice();
+        next[idx] = value;
+        updateHighlights(next);
+      }
+      function removeHighlightAt(idx) {
+        const next = highlights.slice();
+        next.splice(idx, 1);
+        updateHighlights(next);
+      }
+      function addHighlight() {
+        if (highlights.length >= DAYONE_PREVIEW_LIMITS.maxHighlights) return;
+        updateHighlights([...highlights, '']);
+      }
+      function toggleStoryInclude(idx) {
+        const next = story.slice();
+        next[idx] = { ...next[idx], include: next[idx].include === false };
+        updateStory(next);
+      }
+
+      const photoSrc = (imagePath) => /^https?:\/\//.test(imagePath)
+        ? imagePath
+        : `${LOG_API_BASE}/${String(imagePath).replace(/^\/+/, '')}`;
+
+      const titleClass = title && title.trim() ? 'dayone-preview-h1' : 'dayone-preview-h1 is-empty';
+      const titleText = title && title.trim() ? title.trim() : 'Untitled — set a title above';
+      const validationClass = `dayone-preview-validation ${validation.ok ? 'is-ok' : 'is-error'}`;
+      const validationIcon = validation.ok ? 'fa-circle-check' : 'fa-triangle-exclamation';
+
+      return (
+        <div className="dayone-preview">
+          <article className="dayone-preview-paper" aria-label="DayOne paste preview">
+            <span className="dayone-preview-paper-eyebrow">
+              <Icon name="fa-eye" /> Preview · what DayOne will receive
+            </span>
+
+            <h1 className={titleClass}>{titleText}</h1>
+
+            {context && (
+              <section className="dayone-preview-section">
+                <h2 className="dayone-preview-h2">Context</h2>
+                <p className="dayone-preview-context">{context}</p>
+              </section>
+            )}
+
+            <section className="dayone-preview-section">
+              <h2 className="dayone-preview-h2">Highlights</h2>
+              <ul className="dayone-preview-highlights">
+                {highlights.map((h, idx) => (
+                  <li key={idx} className="dayone-preview-highlight-row">
+                    <span className="dayone-preview-highlight-bullet" aria-hidden>•</span>
+                    <input
+                      type="text"
+                      className="dayone-preview-highlight-input"
+                      value={h}
+                      maxLength={DAYONE_PREVIEW_LIMITS.maxHighlightLen}
+                      onChange={e => setHighlightAt(idx, e.target.value)}
+                      placeholder="Highlight…"
+                      aria-label={`Highlight ${idx + 1}`}
+                    />
+                    <button
+                      type="button"
+                      className="dayone-preview-highlight-remove"
+                      onClick={() => removeHighlightAt(idx)}
+                      title="Remove highlight"
+                      aria-label={`Remove highlight ${idx + 1}`}
+                    >
+                      <Icon name="fa-xmark" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <button
+                type="button"
+                className="dayone-preview-highlight-add"
+                onClick={addHighlight}
+                disabled={highlights.length >= DAYONE_PREVIEW_LIMITS.maxHighlights}
+                title={highlights.length >= DAYONE_PREVIEW_LIMITS.maxHighlights
+                  ? `Max ${DAYONE_PREVIEW_LIMITS.maxHighlights} highlights`
+                  : 'Add a highlight bullet'}
+              >
+                <Icon name="fa-plus" /> Add highlight
+              </button>
+            </section>
+
+            <section className="dayone-preview-section">
+              <h2 className="dayone-preview-h2">Story</h2>
+              <div className="dayone-preview-story">
+                {story.length === 0 && (
+                  <p className="dayone-preview-context dayone-preview-context--empty">
+                    No story blocks — approve some entries first.
+                  </p>
+                )}
+                {story.map((block, idx) => {
+                  const excluded = block.include === false;
+                  return (
+                    <div
+                      key={block.entryId || idx}
+                      className={`dayone-preview-story-block${excluded ? ' is-excluded' : ''}`}
+                    >
+                      <button
+                        type="button"
+                        className={`dayone-preview-story-toggle${excluded ? ' is-excluded' : ''}`}
+                        onClick={() => toggleStoryInclude(idx)}
+                        title={excluded ? 'Re-include this block in the paste' : 'Exclude this block from the paste'}
+                        aria-pressed={!excluded}
+                      >
+                        <Icon name={excluded ? 'fa-eye-slash' : 'fa-eye'} />
+                        <span>{excluded ? 'Excluded' : 'Included'}</span>
+                      </button>
+                      {block.photoRef && (
+                        <img
+                          className="dayone-preview-story-photo"
+                          src={photoSrc(block.photoRef.imagePath)}
+                          alt=""
+                          loading="lazy"
+                        />
+                      )}
+                      {block.prose
+                        ? <p className="dayone-preview-story-prose">{block.prose}</p>
+                        : <p className="dayone-preview-story-prose is-empty">(no prose)</p>}
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+
+            {(metadata || (tags && tags.length > 0)) && (
+              <section className="dayone-preview-section">
+                <h2 className="dayone-preview-h2">Metadata</h2>
+                {metadata && <p className="dayone-preview-metadata">{metadata}</p>}
+                <div className="dayone-preview-tags dayone-preview-tags--in-section">
+                  {tags && tags.length > 0
+                    ? tags.map(t => <span key={t} className="dayone-preview-tag">{t}</span>)
+                    : <span className="dayone-preview-tag-empty">No tags — add some above.</span>}
+                </div>
+              </section>
+            )}
+          </article>
+
+          <div className="dayone-preview-actions">
+            <button
+              type="button"
+              className="dayone-preview-back-btn"
+              onClick={onBack}
+              disabled={busy}
+              aria-label="Back to cards"
+            >
+              <Icon name="fa-arrow-left" />
+              <span>Back to cards</span>
+            </button>
+            <span className={validationClass} role="status" aria-live="polite">
+              <Icon name={validationIcon} />
+              <span>{validation.reason}</span>
+            </span>
+            <button
+              type="button"
+              className="dayone-preview-copy-btn"
+              onClick={onCopy}
+              disabled={busy || !validation.ok}
+              title={validation.ok ? 'Copy this bundle to the clipboard' : validation.reason}
+              aria-label={busy ? 'Copying' : 'Copy to clipboard'}
+            >
+              <Icon name={busy ? 'fa-circle-notch fa-spin' : 'fa-copy'} />
+              <span>{busy ? 'Copying…' : 'Copy to Clipboard'}</span>
+            </button>
+          </div>
+        </div>
+      );
+    }); // end memo(DayonePreview)
 
     function LogModule() {
       // Tab UI removed in this iteration; the entire view is the inbox lane.
@@ -2900,6 +3164,16 @@
       const [dayoneJournals, setDayoneJournals] = useState([]);
       const [dayoneJournal, setDayoneJournal] = useState('');
       const [dayonePushing, setDayonePushing] = useState(false);
+      // Preview mode swaps the Story cards for a faithful render of the
+      // clipboard payload. previewComposed is the structured bundle from
+      // /api/dayone/compose, edited locally before /api/dayone/bundle.
+      // copiedEntryIds is a Set of entry IDs that successfully landed on
+      // the clipboard this session — drives the per-card "copied" badge.
+      const [previewMode, setPreviewMode] = useState(false);
+      const [previewComposed, setPreviewComposed] = useState(null);
+      const [previewLoading, setPreviewLoading] = useState(false);
+      const [previewBusy, setPreviewBusy] = useState(false);
+      const [copiedEntryIds, setCopiedEntryIds] = useState(() => new Set());
       const [tripCtx, setTripCtx] = useState(null);
       // Composer survives reload per-trip. Cleared on successful
       // Delete-Reviewed (the sink that ends the Copy → paste → archive cycle).
@@ -3548,15 +3822,32 @@
           .catch(() => { /* silent — DayOne push is optional */ });
       }, []);
 
-      // Bundle every visible Reviewed entry and copy the result to the
-      // clipboard as rich HTML (inline base64 photos) plus plain markdown.
-      // Paste into a new DayOne entry to land the photos + narrative.
-      async function handleDayoneCopy() {
-        if (dayonePushing) return;
+      // Returns the entry IDs eligible for a DayOne bundle (visible Reviewed
+      // rows minus dummy entries). Empty array if there's nothing to copy.
+      function collectReviewedEntryIds() {
         const reviewedRows = applyOrder(visible.filter(isReviewed));
-        const entryIds = reviewedRows
+        return reviewedRows
           .map(e => e.id)
           .filter(id => typeof id === 'string' && !id.startsWith('dummy_'));
+      }
+
+      // Write a {markdown, html} pair to the clipboard using the dual-format
+      // ClipboardItem API. text/html carries the inline-image rich payload;
+      // text/plain is the markdown fallback for non-rich paste targets.
+      async function writeBundleToClipboard({ markdown, html }) {
+        const htmlBlob = new Blob([html || ''], { type: 'text/html' });
+        const textBlob = new Blob([markdown || ''], { type: 'text/plain' });
+        await navigator.clipboard.write([new ClipboardItem({
+          'text/html': htmlBlob,
+          'text/plain': textBlob,
+        })]);
+      }
+
+      // Skip-preview path (Cmd/Ctrl-click on Copy). Mirrors the original
+      // pre-preview behavior: server composes from raw entries, emits, and
+      // we copy the result to the clipboard in one round-trip.
+      async function copyDirect() {
+        const entryIds = collectReviewedEntryIds();
         if (!entryIds.length) {
           window.notify?.warning?.('Nothing to copy', { description: 'No Reviewed entries to bundle.' });
           return;
@@ -3575,13 +3866,13 @@
           });
           const d = await r.json();
           if (!d?.ok) throw new Error(d?.error || 'bundle failed');
-          const htmlBlob = new Blob([d.html || ''], { type: 'text/html' });
-          const textBlob = new Blob([d.markdown || ''], { type: 'text/plain' });
-          await navigator.clipboard.write([new ClipboardItem({
-            'text/html': htmlBlob,
-            'text/plain': textBlob,
-          })]);
+          await writeBundleToClipboard(d);
           setCopiedOnce(true);
+          setCopiedEntryIds(prev => {
+            const next = new Set(prev);
+            entryIds.forEach(id => next.add(id));
+            return next;
+          });
           window.notify?.success?.(`Copied ${d.entryCount} entries`, {
             description: `Paste into "${d.journal}" in DayOne.`,
           });
@@ -3591,6 +3882,170 @@
           setDayonePushing(false);
         }
       }
+
+      // Preview path. Fetches the structured bundle from /api/dayone/compose,
+      // hydrates a localStorage draft if one exists for this trip, then swaps
+      // the Story cards for the editable preview surface.
+      async function enterPreview() {
+        const entryIds = collectReviewedEntryIds();
+        if (!entryIds.length) {
+          window.notify?.warning?.('Nothing to preview', { description: 'No Reviewed entries to bundle.' });
+          return;
+        }
+        setPreviewLoading(true);
+        try {
+          const r = await fetch(`${LOG_API_BASE}/api/dayone/compose`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              tripSlug,
+              entryIds,
+              hints: {
+                title: compose.title || '',
+                context: compose.context || '',
+                date: compose.date || '',
+                weather: compose.weather || null,
+                tags: dayoneTags || [],
+              },
+            }),
+          });
+          const d = await r.json();
+          if (!d?.ok) throw new Error(d?.error || 'compose failed');
+
+          // Restore localStorage draft for this trip (DoR §9: persistence).
+          // Draft is keyed per-tripSlug so switching trips doesn't bleed state.
+          let next = d.composed;
+          try {
+            const raw = tripSlug && localStorage.getItem(`dayone_preview_draft:${tripSlug}`);
+            if (raw) {
+              const draft = JSON.parse(raw);
+              if (draft && Array.isArray(draft.story) && Array.isArray(draft.highlights)) {
+                // Trust draft for highlights + per-block include flags only;
+                // server-derived photoRef/prose/entryId stay authoritative.
+                const draftIncludeMap = new Map(
+                  draft.story.filter(s => s && s.entryId).map(s => [s.entryId, s.include !== false])
+                );
+                next = {
+                  ...d.composed,
+                  highlights: draft.highlights,
+                  story: d.composed.story.map(block => ({
+                    ...block,
+                    include: draftIncludeMap.has(block.entryId)
+                      ? draftIncludeMap.get(block.entryId)
+                      : block.include,
+                  })),
+                };
+              }
+            }
+          } catch { /* corrupt draft — ignore */ }
+
+          setPreviewComposed(next);
+          setPreviewMode(true);
+        } catch (err) {
+          window.notify?.error?.('Preview failed', { description: err.message || String(err) });
+        } finally {
+          setPreviewLoading(false);
+        }
+      }
+
+      // Click handler on "Copy to DayOne". Modifier-click skips the preview
+      // (DoR §10): Cmd on macOS, Ctrl elsewhere. Tooltip surfaces the shortcut.
+      function handleDayoneCopy(e) {
+        if (dayonePushing || previewLoading || previewBusy) return;
+        if (e && (e.metaKey || e.ctrlKey)) {
+          copyDirect();
+        } else {
+          enterPreview();
+        }
+      }
+
+      // Confirm-copy from inside the preview. Posts the edited composed
+      // payload to /bundle, writes the clipboard, marks the cards copied,
+      // clears the localStorage draft, and exits preview.
+      async function handlePreviewCopy() {
+        if (previewBusy || !previewComposed) return;
+        if (!dayoneJournal) {
+          window.notify?.warning?.('Pick a journal first');
+          return;
+        }
+        setPreviewBusy(true);
+        try {
+          // Build the final structured payload: composer-bound title/context/
+          // tags layered onto the locally-edited composed (highlights + story
+          // include flags). Server re-sanitizes regardless.
+          const finalComposed = {
+            ...previewComposed,
+            title: compose.title || previewComposed.title,
+            context: compose.context || previewComposed.context,
+            tags: dayoneTags && dayoneTags.length ? dayoneTags : previewComposed.tags,
+          };
+          const r = await fetch(`${LOG_API_BASE}/api/dayone/bundle`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tripSlug, journal: dayoneJournal, composed: finalComposed }),
+          });
+          const d = await r.json();
+          if (!d?.ok) throw new Error(d?.error || 'bundle failed');
+          await writeBundleToClipboard(d);
+          setCopiedOnce(true);
+          // Tag the cards that contributed to the bundle (all included story
+          // blocks). Session-only — no server persistence.
+          const includedIds = (finalComposed.story || [])
+            .filter(s => s.include !== false && s.entryId)
+            .map(s => s.entryId);
+          setCopiedEntryIds(prev => {
+            const next = new Set(prev);
+            includedIds.forEach(id => next.add(id));
+            return next;
+          });
+          // Drop the localStorage draft — bundle has shipped.
+          try { tripSlug && localStorage.removeItem(`dayone_preview_draft:${tripSlug}`); } catch {}
+          // Auto-return to cards (DoR §13).
+          setPreviewMode(false);
+          setPreviewComposed(null);
+          window.notify?.success?.(`Copied ${d.entryCount} entries`, {
+            description: `Paste into "${d.journal}" in DayOne.`,
+          });
+        } catch (err) {
+          window.notify?.error?.('Copy to DayOne failed', { description: err.message || String(err) });
+        } finally {
+          setPreviewBusy(false);
+        }
+      }
+
+      // Back-from-preview. Preserves the localStorage draft so a re-entry
+      // restores the user's edits.
+      function handlePreviewBack() {
+        if (previewBusy) return;
+        setPreviewMode(false);
+      }
+
+      // Persist preview-only edits (highlights + per-block include flags)
+      // to localStorage on every change. Composer-bound fields (title, etc.)
+      // already have their own persistence. Save is debounced via React's
+      // own re-render cadence — no extra timer needed.
+      useEffect(() => {
+        if (!previewMode || !previewComposed || !tripSlug) return;
+        try {
+          const draft = {
+            highlights: previewComposed.highlights || [],
+            story: (previewComposed.story || []).map(s => ({
+              entryId: s.entryId,
+              include: s.include !== false,
+            })),
+          };
+          localStorage.setItem(`dayone_preview_draft:${tripSlug}`, JSON.stringify(draft));
+        } catch { /* quota or disabled — ignore */ }
+      }, [previewMode, previewComposed, tripSlug]);
+
+      // Switching trips while in preview is a non-state — exit cleanly.
+      useEffect(() => {
+        setPreviewMode(false);
+        setPreviewComposed(null);
+        setCopiedEntryIds(new Set());
+      }, [tripSlug]);
       // Shared clear-path for Reviewed-lane resets — wipes tags, AI suggestions,
       // and refine badges locally, then fire-and-forget PATCH /dayoneTags=[] so
       // a fail doesn't roll back into the just-reset UI.
@@ -3922,6 +4377,7 @@
             onSaveDraft={handleSaveDraft}
             onReject={handleReject}
             onKindFlipped={handleKindFlipped}
+            copied={copiedEntryIds.has(entry.id)}
           />
         );
       });
@@ -3949,12 +4405,16 @@
             <button
               className="log-dayone-push-btn"
               onClick={handleDayoneCopy}
-              disabled={dayonePushing || !dayoneJournals.length}
-              title="Copy every Reviewed entry (photos + text) to the clipboard for pasting into DayOne"
-              aria-label={dayonePushing ? 'Copying to DayOne' : 'Copy to DayOne'}
+              disabled={dayonePushing || previewLoading || !dayoneJournals.length}
+              title="Click to preview · ⌘/Ctrl-click to skip preview and copy directly"
+              aria-label={dayonePushing ? 'Copying to DayOne' : previewLoading ? 'Opening preview' : 'Copy to DayOne'}
             >
-              <Icon name={dayonePushing ? 'fa-circle-notch fa-spin' : 'fa-copy'} />
-              <span className="btn-label">{dayonePushing ? ' Copying…' : ' Copy to DayOne'}</span>
+              <Icon name={(dayonePushing || previewLoading) ? 'fa-circle-notch fa-spin' : 'fa-copy'} />
+              <span className="btn-label">
+                {dayonePushing ? ' Copying…'
+                  : previewLoading ? ' Opening preview…'
+                  : ' Copy to DayOne'}
+              </span>
             </button>
           </div>
           {entries.some(isReviewed) && (
@@ -4210,29 +4670,55 @@
                 </div>
               )}
 
-              {tab === 'inbox' && reviewView === 'reviewed' ? (
-                <DayOneComposer
-                  tripSlug={tripSlug}
-                  tripCtx={tripCtx}
-                  reviewedRows={applyOrder(visible.filter(isReviewed))}
-                  value={compose}
-                  onChange={setCompose}
-                  captureActions={captureActionsNode}
-                  storyCards={reviewedCardsNode}
-                  storyEmpty={emptyStoryNode}
-                  actionsBar={reviewedActionsNode}
-                  dayoneTags={dayoneTags}
-                  onTagsChange={handleTagsChange}
-                  tagCorpus={tagCorpus}
-                  featureFlags={featureFlags}
-                  refineState={refineState}
-                  reflectionEdited={refineState.reflection.hashes.length > 0 && !reflectionIsAiClean}
-                  aiSuggestedTags={aiSuggestedTags}
-                  onRejectAiTag={handleRejectAiTag}
-                  onRefineAll={handleRefineAll}
-                  onReSynth={handleReSynth}
-                />
-              ) : (
+              {tab === 'inbox' && reviewView === 'reviewed' ? (() => {
+                // Preview body + footer are only built when the preview is
+                // mounted (or loading). Tags shown in the preview are the
+                // composer-bound dayoneTags (live), not the initial server
+                // suggestion — so the preview reflects what's about to ship.
+                const previewBodyNode = (previewMode || previewLoading) ? (
+                  <DayonePreview
+                    composed={previewComposed}
+                    title={compose.title}
+                    context={compose.context}
+                    metadata={previewComposed?.metadata || ''}
+                    tags={dayoneTags}
+                    onComposedChange={setPreviewComposed}
+                    onBack={handlePreviewBack}
+                    onCopy={handlePreviewCopy}
+                    busy={previewBusy}
+                    loading={previewLoading && !previewComposed}
+                  />
+                ) : null;
+                return (
+                  <DayOneComposer
+                    tripSlug={tripSlug}
+                    tripCtx={tripCtx}
+                    reviewedRows={applyOrder(visible.filter(isReviewed))}
+                    value={compose}
+                    onChange={setCompose}
+                    captureActions={captureActionsNode}
+                    storyCards={reviewedCardsNode}
+                    storyEmpty={emptyStoryNode}
+                    actionsBar={reviewedActionsNode}
+                    dayoneTags={dayoneTags}
+                    onTagsChange={handleTagsChange}
+                    tagCorpus={tagCorpus}
+                    featureFlags={featureFlags}
+                    refineState={refineState}
+                    reflectionEdited={refineState.reflection.hashes.length > 0 && !reflectionIsAiClean}
+                    aiSuggestedTags={aiSuggestedTags}
+                    onRejectAiTag={handleRejectAiTag}
+                    onRefineAll={handleRefineAll}
+                    onReSynth={handleReSynth}
+                    previewActive={previewMode}
+                    previewBody={previewBodyNode}
+                    // null is intentional: the Back/Copy/validation row lives
+                    // inside DayonePreview itself, so the composer's actions
+                    // slot stays empty when preview is active.
+                    previewActions={null}
+                  />
+                );
+              })() : (
                 <div className={`log-entries log-entries--${densityMode}`}>
                 {/* Inline note composer — opens when [+ Note] is clicked. */}
                 {tab === 'inbox' && reviewView === 'unreviewed' && noteComposerOpen && (

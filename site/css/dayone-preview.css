@@ -1,0 +1,430 @@
+/* ═══════════════════════════════════════════════════
+   DayOne Copy Preview
+   In-place preview of the clipboard payload, swapped
+   into the Story body when "Copy to DayOne" is clicked
+   without a modifier. Uses the same theme tokens as
+   the rest of the Log view; no :root overrides.
+   ═══════════════════════════════════════════════════ */
+
+.dayone-preview {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* ─── Loading + empty states ─────────────────────── */
+.dayone-preview-loading,
+.dayone-preview-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-7) var(--space-4);
+  color: var(--text-muted);
+  font-size: 1rem;
+  background: var(--accent-a06);
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-md);
+}
+
+.dayone-preview-loading i {
+  color: var(--accent);
+}
+
+/* ─── Paper surface ──────────────────────────────── */
+.dayone-preview-paper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: clamp(20px, 3vw, 40px);
+  background: var(--panel);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  font-family: 'Inter', var(--font-sans);
+  color: var(--text-primary);
+  line-height: 1.55;
+}
+
+.dayone-preview-paper-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: calc(-1 * var(--space-2));
+}
+
+.dayone-preview-paper-eyebrow i { color: var(--accent); }
+
+/* ─── DayOne-faithful headings ───────────────────── */
+.dayone-preview-h1 {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: clamp(1.6rem, 2.4vw, 2.2rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+.dayone-preview-h1.is-empty {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.dayone-preview-h2 {
+  margin: 0 0 var(--space-2);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.dayone-preview-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.dayone-preview-section + .dayone-preview-section {
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.dayone-preview-context {
+  margin: 0;
+  font-size: 1.02rem;
+  color: var(--text-secondary);
+}
+
+.dayone-preview-context--empty {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ─── Highlights (editable bullet list) ──────────── */
+.dayone-preview-highlights {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dayone-preview-highlight-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.dayone-preview-highlight-bullet {
+  flex: 0 0 auto;
+  width: 1.4rem;
+  text-align: center;
+  color: var(--accent);
+  line-height: 1.6;
+  user-select: none;
+}
+
+.dayone-preview-highlight-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 6px 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font: inherit;
+  transition: border-color var(--motion-fast), background var(--motion-fast);
+}
+
+.dayone-preview-highlight-input:hover,
+.dayone-preview-highlight-input:focus {
+  background: var(--accent-a06);
+  border-color: var(--border-accent);
+  outline: none;
+}
+
+.dayone-preview-highlight-remove {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color var(--motion-fast), border-color var(--motion-fast), background var(--motion-fast);
+}
+
+.dayone-preview-highlight-remove:hover {
+  color: var(--error);
+  border-color: color-mix(in srgb, var(--error) 35%, transparent);
+  background: color-mix(in srgb, var(--error) 10%, transparent);
+}
+
+.dayone-preview-highlight-add {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px 12px;
+  margin-top: var(--space-1);
+  background: var(--accent-a08);
+  border: 1px dashed var(--border-accent);
+  border-radius: var(--radius-sm);
+  color: var(--accent);
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: background var(--motion-fast), border-color var(--motion-fast);
+}
+
+.dayone-preview-highlight-add:hover {
+  background: var(--accent-a14);
+  border-style: solid;
+}
+
+.dayone-preview-highlight-add:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ─── Story blocks (1:1 per card) ────────────────── */
+.dayone-preview-story {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.dayone-preview-story-block {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--accent-a06);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  transition: opacity var(--motion-fast);
+}
+
+.dayone-preview-story-block.is-excluded {
+  opacity: 0.42;
+}
+
+.dayone-preview-story-block.is-excluded .dayone-preview-story-photo,
+.dayone-preview-story-block.is-excluded .dayone-preview-story-prose {
+  filter: grayscale(0.6);
+}
+
+.dayone-preview-story-toggle {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 4px 10px;
+  background: var(--panel-2);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-pill);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: color var(--motion-fast), border-color var(--motion-fast), background var(--motion-fast);
+}
+
+.dayone-preview-story-toggle:hover {
+  color: var(--accent);
+  border-color: var(--border-accent);
+  background: var(--accent-a08);
+}
+
+.dayone-preview-story-toggle.is-excluded {
+  color: var(--error);
+  border-color: color-mix(in srgb, var(--error) 35%, transparent);
+}
+
+.dayone-preview-story-photo {
+  display: block;
+  width: 100%;
+  max-height: 480px;
+  object-fit: contain;
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: var(--radius-sm);
+}
+
+.dayone-preview-story-prose {
+  margin: 0;
+  font-size: 1.02rem;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+}
+
+.dayone-preview-story-prose.is-empty {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ─── Metadata + tags ────────────────────────────── */
+.dayone-preview-metadata {
+  margin: 0;
+  font-size: 0.95rem;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.dayone-preview-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* Used when the tags row sits inside a section below another element
+   (e.g. under .dayone-preview-metadata) — adds the gap that would
+   otherwise come from the section's flex layout. */
+.dayone-preview-tags--in-section {
+  margin-top: var(--space-3);
+}
+
+.dayone-preview-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  background: var(--accent-soft);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-pill);
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.dayone-preview-tag::before {
+  content: '#';
+  margin-right: 2px;
+  opacity: 0.7;
+}
+
+.dayone-preview-tag-empty {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ─── Footer (replaces .dayone-actions when active) ─ */
+.dayone-preview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.dayone-preview-validation {
+  flex: 1 1 240px;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.92rem;
+  color: var(--text-muted);
+}
+
+.dayone-preview-validation.is-error {
+  color: var(--error);
+}
+
+.dayone-preview-validation.is-ok {
+  color: var(--success);
+}
+
+.dayone-preview-back-btn,
+.dayone-preview-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 9px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--motion-fast), border-color var(--motion-fast), color var(--motion-fast), transform var(--motion-fast);
+}
+
+.dayone-preview-back-btn {
+  background: transparent;
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+}
+
+.dayone-preview-back-btn:hover {
+  border-color: var(--border-accent);
+  color: var(--text-primary);
+  background: var(--accent-a06);
+}
+
+.dayone-preview-copy-btn {
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: var(--contrast-dark);
+  box-shadow: var(--shadow-sm);
+}
+
+.dayone-preview-copy-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.dayone-preview-copy-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ─── Copied badge on cards (post-copy, session) ─── */
+.review-card.is-copied {
+  position: relative;
+}
+
+.review-card-copied-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  background: color-mix(in srgb, var(--success) 22%, transparent);
+  border: 1px solid color-mix(in srgb, var(--success) 45%, transparent);
+  border-radius: var(--radius-pill);
+  color: var(--success);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.review-card-copied-badge i { font-size: 0.7rem; }
+
+/* ─── Narrow viewport ────────────────────────────── */
+@media (max-width: 720px) {
+  .dayone-preview-paper { padding: var(--space-4); }
+  .dayone-preview-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .dayone-preview-back-btn,
+  .dayone-preview-copy-btn {
+    justify-content: center;
+  }
+}

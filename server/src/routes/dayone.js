@@ -393,6 +393,16 @@ function renderHtml({ markdown, photos }) {
       parts.push(`<p><em>${escapeHtml(trimmed.slice(1, -1))}</em></p>`);
       continue;
     }
+    // Standalone bullet paragraph — happens when the emitter writes a blank
+    // line between the H2 heading and its bullets (e.g. "## Highlights\n\n- a\n- b").
+    // The H2 lands as its own paragraph above; this branch handles the bullets.
+    {
+      const lines = block.split(/\n/);
+      if (lines.length && lines.every(l => /^-\s+/.test(l))) {
+        parts.push(`<ul>${lines.map(l => `<li>${escapeHtml(l.replace(/^-\s+/, ""))}</li>`).join("")}</ul>`);
+        continue;
+      }
+    }
     parts.push(`<p>${escapeHtml(block).replace(/\n/g, "<br>")}</p>`);
   }
   return parts.join("\n");
