@@ -1,16 +1,8 @@
 // refine.js — voice DNA refinement handler.
-// Reads the voice fingerprint from reference/voice-fingerprint.md on each request
+// Reads the voice fingerprint via the consolidated voice-fingerprint.js cache
 // so the fingerprint can be edited without restarting the proxy.
 
-import { readFile } from "node:fs/promises";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// server/src -> server -> repo root -> reference/voice-fingerprint.md
-const FINGERPRINT_PATH = path.resolve(__dirname, "../../../reference/voice-fingerprint.md");
+import { getFingerprint, FINGERPRINT_PATH_RESOLVED } from "./voice-fingerprint.js";
 
 const INSTRUCTION = `Your task is to refine the journal entry below so it matches Asif's voice fingerprint.
 
@@ -24,18 +16,6 @@ Strict rules:
 Refine the entry below:
 ---`;
 
-let cachedFingerprint = null;
-let cachedAt = 0;
-const CACHE_TTL_MS = 5_000; // tiny TTL — cheap re-reads, but avoids file IO on burst requests
-
-async function loadFingerprint() {
-  const now = Date.now();
-  if (cachedFingerprint && now - cachedAt < CACHE_TTL_MS) return cachedFingerprint;
-  cachedFingerprint = await readFile(FINGERPRINT_PATH, "utf8");
-  cachedAt = now;
-  return cachedFingerprint;
-}
-
 export function makeRefineHandler(anthropic, defaultModel) {
   return async function refineHandler(req, res) {
     const { text, model, max_tokens } = req.body ?? {};
@@ -48,11 +28,11 @@ export function makeRefineHandler(anthropic, defaultModel) {
 
     let fingerprint;
     try {
-      fingerprint = await loadFingerprint();
+      fingerprint = await getFingerprint();
     } catch (err) {
       return res.status(500).json({
         ok: false,
-        error: `Could not load voice fingerprint at ${FINGERPRINT_PATH}: ${err.message}`,
+        error: `Could not load voice fingerprint at ${FINGERPRINT_PATH_RESOLVED}: ${err.message}`,
       });
     }
 

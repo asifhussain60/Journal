@@ -24,6 +24,9 @@ import classifyImageKindPrompt from "./classify-image-kind.js";
 import refineNotePrompt from "./refine-note.js";
 import refineVoiceTranscriptPrompt from "./refine-voice-transcript.js";
 import refineReceiptPrompt from "./refine-receipt.js";
+import synthesizeTripNarrativePrompt from "./synthesize-trip-narrative.js";
+import suggestTagsPrompt from "./suggest-tags.js";
+import refineReflectionPrompt from "./refine-reflection.js";
 
 /**
  * Registry of all prompts known at startup time. Extend by importing the new
@@ -45,6 +48,9 @@ const REGISTRY = Object.freeze({
   [refineNotePrompt.name]: refineNotePrompt,
   [refineVoiceTranscriptPrompt.name]: refineVoiceTranscriptPrompt,
   [refineReceiptPrompt.name]: refineReceiptPrompt,
+  [synthesizeTripNarrativePrompt.name]: synthesizeTripNarrativePrompt,
+  [suggestTagsPrompt.name]: suggestTagsPrompt,
+  [refineReflectionPrompt.name]: refineReflectionPrompt,
 });
 
 /**

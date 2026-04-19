@@ -10,6 +10,7 @@ import path from "node:path";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { makeRefineHandler } from "../lib/refine.js";
+import { getFingerprint } from "../lib/voice-fingerprint.js";
 import { hasPrompt, loadPrompt } from "../prompts/index.js";
 import { accessAuthStatus } from "../middleware/access-auth.js";
 import { status as geminiStatus } from "../lib/gemini-client.js";
@@ -38,6 +39,13 @@ export function createCoreRouter({ anthropic, DEFAULT_MODEL, KEY_SOURCE, PORT, A
       access: accessAuthStatus(),
       gemini: geminiStatus(),
       ts: new Date().toISOString(),
+    });
+  });
+
+  // Feature-flag surface for the frontend — only public-by-design flags.
+  router.get("/api/config", (_req, res) => {
+    res.json({
+      refineAllEnabled: process.env.REFINE_ALL_ENABLED === "true",
     });
   });
 
@@ -97,6 +105,61 @@ export function createCoreRouter({ anthropic, DEFAULT_MODEL, KEY_SOURCE, PORT, A
         stopReason: msg.stop_reason,
         usage: msg.usage,
         promptName: prompt.name,
+        refined,
+      });
+    } catch (err) {
+      res.status(502).json({ ok: false, error: err?.message ?? String(err) });
+    }
+  });
+
+  // POST /api/refine-reflection
+  // Body: { draft?, entries: string[], title?, context?, date? }
+  // If draft is blank/missing → generate from entries. If present → enhance it.
+  router.post("/api/refine-reflection", async (req, res) => {
+    const { draft, entries, title, context, date } = req.body ?? {};
+    if (!Array.isArray(entries) || !entries.filter(Boolean).length) {
+      return res.status(400).json({ ok: false, error: "entries (non-empty array of prose strings) is required" });
+    }
+
+    let fingerprint;
+    try {
+      fingerprint = await getFingerprint();
+    } catch (err) {
+      return res.status(500).json({ ok: false, error: `Could not load voice fingerprint: ${err.message}` });
+    }
+
+    const prompt = loadPrompt("refine-reflection");
+    const system = prompt.system.replace("{{FINGERPRINT}}", fingerprint);
+
+    const userParts = [];
+    if (title) userParts.push(`Trip: ${title}`);
+    if (context) userParts.push(`Context: ${context}`);
+    if (date) userParts.push(`Date: ${date}`);
+
+    const hasDraft = draft && typeof draft === "string" && draft.trim();
+    if (hasDraft) {
+      // Draft goes FIRST so the model treats it as primary content, not an afterthought.
+      userParts.push("", "User's draft to refine (preserve the content, polish the voice):", draft.trim(), "");
+    }
+
+    userParts.push("Approved entries (context):");
+    entries.filter(Boolean).forEach((e, i) => userParts.push(`${i + 1}. ${e}`));
+    if (!hasDraft) {
+      userParts.push("", "No draft provided — generate a reflection from the entries above.");
+    }
+
+    try {
+      const msg = await anthropic.messages.create({
+        model: prompt.model,
+        max_tokens: 1024,
+        system,
+        messages: [{ role: "user", content: userParts.join("\n") }],
+      });
+      const refined = msg.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim();
+      res.json({
+        ok: true,
+        model: msg.model,
+        usage: msg.usage,
         refined,
       });
     } catch (err) {

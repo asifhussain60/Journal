@@ -27,6 +27,7 @@
     "/api/refine", "/api/chat", "/api/trip-qa", "/api/trip-assistant",
     "/api/trip-edit", "/api/ingest-itinerary", "/api/extract-receipt",
     "/api/theme-swatches", "/api/theme-review", "/api/find-alternatives",
+    "/api/refine-reflection",
     "/api/log/", // per-entry refine lives under /api/log/:id/refine
   ];
 

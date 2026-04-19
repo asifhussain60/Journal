@@ -56,6 +56,26 @@
   <!-- Shared notification layer (Sonner). Mounts once, exposes window.notify. -->
   <script src="js/toast.js"></script>
 
+  <!-- Shared tag normalizer — loaded synchronously so window.normalizeTag is
+       available to the Babel-transpiled block below. -->
+  <script>
+    (function () {
+      // Inline copy of shared/tag-normalize.js (avoids ESM import in legacy script).
+      // Canonical source: /shared/tag-normalize.js — keep in sync.
+      function normalizeTag(raw) {
+        if (typeof raw !== 'string') return '';
+        return raw
+          .normalize('NFC')
+          .toLowerCase()
+          .replace(/\s+/g, '-')
+          .replace(/[^a-z0-9-]/g, '')
+          .replace(/-{2,}/g, '-')
+          .replace(/^-|-$/g, '');
+      }
+      window.normalizeTag = normalizeTag;
+    })();
+  </script>
+
   <script type="text/babel">
     const { useState, useEffect, useRef, useCallback, useMemo } = React;
 
@@ -1879,7 +1899,7 @@
         setUnapproving(true);
         try {
           await onSaveDraft?.(entry.id, { reviewStatus: 'unreviewed' }, { silent: true });
-          window.notify?.success?.('Moved back to Unreviewed');
+          window.notify?.success?.('Moved back to Log Bank');
         } catch (err) {
           window.notify?.error?.('Reject failed', { description: err.message || String(err) });
         } finally {
@@ -2070,9 +2090,196 @@
       );
     }
 
+    // ─── TagInput — chip-based tag editor with typeahead + AI suggestions ───
+    function TagInput({ value = [], onChange, corpus = [], aiSuggestions = [], rejectedAiTags = [], onRejectAi, disabled = false }) {
+      const [draft, setDraft] = useState('');
+      const [showDropdown, setShowDropdown] = useState(false);
+      const [activeIdx, setActiveIdx] = useState(-1);
+      const inputRef = useRef(null);
+      const dropdownRef = useRef(null);
+      const debounceRef = useRef(null);
+
+      const normalizedSet = useMemo(() => new Set(value.map(t => window.normalizeTag(t))), [value]);
+
+      const MAX_TAGS = 25;
+      const WARN_TAGS = 15;
+      const atLimit = value.length >= MAX_TAGS;
+
+      // Typeahead: filter corpus by partial match, exclude already-added
+      const suggestions = useMemo(() => {
+        const q = window.normalizeTag(draft);
+        if (!q || q.length < 2) return [];
+        return corpus
+          .filter(c => {
+            const norm = window.normalizeTag(c.displayForm || '');
+            return norm.includes(q) && !normalizedSet.has(norm);
+          })
+          .slice(0, 8);
+      }, [draft, corpus, normalizedSet]);
+
+      // AI suggestion chips: exclude already-in-value and rejectedAiTags
+      const rejectedSet = useMemo(() => new Set((rejectedAiTags || []).map(t => window.normalizeTag(t))), [rejectedAiTags]);
+      const visibleAiSuggestions = useMemo(() => {
+        return (aiSuggestions || []).filter(t => {
+          const n = window.normalizeTag(t);
+          return n && !normalizedSet.has(n) && !rejectedSet.has(n);
+        });
+      }, [aiSuggestions, normalizedSet, rejectedSet]);
+
+      // Show/hide dropdown based on input
+      useEffect(() => {
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+        debounceRef.current = setTimeout(() => {
+          setShowDropdown(suggestions.length > 0 && draft.trim().length >= 2);
+          setActiveIdx(-1);
+        }, 150);
+        return () => clearTimeout(debounceRef.current);
+      }, [draft, suggestions.length]);
+
+      function addTag(raw) {
+        const n = window.normalizeTag(raw);
+        if (!n || normalizedSet.has(n) || atLimit) return;
+        onChange([...value, raw.trim()]);
+        setDraft('');
+        setShowDropdown(false);
+      }
+
+      function removeTag(idx) {
+        const next = [...value];
+        next.splice(idx, 1);
+        onChange(next);
+      }
+
+      function rejectAi(tag) {
+        if (onRejectAi) onRejectAi(tag);
+      }
+
+      function handleKeyDown(e) {
+        if (e.isComposing) return; // macOS IME / autocomplete
+        if (e.key === 'Enter' || e.keyCode === 13 || e.key === ',') {
+          e.preventDefault();
+          if (activeIdx >= 0 && activeIdx < suggestions.length) {
+            addTag(suggestions[activeIdx].displayForm);
+          } else if (draft.trim()) {
+            if (draft.trim().length > 50) return; // block too-long
+            addTag(draft);
+          }
+        } else if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          setActiveIdx(i => Math.min(i + 1, suggestions.length - 1));
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          setActiveIdx(i => Math.max(i - 1, -1));
+        } else if (e.key === 'Escape') {
+          setShowDropdown(false);
+        } else if (e.key === 'Backspace' && !draft && value.length) {
+          removeTag(value.length - 1);
+        }
+      }
+
+      // Close dropdown on outside click
+      useEffect(() => {
+        function handleClick(e) {
+          if (dropdownRef.current && !dropdownRef.current.contains(e.target) &&
+              inputRef.current && !inputRef.current.contains(e.target)) {
+            setShowDropdown(false);
+          }
+        }
+        document.addEventListener('mousedown', handleClick);
+        return () => document.removeEventListener('mousedown', handleClick);
+      }, []);
+
+      const counterColor = value.length >= MAX_TAGS ? 'var(--error, #ef4444)' :
+                            value.length >= WARN_TAGS ? 'var(--warning, #eab308)' : 'inherit';
+
+      return (
+        <div className="tag-input-wrap">
+          <div className="tag-input-chips" onClick={() => inputRef.current?.focus()}>
+            {value.map((tag, i) => (
+              <span key={`${tag}-${i}`} className="tag-chip">
+                <span className="tag-chip-label">{tag}</span>
+                <button
+                  type="button"
+                  className="tag-chip-remove"
+                  onClick={e => { e.stopPropagation(); removeTag(i); }}
+                  aria-label={`Remove tag ${tag}`}
+                  disabled={disabled}
+                >×</button>
+              </span>
+            ))}
+            {!atLimit && (
+              <input
+                ref={inputRef}
+                className="tag-input-field"
+                type="text"
+                value={draft}
+                onChange={e => setDraft(e.target.value)}
+                onKeyDown={handleKeyDown}
+                onFocus={() => { if (suggestions.length) setShowDropdown(true); }}
+                placeholder={value.length === 0 ? 'Add a tag…' : ''}
+                disabled={disabled || atLimit}
+                autoComplete="off"
+                aria-label="Add tag"
+              />
+            )}
+          </div>
+
+          {showDropdown && (
+            <ul ref={dropdownRef} className="tag-typeahead" role="listbox">
+              {suggestions.map((s, i) => (
+                <li
+                  key={s.displayForm}
+                  role="option"
+                  aria-selected={i === activeIdx}
+                  className={`tag-typeahead-item ${i === activeIdx ? 'active' : ''}`}
+                  onMouseDown={e => { e.preventDefault(); addTag(s.displayForm); }}
+                >
+                  <span className="tag-typeahead-label">{s.displayForm}</span>
+                  <span className="tag-typeahead-count">{s.count}×</span>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <div className="tag-input-footer">
+            <span className="tag-counter" style={{ color: counterColor }}>
+              {value.length} / {MAX_TAGS} tags
+            </span>
+          </div>
+
+          {visibleAiSuggestions.length > 0 && (
+            <details className="tag-ai-suggestions">
+              <summary className="tag-ai-summary">
+                <Icon name="fa-wand-magic-sparkles" /> {visibleAiSuggestions.length} AI suggestion{visibleAiSuggestions.length !== 1 ? 's' : ''}
+              </summary>
+              <div className="tag-ai-chips">
+                {visibleAiSuggestions.map(tag => (
+                  <span key={tag} className="tag-chip tag-chip--ai" title="AI-suggested tag">
+                    <button
+                      type="button"
+                      className="tag-chip-add"
+                      onClick={() => addTag(tag)}
+                      aria-label={`Add AI tag ${tag}`}
+                    >+ {tag}</button>
+                    <button
+                      type="button"
+                      className="tag-chip-reject"
+                      onClick={() => rejectAi(tag)}
+                      aria-label={`Reject AI tag ${tag}`}
+                      title="Don't suggest this again"
+                    >×</button>
+                  </span>
+                ))}
+              </div>
+            </details>
+          )}
+        </div>
+      );
+    }
+
     // ─── Phase 11d: DayOne Composer
     // Single authoring surface for the Reviewed lane. The cards live INSIDE
-    // the composer (Story); the composer owns Title / Context / Highlights,
+    // the composer (Story); the composer owns Title / Context / Reflection,
     // derives Metadata read-only, and hosts the capture-action buttons
     // (top-right) + the Journal/Copy/Delete action bar (footer). User-typed
     // fields persist per trip in localStorage so the composer survives
@@ -2088,8 +2295,18 @@
       storyCards,
       storyEmpty,
       actionsBar,
+      dayoneTags,
+      onTagsChange,
+      tagCorpus,
+      featureFlags,
+      refineState = { reflection: { status: 'idle', hashes: [] }, tags: { status: 'idle' } },
+      reflectionEdited = false,
+      aiSuggestedTags = [],
+      onRejectAiTag,
+      onRefineAll,
+      onReSynth,
     }) {
-      const [highlightDraft, setHighlightDraft] = useState('');
+      const [reflectionRefining, setReflectionRefining] = useState(false);
 
       // Context auto-derivation — built when empty or the user resets it.
       const autoContext = useMemo(() => {
@@ -2146,49 +2363,53 @@
 
       function update(patch) { onChange({ ...value, ...patch }); }
 
-      function addHighlight(text) {
-        const t = (text ?? '').trim();
-        if (!t) return;
-        update({ highlights: [...(value.highlights || []), t] });
-        setHighlightDraft('');
-      }
-      function removeHighlight(idx) {
-        const next = [...(value.highlights || [])];
-        next.splice(idx, 1);
-        update({ highlights: next });
-      }
-      function editHighlight(idx, text) {
-        const next = [...(value.highlights || [])];
-        next[idx] = text;
-        update({ highlights: next });
-      }
-
-      // Suggest Highlights — take the opening sentence of each reviewed
-      // entry's refined prose, cap at five, de-dupe. This is a fast local
-      // fallback; an AI-synth endpoint can replace this function later
-      // without touching the UI contract.
-      function suggestHighlights() {
-        const out = [];
-        const seen = new Set();
-        for (const row of reviewedRows || []) {
-          const prose = row?.draft?.prose || row?.payload?.text || '';
-          const first = String(prose).split(/(?<=[.!?])\s+/)[0]?.trim();
-          if (!first) continue;
-          const key = first.slice(0, 120).toLowerCase();
-          if (seen.has(key)) continue;
-          seen.add(key);
-          out.push(first.length > 200 ? first.slice(0, 197) + '…' : first);
-          if (out.length >= 5) break;
-        }
-        if (!out.length) {
-          window.notify?.info?.('Nothing to suggest', { description: 'Approve a few entries first — highlights pull from your refined prose.' });
+      // AI-powered reflection: sends approved entry prose + optional user draft
+      // to /api/refine-reflection which uses the voice DNA fingerprint.
+      // Blank textarea → AI generates from entries. Has text → AI enhances it.
+      async function refineReflection() {
+        if (reflectionRefining) return;
+        const rows = reviewedRows || [];
+        if (!rows.length) {
+          window.notify?.info?.('Nothing to refine', { description: 'Approve a few entries first.' });
           return;
         }
-        update({ highlights: out });
-        window.notify?.success?.(`Pulled ${out.length} highlight${out.length === 1 ? '' : 's'}`);
+        // Gather prose from all approved entries
+        const entries = rows
+          .map(row => row?.draft?.prose || row?.payload?.text || '')
+          .filter(Boolean);
+        if (!entries.length) {
+          window.notify?.info?.('No prose found', { description: 'Entries need refined text first.' });
+          return;
+        }
+        setReflectionRefining(true);
+        try {
+          const body = {
+            entries,
+            title: value.title || '',
+            context: value.context || '',
+            date: value.date || '',
+          };
+          const currentDraft = (value.reflection || '').trim();
+          if (currentDraft) body.draft = currentDraft;
+
+          const d = await window.BabuAI.request('/api/refine-reflection', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+            timeoutMs: 60000,
+          });
+          if (d?.refined) {
+            update({ reflection: d.refined });
+            window.notify?.success?.(currentDraft ? 'Reflection enhanced' : 'Reflection generated');
+          }
+        } catch (err) {
+          window.notify?.error?.('Reflection refine failed', { description: err.message || String(err) });
+        } finally {
+          setReflectionRefining(false);
+        }
       }
 
-      const hasAny = !!(value.title?.trim() || (value.highlights || []).length);
+      const hasAny = !!(value.title?.trim() || (value.reflection || '').trim());
       const storyCount = (reviewedRows || []).length;
 
       return (
@@ -2209,8 +2430,8 @@
                   type="button"
                   className="dayone-composer-reset"
                   onClick={() => {
-                    if (!confirm('Clear Title and Highlights?')) return;
-                    onChange({ title: '', context: autoContext, highlights: [] });
+                    if (!confirm('Clear Title and Reflection?')) return;
+                    onChange({ title: '', context: autoContext, reflection: '' });
                   }}
                   title="Reset user-typed fields"
                   aria-label="Reset user-typed fields"
@@ -2264,72 +2485,94 @@
             </div>
           </div>
 
-          <div className="dayone-field dayone-field--highlights">
+          <div className="dayone-field dayone-field--reflection">
             <div className="dayone-field-label-row">
-              <label className="dayone-field-label">Highlights</label>
-              <span className="dayone-field-meta">{(value.highlights || []).length}/5 bullets</span>
-            </div>
-            <ul className="dayone-highlights">
-              {(value.highlights || []).map((h, i) => (
-                <li key={i} className="dayone-highlight">
-                  <span className="dayone-highlight-bullet" aria-hidden="true">•</span>
-                  <input
-                    className="dayone-highlight-input"
-                    type="text"
-                    value={h}
-                    onChange={e => editHighlight(i, e.target.value)}
-                    placeholder="Key moment…"
-                  />
+              <label htmlFor="dayone-reflection" className="dayone-field-label">Reflection</label>
+              <div className="dayone-reflection-actions">
+                {featureFlags?.refineAllEnabled && (
                   <button
                     type="button"
-                    className="dayone-highlight-remove"
-                    onClick={() => removeHighlight(i)}
-                    title="Remove this highlight"
-                    aria-label="Remove highlight"
+                    className="dayone-refine-all-btn"
+                    onClick={onRefineAll}
+                    disabled={refineState.reflection.status === 'pending' || refineState.reflection.status === 'streaming' || refineState.tags.status === 'pending' || !storyCount}
+                    title="Run full AI narrative + tag generation"
+                    aria-label="Refine All"
                   >
-                    <Icon name="fa-xmark" />
+                    <Icon name={refineState.reflection.status === 'pending' || refineState.reflection.status === 'streaming' ? 'fa-circle-notch fa-spin' : 'fa-wand-magic-sparkles'} />
+                    <span className="btn-label"> Refine All</span>
                   </button>
-                </li>
-              ))}
-              {(value.highlights || []).length < 5 && (
-                <li className="dayone-highlight dayone-highlight--draft">
-                  <span className="dayone-highlight-bullet" aria-hidden="true">+</span>
-                  <input
-                    className="dayone-highlight-input"
-                    type="text"
-                    value={highlightDraft}
-                    onChange={e => setHighlightDraft(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') { e.preventDefault(); addHighlight(highlightDraft); }
-                    }}
-                    placeholder="Add a key moment…  (Enter to add)"
-                  />
-                  {highlightDraft.trim() && (
-                    <button
-                      type="button"
-                      className="dayone-highlight-add"
-                      onClick={() => addHighlight(highlightDraft)}
-                      title="Add this highlight"
-                    >
-                      <Icon name="fa-plus" />
-                    </button>
-                  )}
-                </li>
-              )}
-            </ul>
-            <div className="dayone-highlights-tools">
-              <button
-                type="button"
-                className="dayone-suggest-btn"
-                onClick={suggestHighlights}
-                disabled={!storyCount}
-                title="Pull the opening sentence from each Reviewed entry"
-                aria-label="Suggest highlights from entries"
-              >
-                <Icon name="fa-sparkles" />
-                <span className="btn-label"> Suggest from entries</span>
-              </button>
+                )}
+                <button
+                  type="button"
+                  className="dayone-reflection-refine"
+                  onClick={refineReflection}
+                  disabled={reflectionRefining || !storyCount}
+                  title="Quick AI enhance of reflection (voice DNA)"
+                  aria-label="Refine reflection"
+                >
+                  <Icon name={reflectionRefining ? 'fa-circle-notch fa-spin' : 'fa-wand-magic-sparkles'} />
+                </button>
+              </div>
             </div>
+            {/* Status badges row (D9) */}
+            {(refineState.reflection.status !== 'idle' || refineState.tags.status !== 'idle') && (
+              <div className="dayone-refine-badges" aria-live="polite">
+                {refineState.reflection.status !== 'idle' && (() => {
+                  const s = refineState.reflection.status;
+                  const isEdited = reflectionEdited && (s === 'success' || s === 'edited');
+                  const badgeStatus = isEdited ? 'edited' : s;
+                  return (
+                    <span
+                      className={`dayone-refine-badge dayone-refine-badge--${badgeStatus}`}
+                      title={refineState.reflection.reasoning || ''}
+                    >
+                      {badgeStatus === 'edited' && <><Icon name="fa-pen" /> Reflection edited<button type="button" className="dayone-refine-badge-action" onClick={onReSynth}>Re-synth</button></>}
+                      {badgeStatus === 'streaming' && <><Icon name="fa-circle-notch fa-spin" /> Writing…</>}
+                      {badgeStatus === 'pending' && <><Icon name="fa-circle-notch fa-spin" /> Thinking…</>}
+                      {badgeStatus === 'success' && !isEdited && <><Icon name="fa-check" /> Reflection</>}
+                      {badgeStatus === 'failed' && <><Icon name="fa-triangle-exclamation" /> Failed<button type="button" className="dayone-refine-badge-action" onClick={onRefineAll}>Retry</button></>}
+                    </span>
+                  );
+                })()}
+                {refineState.tags.status !== 'idle' && (() => {
+                  const s = refineState.tags.status;
+                  return (
+                    <span
+                      className={`dayone-refine-badge dayone-refine-badge--${s}`}
+                      title={refineState.tags.reasoning || ''}
+                    >
+                      {s === 'pending' && <><Icon name="fa-circle-notch fa-spin" /> Tags…</>}
+                      {s === 'success' && <><Icon name="fa-check" /> Tags</>}
+                      {s === 'failed' && <><Icon name="fa-triangle-exclamation" /> Tags failed</>}
+                    </span>
+                  );
+                })()}
+              </div>
+            )}
+            <textarea
+              id="dayone-reflection"
+              className={`dayone-reflection-input${refineState.reflection.status === 'streaming' ? ' dayone-reflection-input--streaming' : ''}`}
+              rows={3}
+              value={value.reflection || ''}
+              onChange={e => update({ reflection: e.target.value })}
+              placeholder="How was this day? What stood out?"
+              aria-busy={refineState.reflection.status === 'streaming'}
+            />
+          </div>
+
+          <div className="dayone-field dayone-field--tags">
+            <div className="dayone-field-label-row">
+              <label className="dayone-field-label"><Icon name="fa-tags" /> Tags</label>
+              <span className="dayone-field-meta">{(dayoneTags || []).length} tags</span>
+            </div>
+            <TagInput
+              value={dayoneTags || []}
+              onChange={onTagsChange || (() => {})}
+              corpus={tagCorpus || []}
+              aiSuggestions={aiSuggestedTags || []}
+              rejectedAiTags={tripCtx?.rejectedAiTags || []}
+              onRejectAi={onRejectAiTag || (() => {})}
+            />
           </div>
 
           <div className="dayone-story">
@@ -2367,9 +2610,11 @@
       const tab = 'inbox';
       // Review lane: 'unreviewed' lane shows reviewStatus ∈ {unreviewed,
       // in_review}; 'reviewed' lane shows reviewStatus === 'approved'.
+      // Default to 'reviewed' (DayOne Workspace) so the composition surface
+      // loads first on every visit.
       const [reviewView, setReviewView] = useState(() => {
-        try { return localStorage.getItem('log_review_view') || 'unreviewed'; }
-        catch { return 'unreviewed'; }
+        try { return localStorage.getItem('log_review_view') || 'reviewed'; }
+        catch { return 'reviewed'; }
       });
       useEffect(() => {
         try { localStorage.setItem('log_review_view', reviewView); } catch {}
@@ -2396,13 +2641,333 @@
       // `date` is the user-selected journal date — defaults to today so the
       // happy path requires no click, overridable via the filter-bar picker.
       const todayIso = () => new Date().toISOString().slice(0, 10);
-      const [compose, setCompose] = useState({ title: '', context: '', highlights: [], date: todayIso(), weather: null });
+      const [compose, setCompose] = useState({ title: '', context: '', reflection: '', date: todayIso(), weather: null });
       const composeKey = tripSlug ? `journal.dayone.compose.${tripSlug}` : null;
+
+      // --- Tag state (persisted in trip.yaml, not localStorage) ---
+      const [dayoneTags, setDayoneTags] = useState([]);
+      const [tagCorpus, setTagCorpus] = useState([]);
+      const [featureFlags, setFeatureFlags] = useState({});
+      const tagSaveTimerRef = useRef(null);
+      // Refine All state (D9)
+      const [tripVersion, setTripVersion] = useState(null);
+      const [refineState, setRefineState] = useState({ reflection: { status: 'idle', hashes: [] }, tags: { status: 'idle' } });
+      const [aiSuggestedTags, setAiSuggestedTags] = useState([]);
+      const [reflectionIsAiClean, setReflectionIsAiClean] = useState(true);
+      const refineAbortRef = useRef(null);
+
+      // Fetch feature flags on mount
+      useEffect(() => {
+        fetch(`${LOG_API_BASE}/api/config`)
+          .then(r => r.json())
+          .then(d => { if (d) setFeatureFlags(d); })
+          .catch(() => {});
+      }, []);
+
+      // Fetch tag corpus on mount
+      useEffect(() => {
+        fetch(`${LOG_API_BASE}/api/tag-corpus/top`)
+          .then(r => r.json())
+          .then(d => { if (d?.ok) setTagCorpus(d.top || []); })
+          .catch(() => {});
+      }, []);
+
+      // Hydrate dayoneTags from tripCtx when it loads
+      useEffect(() => {
+        if (tripCtx?.dayoneTags && Array.isArray(tripCtx.dayoneTags)) {
+          setDayoneTags(tripCtx.dayoneTags);
+        } else {
+          setDayoneTags([]);
+        }
+      }, [tripCtx]);
+
+      // Hydrate refineState.reflection.hashes from tripCtx (D4)
+      useEffect(() => {
+        const hashes = Array.isArray(tripCtx?.narrativeAiHashes) ? tripCtx.narrativeAiHashes : [];
+        setRefineState(rs => ({ ...rs, reflection: { ...rs.reflection, hashes } }));
+      }, [tripCtx]);
+
+      // Compute reflectionIsAiClean via SubtleCrypto (D4 — edited = hash not in set)
+      useEffect(() => {
+        const hashes = refineState.reflection.hashes;
+        const text = (compose.reflection || '').trim();
+        if (!hashes.length || !text) {
+          setReflectionIsAiClean(true); // no AI history → treat as clean
+          return;
+        }
+        let cancelled = false;
+        const enc = new TextEncoder().encode(text);
+        crypto.subtle.digest('SHA-256', enc).then(buf => {
+          if (cancelled) return;
+          const hex = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
+          setReflectionIsAiClean(hashes.includes(hex));
+        });
+        return () => { cancelled = true; };
+      }, [compose.reflection, refineState.reflection.hashes]);
+
+      // Debounced save of tags to server
+      function handleTagsChange(nextTags) {
+        setDayoneTags(nextTags);
+        if (tagSaveTimerRef.current) clearTimeout(tagSaveTimerRef.current);
+        tagSaveTimerRef.current = setTimeout(() => {
+          if (!tripSlug) return;
+          fetch(`${LOG_API_BASE}/api/trip-edit`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              tripSlug,
+              patches: [{ op: 'add', path: '/dayoneTags', value: nextTags }],
+              baseVersion: 'skip',
+            }),
+          })
+            .then(r => r.json())
+            .then(d => {
+              if (d?.ok) {
+                window.notify?.success?.('Tags saved', { duration: 1500 });
+                // Re-fetch corpus to include new tags
+                fetch(`${LOG_API_BASE}/api/tag-corpus/top`)
+                  .then(r => r.json())
+                  .then(d2 => { if (d2?.ok) setTagCorpus(d2.top || []); })
+                  .catch(() => {});
+              } else if (d?.error) {
+                window.notify?.error?.(`Tag save failed: ${d.error}`);
+              }
+            })
+            .catch(err => {
+              window.notify?.error?.('Tag save failed — network error');
+              console.error('[Tags]', err);
+            });
+        }, 400);
+      }
+      // Reject an AI-suggested tag (D14): add to rejectedAiTags, remove from suggestions
+      function handleRejectAiTag(tag) {
+        setAiSuggestedTags(prev => prev.filter(t => t !== tag));
+        if (!tripSlug) return;
+        // Read current rejectedAiTags to maintain FIFO cap of 50
+        const current = Array.isArray(tripCtx?.rejectedAiTags) ? tripCtx.rejectedAiTags : [];
+        const next = [...current.filter(t => t !== tag), tag].slice(-50);
+        fetch(`${LOG_API_BASE}/api/trip-edit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tripSlug,
+            patches: [{ op: 'replace', path: '/rejectedAiTags', value: next }],
+            baseVersion: 'skip',
+          }),
+        }).catch(() => {});
+      }
+
+      // Refine All handler (C2) — SSE streaming, atomic commit (D10, D12)
+      async function handleRefineAll() {
+        const rows = (tab === 'inbox' && reviewView === 'reviewed')
+          ? applyOrder(visible.filter(isReviewed)) : [];
+        if (!rows.length) {
+          window.notify?.info?.('Nothing to refine', { description: 'Approve a few entries first.' });
+          return;
+        }
+        // Build photos list: entries with prose (captions-only per D6)
+        const photos = rows
+          .map(r => ({ caption: r?.draft?.prose || r?.payload?.text || '' }))
+          .filter(r => r.caption.trim());
+        if (!photos.length) {
+          window.notify?.info?.('No prose found', { description: 'Entries need refined text first.' });
+          return;
+        }
+        // Abort any in-flight refine
+        if (refineAbortRef.current) { refineAbortRef.current.abort(); }
+        const controller = new AbortController();
+        refineAbortRef.current = controller;
+
+        const requestId = crypto.randomUUID();
+        const baseVersion = tripVersion || 'skip';
+        const reflectionEdited = refineState.reflection.hashes.length > 0 && !reflectionIsAiClean;
+
+        setRefineState(rs => ({
+          reflection: { ...rs.reflection, status: reflectionEdited ? 'edited' : 'pending' },
+          tags: { status: 'pending' },
+        }));
+
+        // Date range for context
+        const dateRange = (() => {
+          const s = tripCtx?.dates?.start; const e = tripCtx?.dates?.end;
+          if (!s) return '';
+          const fmt = (iso) => { const d = new Date(iso + 'T00:00:00'); return isNaN(d.getTime()) ? iso : `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+          return e && e !== s ? `${fmt(s)} to ${fmt(e)}` : fmt(s);
+        })();
+
+        try {
+          const resp = await fetch(`${LOG_API_BASE}/api/trip-refine-all`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'text/event-stream' },
+            body: JSON.stringify({
+              tripId: tripSlug,
+              requestId,
+              baseVersion,
+              photos,
+              title: compose.title || '',
+              subtitle: compose.context || '',
+              dateRange,
+            }),
+            signal: controller.signal,
+          });
+          if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}));
+            throw new Error(err.error || `HTTP ${resp.status}`);
+          }
+
+          const reader = resp.body.getReader();
+          const decoder = new TextDecoder();
+          let buf = '';
+          let narrativeValue = null;
+          let narrativeHash = null;
+          let narrativeReasoning = '';
+          let tagsResult = null;
+
+          // Process SSE stream
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buf += decoder.decode(value, { stream: true });
+            const parts = buf.split('\n\n');
+            buf = parts.pop(); // keep incomplete chunk
+            for (const chunk of parts) {
+              const eventLine = chunk.match(/^event: (.+)$/m);
+              const dataLine = chunk.match(/^data: (.+)$/ms);
+              if (!eventLine || !dataLine) continue;
+              const event = eventLine[1].trim();
+              let data;
+              try { data = JSON.parse(dataLine[1]); } catch { continue; }
+
+              if (event === 'narrative.delta' && !reflectionEdited) {
+                // Stream narrative tokens into reflection textarea
+                setCompose(c => ({ ...c, reflection: (c.reflection || '') + (data.text || '') }));
+                setRefineState(rs => ({ ...rs, reflection: { ...rs.reflection, status: 'streaming' } }));
+              } else if (event === 'narrative.done' && !reflectionEdited) {
+                narrativeValue = data.value;
+                narrativeHash = data.hash;
+                narrativeReasoning = data.reasoning || '';
+                setCompose(c => ({ ...c, reflection: data.value }));
+                setRefineState(rs => ({
+                  ...rs,
+                  reflection: { status: 'success', hashes: [...rs.reflection.hashes, data.hash].filter((h, i, a) => a.indexOf(h) === i), reasoning: data.reasoning },
+                }));
+              } else if (event === 'tags.done') {
+                tagsResult = data;
+                setAiSuggestedTags(data.values || []);
+                setRefineState(rs => ({
+                  ...rs,
+                  tags: { status: 'success', reasoning: data.reasoning },
+                }));
+              } else if (event === 'complete') {
+                // Build patches (D10 \u2014 respecting edited-skip for reflection)
+                const patches = [];
+                if (!reflectionEdited && narrativeValue !== null) {
+                  patches.push({ op: 'replace', path: '/reflection', value: narrativeValue });
+                  const prevHashes = Array.isArray(tripCtx?.narrativeAiHashes) ? tripCtx.narrativeAiHashes : [];
+                  const nextHashes = [...new Set([...prevHashes, narrativeHash])];
+                  patches.push({ op: 'replace', path: '/narrativeAiHashes', value: nextHashes });
+                }
+                if (tagsResult) {
+                  // Merge: union(currentTags, aiTags) - rejectedAiTags (D14)
+                  const rejected = new Set(Array.isArray(tripCtx?.rejectedAiTags) ? tripCtx.rejectedAiTags : []);
+                  const merged = [...new Set([...dayoneTags, ...(tagsResult.values || []).filter(t => !rejected.has(t))])];
+                  patches.push({ op: 'replace', path: '/dayoneTags', value: merged });
+                  setDayoneTags(merged);
+                }
+                if (patches.length) {
+                  const patchResp = await fetch(`${LOG_API_BASE}/api/trip-edit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tripSlug, patches, baseVersion }),
+                  }).then(r => r.json());
+                  if (!patchResp.ok && patchResp.error === 'Conflict') {
+                    // 409 \u2014 reload trip and retry message
+                    window.notify?.error?.('Refine All: version conflict \u2014 reloaded, please retry');
+                    if (patchResp.version) setTripVersion(patchResp.version);
+                  } else if (patchResp.version) {
+                    setTripVersion(patchResp.version);
+                  }
+                }
+                window.notify?.success?.('Refine All complete');
+              } else if (event === 'error') {
+                throw new Error(Object.values(data.errors || {}).join('; ') || 'Refine All failed');
+              }
+            }
+          }
+        } catch (err) {
+          if (err.name === 'AbortError') return;
+          setRefineState(rs => ({
+            reflection: { ...rs.reflection, status: rs.reflection.status === 'edited' ? 'edited' : 'failed' },
+            tags: { status: 'failed' },
+          }));
+          window.notify?.error?.('Refine All failed', { description: err.message || String(err) });
+        }
+      }
+
+      // Re-synth single field (C3): overwrite reflection with fresh narrative
+      async function handleReSynth() {
+        if (!confirm('Overwrite your edits to the reflection with a fresh AI narrative?')) return;
+        const rows = (tab === 'inbox' && reviewView === 'reviewed')
+          ? applyOrder(visible.filter(isReviewed)) : [];
+        const photos = rows
+          .map(r => ({ caption: r?.draft?.prose || r?.payload?.text || '' }))
+          .filter(r => r.caption.trim());
+        if (!photos.length) {
+          window.notify?.info?.('No prose found', { description: 'Entries need refined text first.' });
+          return;
+        }
+        const requestId = crypto.randomUUID();
+        const baseVersion = tripVersion || 'skip';
+        setRefineState(rs => ({ ...rs, reflection: { ...rs.reflection, status: 'pending' } }));
+        try {
+          const dateRange = (() => {
+            const s = tripCtx?.dates?.start; const e = tripCtx?.dates?.end;
+            if (!s) return '';
+            const fmt = (iso) => { const d = new Date(iso + 'T00:00:00'); return isNaN(d.getTime()) ? iso : `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+            return e && e !== s ? `${fmt(s)} to ${fmt(e)}` : fmt(s);
+          })();
+          const d = await fetch(`${LOG_API_BASE}/api/trip-refine-field`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tripId: tripSlug, requestId, field: 'narrative', photos, title: compose.title || '', subtitle: compose.context || '', dateRange, baseVersion }),
+          }).then(r => r.json());
+          if (!d.ok) throw new Error(d.error || 'Re-synth failed');
+
+          setCompose(c => ({ ...c, reflection: d.value }));
+          const prevHashes = Array.isArray(tripCtx?.narrativeAiHashes) ? tripCtx.narrativeAiHashes : [];
+          const nextHashes = [...new Set([...prevHashes, d.hash])];
+          setRefineState(rs => ({
+            ...rs,
+            reflection: { status: 'success', hashes: nextHashes, reasoning: d.reasoning },
+          }));
+          // Persist to server
+          const patchResp = await fetch(`${LOG_API_BASE}/api/trip-edit`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              tripSlug,
+              patches: [
+                { op: 'replace', path: '/reflection', value: d.value },
+                { op: 'replace', path: '/narrativeAiHashes', value: nextHashes },
+              ],
+              baseVersion,
+            }),
+          }).then(r => r.json());
+          if (patchResp.version) setTripVersion(patchResp.version);
+          window.notify?.success?.('Reflection re-synthesized');
+        } catch (err) {
+          setRefineState(rs => ({ ...rs, reflection: { ...rs.reflection, status: 'failed' } }));
+          window.notify?.error?.('Re-synth failed', { description: err.message || String(err) });
+        }
+      }
+
       // Unlocks the "Delete Reviewed Entries" button after a successful Copy
       // in the current session. Resets on reload so stale tabs must re-copy.
       const [copiedOnce, setCopiedOnce] = useState(false);
       const [deleteReviewedOpen, setDeleteReviewedOpen] = useState(false);
       const [deletingReviewed, setDeletingReviewed] = useState(false);
+      const [resetOpen, setResetOpen] = useState(false);
+      const [resetting, setResetting] = useState(false);
       const photoCameraRef = useRef(null);
       const photoLibraryRef = useRef(null);
       const receiptInputRef = useRef(null);
@@ -2465,17 +3030,22 @@
             setCompose({
               title: typeof parsed?.title === 'string' ? parsed.title : '',
               context: typeof parsed?.context === 'string' ? parsed.context : '',
-              highlights: Array.isArray(parsed?.highlights) ? parsed.highlights.filter(h => typeof h === 'string') : [],
+              reflection: typeof parsed?.reflection === 'string' ? parsed.reflection : '',
               date: /^\d{4}-\d{2}-\d{2}$/.test(parsed?.date) ? parsed.date : todayIso(),
               weather: parsed?.weather && typeof parsed.weather === 'object' ? parsed.weather : null,
             });
           } else {
-            setCompose({ title: '', context: '', highlights: [], date: todayIso(), weather: null });
+            setCompose({ title: '', context: '', reflection: '', date: todayIso(), weather: null });
           }
         } catch { /* ignore malformed cache */ }
         fetch(`${LOG_API_BASE}/api/trip/${encodeURIComponent(tripSlug)}/full`)
           .then(r => r.json())
-          .then(d => { if (d?.ok) setTripCtx(d.trip); })
+          .then(d => {
+            if (d?.ok) {
+              setTripCtx(d.trip);
+              if (d.version) setTripVersion(d.version);
+            }
+          })
           .catch(() => { /* composer still usable without trip metadata */ });
       }, [tripSlug]);
 
@@ -2628,7 +3198,7 @@
           const r = await fetch(`${LOG_API_BASE}/api/dayone/bundle`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ tripSlug, entryIds, journal: dayoneJournal, compose }),
+            body: JSON.stringify({ tripSlug, entryIds, journal: dayoneJournal, compose: { ...compose, dayoneTags } }),
           });
           const d = await r.json();
           if (!d?.ok) throw new Error(d?.error || 'bundle failed');
@@ -2652,6 +3222,47 @@
       // copiedOnce: the button only opens the modal after a successful Copy
       // to DayOne in this session, so the prose has a durable home before
       // the source rows are archived + photo files are removed on disk.
+      async function confirmReset() {
+        if (resetting) return;
+        setResetOpen(false);
+        setResetting(true);
+        try {
+          const slug = tripSlug;
+          if (!slug) throw new Error('no active trip');
+          const lane = reviewView;
+          const endpoint = lane === 'reviewed'
+            ? `/api/trips/${encodeURIComponent(slug)}/reviewed`
+            : `/api/trips/${encodeURIComponent(slug)}/unreviewed`;
+          const r = await fetch(`${LOG_API_BASE}${endpoint}`, { method: 'DELETE' });
+          const d = await r.json();
+          if (!d?.ok) throw new Error(d?.error || 'reset failed');
+
+          if (lane === 'reviewed') {
+            setEntries(prev => prev.filter(e => !isReviewed(e)));
+            setCopiedOnce(false);
+            setCompose({ title: '', context: '', reflection: '', date: todayIso(), weather: null });
+            if (composeKey) { try { localStorage.removeItem(composeKey); } catch {} }
+          } else {
+            const removedIds = entries.filter(isUnreviewed).map(e => e.id);
+            setEntries(prev => prev.filter(e => !isUnreviewed(e)));
+            for (const id of removedIds) {
+              try { localStorage.removeItem(`journal.draft.${id}`); } catch {}
+            }
+          }
+
+          const tabLabel = lane === 'reviewed' ? 'DayOne Workspace' : 'Log Bank';
+          window.notify?.success?.(`${tabLabel} reset`, {
+            description: d.photoCount
+              ? `${d.entryCount} entries removed, ${d.photoCount} photo${d.photoCount === 1 ? '' : 's'} deleted.`
+              : `${d.entryCount} ${d.entryCount === 1 ? 'entry' : 'entries'} removed.`,
+          });
+        } catch (err) {
+          window.notify?.error?.('Reset failed', { description: err.message || String(err) });
+        } finally {
+          setResetting(false);
+        }
+      }
+
       async function confirmDeleteReviewed() {
         if (deletingReviewed) return;
         setDeleteReviewedOpen(false);
@@ -2665,7 +3276,7 @@
           setEntries(prev => prev.filter(e => !isReviewed(e)));
           setCopiedOnce(false);
           // Composer has done its job — clear so the next trip/session starts fresh.
-          setCompose({ title: '', context: '', highlights: [], date: todayIso(), weather: null });
+          setCompose({ title: '', context: '', reflection: '', date: todayIso(), weather: null });
           if (composeKey) { try { localStorage.removeItem(composeKey); } catch {} }
           window.notify?.success?.(`Deleted ${d.entryCount} reviewed entries`, {
             description: d.photoCount ? `${d.photoCount} photo${d.photoCount === 1 ? '' : 's'} removed from disk.` : undefined,
@@ -2897,7 +3508,7 @@
       });
       const emptyStoryNode = loading
         ? (<div className="log-empty"><Icon name="fa-spinner" /> <p>Loading your log…</p></div>)
-        : (<div className="log-empty"><Icon name="fa-inbox" /><p>Nothing approved yet — review some from Unreviewed to see them here.</p></div>);
+        : (<div className="log-empty"><Icon name="fa-inbox" /><p>Nothing approved yet — review some from Log Bank to see them here.</p></div>);
 
       // Reviewed-lane footer: Journal select + Copy-to-DayOne + Delete. Lives
       // inside the composer so all post-composition controls sit together.
@@ -3028,29 +3639,47 @@
                   <div className="log-subtab-bar" role="tablist" aria-label="Photo review">
                     <button
                       role="tab"
-                      aria-selected={reviewView === 'unreviewed'}
-                      className={`log-subtab ${reviewView === 'unreviewed' ? 'active' : ''}`}
-                      onClick={() => setReviewView('unreviewed')}
-                      aria-label="Unreviewed"
-                    >
-                      <Icon name="fa-circle-half-stroke" />
-                      <span className="btn-label"> Unreviewed</span>
-                      {reviewUnreviewedCount > 0 && <span className="log-subtab-badge">{reviewUnreviewedCount}</span>}
-                    </button>
-                    <button
-                      role="tab"
                       aria-selected={reviewView === 'reviewed'}
                       className={`log-subtab ${reviewView === 'reviewed' ? 'active' : ''}`}
                       onClick={() => setReviewView('reviewed')}
-                      aria-label="Reviewed"
+                      aria-label="DayOne Workspace"
                     >
                       <Icon name="fa-circle-check" />
-                      <span className="btn-label"> Reviewed</span>
+                      <span className="btn-label"> DayOne Workspace</span>
                       {reviewReviewedCount > 0 && <span className="log-subtab-badge">{reviewReviewedCount}</span>}
+                    </button>
+                    <button
+                      role="tab"
+                      aria-selected={reviewView === 'unreviewed'}
+                      className={`log-subtab ${reviewView === 'unreviewed' ? 'active' : ''}`}
+                      onClick={() => setReviewView('unreviewed')}
+                      aria-label="Log Bank"
+                    >
+                      <Icon name="fa-circle-half-stroke" />
+                      <span className="btn-label"> Log Bank</span>
+                      {reviewUnreviewedCount > 0 && <span className="log-subtab-badge">{reviewUnreviewedCount}</span>}
                     </button>
                   </div>
 
-                  {reviewView === 'unreviewed' && captureActionsNode}
+                  <div className="log-subtab-right">
+                    {reviewView === 'unreviewed' && captureActionsNode}
+                    {(() => {
+                      const activeCount = reviewView === 'reviewed' ? reviewReviewedCount : reviewUnreviewedCount;
+                      const tabLabel = reviewView === 'reviewed' ? 'DayOne Workspace' : 'Log Bank';
+                      return activeCount > 0 ? (
+                        <button
+                          className="log-subtab-reset-btn"
+                          onClick={() => setResetOpen(true)}
+                          disabled={resetting}
+                          title={`Clear all entries from ${tabLabel}`}
+                          aria-label={resetting ? 'Resetting…' : `Reset ${tabLabel}`}
+                        >
+                          <Icon name={resetting ? 'fa-circle-notch fa-spin' : 'fa-rotate-left'} />
+                          <span className="btn-label"> Reset</span>
+                        </button>
+                      ) : null;
+                    })()}
+                  </div>
                 </div>
               )}
 
@@ -3065,6 +3694,16 @@
                   storyCards={reviewedCardsNode}
                   storyEmpty={emptyStoryNode}
                   actionsBar={reviewedActionsNode}
+                  dayoneTags={dayoneTags}
+                  onTagsChange={handleTagsChange}
+                  tagCorpus={tagCorpus}
+                  featureFlags={featureFlags}
+                  refineState={refineState}
+                  reflectionEdited={refineState.reflection.hashes.length > 0 && !reflectionIsAiClean}
+                  aiSuggestedTags={aiSuggestedTags}
+                  onRejectAiTag={handleRejectAiTag}
+                  onRefineAll={handleRefineAll}
+                  onReSynth={handleReSynth}
                 />
               ) : (
                 <div className="log-entries">
@@ -3120,7 +3759,7 @@
                     <p>{
                       tab === 'inbox'
                         ? (reviewView === 'reviewed'
-                            ? 'Nothing approved yet — review some from Unreviewed to see them here.'
+                            ? 'Nothing approved yet — review some from Log Bank to see them here.'
                             : 'Nothing needs attention — everything is up to date.')
                         : `No ${tab} items match these filters.`
                     }</p>
@@ -3163,6 +3802,25 @@
             onCancel={() => setRejectTarget(null)}
             onConfirm={confirmReject}
           />
+
+          {/* ── Reset confirmation modal ── */}
+          {(() => {
+            const lane = reviewView;
+            const tabLabel = lane === 'reviewed' ? 'DayOne Workspace' : 'Log Bank';
+            const laneEntries = lane === 'reviewed' ? entries.filter(isReviewed) : entries.filter(isUnreviewed);
+            const activeCount = laneEntries.length;
+            const photoCount = laneEntries.filter(e => e?.payload?.imagePath || e?.imagePath).length;
+            return (
+              <ConfirmModal
+                open={resetOpen}
+                title={`Reset ${tabLabel}?`}
+                message={`This will permanently remove all ${activeCount} ${activeCount === 1 ? 'entry' : 'entries'}${photoCount ? ` (including ${photoCount} photo${photoCount === 1 ? '' : 's'} on disk)` : ''} from ${tabLabel}. This cannot be undone.`}
+                confirmLabel="Reset forever"
+                onCancel={() => setResetOpen(false)}
+                onConfirm={confirmReset}
+              />
+            );
+          })()}
 
           {/* ── Delete-all-reviewed confirmation modal ── */}
           {(() => {

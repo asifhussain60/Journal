@@ -59,9 +59,7 @@ function sanitizeCompose(raw) {
   const obj = raw && typeof raw === "object" ? raw : {};
   const title = typeof obj.title === "string" ? obj.title.trim() : "";
   const context = typeof obj.context === "string" ? obj.context.trim() : "";
-  const highlights = Array.isArray(obj.highlights)
-    ? obj.highlights.map(h => (typeof h === "string" ? h.trim() : "")).filter(Boolean).slice(0, 5)
-    : [];
+  const reflection = typeof obj.reflection === "string" ? obj.reflection.trim().slice(0, 2000) : "";
   const date = typeof obj.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(obj.date) ? obj.date : "";
   // Weather is client-fetched and sent back so the bundle stays deterministic
   // at clipboard time — no extra Open-Meteo round-trip on Copy.
@@ -73,7 +71,11 @@ function sanitizeCompose(raw) {
       weather = { label, tempF };
     }
   }
-  return { title, context, highlights, date, weather };
+  // dayoneTags — validated string array, max 30 per DayOne limits
+  const dayoneTags = Array.isArray(obj.dayoneTags)
+    ? obj.dayoneTags.map(t => (typeof t === "string" ? t.trim() : "")).filter(Boolean).slice(0, 30)
+    : [];
+  return { title, context, reflection, date, weather, dayoneTags };
 }
 
 // "2026-04-19" → "April 19, 2026" — human-friendly rendering for the
@@ -137,9 +139,8 @@ function formatBundle({ tripCtx, slug, entries, compose: composeRaw }) {
   if (context) {
     out.push("", "## Context", context);
   }
-  if (compose.highlights.length) {
-    out.push("", "## Highlights");
-    for (const h of compose.highlights) out.push(`- ${h}`);
+  if (compose.reflection) {
+    out.push("", "## Reflection", compose.reflection);
   }
   if (storyBlocks.length) {
     out.push("", "## Story", "");
@@ -152,7 +153,18 @@ function formatBundle({ tripCtx, slug, entries, compose: composeRaw }) {
     out.push("", "## Metadata", `*${metadata}*`);
   }
 
-  return { markdown: out.join("\n"), photoEntryOrder };
+  let body = out.join("\n");
+
+  // Escape stray # in body so DayOne CLI doesn't parse them as tags.
+  // U+FF03 (fullwidth number sign) renders identically but is tag-inert.
+  body = body.replace(/#(?=[A-Za-z])/g, "\uFF03");
+
+  // Append real DayOne tags at the very end (one #Tag per word, blank-separated).
+  if (compose.dayoneTags.length) {
+    body += "\n\n" + compose.dayoneTags.map(t => `#${t}`).join(" ");
+  }
+
+  return { markdown: body, photoEntryOrder };
 }
 
 function collectPhotoPaths(orderedRows) {

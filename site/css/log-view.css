@@ -1006,6 +1006,39 @@
   border-color: var(--border-accent);
 }
 
+/* Right-side wrapper in the subtab row — capture actions + reset button */
+.log-subtab-right {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.log-subtab-reset-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--radius-full);
+  border: 1px solid color-mix(in srgb, var(--error) 35%, transparent);
+  background: color-mix(in srgb, var(--error) 8%, transparent);
+  color: var(--error);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+  margin-bottom: 4px;
+}
+.log-subtab-reset-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--error) 20%, transparent);
+  border-color: var(--error);
+  transform: translateY(-1px);
+}
+.log-subtab-reset-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 /* ═══════════════════════════════════════════════════
    10. Phase 11b — Unified Review Card (3-zone shape)
    ═══════════════════════════════════════════════════
@@ -1445,108 +1478,154 @@
   background: color-mix(in srgb, var(--bg-primary) 92%, var(--accent));
 }
 
-/* ─── Highlights — editable bullet list ─── */
-.dayone-highlights {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.dayone-highlight {
-  display: grid;
-  grid-template-columns: 22px 1fr 30px;
-  align-items: center;
-  gap: 8px;
-}
-.dayone-highlight-bullet {
-  justify-self: center;
-  font-size: 1.2rem;
-  line-height: 1;
-  color: color-mix(in srgb, var(--accent) 80%, transparent);
-}
-.dayone-highlight--draft .dayone-highlight-bullet {
-  color: color-mix(in srgb, var(--accent) 50%, transparent);
-  font-weight: 700;
-}
-.dayone-highlight-input {
+/* ─── Reflection — single textarea with inline refine button ─── */
+.dayone-reflection-input {
   width: 100%;
-  padding: 8px 12px;
+  padding: 10px 14px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-default);
   background: var(--bg-primary);
   color: var(--text-primary);
   font-family: inherit;
   font-size: 0.98rem;
-  transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+  line-height: 1.55;
+  resize: vertical;
+  min-height: 72px;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
 }
-.dayone-highlight--draft .dayone-highlight-input {
-  background: transparent;
-  border-style: dashed;
-  border-color: color-mix(in srgb, var(--accent) 28%, var(--border-default));
-}
-.dayone-highlight-input:focus {
+.dayone-reflection-input:focus {
   outline: none;
-  border-style: solid;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
-  background: var(--bg-primary);
 }
-.dayone-highlight-remove,
-.dayone-highlight-add {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: none;
-  background: transparent;
+.dayone-reflection-input::placeholder {
   color: var(--text-muted);
-  cursor: pointer;
-  transition: background 140ms ease, color 140ms ease, transform 140ms ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.9rem;
+  font-style: italic;
 }
-.dayone-highlight-remove:hover {
-  background: color-mix(in srgb, var(--error) 18%, transparent);
-  color: var(--error);
-}
-.dayone-highlight-add {
-  color: var(--accent);
-}
-.dayone-highlight-add:hover {
-  background: color-mix(in srgb, var(--accent) 22%, transparent);
-  transform: scale(1.08);
-}
-.dayone-highlights-tools {
-  margin-top: 2px;
-  display: flex;
-  justify-content: flex-start;
-}
-.dayone-suggest-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 6px 14px;
-  border-radius: var(--radius-full);
+.dayone-reflection-refine {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
   border: 1px solid color-mix(in srgb, var(--accent) 32%, var(--border-default));
   background: color-mix(in srgb, var(--accent) 10%, transparent);
   color: var(--accent);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
+}
+.dayone-reflection-refine:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  border-color: var(--accent);
+  transform: scale(1.08);
+}
+.dayone-reflection-refine:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ─── Reflection action group (quick refine + Refine All) ─── */
+.dayone-reflection-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.dayone-refine-all-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border-default));
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
   font-family: inherit;
-  font-size: 0.82rem;
-  font-weight: 600;
+  font-size: 0.76rem;
+  font-weight: 700;
   cursor: pointer;
   transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
 }
-.dayone-suggest-btn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent) 22%, transparent);
+.dayone-refine-all-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 26%, transparent);
   border-color: var(--accent);
-  transform: translateY(-1px);
+  transform: scale(1.03);
 }
-.dayone-suggest-btn:disabled {
-  opacity: 0.45;
+.dayone-refine-all-btn:disabled {
+  opacity: 0.4;
   cursor: not-allowed;
+}
+
+/* ─── Refine state badges row (D9) ─── */
+.dayone-refine-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 0;
+}
+.dayone-refine-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+  transition: background 200ms ease;
+}
+.dayone-refine-badge--pending,
+.dayone-refine-badge--streaming {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 28%, transparent);
+  color: var(--accent);
+}
+.dayone-refine-badge--success {
+  background: color-mix(in srgb, var(--success) 10%, transparent);
+  border-color: color-mix(in srgb, var(--success) 30%, transparent);
+  color: color-mix(in srgb, var(--success) 90%, var(--text-primary));
+}
+.dayone-refine-badge--edited {
+  background: color-mix(in srgb, var(--warning) 10%, transparent);
+  border-color: color-mix(in srgb, var(--warning) 30%, transparent);
+  color: color-mix(in srgb, var(--warning) 90%, var(--text-primary));
+}
+.dayone-refine-badge--failed {
+  background: color-mix(in srgb, var(--error) 10%, transparent);
+  border-color: color-mix(in srgb, var(--error) 30%, transparent);
+  color: color-mix(in srgb, var(--error) 90%, var(--text-primary));
+}
+.dayone-refine-badge-action {
+  margin-left: 4px;
+  padding: 1px 7px;
+  border-radius: var(--radius-full);
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.dayone-refine-badge-action:hover {
+  background: color-mix(in srgb, currentColor 14%, transparent);
+}
+
+/* Subtle shimmer on textarea while streaming */
+.dayone-reflection-input--streaming {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
+  animation: refine-pulse 1.8s ease-in-out infinite;
+}
+@keyframes refine-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent); }
+  50%       { box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 8%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dayone-reflection-input--streaming { animation: none; }
 }
 
 /* ─── Story — reviewed cards inline inside the composer ─── */
@@ -1678,4 +1757,147 @@
   }
 }
 
+/* ─── TagInput component ─── */
+.tag-input-wrap {
+  position: relative;
+}
+.tag-input-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-default, #555);
+  border-radius: var(--radius-md, 8px);
+  background: var(--bg-secondary, #1e1e1e);
+  cursor: text;
+  min-height: 38px;
+  align-items: center;
+}
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: var(--radius-full, 20px);
+  background: color-mix(in srgb, var(--accent, #60a5fa) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent, #60a5fa) 30%, var(--border-default, #555));
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-primary, #eee);
+  line-height: 1.3;
+}
+.tag-chip--ai {
+  background: color-mix(in srgb, var(--warning, #eab308) 12%, transparent);
+  border-color: color-mix(in srgb, var(--warning, #eab308) 30%, var(--border-default, #555));
+}
+.tag-chip-label {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tag-chip-remove,
+.tag-chip-reject {
+  border: none;
+  background: none;
+  color: var(--text-muted, #999);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0 2px;
+  line-height: 1;
+  transition: color 100ms ease;
+}
+.tag-chip-remove:hover,
+.tag-chip-reject:hover {
+  color: var(--error, #ef4444);
+}
+.tag-chip-add {
+  border: none;
+  background: none;
+  color: var(--accent, #60a5fa);
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0;
+}
+.tag-chip-add:hover {
+  text-decoration: underline;
+}
+.tag-input-field {
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text-primary, #eee);
+  font-family: inherit;
+  font-size: 0.88rem;
+  flex: 1 1 80px;
+  min-width: 80px;
+  padding: 2px 0;
+}
+.tag-input-field::placeholder {
+  color: var(--text-muted, #888);
+}
+.tag-typeahead {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  z-index: 50;
+  margin-top: 4px;
+  list-style: none;
+  padding: 4px 0;
+  border-radius: var(--radius-md, 8px);
+  background: var(--bg-secondary, #1e1e1e);
+  border: 1px solid var(--border-default, #555);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  max-height: 240px;
+  overflow-y: auto;
+}
+.tag-typeahead-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 12px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.tag-typeahead-item:hover,
+.tag-typeahead-item.active {
+  background: color-mix(in srgb, var(--accent, #60a5fa) 15%, transparent);
+}
+.tag-typeahead-item[aria-selected="true"] {
+  background: color-mix(in srgb, var(--accent, #60a5fa) 15%, transparent);
+}
+.tag-typeahead-count {
+  color: var(--text-muted, #888);
+  font-size: 0.78rem;
+}
+.tag-input-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+.tag-counter {
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+.tag-ai-suggestions {
+  margin-top: 8px;
+}
+.tag-ai-summary {
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--accent, #60a5fa);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+}
+.tag-ai-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
 

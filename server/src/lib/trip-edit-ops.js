@@ -12,6 +12,7 @@ import fastJsonPatch from "fast-json-patch";
 import yaml from "js-yaml";
 import { TRIPS_DIR } from "./receipts.js";
 import { validateTrip } from "../validators/trip-edit-rules.js";
+import { invalidate as invalidateTagCorpus } from "./tag-corpus.js";
 
 const { applyPatch, deepClone } = fastJsonPatch;
 
@@ -143,6 +144,13 @@ export async function applyTripEdit(slug, { intent, patch, actor = "app" }) {
     status: "applied",
   };
   await appendEditLog(slug, logRow);
+
+  // Invalidate tag corpus if the patch touched dayoneTags (best-effort, never throws).
+  const touchesTags = patch.some((op) => typeof op.path === "string" && op.path.startsWith("/dayoneTags"));
+  if (touchesTags) {
+    try { invalidateTagCorpus(); } catch { /* best-effort */ }
+  }
+
   return { ok: true, id, logRow, after };
 }
 

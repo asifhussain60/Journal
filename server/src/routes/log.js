@@ -1,9 +1,11 @@
 // routes/log.js — Phase 11a
-// GET    /api/log                — merged LogEntry list for the active trip
-// POST   /api/log/capture        — write a photo or note capture to the queue
-// PATCH  /api/log/:id            — mutate notes / reviewStatus / draft.prose on a pending row
-// POST   /api/log/:id/refine     — AI-refine a per-image note with trip + journal + voice context
-// DELETE /api/log/:id            — drop a row from every local queue it appears in
+// GET    /api/log                      — merged LogEntry list for the active trip
+// POST   /api/log/capture              — write a photo or note capture to the queue
+// PATCH  /api/log/:id                  — mutate notes / reviewStatus / draft.prose on a pending row
+// POST   /api/log/:id/refine           — AI-refine a per-image note with trip + journal + voice context
+// DELETE /api/log/:id                  — drop a row from every local queue it appears in
+// DELETE /api/trips/:slug/reviewed     — bulk-clear the DayOne Workspace (approved entries)
+// DELETE /api/trips/:slug/unreviewed   — bulk-clear the Log Bank (unreviewed/in_review entries)
 //
 // Query params for GET /api/log:
 //   slug        override active trip slug
@@ -27,11 +29,7 @@ import { fromDeadLetter } from "../adapters/fromDeadLetter.js";
 import { applyInitialStates, assertInitial, assertTransition, TransitionError, INITIAL_STATES } from "../lib/workflow-state.js";
 import { readTripObj } from "../lib/trip-edit-ops.js";
 import { loadPrompt } from "../prompts/index.js";
-import { fileURLToPath } from "node:url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const FINGERPRINT_PATH = path.resolve(__dirname, "../../../reference/voice-fingerprint.md");
+import { getFingerprint, FINGERPRINT_PATH_RESOLVED } from "../lib/voice-fingerprint.js";
 
 // Vision payload budget for refine: stay well under Anthropic's ~5MB base64 cap.
 // Above this we skip vision rather than fail the call — refine still works from
@@ -473,7 +471,7 @@ export function createLogRouter({ queueValidators, anthropic, DEFAULT_MODEL, cla
       // Compose context — voice fingerprint is required; trip is best-effort.
       let fingerprint;
       try {
-        fingerprint = await readFile(FINGERPRINT_PATH, "utf8");
+        fingerprint = await getFingerprint();
       } catch (err) {
         return res.status(500).json({ ok: false, error: `voice-fingerprint unreadable: ${err.message}` });
       }
@@ -759,6 +757,61 @@ export function createLogRouter({ queueValidators, anthropic, DEFAULT_MODEL, cla
       }
 
       res.json({ ok: true, entryCount: reviewed.length, photoCount });
+    } catch (err) {
+      res.status(500).json({ ok: false, error: err?.message ?? String(err) });
+    }
+  });
+
+  // DELETE /api/trips/:slug/unreviewed — bulk-clear the Log Bank (unreviewed + in_review entries).
+  // Mirrors the reviewed endpoint; archives to .trash/ before removing so an ops
+  // recovery is still possible. Photo files are hard-removed from disk.
+  router.delete("/api/trips/:slug/unreviewed", async (req, res) => {
+    try {
+      const slug = req.params.slug;
+      if (!slug || typeof slug !== "string") {
+        return res.status(400).json({ ok: false, error: "slug required" });
+      }
+      if (slug.includes("/") || slug.includes("\\") || slug.includes("..")) {
+        return res.status(400).json({ ok: false, error: "invalid slug" });
+      }
+
+      const UNREVIEWED_STATUSES = new Set(["unreviewed", "in_review"]);
+      const items = await readQueue(slug, "pending");
+      const toRemove = items.filter((r) => UNREVIEWED_STATUSES.has(r?.reviewStatus));
+      const rest = items.filter((r) => !UNREVIEWED_STATUSES.has(r?.reviewStatus));
+
+      if (toRemove.length === 0) {
+        return res.json({ ok: true, entryCount: 0, photoCount: 0 });
+      }
+
+      // Archive unreviewed rows as JSONL before removing.
+      const ts = new Date().toISOString().replace(/[:.]/g, "-");
+      const trashDir = path.join(TRIPS_DIR, slug, ".trash");
+      await mkdir(trashDir, { recursive: true });
+      const trashPath = path.join(trashDir, `entries-unreviewed-${ts}.jsonl`);
+      const trashBody = toRemove.map((r) => JSON.stringify(r)).join("\n") + "\n";
+      await writeFile(trashPath, trashBody, "utf8");
+
+      // Rewrite pending.json without the unreviewed rows.
+      const pendingPath = path.join(TRIPS_DIR, slug, "pending.json");
+      await atomicWriteJSON(pendingPath, rest);
+
+      // Hard-remove referenced photo files.
+      let photoCount = 0;
+      for (const row of toRemove) {
+        const abs = resolveEntryImagePath(row);
+        if (!abs) continue;
+        try {
+          await unlink(abs);
+          photoCount += 1;
+        } catch (err) {
+          if (err.code !== "ENOENT") {
+            console.warn(`[unreviewed-delete] unlink ${abs}: ${err.message}`);
+          }
+        }
+      }
+
+      res.json({ ok: true, entryCount: toRemove.length, photoCount });
     } catch (err) {
       res.status(500).json({ ok: false, error: err?.message ?? String(err) });
     }

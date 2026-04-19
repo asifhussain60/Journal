@@ -43,6 +43,10 @@
 //   PATCH /api/publish-sessions/:id      — publish-sessions.js (Phase 11d.1)
 //   POST /api/publish-sessions/:id/abandon — publish-sessions.js (Phase 11d.1)
 //   GET  /api/trip-spend                — trip-spend.js (YNAB)
+//   GET  /api/config                    — core.js (feature flags)
+//   POST /api/trip-refine-all            — trip-refine-all.js (Refine All coordinator)
+//   POST /api/trip-refine-field          — trip-refine-all.js (single-field Re-synth)
+//   GET  /api/tag-corpus/top             — trip-refine-all.js (cross-trip tag typeahead)
 //
 // CORS is locked to ALLOWED_ORIGINS (defaults cover localhost + prod/dev Pages).
 
@@ -74,6 +78,7 @@ import { createHolidayBudgetRouter } from "./routes/holiday-budget.js";
 import { createLogRouter } from "./routes/log.js";
 import { createPublishSessionsRouter } from "./routes/publish-sessions.js";
 import { createDayoneRouter } from "./routes/dayone.js";
+import { createTripRefineAllRouter } from "./routes/trip-refine-all.js";
 import { createClassifyQueue } from "./lib/classify-queue.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -183,6 +188,13 @@ app.use("/trips", express.static(path.join(REPO_ROOT, "trips"), { fallthrough: t
 // --- Phase 11b classify queue (in-process, async image kind classification)
 const classifyQueue = createClassifyQueue({ anthropic });
 
+// --- Static: serve shared/ modules so the client can import them via <script type="module">
+app.use("/shared", express.static(path.join(REPO_ROOT, "shared"), {
+  fallthrough: true,
+  maxAge: "1h",
+  setHeaders: (res) => res.setHeader("Content-Type", "text/javascript"),
+}));
+
 // --- Mount routers -----------------------------------------------------------
 app.use(createCoreRouter({ anthropic, DEFAULT_MODEL, KEY_SOURCE, PORT, ALLOWED_ORIGINS }));
 app.use(createTripRouter({ anthropic, DEFAULT_MODEL }));
@@ -198,6 +210,7 @@ app.use(createHolidayBudgetRouter({ anthropic }));
 app.use(createLogRouter({ queueValidators: QUEUE_VALIDATORS, anthropic, DEFAULT_MODEL, classifyQueue }));
 app.use(createPublishSessionsRouter({ publishSessionValidator }));
 app.use(createDayoneRouter());
+app.use(createTripRefineAllRouter({ anthropic }));
 
 // --- Start -------------------------------------------------------------------
 app.listen(PORT, "127.0.0.1", () => {

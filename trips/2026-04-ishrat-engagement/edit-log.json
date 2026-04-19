@@ -1601,5 +1601,33 @@
     "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-123efc08-a4e3-4679-9e20-7c9e7dbd39f8.yaml",
     "actor": "auto",
     "status": "applied"
+  },
+  {
+    "schemaVersion": "1",
+    "id": "4e270c5d-17b8-4b05-a396-8699cbd74c4f",
+    "createdAt": "2026-04-19T11:42:55.476Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "refine-all-patch",
+    "patch": [
+      {
+        "op": "add",
+        "path": "/dayoneTags",
+        "value": [
+          "engagement",
+          "new-jersey",
+          "spring-2026"
+        ]
+      }
+    ],
+    "inversePatch": [
+      {
+        "op": "remove",
+        "path": "/dayoneTags"
+      }
+    ],
+    "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-4e270c5d-17b8-4b05-a396-8699cbd74c4f.yaml",
+    "actor": "refine-all",
+    "status": "applied"
   }
 ]
