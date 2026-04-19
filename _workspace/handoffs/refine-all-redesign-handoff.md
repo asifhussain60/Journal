@@ -43,11 +43,11 @@ git branch -D refine-all-redesign-v2
 
 ## Context
 
-The Trip Log view's "Suggest from entries" button is client-side text extraction from approved entries (`site/index.html:2170-2189`). DayOne's native tag system is unused — `dayoneTags[]` exists in schema but `dayone.js` never emits them. Highlights render as bullet rows inconsistent with the rest of the chip-based UI.
+The Trip Log view's DayOne Composer previously had a "Highlights" bullet-list section with a "Suggest from entries" button — client-side text extraction. DayOne's native tag system was unused.
 
-This phase replaces the button with **Refine All**: one click triggers three voice-DNA-aware orchestrators that synthesize a trip-level narrative paragraph, regenerate highlights as memoir beats, and produce normalized DayOne tags. Tags flow through the DayOne export pipeline as native `#tag` markers so they land in DayOne's tag panel on paste. The narrative streams via SSE so the user sees it render while tags and highlights finish computing.
+**What changed (B+):** Highlights replaced by a single **Reflection** freeform textarea with an AI refine button (✨). Tags section added as chip input with typeahead from cross-trip corpus. The Reflection refine button calls `POST /api/refine-reflection` which loads the voice DNA fingerprint and generates/enhances a 2-5 sentence reflection. Tags flow through the DayOne export pipeline as native `#tag` markers.
 
-The existing local extraction is demoted to an emergency fallback, not removed. A feature flag gates the whole feature.
+Remaining phases (C onward) wire the **Refine All** button — one click triggers two orchestrators: `synthesize-trip-narrative` (replaces Reflection with a full voice-DNA narrative paragraph) and `suggest-tags` (merges AI tags). The narrative streams via SSE so the user sees it render while tags finish computing. A feature flag gates Refine All.
 
 ---
 
@@ -55,19 +55,19 @@ The existing local extraction is demoted to an emergency fallback, not removed. 
 
 | # | Decision |
 |---|----------|
-| **D1** | `trip.highlights[]` (5-cap narrative beats, chip UI) and `trip.dayoneTags[]` (open categorical, normalized slugs) coexist. DayOne export extended — `sanitizeCompose` accepts tags, `formatBundle` emits inline `#Tag1 #Tag2` line below Metadata using **display form** (DayOne preserves casing on import). |
-| **D2** | Three orchestrators fan out per Refine All click: `synthesize-trip-narrative` (Sonnet 4.6, full voice fingerprint, 150–300 word paragraph); `suggest-highlights` (Haiku, fingerprint-light, 3–5 fragments ≤8 words each); `suggest-tags` (Haiku, no voice DNA — slugs not prose, 5–12 normalized tags). Each returns `{value, hash, reasoning}` per D12. |
-| **D3** | `trip.narrative` renders as an editable prose block between Highlights/Tags and the Story photo cards. Refine All button lives in the narrative section header — its semantic home (produces all three but narrative is the prose anchor). Highlights section becomes display-only, no button. |
-| **D4 (revised)** | **C-strict skip-if-edited on content-hash Set, not positional array.** Per field: store `Set<hash>` of last-AI-written values. A highlight or narrative is "AI-clean" iff `hashField(currentValue) ∈ storedHashSet`. Survives reorder, delete, partial edit. **Tags are exempt** — always merge (case-insensitive dedup; user-added tags inviolate; AI cannot remove). Per-trip `rejectedAiTags[]` capped at 50 FIFO, auto-re-accepted on manual add (D14). |
+| **D1** | `trip.reflection` (freeform string, max 2000 chars) and `trip.dayoneTags[]` (open categorical, normalized slugs) coexist. DayOne export extended — `sanitizeCompose` accepts reflection + tags, `formatBundle` emits `## Reflection` paragraph + inline `#Tag1 #Tag2` line below Metadata using **display form**. |
+| **D2 (revised)** | Two orchestrators fan out per Refine All click: `synthesize-trip-narrative` (Sonnet 4.6, full voice fingerprint, 150–300 word paragraph → populates Reflection); `suggest-tags` (Haiku, no voice DNA — slugs not prose, 5–12 normalized tags). Each returns `{value, hash, reasoning}` per D12. The standalone Reflection refine (✨ button) uses `refine-reflection` prompt — separate from Refine All. |
+| **D3 (revised)** | Reflection textarea renders between Context and Tags. Refine All button lives in the Reflection section header. When clicked, it replaces the current Reflection with a full AI narrative and merges AI-suggested tags. |
+| **D4 (revised)** | **C-strict skip-if-edited on content-hash Set.** For Reflection: store hash of last-AI-written value. Reflection is "AI-clean" iff `hashField(currentValue) ∈ storedHashSet`. **Tags are exempt** — always merge (case-insensitive dedup; user-added tags inviolate; AI cannot remove). Per-trip `rejectedAiTags[]` capped at 50 FIFO, auto-re-accepted on manual add (D14). |
 | **D5** | Tag UI: hybrid input (freeform + typeahead from cross-trip corpus + AI-suggested chips). Normalize-store / preserve-display-form. Soft cap 15 (warning chip), hard cap 25 (input disabled). Internal normalized `Set` is the single source of truth. |
 | **D6** | Captions-only inputs. Per-photo Refine is the contract — its refined captions feed all three trip-level orchestrators. No Vision re-pass on Refine All. `suggest-tags` additionally receives top-50 cross-trip corpus tags so AI auto-aligns to user vocabulary. |
 | **D7 (revised)** | New `server/src/lib/voice-fingerprint.js` consolidates fingerprint loading. **Preserves the existing 5-second TTL hot-reload semantics** from `server/src/lib/refine.js`. Both `routes/log.js` and `lib/refine.js` refactor to use the new module. Hot-reload gate: edit fingerprint → wait 6s → refine → new output reflected without restart. |
-| **D8** | Existing `suggestHighlights()` is renamed `suggestHighlightsLocal()` and demoted to emergency fallback. Appears as a chip in the Refine-All-failed toast, not as a primary button. Preserves capability during outages. |
-| **D9** | Client `refineState` shape: `{narrative: {status, hashes}, highlights: {status, hashes}, tags: {status}}`. Status enum: `idle \| pending \| streaming \| success \| failed \| edited`. `streaming` is narrative-only (SSE). `edited` is **computed at render time**, never stored. Drives per-field spinners, edited badges, failed/retry chips. |
-| **D10 (revised)** | **All-or-nothing is scoped to the requested field set.** Two endpoints: `POST /api/trip-refine-all` (atomic over all three fields) and `POST /api/trip-refine-field` (atomic single-field; fuels Re-synth). Both return combined `{value, hash, reasoning}` only if every requested field succeeds. Client posts results back as an atomic `patches[]` PATCH to `/api/trip-edit`. Single failure surface, single retry, single write. |
+| **D8 (retired)** | ~~Highlights fallback~~ — no longer applicable. Highlights replaced by Reflection. Refine All failure shows a retry toast; no local extraction fallback needed for a prose field. |
+| **D9 (revised)** | Client `refineState` shape: `{reflection: {status, hashes}, tags: {status}}`. Status enum: `idle \| pending \| streaming \| success \| failed \| edited`. `streaming` is reflection-only (SSE). `edited` is **computed at render time**, never stored. Drives per-field spinners, edited badges, failed/retry chips. |
+| **D10 (revised)** | **All-or-nothing is scoped to the requested field set.** Two endpoints: `POST /api/trip-refine-all` (atomic over reflection + tags) and `POST /api/trip-refine-field` (atomic single-field; fuels Re-synth on reflection). Plus standalone `POST /api/refine-reflection` (quick refine, no atomic commit needed — saves directly). Client posts Refine All results back as an atomic `patches[]` PATCH to `/api/trip-edit`. Single failure surface, single retry, single write. |
 | **D11 (new)** | **Concurrency guard via `baseVersion` ETag.** `/api/trip-edit` and `/api/trip-refine-all` accept `baseVersion` (hash of trip.yaml at client read). Server rejects mismatches with `409 Conflict`; client reloads trip and retries. Prevents lost-updates from double-click, cross-tab edits, or interleaved Refine All + manual edit. |
-| **D12 (new)** | **In-phase capability adds:** (a) idempotency `requestId` on coordinator endpoints — 60s server-side response cache keyed by `{tripId, requestId}`; (b) each orchestrator returns a one-line `reasoning` field surfaced on badge/chip hover; (c) captions-hash memoization — 15-minute short-cache keyed by `hash(concat(sortedCaptions))` returns prior result when captions unchanged; (d) **SSE streaming** — coordinator streams narrative tokens while highlights/tags finish; atomic commit happens only after all three succeed. |
-| **D13 (new)** | **Feature flag:** `REFINE_ALL_ENABLED` env var on the server; `/api/config` exposes the value; client renders the old "Suggest from entries" inline button when false. Safe gradual rollout + instant rollback without git ops. |
+| **D12 (new)** | **In-phase capability adds:** (a) idempotency `requestId` on coordinator endpoints — 60s server-side response cache keyed by `{tripId, requestId}`; (b) each orchestrator returns a one-line `reasoning` field surfaced on badge/chip hover; (c) captions-hash memoization — 15-minute short-cache keyed by `hash(concat(sortedCaptions))` returns prior result when captions unchanged; (d) **SSE streaming** — coordinator streams narrative tokens while tags finish; atomic commit happens only after both succeed. |
+| **D13 (new)** | **Feature flag:** `REFINE_ALL_ENABLED` env var on the server; `/api/config` exposes the value; client hides Refine All button when false (✨ quick refine still works). Safe gradual rollout + instant rollback without git ops. |
 | **D14 (new)** | **`rejectedAiTags[]` policy:** capped at 50 most-recent (FIFO); manually adding a tag in the reject list auto-removes it from the list. Self-correcting, bounded, intent-respecting. |
 
 ---
@@ -90,7 +90,8 @@ git add -A && git commit -m "refine-all(A1): shared/tag-normalize.js + static mo
 - Extend `server/src/schemas/trip-edit.schema.json`:
   - `narrative: { type: "string", maxLength: 4000 }`
   - `narrativeAiHashes: { type: "array", items: { type: "string", pattern: "^[a-f0-9]{16}$" }, default: [] }` (Set semantics — deduped array)
-  - `highlightsAiHashes: { type: "array", items: { type: "string", pattern: "^[a-f0-9]{16}$" }, default: [] }` (Set semantics — deduped)
+  - `highlightsAiHashes: { ... }` — **DEPRECATED**, retained for backward compat; not used by Reflection.
+  - `reflection: { type: "string", maxLength: 2000, default: "" }`
   - `dayoneTags: { type: "array", items: { type: "string", maxLength: 50 }, default: [] }`
   - `rejectedAiTags: { type: "array", items: { type: "string", maxLength: 50 }, default: [], maxItems: 50 }`
 - Create `server/src/lib/hash-field.js` — exports `hashField(value)` returning first 16 hex chars of SHA-256.
@@ -102,7 +103,7 @@ git add -A && git commit -m "refine-all(A2): schema extensions + hash-field.js (
 
 ### Commit A3 — Voice fingerprint consolidated cache (D7 revised)
 - Create `server/src/lib/voice-fingerprint.js`: `getFingerprint()` with **5-second TTL cache** identical to current `refine.js` behavior. Also export `getFingerprintLight()` reading `reference/voice-fingerprint-light.md`, same cache semantics. `invalidate()` for tests.
-- Author `reference/voice-fingerprint-light.md` — tone constraints + absolute prohibitions only (no prose-voice deep analysis). Independent file, independent versioning, used by `suggest-highlights` prompt.
+- Author `reference/voice-fingerprint-light.md` — tone constraints + absolute prohibitions only (no prose-voice deep analysis). Independent file, independent versioning, used by the `refine-reflection` prompt.
 - Refactor `server/src/routes/log.js` (line 34 constant, line 476 read) and `server/src/lib/refine.js` (lines 13, 27–37, 51) to import from the new module. **Behavioral invariant:** prompt system text remains byte-identical; TTL semantics remain 5s.
 - **Gate:** (a) existing per-photo refine produces byte-identical prompt output vs pre-refactor (capture before/after with `DEBUG=prompt node ...`); (b) hot-reload — edit `voice-fingerprint.md`, wait 6s, refine again — new content appears without restart; (c) `voice-fingerprint-light.md` loads and returns distinct content.
 
@@ -122,12 +123,14 @@ git add -A && git commit -m "refine-all(A3): voice-fingerprint.js consolidated c
 git add -A && git commit -m "refine-all(A4): tag-corpus.js with write-path invalidation"
 ```
 
-### Commit A5 — Three orchestrator prompts (D2)
+### Commit A5 — Orchestrator prompts (D2)
 - `server/src/prompts/synthesize-trip-narrative.js` — full voice fingerprint via `getFingerprint()`; `model: 'claude-sonnet-4-6'`; output spec: single paragraph, 150–300 words, journal prose, no markdown, no headings; response envelope includes `reasoning` (one line, why this narrative frame).
-- `server/src/prompts/suggest-highlights.js` — light fingerprint via `getFingerprintLight()`; `model: 'claude-haiku-4-5-20251001'`; output spec: JSON `{items: string[], reasoning: string}`, 3–5 fragments, ≤8 words each, present-tense verb fragments preferred.
 - `server/src/prompts/suggest-tags.js` — no voice DNA; tag normalization rules inline in system; receives `existingCorpus: top-50`; `model: 'claude-haiku-4-5-20251001'`; output spec: JSON `{tags: string[], reasoning: string}`, 5–12 normalized slugs. Server post-validates and re-normalizes any non-conforming output.
-- Register all three in `server/src/prompts/index.js`.
-- **Gate:** each prompt loadable via `loadPrompt(name)`; run each manually with hand-built input (script in `_workspace/scratch/orchestrator-smoke.js`) and verify shape.
+- `server/src/prompts/refine-reflection.js` — full voice fingerprint via `getFingerprint()`; `model: 'claude-sonnet-4-6'`; two modes: blank (generate 2-4 sentences from entries) vs draft (enhance user text in voice DNA). **Already built and committed.**
+- Register all in `server/src/prompts/index.js`.
+- **Gate:** each prompt loadable via `loadPrompt(name)`; run each manually with hand-built input and verify shape.
+
+> **Note:** `suggest-highlights.js` prompt was in the original plan but is no longer needed. Highlights replaced by Reflection.
 
 ```bash
 git add -A && git commit -m "refine-all(A5): three orchestrator prompts registered"
@@ -140,15 +143,15 @@ git add -A && git commit -m "refine-all(A5): three orchestrator prompts register
   - Idempotency: if `(tripId, requestId)` hit within 60s, return cached response.
   - Captions-hash memoization: if `hash(concat(sortedCaptions))` hit within 15min, return cached combined response.
   - Loads `tag-corpus.getTopN(50)` and trip's `rejectedAiTags[]`.
-  - Runs three orchestrators via **`Promise.allSettled`** (not `Promise.all` — prior plan had a latent bug).
-  - **All-or-nothing:** if any orchestrator rejected, return `500 {errors: {narrative?, highlights?, tags?}}` with no partial response.
-  - On full success, return `{narrative: {value, hash, reasoning}, highlights: {values: [], hashes: [], reasoning}, tags: {values: [], reasoning}}`.
+  - Runs two orchestrators via **`Promise.allSettled`** (not `Promise.all` — prior plan had a latent bug).
+  - **All-or-nothing:** if any orchestrator rejected, return `500 {errors: {narrative?, tags?}}` with no partial response.
+  - On full success, return `{narrative: {value, hash, reasoning}, tags: {values: [], reasoning}}`.
   - Filter AI tag suggestions through `rejectedAiTags[]` before returning.
   - Log each orchestrator's `{promptName, model, latencyMs, inputTokens, outputTokens, tripId, requestId}` to the usage table.
 - Extend `POST /api/trip-edit` to accept `{baseVersion, patches: [...]}`:
   - Feature-flag gate when patches present.
   - **`baseVersion` required when `patches[]` present.** Compute `hash(trip.yaml contents)` on read; reject with `409 Conflict {currentVersion}` on mismatch.
-  - Validate each patch is RFC 6902 and touches only allowlisted paths: `/narrative`, `/narrativeAiHashes`, `/highlights`, `/highlights/*`, `/highlightsAiHashes`, `/dayoneTags`, `/dayoneTags/*`, `/rejectedAiTags`, `/rejectedAiTags/*`. Reject any other path with `400`.
+  - Validate each patch is RFC 6902 and touches only allowlisted paths: `/narrative`, `/narrativeAiHashes`, `/reflection`, `/dayoneTags`, `/dayoneTags/*`, `/rejectedAiTags`, `/rejectedAiTags/*`. Reject any other path with `400`.
   - Apply via `fast-json-patch`; write atomically via existing `serializeTripObj` flow.
   - On `/dayoneTags` touch: post-write call `tag-corpus.invalidate()` inside a `try/catch` that never rethrows (corpus rebuild is best-effort).
   - Legacy `{intent, message}` path is unchanged — extension is additive.
@@ -162,10 +165,9 @@ git add -A && git commit -m "refine-all(A6): /api/trip-refine-all coordinator + 
 - Convert `POST /api/trip-refine-all` to dual-mode: Accept header `text/event-stream` → SSE response; default `application/json` → current batch mode (kept for curl/tooling).
 - SSE event stream:
   - `event: narrative.delta` (token batches, 16-token min)
-  - `event: highlights.done { values, hashes, reasoning }`
   - `event: tags.done { values, reasoning }`
   - `event: narrative.done { value, hash, reasoning }`
-  - `event: complete` (all three finished, client commits patches)
+  - `event: complete` (both finished, client commits patches)
   - `event: error { errors }` (any orchestrator failed — all-or-nothing, client discards partial state)
 - Atomic write invariant preserved: server does NOT write to trip.yaml during streaming; client posts final `patches[]` to `/api/trip-edit` only after receiving `complete`.
 - **Gate:** SSE curl client (`_workspace/scratch/sse-smoke.js`) observes delta events within 2s of request; `complete` fires only after all three done; forced orchestrator failure emits `error` and no `complete`; batch-mode curl still works.
@@ -176,8 +178,8 @@ git add -A && git commit -m "refine-all(A7): SSE streaming on coordinator, atomi
 
 ### Commit A8 — Single-field Re-synth endpoint (D10 complement)
 - Create `POST /api/trip-refine-field`:
-  - Body: `{tripId, requestId, baseVersion, field: 'narrative'|'highlights', photos, title, subtitle, dateRange}`.
-  - Runs only the requested orchestrator; returns `{value, hash, reasoning}`.
+  - Body: `{tripId, requestId, baseVersion, field: 'narrative', photos, title, subtitle, dateRange}`.
+  - Runs only the narrative orchestrator; returns `{value, hash, reasoning}`.
   - Same 60s idempotency cache keyed by `(tripId, requestId, field)`.
   - Atomic single-field contract: server does not write — client posts a single-field `patches[]` to `/api/trip-edit`.
   - Tags field not exposed here (always-merge semantics — Re-synth doesn't apply).
@@ -190,7 +192,7 @@ git add -A && git commit -m "refine-all(A8): /api/trip-refine-field for per-fiel
 ### Commit A9 — DayOne tag export pipeline (D1)
 - Extend `sanitizeCompose()` in `server/src/routes/dayone.js:58` to accept `tags: string[]` (max 25, each ≤50 chars, display form preserved, whitespace-in-tag rejected).
 - Extend `formatBundle()` in `dayone.js:106-155`:
-  - Before appending metadata, **escape body hashtags** — replace `#` at word-start in the narrative/highlights body with `＃` (U+FF03 full-width hash) so DayOne only parses the explicit tag line.
+  - Before appending metadata, **escape body hashtags** — replace `#` at word-start in the reflection body with `＃` (U+FF03 full-width hash) so DayOne only parses the explicit tag line.
   - Append a final line below the Metadata block: `#Tag1 #Tag2 #Tag3` using **display form**. Skip entirely if tags empty.
 - Update the Composer DayOne bundle payload (wherever `/api/dayone/bundle` is called in `site/index.html`) to include `tags: trip.dayoneTags || []`.
 - **Gate:** compose a bundle for `2026-04-ishrat-engagement` with hand-added tags — markdown ends with `#Tag ...`; a narrative containing `#covid` renders as `＃covid` in the body but does not appear in the tag line; paste into DayOne and confirm tag panel populates correctly.
@@ -246,7 +248,7 @@ git add -A && git commit -m "refine-all(B1): TagInput component with shared norm
 ```
 
 ### Commit B2 — TagInput integrated into Composer
-- Replace the current tags rendering in the Composer (find the Tags section between Highlights and Story) with `<TagInput ... />`.
+- Replace the current tags rendering in the Composer with `<TagInput ... />`.
 - On Composer mount, client calls `GET /api/tag-corpus/top` (new thin route, just `{top: tag-corpus.getTopN(50)}`) — add the route in this commit.
 - On tag change: debounced 400ms save via `PATCH /api/trip-edit` with `{baseVersion, patches: [{op: 'replace', path: '/dayoneTags', value: nextTags}]}`. On 409, reload trip and retry automatically; display a subtle "synced" toast. On manual-add that's in `rejectedAiTags[]`, also emit a patch removing it from the list (D14).
 - Feature-flag-respecting: when `REFINE_ALL_ENABLED=false`, `aiSuggestions` prop is empty (no AI chips) but freeform + typeahead still work.
@@ -260,59 +262,69 @@ git add -A && git commit -m "refine-all(B2): TagInput wired into Composer with 4
 
 **Where:** Open the Trip Log → switch to **Reviewed** view → scroll to the Composer.
 
-1. **Tags section visible** — Below Highlights, you see a "Tags" label with an input area.
+1. **Tags section visible** — Below the Reflection box, you see a "Tags" label with an input area.
 2. **Add a tag** — Type "engagement" and press Enter. A chip appears.
 3. **Case dedup** — Type "Engagement" then "ENGAGEMENT". No new chips appear (already added).
 4. **Remove a tag** — Click × on a chip. It disappears.
 5. **Typeahead** — Type "en" — a dropdown shows matching tags from your other trips (if any exist).
 6. **Persists on refresh** — Add a few tags, refresh the page. Tags are still there.
 7. **Counter** — The bottom-right shows "3 / 25 tags" (or however many you added).
-8. **Title/Context/Highlights still work** — Edit the Title, add a Highlight. Everything behaves as before.
+8. **Title/Context/Reflection still work** — Edit the Title, type in the Reflection box. Everything behaves as before.
 
 Post this checklist and **wait for explicit go-ahead** before Phase C.
 
 ---
 
-## Phase C — View 2: Narrative + Refine All (D3 + D9 + D12 streaming)
+## Phase C — Refine All: Full AI Narrative + Tags (D3 + D9 + D12 streaming)
 
-### Commit C1 — Narrative section scaffold + refineState
-- Add `refineState` to Composer state: `{narrative: {status, hashes}, highlights: {status, hashes}, tags: {status}}`. Initialize from trip's `narrativeAiHashes` and `highlightsAiHashes` on load. `edited` computed at render time — never stored.
-- Insert new section between Tags and Story:
-  - Section header: `✍ Trip Narrative` on the left, `[✨ Refine All]` on the right.
-  - `<textarea>` bound to `value.narrative`, 8 rows default, CSS autoresize to content.
-  - Conditional badges (rendered via status-aware helpers): `edited`, `failed`, `streaming`, `success`, `pending`.
+> The standalone ✨ Reflection refine button (already built) handles quick AI enhancement.
+> Refine All is the big-gun: replaces Reflection with a full 150-300 word trip narrative
+> and merges AI-suggested tags. One click, two orchestrators, SSE streaming.
+
+### Pre-C1 — Server cleanup (quick win)
+- Remove `server/src/prompts/suggest-highlights.js` (dead code — highlights no longer exist).
+- Refactor `server/src/routes/trip-refine-all.js`: remove `buildHighlightsInput()`, `runHighlights()`, `highlights.done` SSE event. The coordinator now fans out only `synthesize-trip-narrative` + `suggest-tags` (two orchestrators, not three).
+- Update the `Promise.allSettled` in both SSE and batch modes to handle two results instead of three.
+- Update `/api/trip-refine-field` in `trip-refine-all.js` to accept only `field: 'narrative'` (no `'highlights'`).
+- Deregister `suggestHighlightsPrompt` from `server/src/prompts/index.js`.
+
+### Commit C1 — Refine All button + refineState
+- Add `refineState` to Composer state: `{reflection: {status, hashes}, tags: {status}}`. Initialize from trip's `narrativeAiHashes` on load. `edited` computed at render time — never stored.
+- Add a `[✨ Refine All]` button in the Reflection section header (right side, next to the existing ✨ refine icon).
+  - Refine All = full narrative generation (replaces entire Reflection). The existing ✨ icon = quick enhance (preserves user text).
+  - Conditional badges on the Reflection section: `edited`, `failed`, `streaming`, `success`, `pending`.
   - `[Re-synth]` action inside the `edited` badge; `[Retry]` inside the `failed` badge.
   - Each orchestrator badge has a title with its `reasoning` (D12).
-- When `REFINE_ALL_ENABLED=false`, the Refine All button is not rendered — the Highlights section still shows the legacy `[✨ Suggest from entries]` button (temporary; removed in Phase D).
-- **Gate:** section renders with empty narrative; status badges correctly toggle via devtools state injection; no network calls yet.
+- When `REFINE_ALL_ENABLED=false`, the Refine All button is hidden; the ✨ refine icon still works.
+- **Gate:** section renders; status badges correctly toggle via devtools state injection; no network calls yet.
 
 ```bash
-git add -A && git commit -m "refine-all(C1): narrative section scaffold + refineState derivation"
+git add -A && git commit -m "refine-all(C1): Refine All button scaffold + refineState derivation"
 ```
 
 ### Commit C2 — Refine All wiring with SSE streaming
 - Refine All handler:
   1. Generate `requestId = crypto.randomUUID()`.
-  2. Capture `baseVersion` from the trip's last-read hash (expose via trip-read route header `ETag`).
-  3. For each of narrative/highlights, pre-compute if `hashField(currentValue) ∈ storedHashSet` — skip if not (marks `edited`, requires explicit Re-synth). Tags always participate.
-  4. Open `EventSource` to `/api/trip-refine-all` with Accept `text/event-stream`, body in query string or POST body via fetch+ReadableStream. (Prefer `fetch` with ReadableStream → SSE parsing, since POST + SSE via `EventSource` needs polyfill.)
-  5. On `narrative.delta`: append tokens to a transient `streamingNarrative` buffer; render live in the textarea with `status: 'streaming'`.
-  6. On `narrative.done`: commit buffer to `value.narrative` pending, status → `success`.
-  7. On `highlights.done` / `tags.done`: update pending state, status → `success`.
-  8. On `complete`: build `patches[]` (respecting edited-skip rules for narrative/highlights; tags merged as `union(currentTags, newTags) − rejectedAiTags` filtered through D14); PATCH `/api/trip-edit`. On 409, reload trip and re-post with fresh baseVersion (single retry, then escalate to toast).
-  9. On `error`: all statuses affected → `failed`; **no patches written**; toast: "Refine All failed — partial results discarded. [Retry] [Use local extraction]". Local extraction chip is inert until Phase D.
+  2. Capture `baseVersion` from the trip's last-read hash.
+  3. Pre-compute if `hashField(currentReflection) ∈ storedHashSet` — skip if edited (marks `edited`, requires explicit Re-synth). Tags always participate.
+  4. Open `fetch` with `Accept: text/event-stream` to `POST /api/trip-refine-all`.
+  5. On `narrative.delta`: append tokens to Reflection textarea live with `status: 'streaming'`.
+  6. On `narrative.done`: commit to `value.reflection`, status → `success`.
+  7. On `tags.done`: update pending state, status → `success`.
+  8. On `complete`: build `patches[]` (respecting edited-skip for reflection; tags merged as `union(currentTags, newTags) − rejectedAiTags` per D14); PATCH `/api/trip-edit`. On 409, reload trip and re-post with fresh baseVersion.
+  9. On `error`: all statuses → `failed`; **no patches written**; toast: "Refine All failed. [Retry]".
 - Disable Refine All button while any status is `pending | streaming`.
-- **Gate:** run against real trip — narrative streams visibly; all three populate; hashes persist (refresh → no `edited` badges); edit narrative manually → Refine All skips narrative with `edited` badge; force an orchestrator failure (temporarily rename the prompt file) → all-or-nothing kicks in, no partial write.
+- **Gate:** run against real trip — text streams visibly; both fields populate; hashes persist; edit reflection manually → Refine All skips it with `edited` badge; forced failure → all-or-nothing.
 
 ```bash
 git add -A && git commit -m "refine-all(C2): Refine All with SSE streaming, atomic commit, 409 retry"
 ```
 
 ### Commit C3 — Re-synth per-field
-- `[Re-synth]` in the `edited` badge fires `POST /api/trip-refine-field` with the relevant field.
-- Confirm first via `confirm()`: "Overwrite your edits to the narrative?" (and equivalent for highlights — though highlights per-field re-synth only applies if the *whole* highlights collection has drifted from the Set; for a single edited highlight chip, a per-chip Re-synth is out of scope for this phase).
+- `[Re-synth]` in the `edited` badge fires `POST /api/trip-refine-field` with `field: 'narrative'`.
+- Confirm first via `confirm()`: "Overwrite your edits to the reflection?"
 - Atomic single-field patch posted to `/api/trip-edit` on success.
-- **Gate:** edit narrative → click Re-synth in badge → confirmation fires → narrative is overwritten with new AI output, hash updated; cancel on confirmation → no-op.
+- **Gate:** edit reflection → click Re-synth → confirmation → overwritten with AI output, hash updated; cancel → no-op.
 
 ```bash
 git add -A && git commit -m "refine-all(C3): per-field Re-synth with confirmation"
@@ -322,41 +334,23 @@ git add -A && git commit -m "refine-all(C3): per-field Re-synth with confirmatio
 
 **Where:** Open the Trip Log → **Reviewed** view → Composer. You need a trip with approved photo entries.
 
-1. **Refine All button** — Between Tags and Story, you see a "Trip Narrative" section with a ✨ Refine All button on the right.
-2. **Click Refine All** — Text streams into the Narrative box word by word. After a few seconds, Highlights and Tags also populate. Green checkmarks appear.
+1. **Two AI buttons** — The Reflection section has a small ✨ icon (quick refine) and a larger "Refine All" button.
+2. **Click Refine All** — Text streams word-by-word into the Reflection box. Tags also populate. Green checkmarks appear.
 3. **Hover the checkmarks** — A tooltip shows the AI's reasoning for each section.
-4. **Edit the narrative** — Change a word. An "edited" badge appears on the Narrative section.
-5. **Click Refine All again** — The narrative is NOT overwritten (still shows your edit + "edited" badge). Highlights and Tags refresh normally.
-6. **Click Re-synth** — Inside the "edited" badge, click Re-synth. Confirm the dialog. The AI overwrites your edit with a fresh narrative.
-7. **Refresh the page** — Everything you see was saved. No "edited" badges appear (hashes match).
+4. **Edit the reflection** — Change a word. An "edited" badge appears.
+5. **Click Refine All again** — The reflection is NOT overwritten ("edited" badge stays). Tags refresh normally.
+6. **Click Re-synth** — Inside the "edited" badge, click Re-synth. Confirm. The AI overwrites your edit with a fresh narrative.
+7. **Refresh the page** — Everything saved. No "edited" badges (hashes match).
+8. **Quick refine still works** — Clear the reflection, type a sentence, click the small ✨. It enhances your text without doing a full Refine All.
 
-Post this checklist and **wait for go-ahead** before Phase D.
+Post this checklist and **wait for go-ahead** before Phase E.
 
 ---
 
-## Phase D — View 3: Highlights chip redesign (D8)
+## Phase D — RETIRED
 
-### Commit D1 — Highlights as chips + local fallback wiring
-- Redesign the Highlights section to match the chip pattern from `TagInput` — chips with `×`, "+ Add highlight" input row. Cap at 5 (existing constraint). Display-only of the highlights collection — no Refine All button, no Suggest button.
-- Rename client function `suggestHighlights()` → `suggestHighlightsLocal()` at current site:2170-2189. The single existing call site at :2324 is removed — the button goes away entirely.
-- Wire the fallback chip in the Refine-All-failed toast: "Use local extraction" → calls `suggestHighlightsLocal()` and posts an atomic single-field PATCH with the local output. Tags and narrative remain unchanged (local only covers highlights).
-- When `REFINE_ALL_ENABLED=false`: render a dedicated `[✨ Suggest from entries]` button in the Highlights section that calls `suggestHighlightsLocal()` — exact legacy behavior, preserved capability under flag-off.
-- **Gate:** highlights render as chips matching Tags visual; force Refine All failure → "Use local extraction" chip produces highlights from local extraction; flag off → legacy button appears and works.
-
-```bash
-git add -A && git commit -m "refine-all(D1): Highlights chip redesign + local fallback under flag"
-```
-
-### 🛑 Phase D STOP — User Verification Required
-
-**Where:** Same Reviewed Composer view.
-
-1. **Highlights look like Tags** — Highlights now render as rounded chips with × buttons, matching the Tags section style.
-2. **Add/remove highlights** — Type a highlight and press Enter. Click × to remove one. Works like before, just prettier.
-3. **"Suggest from entries" is gone** — The old button is no longer in the Highlights section. Refine All (in the Narrative header) handles it now.
-4. **Fallback works** — If Refine All fails (I'll simulate this), a toast says "Use local extraction". Click it — highlights populate from your existing entries.
-
-Post this checklist and **wait for go-ahead** before Phase E.
+> Phase D (Highlights chip redesign) is no longer needed. Highlights have been
+> replaced by the Reflection textarea (committed in Phase B+). Skip to Phase E.
 
 ---
 
@@ -417,8 +411,7 @@ git add -A && git commit -m "refine-all(E4): observability — structured logs, 
 ### Commit E5 — Code organization & module hygiene
 - `site/index.html` has crossed the readability threshold. Extract Refine All-related components to `site/components/` as **native ESM modules** (no build step required):
   - `site/components/TagInput.mjs`
-  - `site/components/NarrativeSection.mjs`
-  - `site/components/HighlightsChipRow.mjs`
+  - `site/components/ReflectionSection.mjs`
   - `site/components/RefineStateBadge.mjs`
   - `site/components/Toast.mjs` (if a central toast doesn't already exist; otherwise leave it)
   - Each file is a single default-exported component with JSDoc `@typedef` for props.
@@ -435,9 +428,8 @@ git add -A && git commit -m "refine-all(E5): component extraction to native ESM 
 ### Commit E6 — Documentation & type hints
 - File-head comment on every new module: purpose, inputs, outputs, gotchas.
 - JSDoc `@typedef` for shared shapes: `RefineState`, `TagCorpusEntry`, `OrchestratorResult`, `PatchRequest`, `SseEvent`. VS Code IntelliSense without TS build step.
-- New `reference/refine-all-architecture.md`: one-page flow diagram — UI click → SSE stream → three orchestrators → client-side aggregation → atomic PATCH → corpus invalidate → render.
-- `framework.md` appendix: full DoR table (D1–D14), commit map (A1–F2), rollback procedure.
-- Deprecation comment on `suggestHighlightsLocal`: "Emergency fallback; scheduled for removal when Refine All reaches 99.9% monthly success rate."
+- New `reference/refine-all-architecture.md`: one-page flow diagram — UI click → SSE stream → two orchestrators → client-side aggregation → atomic PATCH → corpus invalidate → render.
+- `framework.md` appendix: full DoR table (D1–D14), commit map (A1–G3), rollback procedure.
 - **Gate:** open any new module in VS Code — JSDoc types surface on hover of props; `reference/refine-all-architecture.md` lints as markdown.
 
 ```bash
@@ -448,10 +440,10 @@ git add -A && git commit -m "refine-all(E6): docs + JSDoc types + architecture d
 
 **Where:** Reviewed Composer view, both light and dark themes.
 
-1. **Switch themes** — Open the theme picker. Try at least one light and one dark theme. Tags, Narrative, and Highlights all look correct in both.
-2. **Keyboard only** — Without touching the mouse: Tab to Tags, type a tag, Enter to add, Backspace to remove, Tab to Narrative, Tab to Highlights. Everything reachable.
+1. **Switch themes** — Open the theme picker. Try at least one light and one dark theme. Tags and Reflection both look correct.
+2. **Keyboard only** — Without touching the mouse: Tab to Reflection, type text, Tab to Tags, type a tag, Enter to add, Backspace to remove. Everything reachable.
 3. **Typing feels snappy** — Rapidly type in the tag input. No visible lag or stuttering.
-4. **App still works** — Everything from Phases B, C, D still works. Refine All streams, tags save, highlights add/remove.
+4. **App still works** — Everything from Phases B and C still works. Refine All streams, Reflection refine works, tags save.
 5. **Code is cleaner** — (I'll confirm) `site/index.html` is smaller; components extracted to separate files.
 
 ---
@@ -461,20 +453,19 @@ git add -A && git commit -m "refine-all(E6): docs + JSDoc types + architecture d
 ### Commit F1 — E2E full matrix
 Execute against `2026-04-ishrat-engagement` and report:
 
-1. Click Refine All on a trip with all photos approved — narrative, highlights, tags populate; hashes persist; refresh shows no `edited` badges.
-2. Edit narrative manually; click Refine All — narrative skipped with `edited` badge; highlights/tags refresh.
-3. Click Re-synth in narrative badge — confirms; overwrites; hash updates.
-4. Reorder highlights (not in UI yet; manually via YAML edit) — no spurious `edited` badges (content-hash Set works).
-5. Delete a highlight; add a new one — existing remaining highlights retain AI-clean state.
-6. Add a tag with weird casing — dedups.
-7. Add 25 tags — input disables.
-8. Add an AI-suggested tag, remove it — re-running Refine All doesn't re-suggest; manually re-add it — disappears from `rejectedAiTags[]`.
-9. Compose DayOne bundle — markdown ends with `#Tag1 #Tag2 ...`; narrative `#hashtags` are escaped.
-10. Force `synthesize-trip-narrative` failure — all-or-nothing kicks in, no patches written, retry works; "Use local extraction" fallback chip produces highlights-only.
-11. Restart server — tag corpus rebuilds; top-50 returns expected tags; fingerprint hot-reload works post-restart.
-12. Open Trip Log in two tabs, edit tags in both — 409 auto-reload preserves both edits.
-13. Flip `REFINE_ALL_ENABLED=false` + restart — legacy button reappears; Refine All hidden; local extraction still works.
-14. Throttle network to Slow 3G in DevTools — streaming still works; SSE doesn't time out within 60s.
+1. Click Refine All on a trip with all photos approved — reflection and tags populate; hashes persist; refresh shows no `edited` badges.
+2. Edit reflection manually; click Refine All — reflection skipped with `edited` badge; tags refresh.
+3. Click Re-synth in reflection badge — confirms; overwrites; hash updates.
+4. Click the small ✨ refine icon with text in the Reflection box — AI enhances the text. Click it with an empty box — AI generates from entries.
+5. Add a tag with weird casing — dedups.
+6. Add 25 tags — input disables.
+7. Add an AI-suggested tag, remove it — re-running Refine All doesn't re-suggest; manually re-add it — disappears from `rejectedAiTags[]`.
+8. Compose DayOne bundle — markdown includes `## Reflection` paragraph + `#Tag1 #Tag2 ...`; reflection `#hashtags` are escaped.
+9. Force `synthesize-trip-narrative` failure — all-or-nothing kicks in, no patches written, retry works.
+10. Restart server — tag corpus rebuilds; top-50 returns expected tags; fingerprint hot-reload works post-restart.
+11. Open Trip Log in two tabs, edit tags in both — 409 auto-reload preserves both edits.
+12. Flip `REFINE_ALL_ENABLED=false` + restart — Refine All hidden; ✨ quick refine still works.
+13. Throttle network to Slow 3G in DevTools — streaming still works; SSE doesn't time out within 60s.
 
 ### Commit F2 — framework.md + handoff close
 - `framework.md` appendix updated: DoR table, commit map, rollback procedure, D14 policies.
@@ -565,7 +556,7 @@ git add -A && git commit -m "fix: eliminate remaining hardcoded localhost in sit
 
 ## Acceptance Criteria (Definition of Done)
 
-1. All commits (A1–A10, B1–B2, C1–C3, D1, E1–E6, F1–F2, G1–G3) land on `refine-all-redesign-v2`.
+1. All commits (A1–A10, B1–B2, B+1–B+2, C1–C3, E1–E6, F1–F2, G1–G3) land on `refine-all-redesign-v2`.
 2. Every gate in every commit passes.
 3. Every user-verification STOP is explicitly confirmed.
 4. `2026-04-ishrat-engagement` can be Refine-All'd end-to-end without manual intervention.
@@ -573,6 +564,20 @@ git add -A && git commit -m "fix: eliminate remaining hardcoded localhost in sit
 6. Full WCAG 2.2 AA on redesigned surfaces.
 7. `framework.md` reflects the new flow and all 14 DoR decisions.
 8. Merging to `main` triggers Cloudflare deploy; production site works with no hardcoded localhost URLs.
+
+### Commit Map (actual)
+
+| Commit | Description | Status |
+|--------|-------------|--------|
+| A1–A10 | Server foundations | ✅ Done |
+| B1–B2 | TagInput component + Composer integration | ✅ Done |
+| B+1 | Replace Highlights with Reflection textarea + fix TagInput Enter | ✅ Done |
+| B+2 | AI-powered Reflection refine via voice DNA fingerprint | ✅ Done |
+| C1–C3 | Refine All button + SSE streaming + Re-synth | ⬜ Next |
+| D1 | ~~Highlights chip redesign~~ | ❌ Retired |
+| E1–E6 | Holistic refactor & cleanup | ⬜ Pending |
+| F1–F2 | E2E matrix + closeout | ⬜ Pending |
+| G1–G3 | Publish gate + Cloudflare deploy + localhost audit | ⬜ Pending |
 
 ---
 
@@ -582,11 +587,11 @@ git add -A && git commit -m "fix: eliminate remaining hardcoded localhost in sit
 - Per-orchestrator partial commit — all-or-nothing of the requested field set is locked (D10).
 - SQLite migration for hashes — trip.yaml is the persistence layer, atomic by file write.
 - Tag categorization / hierarchy (DayOne supports `parent/child`) — flat tags only.
-- Memoir export wiring — `narrative`/`highlights`/`tags` are DayOne-only this phase.
+- Memoir export wiring — `reflection`/`tags` are DayOne-only this phase.
 - Theme/CSS rewrites — chips reuse existing token system.
 - Full-site accessibility / performance audit — Phase E is bounded to Refine All surface and immediate adjacency.
 - Converting `site/index.html` wholesale to a module bundler (Vite/esbuild) — native ESM extraction in E5 is the scope.
-- Per-chip Re-synth on highlights — whole-section Re-synth only.
+- Per-chip Re-synth on highlights — retired (highlights replaced by Reflection).
 
 If any of these become necessary mid-implementation, **stop and request scope expansion**. Do not quietly expand.
 
@@ -596,7 +601,7 @@ If any of these become necessary mid-implementation, **stop and request scope ex
 
 | v1 issue | Severity | v2 resolution |
 |---|---|---|
-| Positional `highlightsHashes[]` silently breaks under reorder/delete | P0 | D4 revised — content-hash `Set`; D4 + A2 schema + F1 step 4/5 test it |
+| Positional `highlightsHashes[]` silently breaks under reorder/delete | P0 | Retired — Highlights replaced by Reflection (single string, single hash) |
 | Re-synth field-filter contradicts D10 all-or-nothing | P0 | D10 revised; A8 separate endpoint; C3 Re-synth calls it |
 | `Promise.all` can't return per-field errors object | P0 | A6 uses `Promise.allSettled` |
 | New `voice-fingerprint.js` kills 5s hot-reload from `refine.js` | P0 | D7 revised; A3 preserves TTL + consolidates both call sites |
