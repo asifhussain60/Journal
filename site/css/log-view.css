@@ -2378,3 +2378,165 @@
   margin-top: 6px;
 }
 
+/* ─── Refining card animations ─────────────────────────────────────────
+   Three variants rotate randomly per refine pass so a grid of cards all
+   refining in parallel never feels monotone:
+     • is-refining-shimmer  — diagonal accent sweep across the whole card
+     • is-refining-pulse    — border glow + sparkle-button throb
+     • is-refining-overlay  — semi-transparent curtain with centered spinner
+   Each variant is additive on top of .is-refining (shared base). */
+
+.review-card.is-refining {
+  position: relative;
+  pointer-events: auto; /* we only lock the textarea; other controls stay usable */
+}
+
+/* Variant 1 — diagonal shimmer sweep.
+   A translucent accent-tinted gradient bar travels across the card. */
+.review-card.is-refining-shimmer {
+  overflow: hidden;
+  border-color: rgba(var(--accent-rgb), 0.45);
+}
+.review-card.is-refining-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    transparent 38%,
+    rgba(var(--accent-rgb), 0.18) 48%,
+    rgba(var(--accent-rgb), 0.34) 52%,
+    rgba(var(--accent-rgb), 0.18) 56%,
+    transparent 66%,
+    transparent 100%
+  );
+  background-size: 220% 100%;
+  animation: review-card-shimmer 1.6s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 3;
+  mix-blend-mode: screen;
+}
+@keyframes review-card-shimmer {
+  0%   { background-position: 140% 0; }
+  100% { background-position: -40% 0; }
+}
+
+/* Variant 2 — border glow + sparkle-button throb.
+   Smaller footprint than shimmer; focused on the action button. */
+.review-card.is-refining-pulse {
+  border-color: rgba(var(--accent-rgb), 0.55);
+  box-shadow:
+    0 0 0 1px rgba(var(--accent-rgb), 0.35),
+    0 0 22px rgba(var(--accent-rgb), 0.28),
+    var(--log-shadow-card);
+  animation: review-card-pulse 1.8s ease-in-out infinite;
+}
+.review-card.is-refining-pulse .review-card-prompt-input {
+  border-color: rgba(var(--accent-rgb), 0.45);
+  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.25);
+}
+.review-card.is-refining-pulse .log-action-btn--refine {
+  animation: refine-btn-pulse 1.2s ease-in-out infinite;
+}
+@keyframes review-card-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px rgba(var(--accent-rgb), 0.28),
+      0 0 14px rgba(var(--accent-rgb), 0.20),
+      var(--log-shadow-card);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px rgba(var(--accent-rgb), 0.55),
+      0 0 30px rgba(var(--accent-rgb), 0.38),
+      var(--log-shadow-card);
+  }
+}
+@keyframes refine-btn-pulse {
+  0%, 100% { transform: scale(1);    filter: brightness(1); }
+  50%      { transform: scale(1.04); filter: brightness(1.25); }
+}
+
+/* Variant 3 — full overlay with centered spinner + label.
+   Most explicit treatment; reads "Refining…" on the card itself. */
+.review-card.is-refining-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--bg-secondary) 55%, transparent);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  z-index: 4;
+  pointer-events: none;
+  animation: review-card-overlay-fade 220ms ease-out;
+}
+.review-card.is-refining-overlay::after {
+  content: "Refining…";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: rgba(var(--accent-rgb), 0.95);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
+  z-index: 5;
+  pointer-events: none;
+}
+/* Spinner drawn as a conic-gradient ring, positioned via a sibling pseudo
+   element is not available in CSS — so we use a small inline technique:
+   a second layer on ::after via box-shadow spokes. For broad compatibility
+   and simplicity we render a rotating ring on the card itself using a
+   filter. Keep it lightweight. */
+.review-card.is-refining-overlay {
+  overflow: hidden;
+}
+.review-card.is-refining-overlay .review-card-zone--prompt::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: calc(50% - 22px);
+  width: 28px;
+  height: 28px;
+  margin-left: -14px;
+  border-radius: 50%;
+  border: 2px solid rgba(var(--accent-rgb), 0.25);
+  border-top-color: rgba(var(--accent-rgb), 0.95);
+  animation: review-card-spin 0.9s linear infinite;
+  z-index: 6;
+  pointer-events: none;
+}
+.review-card.is-refining-overlay .review-card-zone--prompt {
+  position: relative;
+}
+@keyframes review-card-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes review-card-overlay-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Respect reduced-motion: fall back to a gentle static glow for all three
+   variants so we never strobe or sweep for motion-sensitive users. */
+@media (prefers-reduced-motion: reduce) {
+  .review-card.is-refining-shimmer::after,
+  .review-card.is-refining-pulse,
+  .review-card.is-refining-pulse .log-action-btn--refine,
+  .review-card.is-refining-overlay::before,
+  .review-card.is-refining-overlay .review-card-zone--prompt::after {
+    animation: none !important;
+  }
+  .review-card.is-refining {
+    border-color: rgba(var(--accent-rgb), 0.55);
+    box-shadow:
+      0 0 0 1px rgba(var(--accent-rgb), 0.35),
+      var(--log-shadow-card);
+  }
+}
+

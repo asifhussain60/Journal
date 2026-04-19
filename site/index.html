@@ -1941,6 +1941,35 @@
       const [refineError, setRefineError] = useState('');
       const [approving, setApproving] = useState(false);
       const [flippingKind, setFlippingKind] = useState(false);
+      // Picks one of three visual treatments for the refining animation
+      // ('shimmer' | 'pulse' | 'overlay'). Rotated at each refine start so
+      // the card "mixes it up" rather than using a single static treatment.
+      const [refineAnim, setRefineAnim] = useState(null);
+      // localStorage key used to persist the "this card was already
+      // refined" flag across page reloads so auto-refine on blur never
+      // burns a second API call on the same entry.
+      const autoRefineStorageKey = `babu:auto-refined:${entry.id}`;
+      // Guards the auto-refine-on-blur behavior: fire at most once per
+      // card, ever. Lazy-initialized from localStorage on first render so
+      // a page reload doesn't re-trigger refinement for entries the user
+      // already refined in a prior session. Manual Refine button stays
+      // unaffected and can always force another pass.
+      const autoRefinedOnceRef = useRef(undefined);
+      if (autoRefinedOnceRef.current === undefined) {
+        try {
+          autoRefinedOnceRef.current = typeof window !== 'undefined'
+            && window.localStorage?.getItem(autoRefineStorageKey) === '1';
+        } catch (_) {
+          autoRefinedOnceRef.current = false;
+        }
+      }
+      // Snapshot of the prompt text at mount. Used to detect "the user
+      // actually changed something" vs. "the user just clicked in and
+      // tabbed out" — the latter should NOT spend an API call.
+      const baselinePromptRef = useRef(undefined);
+      if (baselinePromptRef.current === undefined) {
+        baselinePromptRef.current = (initialPrompt || '').trim();
+      }
 
       const isDummy = typeof entry.id === 'string' && entry.id.startsWith('dummy_');
 
@@ -1955,6 +1984,12 @@
           window.notify?.info?.('Demo card', { description: 'Refine is disabled on preview cards.' });
           return;
         }
+        // Pick a random animation variant for this refine pass. Three
+        // treatments (shimmer sweep / border+button pulse / overlay spinner)
+        // rotate so the refining state never feels monotone across a grid
+        // of cards all processing at once.
+        const variants = ['shimmer', 'pulse', 'overlay'];
+        setRefineAnim(variants[Math.floor(Math.random() * variants.length)]);
         setRefining(true);
         setRefineError('');
         try {
@@ -1966,6 +2001,13 @@
             draft.setPrompt(r.refined);
             if (r.structured) draft.setStructured(r.structured);
             if (isReviewed) setLastSaved(r.refined);
+            // Persist the "already refined" marker so that a page reload
+            // (or revisiting this card later) won't re-trigger auto-refine
+            // on blur. Applies to both auto-refine and manual sparkle —
+            // once a card has a refined version, we treat it as done.
+            autoRefinedOnceRef.current = true;
+            baselinePromptRef.current = (r.refined || '').trim();
+            try { window.localStorage?.setItem(autoRefineStorageKey, '1'); } catch (_) {}
             // When vision was skipped for a known reason (HEIC from iPhone,
             // oversized, unreadable) the refine still succeeds on text, but
             // the prose is poorer than with an image. Nudge the user so they
@@ -1984,6 +2026,39 @@
         } finally {
           setRefining(false);
         }
+      }
+
+      // Auto-refine on textarea blur. Fires once per card per session,
+      // only when the prompt is non-empty and no refine is already running.
+      // Intentionally fire-and-forget (no await) so multiple cards can
+      // refine in parallel when the user tabs across them quickly.
+      //
+      // Deferred via setTimeout(…, 0) so the browser's native Tab focus
+      // transition completes BEFORE React re-renders this textarea as
+      // disabled — otherwise the focus is dropped to <body> instead of
+      // landing on the next card's textarea.
+      function handleAutoRefineOnBlur() {
+        if (autoRefinedOnceRef.current) return false;
+        if (refining) return false;
+        if (isDummy) return false;
+        if (effectiveKind === 'video') return false;
+        const text = (draft.prompt || '').trim();
+        if (!text) return false;
+        // Skip if the user merely focused-and-tabbed without editing the
+        // prompt — avoids wasting an API call on an unchanged card.
+        if (text === (baselinePromptRef.current || '')) return false;
+        autoRefinedOnceRef.current = true;
+        setTimeout(() => { handleRefine(); }, 0);
+        return true;
+      }
+
+      // Textarea blur handler: attempt auto-refine first (which will also
+      // persist on the Reviewed lane via persist=true). If auto-refine is
+      // skipped for any reason, fall back to the silent auto-save path so
+      // plain text edits still land server-side.
+      function handlePromptBlur() {
+        const didRefine = handleAutoRefineOnBlur();
+        if (!didRefine) handleAutoSave();
       }
 
       // Auto-save on textarea blur (Reviewed lane only). Silent unless the
@@ -2118,7 +2193,7 @@
 
       return (
         <article
-          className={`review-card review-card-3zone ${draggable ? 'is-draggable' : ''} ${isDragOver ? 'is-drag-over' : ''}`}
+          className={`review-card review-card-3zone ${draggable ? 'is-draggable' : ''} ${isDragOver ? 'is-drag-over' : ''} ${refining ? 'is-refining is-refining-' + (refineAnim || 'shimmer') : ''}`}
           {...dragProps}
         >
           <div className="review-card-zone review-card-zone--artifact">
@@ -2135,7 +2210,7 @@
               className="review-card-prompt-input"
               value={draft.prompt}
               onChange={e => draft.setPrompt(e.target.value)}
-              onBlur={handleAutoSave}
+              onBlur={handlePromptBlur}
               placeholder="Add a note or prompt for this entry…"
               rows={3}
               disabled={refining || approving || unapproving}
