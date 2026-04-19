@@ -870,6 +870,93 @@
   z-index: 1;
 }
 
+/* While a file drag is active over the composer, give the whole module
+   a copy cursor so it visibly matches dataTransfer.dropEffect = 'copy'. */
+.log-module.is-drop-active { cursor: copy; }
+
+/* ─── Drag-and-drop overlay (Photos.app / Finder → Log composer) ─── */
+/* Shown only while a file is being dragged over .log-module. The overlay
+   is pointer-events:none on the backdrop so existing drop handlers below
+   keep firing; the two .log-drop-zone children re-enable pointer-events
+   so the user can swing between Photo and Receipt mid-drag. */
+.log-drop-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9700;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  pointer-events: none;
+  animation: log-drop-fade .14s ease-out;
+}
+@keyframes log-drop-fade { from { opacity: 0; } to { opacity: 1; } }
+.log-drop-overlay-card {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+  padding: 1.6rem 2rem 1.4rem;
+  border-radius: 18px;
+  background: linear-gradient(180deg, var(--bg-tertiary) 0%, var(--bg) 100%);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  box-shadow:
+    0 30px 60px rgba(0, 0, 0, .55),
+    0 8px 18px var(--shadow-a35),
+    inset 0 1px 0 0 var(--white-08);
+  min-width: 320px;
+  max-width: 90vw;
+}
+.log-drop-overlay-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.4rem;
+  color: var(--text);
+  letter-spacing: .01em;
+}
+.log-drop-overlay-zones {
+  display: flex;
+  gap: .9rem;
+}
+.log-drop-zone {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .55rem;
+  width: 7.5rem;
+  height: 7.5rem;
+  border-radius: 14px;
+  border: 2px dashed color-mix(in srgb, var(--accent) 35%, transparent);
+  background: var(--white-04);
+  color: var(--text-secondary);
+  font-size: .95rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+  transition: background-color .14s ease, border-color .14s ease, color .14s ease, transform .14s ease;
+}
+.log-drop-zone i { font-size: 1.6rem; }
+.log-drop-zone.is-target {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  border-color: var(--accent);
+  border-style: solid;
+  color: var(--text);
+  transform: scale(1.04);
+}
+.log-drop-overlay-hint {
+  font-size: .82rem;
+  color: var(--text-muted);
+  letter-spacing: .015em;
+}
+@media (prefers-reduced-motion: reduce) {
+  .log-drop-overlay { animation: none; }
+  .log-drop-zone { transition: none; }
+  .log-drop-zone.is-target { transform: none; }
+}
+
 /* ─── Tab-row capture actions (Phase 11b: + Photo, + Receipt, + Note) ─── */
 .log-capture-actions {
   display: flex;

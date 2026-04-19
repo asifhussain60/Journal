@@ -3084,6 +3084,17 @@
       const photoLibraryRef = useRef(null);
       const receiptInputRef = useRef(null);
 
+      // Drag-and-drop + paste support. The macOS file dialog can't be
+      // pointed at the Photos library by web code (browser security), so
+      // we offer the two native macOS workflows that bypass it entirely:
+      //   • Drag a photo from Photos.app onto the Log composer
+      //   • Cmd+V a copied photo anywhere inside the Log composer
+      // dropOver tracks the currently-hovered intent target ('photo' |
+      // 'receipt' | null). dragDepthRef avoids the well-known dragleave
+      // flicker when the cursor crosses child element boundaries.
+      const [dropOver, setDropOver] = useState(null);
+      const dragDepthRef = useRef(0);
+
       // Close the Photo menu on outside click
       useEffect(() => {
         if (!photoMenuOpen) return;
@@ -3093,6 +3104,39 @@
         document.addEventListener('click', onDoc);
         return () => document.removeEventListener('click', onDoc);
       }, [photoMenuOpen]);
+
+      // Paste-image support. Listens at document scope so the user can
+      // Cmd+V from anywhere on the Log page (focus may be on the title
+      // input, the reflection field, or nowhere). Only fires when the
+      // clipboard actually carries an image, so it never interferes with
+      // pasting plain text into form fields. Routes to capturePhoto by
+      // default — kind can be flipped on the entry card after.
+      // Refs hold the current capture functions so the listener doesn't
+      // need to re-bind every render.
+      const capturePhotoRef = useRef(null);
+      useEffect(() => {
+        function onPaste(e) {
+          const items = Array.from(e.clipboardData?.items || []);
+          const imgItem = items.find(it => it.type && it.type.startsWith('image/'));
+          if (!imgItem) return;
+          const file = imgItem.getAsFile();
+          if (!file) return;
+          // Don't interfere with pasting text into a focused input/textarea
+          // when the clipboard ALSO has text. Also bail when focus is in
+          // FloatingChat — even an image-only paste shouldn't be silently
+          // hijacked there; the chat may want to handle it (or refuse it
+          // explicitly), but our log-capture should never own that vector.
+          const ae = document.activeElement;
+          const inEditable = ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.isContentEditable);
+          const hasText = items.some(it => it.kind === 'string');
+          if (inEditable && hasText) return;
+          if (ae && ae.closest && ae.closest('#floating-chat-root')) return;
+          e.preventDefault();
+          capturePhotoRef.current?.(file, null);
+        }
+        document.addEventListener('paste', onPaste);
+        return () => document.removeEventListener('paste', onPaste);
+      }, []);
 
       function loadEntries() {
         setLoading(true);
@@ -3487,6 +3531,10 @@
 
       async function capturePhoto(file, sourceRef) {
         if (!file) return;
+        if (!file.type || !file.type.startsWith('image/')) {
+          window.notify?.warning?.('Skipped — not an image', { description: file.name || 'file' });
+          return;
+        }
         setCapturing(true);
         try {
           const normalized = await normalizeImageForUpload(file);
@@ -3513,12 +3561,20 @@
         }
       }
 
+      // Keep the paste-handler's ref pointed at the latest capturePhoto
+      // closure each render so it always sees the current state setters.
+      capturePhotoRef.current = capturePhoto;
+
       // Phase 11b: [+ Receipt] flow — upload with explicit kind=receipt (skips
       // async classify), then immediately call refine so the card lands with
       // structured fields + Asif-voice description already filled in. The
       // button shows a spinner during the round trip.
       async function captureReceipt(file) {
         if (!file) return;
+        if (!file.type || !file.type.startsWith('image/')) {
+          window.notify?.warning?.('Skipped — not an image', { description: file.name || 'file' });
+          return;
+        }
         setReceiptProcessing(true);
         try {
           const normalized = await normalizeImageForUpload(file);
@@ -3667,8 +3723,91 @@
         </>
       );
 
+      // Drag-and-drop handlers for the whole composer. dataTransfer.types
+      // includes "Files" only when the user is dragging from outside the
+      // page (e.g. Photos.app, Finder), so we don't accidentally hijack
+      // the existing review-card drag-to-reorder which uses text/plain.
+      const isFileDrag = (e) => {
+        const types = e.dataTransfer?.types;
+        if (!types) return false;
+        // types is DOMStringList in some browsers; coerce to Array.
+        return Array.from(types).includes('Files');
+      };
+      const onModuleDragEnter = (e) => {
+        if (!isFileDrag(e)) return;
+        dragDepthRef.current += 1;
+        if (dropOver === null) setDropOver('photo');
+      };
+      const onModuleDragOver = (e) => {
+        if (!isFileDrag(e)) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+      };
+      const onModuleDragLeave = (e) => {
+        if (!isFileDrag(e)) return;
+        dragDepthRef.current = Math.max(0, dragDepthRef.current - 1);
+        if (dragDepthRef.current === 0) setDropOver(null);
+      };
+      const onModuleDrop = async (e) => {
+        if (!isFileDrag(e)) return;
+        e.preventDefault();
+        const intent = dropOver || 'photo';
+        setDropOver(null);
+        dragDepthRef.current = 0;
+        const files = Array.from(e.dataTransfer?.files || []).filter(f => f.type && f.type.startsWith('image/'));
+        if (!files.length) {
+          window.notify?.warning?.('Drop ignored — no images in the drag', { description: 'Try dragging a photo from Photos.app or Finder.' });
+          return;
+        }
+        if (intent === 'receipt') {
+          // Receipts are single-shot; if multiple were dropped, take the
+          // first and warn rather than silently fan out.
+          if (files.length > 1) {
+            window.notify?.info?.('Using first image', { description: `${files.length - 1} other image(s) ignored — Receipt is one at a time.` });
+          }
+          await captureReceipt(files[0]);
+        } else {
+          for (const f of files) {
+            try { await capturePhoto(f, null); } catch { /* capturePhoto handles its own toast */ }
+          }
+        }
+      };
+      // Per-target hover handlers — let the user retarget mid-drag by
+      // moving the cursor between the two zones in the overlay.
+      const onZoneEnter = (kind) => () => setDropOver(kind);
+
       return (
-        <div className="log-module">
+        <div
+          className={`log-module ${dropOver ? 'is-drop-active' : ''}`}
+          onDragEnter={onModuleDragEnter}
+          onDragOver={onModuleDragOver}
+          onDragLeave={onModuleDragLeave}
+          onDrop={onModuleDrop}
+        >
+          {dropOver && (
+            <div className="log-drop-overlay" aria-hidden="true">
+              <div className="log-drop-overlay-card">
+                <div className="log-drop-overlay-title">Drop to add</div>
+                <div className="log-drop-overlay-zones">
+                  <div
+                    className={`log-drop-zone ${dropOver === 'photo' ? 'is-target' : ''}`}
+                    onDragEnter={onZoneEnter('photo')}
+                  >
+                    <Icon name="fa-camera" />
+                    <span>Photo</span>
+                  </div>
+                  <div
+                    className={`log-drop-zone ${dropOver === 'receipt' ? 'is-target' : ''}`}
+                    onDragEnter={onZoneEnter('receipt')}
+                  >
+                    <Icon name="fa-receipt" />
+                    <span>Receipt</span>
+                  </div>
+                </div>
+                <div className="log-drop-overlay-hint">Tip — Cmd&nbsp;+&nbsp;V also pastes a copied image.</div>
+              </div>
+            </div>
+          )}
           {/* Hidden file inputs used by the tab-row capture actions below. */}
           <input
             type="file"
