@@ -2747,11 +2747,11 @@
       const tab = 'inbox';
       // Review lane: 'unreviewed' lane shows reviewStatus ∈ {unreviewed,
       // in_review}; 'reviewed' lane shows reviewStatus === 'approved'.
-      // Default to 'reviewed' (DayOne Workspace) so the composition surface
-      // loads first on every visit.
+      // Default to 'unreviewed' (Log Bank) — capture/triage is the entry point;
+      // Workspace is the downstream surface.
       const [reviewView, setReviewView] = useState(() => {
-        try { return localStorage.getItem('log_review_view') || 'reviewed'; }
-        catch { return 'reviewed'; }
+        try { return localStorage.getItem('log_review_view') || 'unreviewed'; }
+        catch { return 'unreviewed'; }
       });
       useEffect(() => {
         try { localStorage.setItem('log_review_view', reviewView); } catch {}
