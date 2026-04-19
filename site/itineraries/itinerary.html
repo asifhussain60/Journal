@@ -368,6 +368,7 @@
         var tagUpper = String(ev.tag || '').toUpperCase();
         var isOutdoor = (tagUpper === 'NATURE' || tagUpper === 'SCENIC_DRIVE') ? '1' : '';
         var dayAttr = ' data-day-idx="' + dayIdx + '"';
+        var idxAttr = ' data-event-idx="' + eventIdx + '"';
         var noteText = ev.notes || ev.tip || ev.desc || '';
 
         var parts = [];
@@ -380,6 +381,7 @@
           (num ? ' data-stop-num="' + num + '"' : '') +
           (isOutdoor ? ' data-outdoor="1"' : '') +
           dayAttr +
+          idxAttr +
           timeAttr +
           durAttr +
           '>');
@@ -549,19 +551,46 @@
         return trip.days[trip.days.length - 1];
       }
 
-      function renderItinerary(trip) {
+      function renderItinerary(trip, opts) {
         console.log('[ITIN:RENDER]', trip.name, trip.days ? trip.days.length + ' days' : 'no days');
 
         var timeline = document.querySelector('.timeline');
         if (!timeline || !trip.days || !trip.days.length) return;
 
-        var targetDay = resolveTargetDay(trip);
+        // preserveState: capture/restore open day + expanded events + scrollY
+        // and SKIP the smart-target scroll. Used by every refresh path except
+        // the initial DOMContentLoaded bootstrap, so post-edit re-renders
+        // never yank the user away from where they were reading.
+        var preserve = !!(opts && opts.preserveState);
+        var snap = null;
+        if (preserve) {
+          var openCardEl = timeline.querySelector('.day-card.open');
+          var expandedRows = [];
+          timeline.querySelectorAll('.event-card.is-expanded').forEach(function(c) {
+            var row = c.closest('.event');
+            if (!row) return;
+            expandedRows.push({
+              dayIdx: row.getAttribute('data-day-idx'),
+              eventIdx: row.getAttribute('data-event-idx'),
+            });
+          });
+          snap = {
+            openDay: openCardEl ? openCardEl.getAttribute('data-day') : null,
+            expanded: expandedRows,
+            scrollY: window.scrollY || window.pageYOffset || 0,
+          };
+        }
+
+        var targetDay = preserve ? null : resolveTargetDay(trip);
         var targetDayNum = targetDay ? targetDay.day : null;
 
         // Build new HTML for all day cards
         var html = '';
         trip.days.forEach(function(day, dayIdx) {
-          var isOpen = day.day === targetDayNum ? ' open' : '';
+          // preserve mode: re-open whichever day-card was open before this
+          // re-render. Otherwise the smart-target (today / first / last) wins.
+          var openDayMatch = preserve && snap && snap.openDay && String(day.day) === String(snap.openDay);
+          var isOpen = (openDayMatch || day.day === targetDayNum) ? ' open' : '';
           var stopAddresses = [];
           var stopIdx = 0;
 
@@ -641,11 +670,30 @@
         timeline.innerHTML = html;
 
         // Auto-open the resolved target day (today / first / last). Falls
-        // back to the first card if resolveTargetDay returned null.
-        var openCard = targetDayNum
-          ? timeline.querySelector('.day-card[data-day="' + targetDayNum + '"]')
-          : timeline.querySelector('.day-card');
-        if (openCard) openCard.classList.add('open');
+        // back to the first card if resolveTargetDay returned null. In
+        // preserve mode the previously-open day is re-opened in the loop
+        // above, so we only fall back here for the initial load path.
+        var openCard;
+        if (preserve && snap && snap.openDay) {
+          openCard = timeline.querySelector('.day-card[data-day="' + snap.openDay + '"]');
+        } else {
+          openCard = targetDayNum
+            ? timeline.querySelector('.day-card[data-day="' + targetDayNum + '"]')
+            : timeline.querySelector('.day-card');
+          if (openCard) openCard.classList.add('open');
+        }
+
+        // Restore expanded event-card state (preserve mode only).
+        if (preserve && snap && snap.expanded.length) {
+          snap.expanded.forEach(function(ref) {
+            var row = timeline.querySelector('.event[data-day-idx="' + ref.dayIdx + '"][data-event-idx="' + ref.eventIdx + '"]');
+            if (!row) return;
+            var card = row.querySelector('.event-card');
+            if (!card) return;
+            card.classList.add('is-expanded');
+            card.setAttribute('aria-expanded', 'true');
+          });
+        }
 
         // Initialize map for every currently-open day card. Collapsed maps
         // are lazy-initialized on first open by toggleCard().
@@ -658,12 +706,19 @@
         // mid-trip and the scroll lands on the correct anchor.
         recomputeItineraryStates();
 
-        // Scroll the target into view. When the target day contains a
-        // "current" event, anchor on that event; otherwise anchor on the
-        // day header. Defer a frame so layout settles after innerHTML swap.
-        requestAnimationFrame(function() {
-          scrollToTarget(openCard);
-        });
+        if (preserve && snap) {
+          // Restore exact scroll position — no smooth, no jump to a target.
+          // The user stays anchored where they were before the refresh.
+          window.scrollTo(0, snap.scrollY);
+        } else {
+          // Initial load: scroll the target into view. When the target day
+          // contains a "current" event, anchor on that event; otherwise
+          // anchor on the day header. Defer a frame so layout settles after
+          // innerHTML swap.
+          requestAnimationFrame(function() {
+            scrollToTarget(openCard);
+          });
+        }
 
         // Kick off async drive-time hydration once cards are painted.
         if (typeof hydrateDriveTimes === 'function') {
@@ -676,6 +731,119 @@
           try { hydrateDaySpend(trip); } catch (e) { console.warn('[SPEND]', e); }
         }
       }
+
+      // ─── Surgical per-event update (no full re-render) ───────────────
+      // The canonical post-mutation primitive for changes that touch a
+      // single event in place (swap venue, manual title edit). Mutates
+      // window.__tripData, replaces just that one .event row, and uses
+      // the View Transitions API to cross-fade the swap. Falls back to
+      // a CSS accent-glow keyframe in browsers without view transitions.
+      // Why this exists: the prior pattern (mutate → refreshItinerary)
+      // tore down the whole timeline, collapsing accordions and yanking
+      // the scroll position. This keeps the user anchored.
+      // Re-entry guard: if a second swap arrives for the same row before
+      // the first View Transition's 340ms cross-fade completes, the spec
+      // aborts the in-flight transition and the .finished cleanup may
+      // clear the wrong newRow's viewTransitionName. Instead of racing,
+      // skip the second call — the user's last click still wins on the
+      // server (the fetch already returned), and the optimistic DOM is
+      // accurate for the prior swap.
+      var __eventSwapInFlight = Object.create(null);
+      function applyEventPatchInPlace(dayIdx, eventIdx, patch) {
+        var trip = window.__tripData;
+        if (!trip || !trip.days || !trip.days[dayIdx]) return false;
+        var dayObj = trip.days[dayIdx];
+        var ev = dayObj.events && dayObj.events[eventIdx];
+        if (!ev) return false;
+
+        var swapKey = dayIdx + ':' + eventIdx;
+        if (__eventSwapInFlight[swapKey]) return false;
+
+        // Mutate canonical client state. The server already persisted the
+        // same patch via /api/swap-event, so this is just keeping the
+        // in-memory trip object honest for any later reads.
+        // Strip undefined values so keys like `rating: undefined` don't
+        // overwrite an existing rating when the alt-venue API omits it.
+        var cleanPatch = {};
+        Object.keys(patch).forEach(function(k) { if (patch[k] !== undefined) cleanPatch[k] = patch[k]; });
+        Object.assign(ev, cleanPatch);
+
+        var row = document.querySelector('.event[data-day-idx="' + dayIdx + '"][data-event-idx="' + eventIdx + '"]');
+        if (!row) return false;
+
+        // Preserve expanded body state across the swap so a user reading
+        // the details of the venue they just swapped doesn't have to
+        // re-open the card.
+        var oldCard = row.querySelector('.event-card');
+        var wasExpanded = oldCard && oldCard.classList.contains('is-expanded');
+
+        // Stop number doesn't change for a same-position swap; reuse it.
+        var num = row.getAttribute('data-stop-num');
+        num = num ? Number(num) : null;
+
+        var newHtml = renderEventCard(ev, num, dayIdx, eventIdx, dayObj.date, dayObj.day);
+        var temp = document.createElement('div');
+        temp.innerHTML = newHtml;
+        var newRow = temp.firstElementChild;
+        if (!newRow) return false;
+
+        if (wasExpanded) {
+          var newCard = newRow.querySelector('.event-card');
+          if (newCard) {
+            newCard.classList.add('is-expanded');
+            newCard.setAttribute('aria-expanded', 'true');
+          }
+        }
+
+        var vtName = 'evt-swap-' + dayIdx + '-' + eventIdx;
+        var supportsVT = typeof document.startViewTransition === 'function';
+        var execSwap = function() {
+          row.parentNode.replaceChild(newRow, row);
+          if (supportsVT) newRow.style.viewTransitionName = vtName;
+          // Accent-glow ping, layered on top of the cross-fade. Self-clears
+          // via animationend so we don't accumulate stale classes.
+          var card = newRow.querySelector('.event-card');
+          if (card) {
+            card.classList.add('event-card--swap-flash');
+            card.addEventListener('animationend', function onEnd(e) {
+              if (e.animationName === 'event-swap-flash') {
+                card.classList.remove('event-card--swap-flash');
+                card.removeEventListener('animationend', onEnd);
+              }
+            });
+          }
+        };
+
+        __eventSwapInFlight[swapKey] = true;
+        var clearGuard = function() { delete __eventSwapInFlight[swapKey]; };
+
+        if (supportsVT) {
+          row.style.viewTransitionName = vtName;
+          var transition = document.startViewTransition(execSwap);
+          transition.finished.finally(function() {
+            if (newRow && newRow.style) newRow.style.viewTransitionName = '';
+            clearGuard();
+          });
+        } else {
+          execSwap();
+          // No VT lifecycle — release the guard once the flash keyframe
+          // has had time to land. 1100ms matches the keyframe duration.
+          setTimeout(clearGuard, 1100);
+        }
+
+        // Re-evaluate live state for the changed row (current/done/upcoming).
+        if (typeof recomputeItineraryStates === 'function') {
+          try { recomputeItineraryStates(); } catch (_) {}
+        }
+
+        // Drive-times to/from this stop changed if the venue moved.
+        if (patch && patch.venue && typeof hydrateDriveTimes === 'function') {
+          try { hydrateDriveTimes(trip); } catch (_) {}
+        }
+
+        return true;
+      }
+      window.__applyEventPatchInPlace = applyEventPatchInPlace;
 
       // ─── Find-alternatives modal ─────────────────────────────────────
       // Opens a dark-themed popup, fetches 3 real nearby alternatives from
@@ -1034,8 +1202,17 @@
           .then(function(r) { return r.json(); })
           .then(function(data) {
             if (!data.ok) throw new Error(data.error || 'Swap failed');
+            // Close the modal first so the user sees the itinerary they
+            // were on. The View Transition cross-fade then animates the
+            // single row in place — no full re-render, accordion stays
+            // open, scroll position is preserved.
             closeAltModal();
-            refreshItinerary();
+            applyEventPatchInPlace(dayIdx, eventIdx, {
+              event: alt.name,
+              venue: alt.venue,
+              phone: alt.phone,
+              rating: typeof alt.rating === 'number' ? alt.rating : undefined,
+            });
           })
           .catch(function(err) { renderAltError(err.message || String(err)); });
       }
@@ -1325,8 +1502,9 @@
 
       // Fetch + render. Exposed so the FloatingChat apply handler can
       // re-render the page in place (SPA-style) instead of forcing a reload.
-      function refreshItinerary() {
+      function refreshItinerary(opts) {
         var resolvedSlug;
+        var preserve = !!(opts && opts.preserveState);
         return resolveSlug().then(function(slug) {
           resolvedSlug = slug;
           window.__API_BASE = API_BASE;
@@ -1346,7 +1524,7 @@
               renderTripContext(data.trip);
               renderHero(data.trip);
               renderFlights(data.trip);
-              renderItinerary(data.trip);
+              renderItinerary(data.trip, { preserveState: preserve });
               renderDiningGuide(data.trip);
               renderNotes(data.trip);
               renderJournalDays(data.trip);
@@ -1448,7 +1626,10 @@
             if (window.notify && typeof window.notify.success === 'function') {
               window.notify.success('Removed \u201c' + (ctx.eventName || 'stop') + '\u201d from the itinerary');
             }
-            refreshItinerary();
+            // Delete is a structural change (renumbers stops + map markers),
+            // so we re-fetch the full trip — but in preserve mode so the
+            // user's open day, expanded cards, and scroll all hold.
+            refreshItinerary({ preserveState: true });
           })
           .catch(function(err) {
             console.warn('[DELETE-EVENT]', err);
@@ -1556,8 +1737,9 @@
             if (window.notify && typeof window.notify.success === 'function') {
               window.notify.success('Renamed to \u201c' + next + '\u201d');
             }
-            // Re-render so sort/pills/links reflect the new title everywhere.
-            refreshItinerary();
+            // Surgical update — just this one row, with cross-fade. No full
+            // re-render, so the accordion stays open and scroll is held.
+            applyEventPatchInPlace(dayIdx, eventIdx, { event: next });
           })
           .catch(function(err) {
             el.classList.remove('is-saving');

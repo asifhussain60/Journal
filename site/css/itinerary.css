@@ -893,6 +893,36 @@ html{scroll-behavior:smooth}
   .event[data-state="current"] .event-rail-num{ animation:none; }
 }
 
+/* ─── Per-event surgical swap animation ──────────────────────────────
+   Layered on top of the View Transitions API cross-fade (when
+   supported) and acts as the sole visual cue when not. The "ping"
+   reads as: the accent glow lands on the swapped row, then exhales.
+   Self-clears via animationend in JS so we don't accumulate state. */
+@keyframes event-swap-flash{
+  0%   { box-shadow:0 0 0 0   color-mix(in srgb, var(--accent) 60%, transparent); }
+  35%  { box-shadow:0 0 0 6px color-mix(in srgb, var(--accent) 32%, transparent),
+                    0 0 22px color-mix(in srgb, var(--accent) 45%, transparent); }
+  100% { box-shadow:0 0 0 0   transparent; }
+}
+.event-card--swap-flash{
+  animation:event-swap-flash 1100ms ease-out;
+}
+@media (prefers-reduced-motion: reduce){
+  .event-card--swap-flash{ animation:none; }
+}
+
+/* View Transitions: smooth the default cross-fade so the swap reads as
+   intentional, not snappy. SITE-WIDE — applies to every transition
+   group on the document, not just the evt-swap-* groups assigned by
+   applyEventPatchInPlace. Today that's the only startViewTransition
+   caller; if other code starts using the API its cross-fade will pick
+   up this duration unless it sets its own animation-duration. */
+::view-transition-old(*),
+::view-transition-new(*){
+  animation-duration:340ms;
+  animation-timing-function:cubic-bezier(.4,0,.2,1);
+}
+
 /* ─── Icon column ───────────────────────────────────────────────────── */
 .event-icon{
   width:56px;

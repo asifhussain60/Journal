@@ -1049,7 +1049,7 @@
           window.notify.success(toastMsg);
         }
         if (typeof window.__refreshItinerary === 'function') {
-          window.__refreshItinerary().then(function () {
+          window.__refreshItinerary({ preserveState: true }).then(function () {
             if (state.active) renderRailsForAllDays();
             if (alsoExit) deactivate({ silent: true });
           });

@@ -392,7 +392,7 @@
           // animate into the itinerary.
           const desc = (proposal && proposal.summary) || message;
           if (typeof window.__refreshItinerary === 'function') {
-            window.__refreshItinerary()
+            window.__refreshItinerary({ preserveState: true })
               .then(() => {
                 this.addMessage('Edit applied.', 'system');
                 if (window.notify) window.notify.success('Edit applied', { description: desc });
