@@ -1991,5 +1991,858 @@
     "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-365c7263-6be9-4ad0-8cd3-bc90c04e4531.yaml",
     "actor": "app",
     "status": "reverted"
+  },
+  {
+    "schemaVersion": "1",
+    "id": "618b686b-c526-4f37-9bcd-7359c848608d",
+    "createdAt": "2026-04-19T17:19:13.455Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "Recalc times for day 3 after drag-reorder",
+    "patch": [
+      {
+        "op": "replace",
+        "path": "/days/2/events",
+        "value": [
+          {
+            "time": "7:30 AM",
+            "event": "J&G South Bound Brook Diner",
+            "venue": "10 Cherry St, South Bound Brook, NJ 08880",
+            "tag": "DINING",
+            "phone": "(732) 667-5890",
+            "rating": 4.8,
+            "notes": "Classic 24-hour NJ diner (~15 min) — famous breakfast platters, fresh-made everything. Stephanie lunch at noon, so keep it light.",
+            "category": "American · Classic Diner",
+            "duration_min": 60,
+            "time_mode": "flex",
+            "lat": 40.554389,
+            "lng": -74.526708,
+            "place_id": "openstreetmap:street:polyline:13485777",
+            "geocoded_at": "2026-04-19T16:29:38.581Z"
+          },
+          {
+            "time": "8:30 AM",
+            "event": "Gusto Grill",
+            "venue": "1050 Route 18 North, East Brunswick, NJ 08816",
+            "tag": "DINING",
+            "phone": "(732) 651-2737",
+            "rating": 4.4,
+            "notes": "Keep it light (~10 min) — share a soup and appetizer. Korean BBQ dinner at 4:30 PM, then movie at 7.",
+            "category": "Thai · Light Bites",
+            "duration_min": 75,
+            "time_mode": "flex",
+            "lat": 39.66502,
+            "lng": -74.738208,
+            "place_id": "whosonfirst:region:85688607",
+            "geocoded_at": "2026-04-19T16:29:38.581Z"
+          },
+          {
+            "time": "9:45 AM",
+            "event": "Early Date Night Dinner",
+            "venue": "Prime No. 7, 517 US-1, Iselin, NJ 08830",
+            "tag": "DINING",
+            "phone": "(732) 404-0077",
+            "rating": 4.6,
+            "notes": "Prime No. 7 — Halal all-you-can-eat Korean BBQ. Eat early so you're ready for the 7 PM movie.",
+            "category": "Korean BBQ · Tabletop Grill",
+            "duration_min": 90,
+            "time_mode": "flex",
+            "lat": 40.563631,
+            "lng": -74.299861,
+            "place_id": "openstreetmap:street:polyline:31146670",
+            "geocoded_at": "2026-04-19T16:29:38.581Z",
+            "drive_min_to_next": 25
+          },
+          {
+            "time": "11:40 AM",
+            "event": "Hotel Nap",
+            "venue": "Home2 Suites by Hilton, 3 Jersey Ave, New Brunswick, NJ 08901",
+            "tag": "REST",
+            "notes": "Lunch ends ~1:15 PM; 10-min drive back puts us at hotel by 1:25 PM. 90-min nap window before the Korean BBQ + IMAX evening. Critical rest so she's fresh for a 2.5-hr movie.",
+            "phone": "(732) 729-0900",
+            "rating": 4.1,
+            "category": "Hotel · Downtime",
+            "duration_min": 90,
+            "time_mode": "flex",
+            "lat": 40.480371,
+            "lng": -74.467663,
+            "place_id": "openstreetmap:street:polyline:28594523",
+            "geocoded_at": "2026-04-19T16:29:38.581Z",
+            "drive_min_to_next": 14
+          },
+          {
+            "time": "1:24 PM",
+            "event": "\"Michael\" IMAX Screening",
+            "venue": "AMC Brunswick Square 13, 755 NJ-18, East Brunswick, NJ 08816",
+            "tag": "ENTERTAINMENT",
+            "phone": "(888) 262-4386",
+            "rating": 4.1,
+            "notes": "Starring Jaafar Jackson, directed by Antoine Fuqua. Runtime ~2.5 hrs. Out by ~9:30 PM. Book on Fandango. Perfect post-dinner date night.",
+            "category": "Cinema · IMAX Premiere",
+            "duration_min": 180,
+            "time_mode": "flex",
+            "lat": 40.461356,
+            "lng": -74.403436,
+            "place_id": "openstreetmap:street:polyline:31142599",
+            "geocoded_at": "2026-04-19T16:29:38.581Z"
+          }
+        ]
+      }
+    ],
+    "inversePatch": [
+      {
+        "op": "replace",
+        "path": "/days/2/events/4/time",
+        "value": "7:00 PM"
+      },
+      {
+        "op": "remove",
+        "path": "/days/2/events/3/drive_min_to_next"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/3/place_id",
+        "value": "openstreetmap:street:polyline:31146670"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/3/lng",
+        "value": -74.299861
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/3/lat",
+        "value": 40.563631
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/3/category",
+        "value": "Korean BBQ · Tabletop Grill"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/3/rating",
+        "value": 4.6
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/3/phone",
+        "value": "(732) 404-0077"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/3/notes",
+        "value": "Prime No. 7 — Halal all-you-can-eat Korean BBQ. Eat early so you're ready for the 7 PM movie."
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/3/tag",
+        "value": "DINING"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/3/venue",
+        "value": "Prime No. 7, 517 US-1, Iselin, NJ 08830"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/3/event",
+        "value": "Early Date Night Dinner"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/3/time",
+        "value": "4:30 PM"
+      },
+      {
+        "op": "remove",
+        "path": "/days/2/events/2/drive_min_to_next"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/2/place_id",
+        "value": "openstreetmap:street:polyline:28594523"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/2/lng",
+        "value": -74.467663
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/2/lat",
+        "value": 40.480371
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/2/category",
+        "value": "Hotel · Downtime"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/2/notes",
+        "value": "Lunch ends ~1:15 PM; 10-min drive back puts us at hotel by 1:25 PM. 90-min nap window before the Korean BBQ + IMAX evening. Critical rest so she's fresh for a 2.5-hr movie."
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/2/rating",
+        "value": 4.1
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/2/phone",
+        "value": "(732) 729-0900"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/2/tag",
+        "value": "REST"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/2/venue",
+        "value": "Home2 Suites by Hilton, 3 Jersey Ave, New Brunswick, NJ 08901"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/2/event",
+        "value": "Hotel Nap"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/2/time",
+        "value": "1:30 PM"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/1/time",
+        "value": "12:00 PM"
+      }
+    ],
+    "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-618b686b-c526-4f37-9bcd-7359c848608d.yaml",
+    "actor": "recalc-times",
+    "status": "applied"
+  },
+  {
+    "schemaVersion": "1",
+    "id": "613ae097-c8b1-41a9-b153-ddfdf4f021df",
+    "createdAt": "2026-04-19T17:19:24.086Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "Recalc times for day 3 after drag-reorder",
+    "patch": [
+      {
+        "op": "replace",
+        "path": "/days/2/events",
+        "value": [
+          {
+            "time": "7:30 AM",
+            "event": "J&G South Bound Brook Diner",
+            "venue": "10 Cherry St, South Bound Brook, NJ 08880",
+            "tag": "DINING",
+            "phone": "(732) 667-5890",
+            "rating": 4.8,
+            "notes": "Classic 24-hour NJ diner (~15 min) — famous breakfast platters, fresh-made everything. Stephanie lunch at noon, so keep it light.",
+            "category": "American · Classic Diner",
+            "duration_min": 60,
+            "time_mode": "flex",
+            "lat": 40.554389,
+            "lng": -74.526708,
+            "place_id": "openstreetmap:street:polyline:13485777",
+            "geocoded_at": "2026-04-19T16:29:38.581Z"
+          },
+          {
+            "time": "8:30 AM",
+            "event": "Gusto Grill",
+            "venue": "1050 Route 18 North, East Brunswick, NJ 08816",
+            "tag": "DINING",
+            "phone": "(732) 651-2737",
+            "rating": 4.4,
+            "notes": "Keep it light (~10 min) — share a soup and appetizer. Korean BBQ dinner at 4:30 PM, then movie at 7.",
+            "category": "Thai · Light Bites",
+            "duration_min": 75,
+            "time_mode": "flex",
+            "lat": 39.66502,
+            "lng": -74.738208,
+            "place_id": "whosonfirst:region:85688607",
+            "geocoded_at": "2026-04-19T16:29:38.581Z"
+          },
+          {
+            "time": "9:45 AM",
+            "event": "Hotel Nap",
+            "venue": "Home2 Suites by Hilton, 3 Jersey Ave, New Brunswick, NJ 08901",
+            "tag": "REST",
+            "notes": "Lunch ends ~1:15 PM; 10-min drive back puts us at hotel by 1:25 PM. 90-min nap window before the Korean BBQ + IMAX evening. Critical rest so she's fresh for a 2.5-hr movie.",
+            "phone": "(732) 729-0900",
+            "rating": 4.1,
+            "category": "Hotel · Downtime",
+            "duration_min": 90,
+            "time_mode": "flex",
+            "lat": 40.480371,
+            "lng": -74.467663,
+            "place_id": "openstreetmap:street:polyline:28594523",
+            "geocoded_at": "2026-04-19T16:29:38.581Z",
+            "drive_min_to_next": 27
+          },
+          {
+            "time": "11:42 AM",
+            "event": "Early Date Night Dinner",
+            "venue": "Prime No. 7, 517 US-1, Iselin, NJ 08830",
+            "tag": "DINING",
+            "phone": "(732) 404-0077",
+            "rating": 4.6,
+            "notes": "Prime No. 7 — Halal all-you-can-eat Korean BBQ. Eat early so you're ready for the 7 PM movie.",
+            "category": "Korean BBQ · Tabletop Grill",
+            "duration_min": 90,
+            "time_mode": "flex",
+            "lat": 40.563631,
+            "lng": -74.299861,
+            "place_id": "openstreetmap:street:polyline:31146670",
+            "geocoded_at": "2026-04-19T16:29:38.581Z",
+            "drive_min_to_next": 20
+          },
+          {
+            "time": "1:32 PM",
+            "event": "\"Michael\" IMAX Screening",
+            "venue": "AMC Brunswick Square 13, 755 NJ-18, East Brunswick, NJ 08816",
+            "tag": "ENTERTAINMENT",
+            "phone": "(888) 262-4386",
+            "rating": 4.1,
+            "notes": "Starring Jaafar Jackson, directed by Antoine Fuqua. Runtime ~2.5 hrs. Out by ~9:30 PM. Book on Fandango. Perfect post-dinner date night.",
+            "category": "Cinema · IMAX Premiere",
+            "duration_min": 180,
+            "time_mode": "flex",
+            "lat": 40.461356,
+            "lng": -74.403436,
+            "place_id": "openstreetmap:street:polyline:31142599",
+            "geocoded_at": "2026-04-19T16:29:38.581Z"
+          }
+        ]
+      }
+    ],
+    "inversePatch": [
+      {
+        "op": "replace",
+        "path": "/days/2/events/4/time",
+        "value": "1:24 PM"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/3/drive_min_to_next",
+        "value": 14
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/3/place_id",
+        "value": "openstreetmap:street:polyline:28594523"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/3/lng",
+        "value": -74.467663
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/3/lat",
+        "value": 40.480371
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/3/category",
+        "value": "Hotel · Downtime"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/3/notes",
+        "value": "Lunch ends ~1:15 PM; 10-min drive back puts us at hotel by 1:25 PM. 90-min nap window before the Korean BBQ + IMAX evening. Critical rest so she's fresh for a 2.5-hr movie."
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/3/rating",
+        "value": 4.1
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/3/phone",
+        "value": "(732) 729-0900"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/3/tag",
+        "value": "REST"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/3/venue",
+        "value": "Home2 Suites by Hilton, 3 Jersey Ave, New Brunswick, NJ 08901"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/3/event",
+        "value": "Hotel Nap"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/3/time",
+        "value": "11:40 AM"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/2/drive_min_to_next",
+        "value": 25
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/2/place_id",
+        "value": "openstreetmap:street:polyline:31146670"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/2/lng",
+        "value": -74.299861
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/2/lat",
+        "value": 40.563631
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/2/category",
+        "value": "Korean BBQ · Tabletop Grill"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/2/rating",
+        "value": 4.6
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/2/phone",
+        "value": "(732) 404-0077"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/2/notes",
+        "value": "Prime No. 7 — Halal all-you-can-eat Korean BBQ. Eat early so you're ready for the 7 PM movie."
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/2/tag",
+        "value": "DINING"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/2/venue",
+        "value": "Prime No. 7, 517 US-1, Iselin, NJ 08830"
+      },
+      {
+        "op": "replace",
+        "path": "/days/2/events/2/event",
+        "value": "Early Date Night Dinner"
+      }
+    ],
+    "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-613ae097-c8b1-41a9-b153-ddfdf4f021df.yaml",
+    "actor": "recalc-times",
+    "status": "applied"
+  },
+  {
+    "schemaVersion": "1",
+    "id": "1ff54dcf-63ab-4250-bf7a-9c14859e9ec4",
+    "createdAt": "2026-04-19T17:19:39.129Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "Recalc times for day 4 after drag-reorder",
+    "patch": [
+      {
+        "op": "replace",
+        "path": "/days/3/events",
+        "value": [
+          {
+            "time": "7:30 AM",
+            "event": "Breakfast at Edison Diner",
+            "venue": "101 US Highway 1, Edison, NJ 08817",
+            "tag": "DINING",
+            "phone": "(732) 549-9393",
+            "rating": 4.2,
+            "notes": "Fresh-from-scratch breakfast (~12 min) — homemade bread, hearty omelettes, great portions. Fuel up before the shopping marathon.",
+            "category": "American · Classic Diner",
+            "duration_min": 60,
+            "time_mode": "flex",
+            "lat": 40.51872,
+            "lng": -74.4121,
+            "place_id": "whosonfirst:locality:1125846867",
+            "geocoded_at": "2026-04-19T16:29:38.581Z",
+            "drive_min_to_next": 21
+          },
+          {
+            "time": "8:51 AM",
+            "event": "Nazranaa",
+            "venue": "16 Marconi Ave, Iselin, NJ 08830",
+            "tag": "SHOPPING",
+            "phone": "(732) 283-1808",
+            "rating": 4.8,
+            "notes": "Premier Pakistani boutique (~15 min) — men's shalwar kameez, kurtas, waistcoats. Start early to protect the 12 PM Chase appointment window.",
+            "category": "South Asian Fashion · Bridal",
+            "duration_min": 75,
+            "time_mode": "flex",
+            "lat": 40.575239,
+            "lng": -74.324816,
+            "place_id": "openstreetmap:street:polyline:13476838",
+            "geocoded_at": "2026-04-19T16:29:38.581Z",
+            "drive_min_to_next": 25
+          },
+          {
+            "time": "10:31 AM",
+            "event": "Morning Chai at Khyber Coffee & Tea House",
+            "venue": "110 Church St, New Brunswick, NJ 08901",
+            "tag": "CAFE",
+            "phone": "(732) 993-4114",
+            "rating": 4.6,
+            "notes": "Mid-shopping sit-down pause (~15 min from Samosa House, ~5 min from hotel). Ishrat's English tea, Asif's pour-over, scones optional. Recharge before hotel nap.",
+            "category": "Specialty Coffee House",
+            "duration_min": 30,
+            "time_mode": "flex",
+            "lat": 40.495992,
+            "lng": -74.443822,
+            "place_id": "openstreetmap:street:polyline:13720816",
+            "geocoded_at": "2026-04-19T16:29:38.581Z",
+            "drive_min_to_next": 11
+          },
+          {
+            "time": "11:12 AM",
+            "event": "East Avenue",
+            "venue": "1647 NJ-27, North Brunswick, NJ 08902",
+            "tag": "SHOPPING",
+            "phone": "(732) 940-6000",
+            "rating": 4.6,
+            "notes": "Flagship Pakistani brand (~10 min from Chase). Chase wraps 1:15 PM, 10-min drive puts us here by 1:25 PM. Premium men's shalwar kameez, kurtas, waistcoats — last boutique stop before lunch. Leave time for alterations and matching accessories.",
+            "category": "Pakistani Designer · Tailored",
+            "duration_min": 60,
+            "time_mode": "flex",
+            "lat": 40.44659,
+            "lng": -74.489546,
+            "place_id": "whosonfirst:localadmin:404478199",
+            "geocoded_at": "2026-04-19T16:29:38.581Z",
+            "drive_min_to_next": 29
+          },
+          {
+            "time": "12:41 PM",
+            "event": "Financial Advisor Meeting",
+            "venue": "Chase Bank, 629 Route 18, East Brunswick, NJ 08816",
+            "tag": "APPOINTMENT",
+            "notes": "Chase advisor meeting — full hour booked. Midday slot sits between boutique runs so energy is still fresh; drive from East Avenue ~10 min. [Shifted from 12:00 PM and extended from 45 to 60 min so the meeting gets a real hour, not a rushed slot.]",
+            "phone": "(732) 254-2181",
+            "category": "Banking · Chase",
+            "duration_min": 60,
+            "time_mode": "flex",
+            "lat": 40.475079,
+            "lng": -74.406949,
+            "place_id": "openstreetmap:street:polyline:31142678",
+            "geocoded_at": "2026-04-19T16:29:38.581Z",
+            "drive_min_to_next": 15
+          },
+          {
+            "time": "1:56 PM",
+            "event": "J. Junaid Jamshed",
+            "venue": "2421 US Hwy 1 S, North Brunswick, NJ 08902",
+            "tag": "SHOPPING",
+            "phone": "(732) 940-6000",
+            "rating": 4.6,
+            "notes": "Flagship Pakistani brand (~10 min from Chase). Chase wraps 1:15 PM, 10-min drive puts us here by 1:25 PM. Premium men's shalwar kameez, kurtas, waistcoats — last boutique stop before lunch. Leave time for alterations and matching accessories.",
+            "category": "Pakistani Designer · Tailored",
+            "duration_min": 60,
+            "time_mode": "flex",
+            "lat": 40.44659,
+            "lng": -74.489546,
+            "place_id": "whosonfirst:localadmin:404478199",
+            "geocoded_at": "2026-04-19T16:29:38.581Z",
+            "drive_min_to_next": 31
+          },
+          {
+            "time": "3:27 PM",
+            "event": "Halal Lunch at Samosa House",
+            "venue": "1000 US-9, Old Bridge, NJ 08857",
+            "tag": "DINING",
+            "notes": "Light halal lunch close to the shops (~10 min from J. Junaid). JJ ends 2:30 PM, 10-min drive puts us here by 2:40 PM. Candidates: Spice Rack (halal Indian, East Brunswick), Chaat Hut (Iselin, halal Indo-Chinese), or Chinese Mirch (East Brunswick, halal Chinese). Keep it light — Tabaq dinner is the main event. [Swapped from Amin's Union City to avoid a ~50-min each-way detour.]",
+            "phone": "(732) 525-2770",
+            "rating": 4.3,
+            "category": "Pakistani · Halal Street Food",
+            "duration_min": 60,
+            "time_mode": "flex",
+            "lat": 40.451278,
+            "lng": -74.298214,
+            "place_id": "openstreetmap:street:polyline:31142698",
+            "geocoded_at": "2026-04-19T16:29:38.581Z",
+            "drive_min_to_next": 28
+          },
+          {
+            "time": "4:55 PM",
+            "event": "Tea & Coffee Break — Hidden Grounds",
+            "venue": "106 Church St, New Brunswick, NJ 08901",
+            "tag": "CAFE",
+            "phone": "(732) 993-4114",
+            "rating": 4.6,
+            "notes": "Mid-shopping sit-down pause (~15 min from Samosa House, ~5 min from hotel). Ishrat's English tea, Asif's pour-over, scones optional. Recharge before hotel nap.",
+            "category": "Specialty Coffee House",
+            "duration_min": 30,
+            "time_mode": "flex",
+            "lat": 40.495992,
+            "lng": -74.443822,
+            "place_id": "openstreetmap:street:polyline:13720816",
+            "geocoded_at": "2026-04-19T16:29:38.581Z",
+            "drive_min_to_next": 5
+          },
+          {
+            "time": "5:30 PM",
+            "event": "Hotel Rest / Nap",
+            "venue": "Home2 Suites by Hilton, 3 Jersey Ave, New Brunswick, NJ 08901",
+            "tag": "REST",
+            "notes": "Tea ends 4:45 PM, 5-min drive puts us at hotel by 4:50 PM. 90-min nap — critical rest after a long shopping day and before tomorrow's heavy engagement party.",
+            "phone": "(732) 729-0900",
+            "rating": 4.1,
+            "category": "Hotel · Downtime",
+            "duration_min": 90,
+            "time_mode": "flex",
+            "lat": 40.480371,
+            "lng": -74.467663,
+            "place_id": "openstreetmap:street:polyline:28594523",
+            "geocoded_at": "2026-04-19T16:29:38.581Z",
+            "drive_min_to_next": 28
+          },
+          {
+            "time": "7:28 PM",
+            "event": "Dinner at Tabaq",
+            "venue": "1625 Oak Tree Rd, Edison, NJ 08820",
+            "tag": "DINING",
+            "phone": "(732) 549-9777",
+            "rating": 4.5,
+            "notes": "Pakistani & Chinese halal (~15 min). Nap ends 6:30 PM, 15-min drive arrives 6:45 PM with buffer. Great vegetarian (Palak Paneer, Chana Masala) and meat (tandoori, biryani). Big parking lot.",
+            "category": "Pakistani · Charcoal BBQ",
+            "duration_min": 90,
+            "time_mode": "flex",
+            "lat": 40.571839,
+            "lng": -74.352726,
+            "place_id": "openstreetmap:street:polyline:28596907",
+            "geocoded_at": "2026-04-19T16:29:38.581Z"
+          }
+        ]
+      }
+    ],
+    "inversePatch": [
+      {
+        "op": "replace",
+        "path": "/days/3/events/9/time",
+        "value": "7:00 PM"
+      },
+      {
+        "op": "remove",
+        "path": "/days/3/events/8/drive_min_to_next"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/8/time",
+        "value": "5:00 PM"
+      },
+      {
+        "op": "remove",
+        "path": "/days/3/events/7/drive_min_to_next"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/7/time",
+        "value": "4:15 PM"
+      },
+      {
+        "op": "remove",
+        "path": "/days/3/events/6/drive_min_to_next"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/6/time",
+        "value": "2:45 PM"
+      },
+      {
+        "op": "remove",
+        "path": "/days/3/events/5/drive_min_to_next"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/5/time",
+        "value": "1:30 PM"
+      },
+      {
+        "op": "remove",
+        "path": "/days/3/events/4/drive_min_to_next"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/4/time",
+        "value": "12:15 PM"
+      },
+      {
+        "op": "remove",
+        "path": "/days/3/events/3/drive_min_to_next"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/3/category",
+        "value": "South Asian Fashion · Menswear"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/3/notes",
+        "value": "Multi-brand boutique since 2019 (~5 min) — carries MTJ, Gul Ahmed, Asim Jofa, and more. Compare styles quickly; wrap by 11:45 so we can reach Chase by noon."
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/3/rating",
+        "value": 4.4
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/3/phone",
+        "value": "(732) 798-9900"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/3/time",
+        "value": "10:45 AM"
+      },
+      {
+        "op": "remove",
+        "path": "/days/3/events/2/drive_min_to_next"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/2/place_id",
+        "value": "openstreetmap:street:polyline:13476838"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/2/lng",
+        "value": -74.324816
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/2/lat",
+        "value": 40.575239
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/2/duration_min",
+        "value": 75
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/2/category",
+        "value": "South Asian Fashion · Bridal"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/2/notes",
+        "value": "Premier Pakistani boutique (~15 min) — men's shalwar kameez, kurtas, waistcoats. Start early to protect the 12 PM Chase appointment window."
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/2/rating",
+        "value": 4.8
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/2/phone",
+        "value": "(732) 283-1808"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/2/tag",
+        "value": "SHOPPING"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/2/venue",
+        "value": "16 Marconi Ave, Iselin, NJ 08830"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/2/event",
+        "value": "Nazranaa"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/2/time",
+        "value": "9:30 AM"
+      },
+      {
+        "op": "remove",
+        "path": "/days/3/events/1/drive_min_to_next"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/1/place_id",
+        "value": "openstreetmap:street:polyline:13720816"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/1/lng",
+        "value": -74.443822
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/1/lat",
+        "value": 40.495992
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/1/duration_min",
+        "value": 30
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/1/category",
+        "value": "South Asian Coffee & Tea House · Masala Chai & Desi Bites"
+      },
+      {
+        "op": "remove",
+        "path": "/days/3/events/1/notes"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/1/rating",
+        "value": 4.7
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/1/phone",
+        "value": "(732) 317-1177"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/1/tag",
+        "value": "CAFE"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/1/venue",
+        "value": "110 Church St, New Brunswick, NJ 08901"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/1/event",
+        "value": "Morning Chai at Khyber Coffee & Tea House"
+      },
+      {
+        "op": "replace",
+        "path": "/days/3/events/1/time",
+        "value": "8:50 AM"
+      },
+      {
+        "op": "remove",
+        "path": "/days/3/events/0/drive_min_to_next"
+      }
+    ],
+    "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-1ff54dcf-63ab-4250-bf7a-9c14859e9ec4.yaml",
+    "actor": "recalc-times",
+    "status": "applied"
   }
 ]

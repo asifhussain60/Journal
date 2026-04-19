@@ -225,7 +225,7 @@
           "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
-          "time": "12:00 PM",
+          "time": "8:30 AM",
           "event": "Gusto Grill",
           "venue": "1050 Route 18 North, East Brunswick, NJ 08816",
           "tag": "DINING",
@@ -241,7 +241,7 @@
           "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
-          "time": "1:30 PM",
+          "time": "9:45 AM",
           "event": "Hotel Nap",
           "venue": "Home2 Suites by Hilton, 3 Jersey Ave, New Brunswick, NJ 08901",
           "tag": "REST",
@@ -254,10 +254,11 @@
           "lat": 40.480371,
           "lng": -74.467663,
           "place_id": "openstreetmap:street:polyline:28594523",
-          "geocoded_at": "2026-04-19T16:29:38.581Z"
+          "geocoded_at": "2026-04-19T16:29:38.581Z",
+          "drive_min_to_next": 27
         },
         {
-          "time": "4:30 PM",
+          "time": "11:42 AM",
           "event": "Early Date Night Dinner",
           "venue": "Prime No. 7, 517 US-1, Iselin, NJ 08830",
           "tag": "DINING",
@@ -270,10 +271,11 @@
           "lat": 40.563631,
           "lng": -74.299861,
           "place_id": "openstreetmap:street:polyline:31146670",
-          "geocoded_at": "2026-04-19T16:29:38.581Z"
+          "geocoded_at": "2026-04-19T16:29:38.581Z",
+          "drive_min_to_next": 20
         },
         {
-          "time": "7:00 PM",
+          "time": "1:32 PM",
           "event": "\"Michael\" IMAX Screening",
           "venue": "AMC Brunswick Square 13, 755 NJ-18, East Brunswick, NJ 08816",
           "tag": "ENTERTAINMENT",
@@ -310,25 +312,11 @@
           "lat": 40.51872,
           "lng": -74.4121,
           "place_id": "whosonfirst:locality:1125846867",
-          "geocoded_at": "2026-04-19T16:29:38.581Z"
+          "geocoded_at": "2026-04-19T16:29:38.581Z",
+          "drive_min_to_next": 21
         },
         {
-          "time": "8:50 AM",
-          "event": "Morning Chai at Khyber Coffee & Tea House",
-          "tag": "CAFE",
-          "duration_min": 30,
-          "category": "South Asian Coffee & Tea House · Masala Chai & Desi Bites",
-          "venue": "110 Church St, New Brunswick, NJ 08901",
-          "phone": "(732) 317-1177",
-          "rating": 4.7,
-          "time_mode": "flex",
-          "lat": 40.495992,
-          "lng": -74.443822,
-          "place_id": "openstreetmap:street:polyline:13720816",
-          "geocoded_at": "2026-04-19T16:29:38.581Z"
-        },
-        {
-          "time": "9:30 AM",
+          "time": "8:51 AM",
           "event": "Nazranaa",
           "venue": "16 Marconi Ave, Iselin, NJ 08830",
           "tag": "SHOPPING",
@@ -341,26 +329,45 @@
           "lat": 40.575239,
           "lng": -74.324816,
           "place_id": "openstreetmap:street:polyline:13476838",
-          "geocoded_at": "2026-04-19T16:29:38.581Z"
+          "geocoded_at": "2026-04-19T16:29:38.581Z",
+          "drive_min_to_next": 25
         },
         {
-          "time": "10:45 AM",
+          "time": "10:31 AM",
+          "event": "Morning Chai at Khyber Coffee & Tea House",
+          "venue": "110 Church St, New Brunswick, NJ 08901",
+          "tag": "CAFE",
+          "phone": "(732) 993-4114",
+          "rating": 4.6,
+          "notes": "Mid-shopping sit-down pause (~15 min from Samosa House, ~5 min from hotel). Ishrat's English tea, Asif's pour-over, scones optional. Recharge before hotel nap.",
+          "category": "Specialty Coffee House",
+          "duration_min": 30,
+          "time_mode": "flex",
+          "lat": 40.495992,
+          "lng": -74.443822,
+          "place_id": "openstreetmap:street:polyline:13720816",
+          "geocoded_at": "2026-04-19T16:29:38.581Z",
+          "drive_min_to_next": 11
+        },
+        {
+          "time": "11:12 AM",
           "event": "East Avenue",
           "venue": "1647 NJ-27, North Brunswick, NJ 08902",
           "tag": "SHOPPING",
-          "phone": "(732) 798-9900",
-          "rating": 4.4,
-          "notes": "Multi-brand boutique since 2019 (~5 min) — carries MTJ, Gul Ahmed, Asim Jofa, and more. Compare styles quickly; wrap by 11:45 so we can reach Chase by noon.",
-          "category": "South Asian Fashion · Menswear",
+          "phone": "(732) 940-6000",
+          "rating": 4.6,
+          "notes": "Flagship Pakistani brand (~10 min from Chase). Chase wraps 1:15 PM, 10-min drive puts us here by 1:25 PM. Premium men's shalwar kameez, kurtas, waistcoats — last boutique stop before lunch. Leave time for alterations and matching accessories.",
+          "category": "Pakistani Designer · Tailored",
           "duration_min": 60,
           "time_mode": "flex",
           "lat": 40.44659,
           "lng": -74.489546,
           "place_id": "whosonfirst:localadmin:404478199",
-          "geocoded_at": "2026-04-19T16:29:38.581Z"
+          "geocoded_at": "2026-04-19T16:29:38.581Z",
+          "drive_min_to_next": 29
         },
         {
-          "time": "12:15 PM",
+          "time": "12:41 PM",
           "event": "Financial Advisor Meeting",
           "venue": "Chase Bank, 629 Route 18, East Brunswick, NJ 08816",
           "tag": "APPOINTMENT",
@@ -372,10 +379,11 @@
           "lat": 40.475079,
           "lng": -74.406949,
           "place_id": "openstreetmap:street:polyline:31142678",
-          "geocoded_at": "2026-04-19T16:29:38.581Z"
+          "geocoded_at": "2026-04-19T16:29:38.581Z",
+          "drive_min_to_next": 15
         },
         {
-          "time": "1:30 PM",
+          "time": "1:56 PM",
           "event": "J. Junaid Jamshed",
           "venue": "2421 US Hwy 1 S, North Brunswick, NJ 08902",
           "tag": "SHOPPING",
@@ -388,10 +396,11 @@
           "lat": 40.44659,
           "lng": -74.489546,
           "place_id": "whosonfirst:localadmin:404478199",
-          "geocoded_at": "2026-04-19T16:29:38.581Z"
+          "geocoded_at": "2026-04-19T16:29:38.581Z",
+          "drive_min_to_next": 31
         },
         {
-          "time": "2:45 PM",
+          "time": "3:27 PM",
           "event": "Halal Lunch at Samosa House",
           "venue": "1000 US-9, Old Bridge, NJ 08857",
           "tag": "DINING",
@@ -404,10 +413,11 @@
           "lat": 40.451278,
           "lng": -74.298214,
           "place_id": "openstreetmap:street:polyline:31142698",
-          "geocoded_at": "2026-04-19T16:29:38.581Z"
+          "geocoded_at": "2026-04-19T16:29:38.581Z",
+          "drive_min_to_next": 28
         },
         {
-          "time": "4:15 PM",
+          "time": "4:55 PM",
           "event": "Tea & Coffee Break — Hidden Grounds",
           "venue": "106 Church St, New Brunswick, NJ 08901",
           "tag": "CAFE",
@@ -420,10 +430,11 @@
           "lat": 40.495992,
           "lng": -74.443822,
           "place_id": "openstreetmap:street:polyline:13720816",
-          "geocoded_at": "2026-04-19T16:29:38.581Z"
+          "geocoded_at": "2026-04-19T16:29:38.581Z",
+          "drive_min_to_next": 5
         },
         {
-          "time": "5:00 PM",
+          "time": "5:30 PM",
           "event": "Hotel Rest / Nap",
           "venue": "Home2 Suites by Hilton, 3 Jersey Ave, New Brunswick, NJ 08901",
           "tag": "REST",
@@ -436,10 +447,11 @@
           "lat": 40.480371,
           "lng": -74.467663,
           "place_id": "openstreetmap:street:polyline:28594523",
-          "geocoded_at": "2026-04-19T16:29:38.581Z"
+          "geocoded_at": "2026-04-19T16:29:38.581Z",
+          "drive_min_to_next": 28
         },
         {
-          "time": "7:00 PM",
+          "time": "7:28 PM",
           "event": "Dinner at Tabaq",
           "venue": "1625 Oak Tree Rd, Edison, NJ 08820",
           "tag": "DINING",
