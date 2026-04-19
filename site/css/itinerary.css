@@ -3121,8 +3121,7 @@ html{scroll-behavior:smooth}
   padding:.65rem .85rem;
   margin-bottom:.85rem;
   border-radius:10px;
-  /* Span both columns when the day-body uses the dual-pane grid layout
-     (min-width:1080px). Harmless on the single-column layout. */
+  /* Full-width within .day-body-inner regardless of its grid-template. */
   grid-column:1 / -1;
   background:color-mix(in srgb, var(--gold, #e4b363) 14%, transparent);
   border:1px solid color-mix(in srgb, var(--gold, #e4b363) 32%, transparent);
@@ -3161,27 +3160,3 @@ html{scroll-behavior:smooth}
   border-radius:14px;
 }
 
-/* ═══ DUAL-PANE LAYOUT (Phase 12) ═══
-   On wide screens, the day body switches from stacked [events → map] to
-   a side-by-side grid with the map sticky in view while the user scrolls
-   through the events. The map keeps its own pins + polylines rendered by
-   initMap() and is refreshed by itinerary-reorder.js after a drag-drop.
-   Narrow screens keep the stacked layout (the existing 860px breakpoint
-   already overrides .day-body grid-template-columns → 1fr). */
-@media (min-width:1080px){
-  .day-card.open .day-body .day-body-inner{
-    grid-template-columns:minmax(0, 1fr) minmax(280px, 420px);
-    align-items:start;
-  }
-  .day-card.open .day-body .day-body-inner > .event-list{
-    min-width:0;
-  }
-  .day-card.open .day-body .day-body-inner > .day-map-block{
-    position:sticky;
-    top:1rem;
-    align-self:start;
-  }
-  .day-card.open .day-body .day-body-inner > .day-map-block .day-map{
-    min-height:420px;
-  }
-}
