@@ -1,5 +1,6 @@
 // routes/weather.js — Open-Meteo proxy for itinerary weather tiles.
 //   GET /api/weather?lat=&lng=&date=YYYY-MM-DD
+//   GET /api/weather?slug=&date=YYYY-MM-DD
 //
 // Returns conditions for the requested date + a derived severity flag the
 // client uses to decide whether to paint the warning glow on outdoor /
@@ -7,13 +8,79 @@
 // For future dates (within Open-Meteo's 16-day window), returns the daily
 // forecast for that date.
 //
+// When `slug` is supplied instead of lat/lng, the server reads the trip's
+// coords (trip.yaml `coords: { lat, lng }`) if present, otherwise geocodes
+// `trip.base` or the first `trip.regions[]` via Open-Meteo's free geocoding
+// API. Geocode results are cached in-process so the same trip only hits the
+// geocoder once per server boot.
+//
 // Server-side cache keyed by rounded coords + date; Open-Meteo is free and
 // unauthenticated but we still want to be polite.
 
 import express from "express";
+import { readTripObj } from "../lib/trip-edit-ops.js";
 
 const CACHE = new Map();
 const CACHE_TTL_MS = 30 * 60 * 1000;
+
+// Per-trip geocode cache. Keyed by slug, value: { lat, lng, resolvedFrom } or
+// { failed: reason }. Cleared on server restart — Open-Meteo geocoding is
+// free and stable enough that we don't need disk persistence yet.
+const GEOCODE_CACHE = new Map();
+
+async function geocodeQuery(query) {
+  const url = new URL("https://geocoding-api.open-meteo.com/v1/search");
+  url.searchParams.set("name", query);
+  url.searchParams.set("count", "1");
+  url.searchParams.set("language", "en");
+  url.searchParams.set("format", "json");
+  const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
+  if (!r.ok) throw new Error(`geocoder http_${r.status}`);
+  const j = await r.json();
+  const hit = Array.isArray(j?.results) ? j.results[0] : null;
+  if (!hit || typeof hit.latitude !== "number" || typeof hit.longitude !== "number") return null;
+  return { lat: hit.latitude, lng: hit.longitude, resolvedFrom: query, name: hit.name };
+}
+
+async function resolveTripCoords(slug) {
+  if (!slug) return null;
+  const cached = GEOCODE_CACHE.get(slug);
+  if (cached && !cached.failed) return cached;
+  if (cached?.failed && Date.now() - cached.at < 10 * 60 * 1000) return null; // 10-min negative cache
+  let trip;
+  try { trip = await readTripObj(slug); } catch { GEOCODE_CACHE.set(slug, { failed: "no-trip", at: Date.now() }); return null; }
+  // Prefer explicit coords if the user added them to trip.yaml.
+  if (typeof trip?.coords?.lat === "number" && typeof trip?.coords?.lng === "number") {
+    const hit = { lat: trip.coords.lat, lng: trip.coords.lng, resolvedFrom: "trip.yaml" };
+    GEOCODE_CACHE.set(slug, hit);
+    return hit;
+  }
+  const raw = [trip?.base, ...(Array.isArray(trip?.regions) ? trip.regions : [])].filter(
+    (s) => typeof s === "string" && s.trim().length
+  );
+  // Open-Meteo geocoder wants plain place names ("New Brunswick"), not brand
+  // phrases ("Home2 Suites, New Brunswick, NJ") or compound regions
+  // ("Central New Jersey"). Fan each source string out into comma-separated
+  // fragments and try them in order, de-duped. First hit wins.
+  const tried = new Set();
+  const queries = [];
+  for (const src of raw) {
+    for (const frag of [src, ...src.split(",")].map((s) => s.trim()).filter(Boolean)) {
+      const key = frag.toLowerCase();
+      if (tried.has(key)) continue;
+      tried.add(key);
+      queries.push(frag);
+    }
+  }
+  for (const q of queries) {
+    try {
+      const hit = await geocodeQuery(q);
+      if (hit) { GEOCODE_CACHE.set(slug, hit); return hit; }
+    } catch { /* try next candidate */ }
+  }
+  GEOCODE_CACHE.set(slug, { failed: "geocode-empty", at: Date.now() });
+  return null;
+}
 
 // Open-Meteo WMO weather codes → icon + label + outdoor severity.
 // severity: 'none' (clear/pleasant), 'warn' (rain/cold/wind — outdoor advised
@@ -48,10 +115,21 @@ export function createWeatherRouter() {
 
   router.get("/api/weather", async (req, res) => {
     try {
-      const lat = Number(req.query.lat);
-      const lng = Number(req.query.lng);
+      let lat = Number(req.query.lat);
+      let lng = Number(req.query.lng);
+      let resolvedFrom = null;
+      // Fall back to slug-based geocode when explicit coords aren't supplied.
+      if ((!Number.isFinite(lat) || !Number.isFinite(lng)) && req.query.slug) {
+        const coords = await resolveTripCoords(String(req.query.slug));
+        if (!coords) {
+          return res.status(200).json({ ok: false, error: "coords-unresolved" });
+        }
+        lat = coords.lat;
+        lng = coords.lng;
+        resolvedFrom = coords.resolvedFrom;
+      }
       if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-        return res.status(400).json({ ok: false, error: "lat and lng required" });
+        return res.status(400).json({ ok: false, error: "lat and lng (or slug) required" });
       }
       // Normalize date. Empty / invalid → today. Format YYYY-MM-DD.
       const today = new Date().toISOString().slice(0, 10);
@@ -111,7 +189,7 @@ export function createWeatherRouter() {
       const { icon, label, severity } = classify(code, isToday ? tempF : tempMax, windMph);
       const data = { tempF, tempMin, tempMax, windMph, precipPct, code, icon, label, severity };
       CACHE.set(key, { at: Date.now(), data });
-      res.json({ ok: true, cached: false, date, ...data });
+      res.json({ ok: true, cached: false, date, ...data, ...(resolvedFrom ? { resolvedFrom } : {}) });
     } catch (err) {
       res.status(500).json({ ok: false, error: err?.message ?? String(err) });
     }

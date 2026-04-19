@@ -63,7 +63,17 @@ function sanitizeCompose(raw) {
     ? obj.highlights.map(h => (typeof h === "string" ? h.trim() : "")).filter(Boolean).slice(0, 5)
     : [];
   const date = typeof obj.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(obj.date) ? obj.date : "";
-  return { title, context, highlights, date };
+  // Weather is client-fetched and sent back so the bundle stays deterministic
+  // at clipboard time — no extra Open-Meteo round-trip on Copy.
+  let weather = null;
+  if (obj.weather && typeof obj.weather === "object") {
+    const label = typeof obj.weather.label === "string" ? obj.weather.label.trim() : "";
+    if (label) {
+      const tempF = Number.isFinite(obj.weather.tempF) ? Math.round(obj.weather.tempF) : null;
+      weather = { label, tempF };
+    }
+  }
+  return { title, context, highlights, date, weather };
 }
 
 // "2026-04-19" → "April 19, 2026" — human-friendly rendering for the
@@ -78,12 +88,15 @@ function formatDateHuman(iso) {
   return `${MONTH_NAMES[monthIdx]} ${day}, ${year}`;
 }
 
-function buildDefaultMetadata(tripCtx, entries, date) {
+function buildDefaultMetadata(tripCtx, entries, date, weather) {
   const parts = [];
   const human = formatDateHuman(date);
   if (human) parts.push(human);
   const regions = Array.isArray(tripCtx?.regions) ? tripCtx.regions.filter(Boolean) : [];
   if (regions.length) parts.push(regions.slice(0, 3).join(" · "));
+  if (weather?.label) {
+    parts.push(weather.tempF != null ? `${weather.label} · ${weather.tempF}°F` : weather.label);
+  }
   if (tripCtx?.vibe) parts.push(tripCtx.vibe);
   const kinds = Array.from(new Set((entries || []).map(r => r?.kind).filter(Boolean)));
   if (kinds.length) parts.push(kinds.map(k => `#${k}`).join(" "));
@@ -113,7 +126,7 @@ function formatBundle({ tripCtx, slug, entries, compose: composeRaw }) {
   const title = compose.title || niceTitle(tripCtx, slug);
   const context = compose.context
     || [formatDateRange(entries), tripCtx?.location || tripCtx?.origin?.label || ""].filter(Boolean).join(" · ");
-  const metadata = buildDefaultMetadata(tripCtx, entries, compose.date);
+  const metadata = buildDefaultMetadata(tripCtx, entries, compose.date, compose.weather);
 
   // Photos ride inline with their source entry in the Story body. The Story
   // section owns every [{attachment}] placeholder, which keeps the HTML
