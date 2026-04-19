@@ -1926,5 +1926,70 @@
     "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-40a4675f-aad1-4ad0-bece-e6b8fdd30f73.yaml",
     "actor": "app",
     "status": "applied"
+  },
+  {
+    "schemaVersion": "1",
+    "id": "0f6e0277-6230-42ff-a219-50c36288f47f",
+    "createdAt": "2026-04-19T16:29:38.581Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "backfill: anchors + geocode",
+    "summary": {
+      "anchorsSet": 51,
+      "venuesGeocoded": 45,
+      "venuesFailed": 0
+    },
+    "actor": "migration",
+    "status": "applied"
+  },
+  {
+    "schemaVersion": "1",
+    "id": "365c7263-6be9-4ad0-8cd3-bc90c04e4531",
+    "createdAt": "2026-04-19T16:49:59.785Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "Pin/unpin event 1.1 → flex",
+    "patch": [
+      {
+        "op": "replace",
+        "path": "/days/0/events/0/time_mode",
+        "value": "flex"
+      }
+    ],
+    "inversePatch": [
+      {
+        "op": "replace",
+        "path": "/days/0/events/0/time_mode",
+        "value": "anchor"
+      }
+    ],
+    "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-365c7263-6be9-4ad0-8cd3-bc90c04e4531.yaml",
+    "actor": "pin-event",
+    "status": "applied"
+  },
+  {
+    "schemaVersion": "1",
+    "id": "b783d4b4-7886-430b-8098-15e0b8f229c8",
+    "createdAt": "2026-04-19T16:50:07.476Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "revert 365c7263-6be9-4ad0-8cd3-bc90c04e4531",
+    "patch": [
+      {
+        "op": "replace",
+        "path": "/days/0/events/0/time_mode",
+        "value": "anchor"
+      }
+    ],
+    "inversePatch": [
+      {
+        "op": "replace",
+        "path": "/days/0/events/0/time_mode",
+        "value": "flex"
+      }
+    ],
+    "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-365c7263-6be9-4ad0-8cd3-bc90c04e4531.yaml",
+    "actor": "app",
+    "status": "reverted"
   }
 ]

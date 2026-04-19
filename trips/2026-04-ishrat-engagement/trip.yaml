@@ -91,7 +91,12 @@
           "event": "UA 147 lands at EWR",
           "venue": "Newark Liberty International Airport, Terminal C, Newark, NJ 07114",
           "tag": "TRAVEL",
-          "notes": "Allow 30–45 min for customs & baggage. Meet at arrivals ~3:30–3:45 PM."
+          "notes": "Allow 30–45 min for customs & baggage. Meet at arrivals ~3:30–3:45 PM.",
+          "time_mode": "anchor",
+          "lat": 40.709419,
+          "lng": -74.172575,
+          "place_id": "openstreetmap:venue:way/420672888",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "~4:00 PM",
@@ -100,7 +105,12 @@
           "tag": "TRAVEL",
           "phone": "(732) 729-0900",
           "rating": 4.1,
-          "notes": "~40 min via NJ Turnpike. Arrive ~4:40 PM. Check in, shower, decompress."
+          "notes": "~40 min via NJ Turnpike. Arrive ~4:40 PM. Check in, shower, decompress.",
+          "time_mode": "anchor",
+          "lat": 40.480371,
+          "lng": -74.467663,
+          "place_id": "openstreetmap:street:polyline:28594523",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "6:30 PM",
@@ -111,7 +121,12 @@
           "rating": 3.8,
           "notes": "Indian street food, chaat, sweets & Indo-Chinese (~10 min from hotel). She'll be on London time—midnight by 7 PM ET. Vegetarian-friendly; great for a warm, light arrival meal. Early night after.",
           "category": "Indian · Street Food & Mithai",
-          "duration_min": 75
+          "duration_min": 75,
+          "time_mode": "flex",
+          "lat": 40.43163,
+          "lng": -74.51599,
+          "place_id": "openstreetmap:street:polyline:28595053",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         }
       ]
     },
@@ -130,7 +145,12 @@
           "rating": 4,
           "notes": "Famous NJ diner featured on Diners, Drive-Ins & Dives (~12 min). Scratch kitchen, cage-free eggs, craft pancakes. Jet lag will have you both up early.",
           "category": "American · Classic Diner",
-          "duration_min": 60
+          "duration_min": 60,
+          "time_mode": "flex",
+          "lat": 40.55395,
+          "lng": -74.338093,
+          "place_id": "openstreetmap:street:polyline:28596989",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "12:30 PM",
@@ -141,7 +161,12 @@
           "phone": "(732) 729-0900",
           "rating": 4.1,
           "category": "Hotel · Downtime",
-          "duration_min": 180
+          "duration_min": 180,
+          "time_mode": "flex",
+          "lat": 40.480371,
+          "lng": -74.467663,
+          "place_id": "openstreetmap:street:polyline:28594523",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "6:30 PM",
@@ -152,7 +177,12 @@
           "rating": 4.6,
           "notes": "Vietnamese pho and rice plates (~15 min) — light and perfect for evening.",
           "category": "Vietnamese · Pho & Rice Bowls",
-          "duration_min": 75
+          "duration_min": 75,
+          "time_mode": "flex",
+          "lat": 40.529456,
+          "lng": -74.317879,
+          "place_id": "openstreetmap:street:polyline:28596916",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "8:00 PM",
@@ -163,7 +193,12 @@
           "rating": 4.7,
           "notes": "Walk over in the same plaza for Shark Tank-famous rotisserie dough cones with soft serve. Open till 11 PM. [Shifted from 7:30 PM so it starts after Pho House dinner ends at ~7:45 PM.]",
           "category": "Ice Cream · Sweet Cones",
-          "duration_min": 30
+          "duration_min": 30,
+          "time_mode": "flex",
+          "lat": 40.529456,
+          "lng": -74.317879,
+          "place_id": "openstreetmap:street:polyline:28596916",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         }
       ]
     },
@@ -182,7 +217,12 @@
           "rating": 4.8,
           "notes": "Classic 24-hour NJ diner (~15 min) — famous breakfast platters, fresh-made everything. Stephanie lunch at noon, so keep it light.",
           "category": "American · Classic Diner",
-          "duration_min": 60
+          "duration_min": 60,
+          "time_mode": "flex",
+          "lat": 40.554389,
+          "lng": -74.526708,
+          "place_id": "openstreetmap:street:polyline:13485777",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "12:00 PM",
@@ -193,7 +233,12 @@
           "rating": 4.4,
           "notes": "Keep it light (~10 min) — share a soup and appetizer. Korean BBQ dinner at 4:30 PM, then movie at 7.",
           "category": "Thai · Light Bites",
-          "duration_min": 75
+          "duration_min": 75,
+          "time_mode": "flex",
+          "lat": 39.66502,
+          "lng": -74.738208,
+          "place_id": "whosonfirst:region:85688607",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "1:30 PM",
@@ -204,7 +249,12 @@
           "phone": "(732) 729-0900",
           "rating": 4.1,
           "category": "Hotel · Downtime",
-          "duration_min": 90
+          "duration_min": 90,
+          "time_mode": "flex",
+          "lat": 40.480371,
+          "lng": -74.467663,
+          "place_id": "openstreetmap:street:polyline:28594523",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "4:30 PM",
@@ -215,7 +265,12 @@
           "rating": 4.6,
           "notes": "Prime No. 7 — Halal all-you-can-eat Korean BBQ. Eat early so you're ready for the 7 PM movie.",
           "category": "Korean BBQ · Tabletop Grill",
-          "duration_min": 90
+          "duration_min": 90,
+          "time_mode": "flex",
+          "lat": 40.563631,
+          "lng": -74.299861,
+          "place_id": "openstreetmap:street:polyline:31146670",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "7:00 PM",
@@ -226,7 +281,12 @@
           "rating": 4.1,
           "notes": "Starring Jaafar Jackson, directed by Antoine Fuqua. Runtime ~2.5 hrs. Out by ~9:30 PM. Book on Fandango. Perfect post-dinner date night.",
           "category": "Cinema · IMAX Premiere",
-          "duration_min": 180
+          "duration_min": 180,
+          "time_mode": "flex",
+          "lat": 40.461356,
+          "lng": -74.403436,
+          "place_id": "openstreetmap:street:polyline:31142599",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         }
       ]
     },
@@ -245,7 +305,12 @@
           "rating": 4.2,
           "notes": "Fresh-from-scratch breakfast (~12 min) — homemade bread, hearty omelettes, great portions. Fuel up before the shopping marathon.",
           "category": "American · Classic Diner",
-          "duration_min": 60
+          "duration_min": 60,
+          "time_mode": "flex",
+          "lat": 40.51872,
+          "lng": -74.4121,
+          "place_id": "whosonfirst:locality:1125846867",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "8:50 AM",
@@ -255,7 +320,12 @@
           "category": "South Asian Coffee & Tea House · Masala Chai & Desi Bites",
           "venue": "110 Church St, New Brunswick, NJ 08901",
           "phone": "(732) 317-1177",
-          "rating": 4.7
+          "rating": 4.7,
+          "time_mode": "flex",
+          "lat": 40.495992,
+          "lng": -74.443822,
+          "place_id": "openstreetmap:street:polyline:13720816",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "9:30 AM",
@@ -266,7 +336,12 @@
           "rating": 4.8,
           "notes": "Premier Pakistani boutique (~15 min) — men's shalwar kameez, kurtas, waistcoats. Start early to protect the 12 PM Chase appointment window.",
           "category": "South Asian Fashion · Bridal",
-          "duration_min": 75
+          "duration_min": 75,
+          "time_mode": "flex",
+          "lat": 40.575239,
+          "lng": -74.324816,
+          "place_id": "openstreetmap:street:polyline:13476838",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "10:45 AM",
@@ -277,7 +352,12 @@
           "rating": 4.4,
           "notes": "Multi-brand boutique since 2019 (~5 min) — carries MTJ, Gul Ahmed, Asim Jofa, and more. Compare styles quickly; wrap by 11:45 so we can reach Chase by noon.",
           "category": "South Asian Fashion · Menswear",
-          "duration_min": 60
+          "duration_min": 60,
+          "time_mode": "flex",
+          "lat": 40.44659,
+          "lng": -74.489546,
+          "place_id": "whosonfirst:localadmin:404478199",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "12:15 PM",
@@ -287,7 +367,12 @@
           "notes": "Chase advisor meeting — full hour booked. Midday slot sits between boutique runs so energy is still fresh; drive from East Avenue ~10 min. [Shifted from 12:00 PM and extended from 45 to 60 min so the meeting gets a real hour, not a rushed slot.]",
           "phone": "(732) 254-2181",
           "category": "Banking · Chase",
-          "duration_min": 60
+          "duration_min": 60,
+          "time_mode": "flex",
+          "lat": 40.475079,
+          "lng": -74.406949,
+          "place_id": "openstreetmap:street:polyline:31142678",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "1:30 PM",
@@ -298,7 +383,12 @@
           "rating": 4.6,
           "notes": "Flagship Pakistani brand (~10 min from Chase). Chase wraps 1:15 PM, 10-min drive puts us here by 1:25 PM. Premium men's shalwar kameez, kurtas, waistcoats — last boutique stop before lunch. Leave time for alterations and matching accessories.",
           "category": "Pakistani Designer · Tailored",
-          "duration_min": 60
+          "duration_min": 60,
+          "time_mode": "flex",
+          "lat": 40.44659,
+          "lng": -74.489546,
+          "place_id": "whosonfirst:localadmin:404478199",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "2:45 PM",
@@ -309,7 +399,12 @@
           "phone": "(732) 525-2770",
           "rating": 4.3,
           "category": "Pakistani · Halal Street Food",
-          "duration_min": 60
+          "duration_min": 60,
+          "time_mode": "flex",
+          "lat": 40.451278,
+          "lng": -74.298214,
+          "place_id": "openstreetmap:street:polyline:31142698",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "4:15 PM",
@@ -320,7 +415,12 @@
           "rating": 4.6,
           "notes": "Mid-shopping sit-down pause (~15 min from Samosa House, ~5 min from hotel). Ishrat's English tea, Asif's pour-over, scones optional. Recharge before hotel nap.",
           "category": "Specialty Coffee House",
-          "duration_min": 30
+          "duration_min": 30,
+          "time_mode": "flex",
+          "lat": 40.495992,
+          "lng": -74.443822,
+          "place_id": "openstreetmap:street:polyline:13720816",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "5:00 PM",
@@ -331,7 +431,12 @@
           "phone": "(732) 729-0900",
           "rating": 4.1,
           "category": "Hotel · Downtime",
-          "duration_min": 90
+          "duration_min": 90,
+          "time_mode": "flex",
+          "lat": 40.480371,
+          "lng": -74.467663,
+          "place_id": "openstreetmap:street:polyline:28594523",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "7:00 PM",
@@ -342,7 +447,12 @@
           "rating": 4.5,
           "notes": "Pakistani & Chinese halal (~15 min). Nap ends 6:30 PM, 15-min drive arrives 6:45 PM with buffer. Great vegetarian (Palak Paneer, Chana Masala) and meat (tandoori, biryani). Big parking lot.",
           "category": "Pakistani · Charcoal BBQ",
-          "duration_min": 90
+          "duration_min": 90,
+          "time_mode": "flex",
+          "lat": 40.571839,
+          "lng": -74.352726,
+          "place_id": "openstreetmap:street:polyline:28596907",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         }
       ]
     },
@@ -361,7 +471,12 @@
           "rating": 4.3,
           "notes": "Classic American diner (~5 min) — light eggs, toast, tea. Keep it easy; the engagement party tonight will be a heavy dinner.",
           "category": "American · Classic Diner",
-          "duration_min": 60
+          "duration_min": 60,
+          "time_mode": "flex",
+          "lat": 40.466747,
+          "lng": -74.440849,
+          "place_id": "openstreetmap:street:polyline:31142672",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "10:00 AM",
@@ -369,7 +484,8 @@
           "venue": "",
           "tag": "PREPARATION",
           "notes": "Hair and nails appointment — allow the full 2h 45m window. Final outfit check, steam dress, pack essentials. Salon wraps ~12:45 PM.",
-          "duration_min": 165
+          "duration_min": 165,
+          "time_mode": "flex"
         },
         {
           "time": "1:00 PM",
@@ -380,7 +496,12 @@
           "phone": "(732) 418-0020",
           "rating": 4.4,
           "category": "Indian · Light Lunch",
-          "duration_min": 60
+          "duration_min": 60,
+          "time_mode": "flex",
+          "lat": 40.461356,
+          "lng": -74.403436,
+          "place_id": "openstreetmap:street:polyline:31142599",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "2:15 PM",
@@ -388,7 +509,8 @@
           "venue": "",
           "tag": "PREPARATION",
           "notes": "Lunch ends 2:00 PM, 5-min drive puts us at hotel by 2:10 PM. Get dressed, final touch-ups, fill gas, load car. Be road-ready by 3:30 PM.",
-          "duration_min": 75
+          "duration_min": 75,
+          "time_mode": "flex"
         },
         {
           "time": "3:30 PM",
@@ -396,7 +518,12 @@
           "venue": "183-10 Horace Harding Expy, NY 11365",
           "tag": "TRAVEL",
           "notes": "ETA ~4:45–5:15 PM via Holland Tunnel → LIE. Friday evening traffic adds 20–30 min. Leave by 3:30 PM sharp—no later.",
-          "duration_min": 105
+          "duration_min": 105,
+          "time_mode": "anchor",
+          "lat": 40.734033,
+          "lng": -73.865458,
+          "place_id": "openstreetmap:street:polyline:13460651",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "~5:30 PM",
@@ -406,7 +533,12 @@
           "notes": "An unforgettable evening of family, love, and new beginnings.",
           "phone": "(718) 460-8484",
           "category": "Engagement Celebration",
-          "duration_min": 360
+          "duration_min": 360,
+          "time_mode": "flex",
+          "lat": 40.73482,
+          "lng": -73.79347,
+          "place_id": "geonames:locality:5118005",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         }
       ]
     },
@@ -425,7 +557,12 @@
           "rating": 4,
           "notes": "Post-party recovery breakfast (~10 min) — bakery-fresh muffins, hearty plates, and strong coffee. Opens 8 AM, perfect for sleeping in a bit after the party.",
           "category": "American · Family Breakfast",
-          "duration_min": 60
+          "duration_min": 60,
+          "time_mode": "flex",
+          "lat": 40.475079,
+          "lng": -74.406949,
+          "place_id": "openstreetmap:street:polyline:31142678",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "12:00 PM",
@@ -433,7 +570,8 @@
           "venue": "",
           "tag": "TRAVEL",
           "notes": "Head south to Cream Ridge, NJ (~40 min). New Jersey's premier tulip destination — peak bloom in late April. [Shifted earlier from 1:00 PM so the afternoon fits tulip fields + two farm stops + nap before dinner.]",
-          "duration_min": 40
+          "duration_min": 40,
+          "time_mode": "anchor"
         },
         {
           "time": "12:45 PM",
@@ -444,7 +582,12 @@
           "rating": 4.7,
           "notes": "Millions of tulips across rolling fields. U-pick flowers, stunning photo ops, and a relaxed walk through the colours. Allow ~2 hours to soak it in. Buy tickets online in advance — late April weekends sell out. Wear comfortable shoes (fields can be soft).",
           "category": "Nature · Tulip Fields",
-          "duration_min": 120
+          "duration_min": 120,
+          "time_mode": "flex",
+          "lat": 40.13511,
+          "lng": -74.52404,
+          "place_id": "whosonfirst:locality:1125854637",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "3:00 PM",
@@ -455,7 +598,12 @@
           "rating": 4.6,
           "notes": "Quick farm-stand stop on the way back (~10 min from Holland Ridge). Fresh local produce, baked goods, honey, and seasonal treats. Keep it brisk — cafe is the sit-down moment.",
           "category": "Nature · Orchard Market",
-          "duration_min": 30
+          "duration_min": 30,
+          "time_mode": "flex",
+          "lat": 40.320085,
+          "lng": -74.185523,
+          "place_id": "openstreetmap:street:polyline:31141929",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "3:40 PM",
@@ -466,7 +614,12 @@
           "rating": 4.7,
           "notes": "Rustic NJ farm-market institution (~5 min from Eastmont) with full bakery, loose-leaf tea, proper coffee, and comfortable sit-down. Ishrat's English-tea moment paired with a fresh scone, Asif's espresso. Perfect cafe complement to the tulip day.",
           "category": "Farm Cafe · Pies & Tea",
-          "duration_min": 45
+          "duration_min": 45,
+          "time_mode": "flex",
+          "lat": 40.276832,
+          "lng": -74.16961,
+          "place_id": "openstreetmap:street:polyline:31141951",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "5:15 PM",
@@ -477,7 +630,12 @@
           "phone": "(732) 729-0900",
           "rating": 4.1,
           "category": "Hotel · Downtime",
-          "duration_min": 90
+          "duration_min": 90,
+          "time_mode": "flex",
+          "lat": 40.480371,
+          "lng": -74.467663,
+          "place_id": "openstreetmap:street:polyline:28594523",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "7:00 PM",
@@ -488,7 +646,12 @@
           "rating": 4.4,
           "notes": "Indian & Pakistani (~10 min). Nap ends 6:45 PM, 10-min drive arrives 6:55 PM. Relaxed meal close to home to debrief about the party.",
           "category": "Indian · North Indian",
-          "duration_min": 90
+          "duration_min": 90,
+          "time_mode": "flex",
+          "lat": 40.571839,
+          "lng": -74.352726,
+          "place_id": "openstreetmap:street:polyline:28596907",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         }
       ]
     },
@@ -507,7 +670,12 @@
           "rating": 4.5,
           "notes": "Beloved local gem (~10 min) — famous omelettes, generous portions, very affordable. Quick fuel-up before the long drive to Brandywine Valley.",
           "category": "American · Classic Diner",
-          "duration_min": 60
+          "duration_min": 60,
+          "time_mode": "flex",
+          "lat": 40.460943,
+          "lng": -74.446152,
+          "place_id": "openstreetmap:street:polyline:28594642",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "10:30 AM",
@@ -518,7 +686,12 @@
           "rating": 4.8,
           "notes": "One of the world's great botanical gardens — 1,077 acres of spring blooms, fountains, conservatories, and scenic walking paths. Absolutely stunning in late April. Book timed-entry tickets in advance. Opens 10 AM Sundays. 2-hr tour covers the highlights; wear comfortable walking shoes. [Duration tightened from 3 hrs to 2 hrs so tea at 12:45 PM fits.]",
           "category": "Historic Garden · Conservatory",
-          "duration_min": 120
+          "duration_min": 120,
+          "time_mode": "flex",
+          "lat": 39.871227,
+          "lng": -75.674682,
+          "place_id": "openstreetmap:address:way/156642793",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "12:45 PM",
@@ -529,7 +702,12 @@
           "rating": 4.5,
           "notes": "Proper afternoon tea service with garden-conservatory views. Ishrat's English-tea moment with scones/sandwiches, Asif gets espresso. Reserve in advance — limited sittings and sells out on spring weekends. Inside Longwood so no drive between.",
           "category": "Garden Tea Room",
-          "duration_min": 75
+          "duration_min": 75,
+          "time_mode": "flex",
+          "lat": 39.871227,
+          "lng": -75.674682,
+          "place_id": "openstreetmap:address:way/156642793",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "2:00 PM",
@@ -537,7 +715,8 @@
           "venue": "",
           "tag": "SCENIC_DRIVE",
           "notes": "Wind through the Brandywine Valley on Route 52 & Creek Road — rolling hills, historic estates, stone bridges, and creek-side views. One of the prettiest drives in the Mid-Atlantic. ~30 min to Christiana.",
-          "duration_min": 30
+          "duration_min": 30,
+          "time_mode": "flex"
         },
         {
           "time": "2:30 PM",
@@ -548,7 +727,12 @@
           "rating": 4.3,
           "notes": "Delaware's premier mall — tax-free shopping! Nordstrom, Apple, Coach, Michael Kors, H&M, and 130+ stores. Tax-free saves 6–7% on everything. Plan ~2 hours here. Mall closes at 6 PM on Sundays.",
           "category": "Outlet Mall · Tax-Free DE",
-          "duration_min": 120
+          "duration_min": 120,
+          "time_mode": "flex",
+          "lat": 39.678439,
+          "lng": -75.652168,
+          "place_id": "openstreetmap:address:way/143259361",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "4:45 PM",
@@ -556,7 +740,8 @@
           "venue": "",
           "tag": "TRAVEL",
           "notes": "Head back east via I-95 & NJ Turnpike (~1 hr 30 min). 🚗 Ishrat reclines for a 60-min car nap — recliner seat, pillow + blanket, quiet playlist. Arrive Red Bank ~6:15 PM with 45 min to stroll downtown before dinner. [Dropped Brandywine Creek State Park to give the drive real buffer and a true dinner arrival window.]",
-          "duration_min": 90
+          "duration_min": 90,
+          "time_mode": "anchor"
         },
         {
           "time": "7:00 PM",
@@ -567,7 +752,12 @@
           "rating": 4.5,
           "notes": "Fondue date night — cheese, entrées, and chocolate fondue. The perfect end to a big day out. Book ahead online. Red Bank is on the way home from Delaware, so the route works.",
           "category": "Fondue · Date Night",
-          "duration_min": 120
+          "duration_min": 120,
+          "time_mode": "flex",
+          "lat": 40.346165,
+          "lng": -74.074816,
+          "place_id": "openstreetmap:street:polyline:13713002",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         }
       ]
     },
@@ -586,7 +776,12 @@
           "rating": 4.1,
           "notes": "Opens 6 AM — quick pancakes and coffee (~5 min) before packing. Start organizing luggage when you get back.",
           "category": "American · Pancake House",
-          "duration_min": 60
+          "duration_min": 60,
+          "time_mode": "flex",
+          "lat": 40.44659,
+          "lng": -74.489546,
+          "place_id": "whosonfirst:localadmin:404478199",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "9:30 AM",
@@ -594,7 +789,12 @@
           "venue": "1 Ocean Blvd, Long Branch, NJ 07740",
           "tag": "TRAVEL",
           "notes": "~40 min south. Arrive ~10:10 AM.",
-          "duration_min": 40
+          "duration_min": 40,
+          "time_mode": "anchor",
+          "lat": 40.312223,
+          "lng": -73.980376,
+          "place_id": "openstreetmap:street:polyline:28588295",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "10:30 AM",
@@ -605,7 +805,12 @@
           "rating": 4.4,
           "notes": "Oceanfront spa with indoor pool, sauna, steam room, and treatment rooms. Couples massage available. Ocean views from the deck. Book ahead online. 6-hour block encompasses treatments + lounging + spa lunch — no separate nap needed. Leave by ~4:30 PM.",
           "category": "Resort Spa · Full Day Package",
-          "duration_min": 360
+          "duration_min": 360,
+          "time_mode": "flex",
+          "lat": 40.312223,
+          "lng": -73.980376,
+          "place_id": "openstreetmap:street:polyline:28588295",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "4:45 PM",
@@ -616,7 +821,12 @@
           "phone": "(732) 483-6772",
           "rating": 4.5,
           "category": "Specialty Coffee · Oceanview",
-          "duration_min": 30
+          "duration_min": 30,
+          "time_mode": "flex",
+          "lat": 40.302989,
+          "lng": -73.979946,
+          "place_id": "openstreetmap:street:polyline:28588304",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "6:30 PM",
@@ -627,7 +837,12 @@
           "rating": 4.5,
           "notes": "Middle Eastern halal. Easy drive back from the Shore (~25 min to home). Coffee ends 5:15 PM, 25-min drive puts us near New Brunswick by ~5:45 PM with buffer.",
           "category": "Pakistani BBQ · Farewell",
-          "duration_min": 90
+          "duration_min": 90,
+          "time_mode": "flex",
+          "lat": 40.502229,
+          "lng": -74.44641,
+          "place_id": "openstreetmap:street:polyline:28594635",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         }
       ]
     },
@@ -646,7 +861,12 @@
           "rating": 4.3,
           "notes": "Classic NJ diner since 1959 (~10 min) — last breakfast together before the flight. Famous omelettes and comfort food.",
           "category": "American · Classic Diner",
-          "duration_min": 45
+          "duration_min": 45,
+          "time_mode": "flex",
+          "lat": 40.450104,
+          "lng": -74.397689,
+          "place_id": "openstreetmap:street:polyline:31142608",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "12:00 PM",
@@ -654,7 +874,8 @@
           "venue": "",
           "tag": "PREPARATION",
           "notes": "Double-check luggage, confirm online check-in, and say goodbye to Home2 Suites.",
-          "duration_min": 90
+          "duration_min": 90,
+          "time_mode": "flex"
         },
         {
           "time": "2:00 PM",
@@ -662,14 +883,24 @@
           "venue": "Newark Liberty International Airport, Terminal C, Newark, NJ 07114",
           "tag": "TRAVEL",
           "notes": "~40 min to Terminal C (United hub). Arrive ~2:40 PM — 2 hrs 45 min before departure for international check-in.",
-          "duration_min": 40
+          "duration_min": 40,
+          "time_mode": "anchor",
+          "lat": 40.709419,
+          "lng": -74.172575,
+          "place_id": "openstreetmap:venue:way/420672888",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         },
         {
           "time": "5:25 PM",
           "event": "Flight UA 16 Departs",
           "venue": "Newark Liberty International Airport, Terminal C, Newark, NJ 07114",
           "tag": "DEPARTURE",
-          "notes": "Arrives in LHR at 5:55 AM (+1 day). Seat 33D, Boeing 767-300. Check in online 24 hours before (by Mon 5:25 PM)."
+          "notes": "Arrives in LHR at 5:55 AM (+1 day). Seat 33D, Boeing 767-300. Check in online 24 hours before (by Mon 5:25 PM).",
+          "time_mode": "flex",
+          "lat": 40.709419,
+          "lng": -74.172575,
+          "place_id": "openstreetmap:venue:way/420672888",
+          "geocoded_at": "2026-04-19T16:29:38.581Z"
         }
       ]
     }
