@@ -183,6 +183,13 @@ app.use("/trips", express.static(path.join(REPO_ROOT, "trips"), { fallthrough: t
 // --- Phase 11b classify queue (in-process, async image kind classification)
 const classifyQueue = createClassifyQueue({ anthropic });
 
+// --- Static: serve shared/ modules so the client can import them via <script type="module">
+app.use("/shared", express.static(path.join(REPO_ROOT, "shared"), {
+  fallthrough: true,
+  maxAge: "1h",
+  setHeaders: (res) => res.setHeader("Content-Type", "text/javascript"),
+}));
+
 // --- Mount routers -----------------------------------------------------------
 app.use(createCoreRouter({ anthropic, DEFAULT_MODEL, KEY_SOURCE, PORT, ALLOWED_ORIGINS }));
 app.use(createTripRouter({ anthropic, DEFAULT_MODEL }));
