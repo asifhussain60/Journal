@@ -2328,7 +2328,9 @@
     // fields persist per trip in localStorage so the composer survives
     // reload and re-copies. Reflection was dropped — the refined prose on
     // the card stack already carries that emotional beat.
-    function DayOneComposer({
+    // memo() prevents re-renders from unrelated LogModule state changes when
+    // all props (especially callbacks) are stable (E2 state discipline).
+    const DayOneComposer = memo(function DayOneComposer({
       tripSlug,
       tripCtx,
       reviewedRows,
@@ -2656,7 +2658,7 @@
           )}
         </section>
       );
-    }
+    }); // end memo(DayOneComposer)
 
     function LogModule() {
       // Tab UI removed in this iteration; the entire view is the inbox lane.
@@ -2761,7 +2763,7 @@
       }, [compose.reflection, refineState.reflection.hashes]);
 
       // Debounced save of tags to server
-      function handleTagsChange(nextTags) {
+      const handleTagsChange = useCallback(function handleTagsChange(nextTags) {
         setDayoneTags(nextTags);
         if (tagSaveTimerRef.current) clearTimeout(tagSaveTimerRef.current);
         tagSaveTimerRef.current = setTimeout(() => {
@@ -2793,9 +2795,9 @@
               console.error('[Tags]', err);
             });
         }, 400);
-      }
+      }, [tripSlug]);
       // Reject an AI-suggested tag (D14): add to rejectedAiTags, remove from suggestions
-      function handleRejectAiTag(tag) {
+      const handleRejectAiTag = useCallback(function handleRejectAiTag(tag) {
         setAiSuggestedTags(prev => prev.filter(t => t !== tag));
         if (!tripSlug) return;
         // Read current rejectedAiTags to maintain FIFO cap of 50
@@ -2810,10 +2812,18 @@
             baseVersion: 'skip',
           }),
         }).catch(() => {});
-      }
+      }, [tripSlug, tripCtx?.rejectedAiTags]);
+
+      // Stable-ref proxies for RefineAll / ReSynth — DayOneComposer (memo'd) receives
+      // stable function references while the actual impl always sees fresh closure state.
+      const handleRefineAllImplRef = useRef(null);
+      const handleReSynthImplRef = useRef(null);
+      const handleRefineAll = useCallback((...args) => handleRefineAllImplRef.current?.(...args), []);
+      const handleReSynth    = useCallback((...args) => handleReSynthImplRef.current?.(...args), []);
 
       // Refine All handler (C2) — SSE streaming, atomic commit (D10, D12)
-      async function handleRefineAll() {
+      // (Registered in handleRefineAllImplRef so the stable useCallback proxy always calls the latest closure.)
+      async function handleRefineAllImpl() {
         const rows = (tab === 'inbox' && reviewView === 'reviewed')
           ? applyOrder(visible.filter(isReviewed)) : [];
         if (!rows.length) {
@@ -2958,9 +2968,11 @@
           window.notify?.error?.('Refine All failed', { description: err.message || String(err) });
         }
       }
+      handleRefineAllImplRef.current = handleRefineAllImpl;
 
       // Re-synth single field (C3): overwrite reflection with fresh narrative
-      async function handleReSynth() {
+      // (Registered in handleReSynthImplRef so the stable useCallback proxy always calls the latest closure.)
+      async function handleReSynthImpl() {
         if (!confirm('Overwrite your edits to the reflection with a fresh AI narrative?')) return;
         const rows = (tab === 'inbox' && reviewView === 'reviewed')
           ? applyOrder(visible.filter(isReviewed)) : [];
@@ -3015,6 +3027,7 @@
           window.notify?.error?.('Re-synth failed', { description: err.message || String(err) });
         }
       }
+      handleReSynthImplRef.current = handleReSynthImpl;
 
       // Unlocks the "Delete Reviewed Entries" button after a successful Copy
       // in the current session. Resets on reload so stale tabs must re-copy.
