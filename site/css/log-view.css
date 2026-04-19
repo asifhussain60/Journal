@@ -1772,6 +1772,12 @@
   cursor: text;
   min-height: 38px;
   align-items: center;
+  transition: border-color 100ms ease, box-shadow 100ms ease;
+}
+/* Focus ring on the chip container — visible when input or chip button is focused */
+.tag-input-chips:focus-within {
+  border-color: var(--accent, #60a5fa);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent, #60a5fa) 20%, transparent);
 }
 .tag-chip {
   display: inline-flex;
@@ -1811,6 +1817,13 @@
 .tag-chip-reject:hover {
   color: var(--error, #ef4444);
 }
+/* E1: visible keyboard focus ring on chip buttons */
+.tag-chip-remove:focus-visible,
+.tag-chip-reject:focus-visible {
+  outline: 2px solid var(--accent, #60a5fa);
+  outline-offset: 1px;
+  border-radius: 2px;
+}
 .tag-chip-add {
   border: none;
   background: none;
@@ -1822,6 +1835,11 @@
 }
 .tag-chip-add:hover {
   text-decoration: underline;
+}
+.tag-chip-add:focus-visible {
+  outline: 2px solid var(--accent, #60a5fa);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 .tag-input-field {
   border: none;
