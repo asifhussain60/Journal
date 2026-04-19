@@ -2309,6 +2309,7 @@
       })();
 
       // Clean all previous conflict markers across every day.
+      var prevCount = document.querySelectorAll('.event[data-timing-conflict]').length;
       document.querySelectorAll('.event[data-timing-conflict]').forEach(function(el) {
         el.removeAttribute('data-timing-conflict');
         var badge = el.querySelector('.event-conflict-badge');
@@ -2317,11 +2318,16 @@
 
       // Find today's day object.
       var todayDay = trip.days.find(function(d) { return d.date === todayIso; });
-      if (!todayDay || !todayDay.events || todayDay.events.length < 2) return;
+      if (!todayDay || !todayDay.events || todayDay.events.length < 2) {
+        // Conflicts cleared — if there were some before, toast the all-clear.
+        if (prevCount > 0) _notifyConflicts(0, []);
+        return;
+      }
 
       var dayDate = todayDay.date;
       var events = todayDay.events;
       var now = Date.now();
+      var conflicts = []; // collect for toast summary
 
       // Walk consecutive pairs.
       for (var i = 0; i < events.length - 1; i++) {
@@ -2365,6 +2371,7 @@
         if (!row) continue;
 
         row.setAttribute('data-timing-conflict', reason);
+        conflicts.push({ idx: i + 1, name: evB.event || 'Event ' + (i + 2), reason: reason });
         // Inject badge into .event-summary-text (below meta, above body).
         var summaryText = row.querySelector('.event-summary-text');
         if (summaryText && !summaryText.querySelector('.event-conflict-badge')) {
@@ -2375,6 +2382,29 @@
           summaryText.appendChild(badge);
         }
       }
+      _notifyConflicts(conflicts.length, conflicts);
+    }
+
+    // Toast summary — only fires when the conflict count changes from the
+    // last notification so the 60s tick doesn't spam identical toasts.
+    var _lastConflictToastCount = -1;
+    function _notifyConflicts(count, conflicts) {
+      if (count === _lastConflictToastCount) return; // no change
+      _lastConflictToastCount = count;
+      if (!window.notify) return;
+      if (count === 0) {
+        // Was non-zero before, now resolved — quiet success.
+        window.notify.success('All timing conflicts resolved');
+        return;
+      }
+      // Build a terse description: up to 3 event names, then "+N more".
+      var names = conflicts.slice(0, 3).map(function(c) { return c.name; });
+      var desc = names.join(', ');
+      if (conflicts.length > 3) desc += ' +' + (conflicts.length - 3) + ' more';
+      window.notify.warning(
+        count + ' timing ' + (count === 1 ? 'conflict' : 'conflicts') + ' on today\u2019s schedule',
+        { description: desc, duration: 8000 }
+      );
     }
     function _escHtmlConflict(s) {
       var d = document.createElement('span');
