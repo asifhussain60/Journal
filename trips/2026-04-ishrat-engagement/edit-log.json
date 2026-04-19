@@ -1901,5 +1901,30 @@
     "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-33cb0dc9-d2d1-41df-ae36-c810dddc2cc6.yaml",
     "actor": "app",
     "status": "applied"
+  },
+  {
+    "schemaVersion": "1",
+    "id": "40a4675f-aad1-4ad0-bece-e6b8fdd30f73",
+    "createdAt": "2026-04-19T15:53:02.335Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "Swap event 2.1 → Breakfast at IHOP",
+    "patch": [
+      {
+        "op": "replace",
+        "path": "/days/1/events/0/event",
+        "value": "Breakfast at IHOP"
+      }
+    ],
+    "inversePatch": [
+      {
+        "op": "replace",
+        "path": "/days/1/events/0/event",
+        "value": "IHOP"
+      }
+    ],
+    "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-40a4675f-aad1-4ad0-bece-e6b8fdd30f73.yaml",
+    "actor": "app",
+    "status": "applied"
   }
 ]
