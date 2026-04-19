@@ -371,10 +371,17 @@
         var noteText = ev.notes || ev.tip || ev.desc || '';
 
         var parts = [];
+        // data-event-time / data-event-duration power the live state tick
+        // (upcoming / current / done) so each card can self-classify against
+        // now() without re-rendering. ISO date + "h:mm AM/PM" time string.
+        var timeAttr = ev.time ? ' data-event-time="' + escHtml(String(ev.time)) + '"' : '';
+        var durAttr = ev.duration_min ? ' data-event-duration="' + escHtml(String(ev.duration_min)) + '"' : '';
         parts.push('<div class="event"' +
           (num ? ' data-stop-num="' + num + '"' : '') +
           (isOutdoor ? ' data-outdoor="1"' : '') +
           dayAttr +
+          timeAttr +
+          durAttr +
           '>');
 
         // Time column (outside the card, left of the rail)
@@ -383,8 +390,12 @@
         if (t.period) parts.push('    <span class="event-time-period">' + escHtml(t.period) + '</span>');
         parts.push('  </div>');
 
-        // Rail (line + dot rendered via CSS pseudos)
-        parts.push('  <div class="event-rail" aria-hidden="true"></div>');
+        // Rail — vertical line via ::before pseudo; numbered disc is a real
+        // element so it can hold the stop number. Disc states (upcoming /
+        // current / done) are driven by data-state on the parent .event.
+        parts.push('  <div class="event-rail">');
+        parts.push('    <span class="event-rail-num"' + (num != null ? ' aria-label="Stop ' + num + '"' : '') + '>' + (num != null ? num : '') + '</span>');
+        parts.push('  </div>');
 
         // Card — accordion-style. Click toggles .is-expanded; interactive
         // children (links, buttons) bail out via toggleEventCard's closest()
@@ -392,7 +403,6 @@
         parts.push('  <div class="event-card" onclick="event.stopPropagation(); toggleEventCard(event, this)" aria-expanded="false">');
         parts.push('    <div class="event-icon event-icon--' + key + '">');
         parts.push('      <i class="fa-solid ' + icon + '" aria-hidden="true"></i>');
-        if (num) parts.push('      <span class="event-num-badge" aria-label="Stop ' + num + '">' + num + '</span>');
         parts.push('    </div>');
         parts.push('    <div class="event-details">');
 
@@ -523,16 +533,35 @@
         return url;
       }
 
+      // Resolve which day should be expanded + scrolled to on load.
+      // - Trip contains today → today's day.
+      // - Trip entirely in the future → day 1 (anchor at the beginning).
+      // - Trip entirely in the past → last day (retroactive journaling lands
+      //   on the most recent memory).
+      function resolveTargetDay(trip) {
+        if (!trip || !trip.days || !trip.days.length) return null;
+        var today = new Date().toISOString().slice(0, 10);
+        var match = trip.days.find(function(d) { return d.date === today; });
+        if (match) return match;
+        var dates = trip.days.map(function(d) { return d.date; }).filter(Boolean).sort();
+        if (!dates.length) return trip.days[0];
+        if (today < dates[0]) return trip.days[0];
+        return trip.days[trip.days.length - 1];
+      }
+
       function renderItinerary(trip) {
         console.log('[ITIN:RENDER]', trip.name, trip.days ? trip.days.length + ' days' : 'no days');
 
         var timeline = document.querySelector('.timeline');
         if (!timeline || !trip.days || !trip.days.length) return;
 
+        var targetDay = resolveTargetDay(trip);
+        var targetDayNum = targetDay ? targetDay.day : null;
+
         // Build new HTML for all day cards
         var html = '';
         trip.days.forEach(function(day, dayIdx) {
-          var isOpen = day.day === 1 ? ' open' : '';
+          var isOpen = day.day === targetDayNum ? ' open' : '';
           var stopAddresses = [];
           var stopIdx = 0;
 
@@ -611,14 +640,29 @@
         destroyAllMaps();
         timeline.innerHTML = html;
 
-        // Auto-open day 1
-        var firstCard = timeline.querySelector('.day-card');
-        if (firstCard) firstCard.classList.add('open');
+        // Auto-open the resolved target day (today / first / last). Falls
+        // back to the first card if resolveTargetDay returned null.
+        var openCard = targetDayNum
+          ? timeline.querySelector('.day-card[data-day="' + targetDayNum + '"]')
+          : timeline.querySelector('.day-card');
+        if (openCard) openCard.classList.add('open');
 
         // Initialize map for every currently-open day card. Collapsed maps
         // are lazy-initialized on first open by toggleCard().
         timeline.querySelectorAll('.day-card.open .day-map').forEach(function(el) {
           if (el.id && !el._leaflet_id) initMap(el.id);
+        });
+
+        // Prime the upcoming/current/done classification before we scroll,
+        // so the target event already carries data-state="current" if we're
+        // mid-trip and the scroll lands on the correct anchor.
+        recomputeItineraryStates();
+
+        // Scroll the target into view. When the target day contains a
+        // "current" event, anchor on that event; otherwise anchor on the
+        // day header. Defer a frame so layout settles after innerHTML swap.
+        requestAnimationFrame(function() {
+          scrollToTarget(openCard);
         });
 
         // Kick off async drive-time hydration once cards are painted.
@@ -1581,14 +1625,98 @@
         setTimeout(function(){ initMap(mapEl.id); }, 100);
       }
 
-      // Scroll header to top of viewport (with a small breathing offset).
+      // Scroll header to top of viewport. Nav is position:fixed, so we
+      // measure its live height and offset by that + a breathing gap,
+      // otherwise the expanded card's header gets chopped off behind it.
       // Wait one frame so the browser recomputes layout after the class toggles.
       requestAnimationFrame(function() {
-        var rect = card.getBoundingClientRect();
-        var target = rect.top + window.pageYOffset - 16;
-        window.scrollTo({ top: target, behavior: 'smooth' });
+        scrollToTarget(card);
       });
     }
+
+    // ── Itinerary state: upcoming / current / done ─────────────────────
+    // Events self-classify against the wall clock so the timeline can
+    // visually mark where "now" is. Done events dim; the current event
+    // pulses with an accent ring. Runs on render and every 60s.
+    function parseEventTime(dateIso, timeStr) {
+      if (!dateIso || !timeStr) return null;
+      var m = String(timeStr).trim().match(/^(\d{1,2}):?(\d{2})?\s*(AM|PM|am|pm)?$/);
+      if (!m) return null;
+      var h = parseInt(m[1], 10);
+      var min = m[2] ? parseInt(m[2], 10) : 0;
+      var period = m[3] ? m[3].toUpperCase() : '';
+      if (period === 'PM' && h < 12) h += 12;
+      if (period === 'AM' && h === 12) h = 0;
+      var parts = dateIso.split('-');
+      if (parts.length !== 3) return null;
+      return new Date(
+        parseInt(parts[0], 10),
+        parseInt(parts[1], 10) - 1,
+        parseInt(parts[2], 10),
+        h, min, 0, 0
+      );
+    }
+
+    function recomputeItineraryStates() {
+      var now = Date.now();
+      var todayIsoLocal = (function() {
+        var d = new Date();
+        return d.getFullYear() + '-' +
+          String(d.getMonth() + 1).padStart(2, '0') + '-' +
+          String(d.getDate()).padStart(2, '0');
+      })();
+      document.querySelectorAll('.day-card').forEach(function(dayCard) {
+        var dayDate = dayCard.getAttribute('data-day-date') || '';
+        var dayState;
+        if (dayDate && dayDate < todayIsoLocal) dayState = 'done';
+        else if (dayDate && dayDate > todayIsoLocal) dayState = 'upcoming';
+        else dayState = 'current';
+        dayCard.setAttribute('data-state', dayState);
+
+        dayCard.querySelectorAll('.event').forEach(function(evEl) {
+          var timeStr = evEl.getAttribute('data-event-time') || '';
+          var durStr = evEl.getAttribute('data-event-duration') || '';
+          var start = parseEventTime(dayDate, timeStr);
+          var evState;
+          if (dayState === 'done') {
+            evState = 'done';
+          } else if (dayState === 'upcoming') {
+            evState = 'upcoming';
+          } else if (!start) {
+            // No time on this event — can't classify intra-day, leave neutral.
+            evState = 'current';
+          } else {
+            var dur = parseInt(durStr, 10);
+            if (!dur || isNaN(dur)) dur = 30; // sensible default
+            var endMs = start.getTime() + dur * 60 * 1000;
+            if (now > endMs) evState = 'done';
+            else if (now >= start.getTime()) evState = 'current';
+            else evState = 'upcoming';
+          }
+          evEl.setAttribute('data-state', evState);
+        });
+      });
+    }
+    window.recomputeItineraryStates = recomputeItineraryStates;
+
+    // Single idempotent 60s tick — re-classifies so event state flips
+    // through done → current → upcoming as the day progresses.
+    if (window.__itineraryTickInterval) clearInterval(window.__itineraryTickInterval);
+    window.__itineraryTickInterval = setInterval(recomputeItineraryStates, 60 * 1000);
+
+    // Scroll target into view, accounting for the fixed nav. If the target
+    // day contains a "current" event, scroll to that event; otherwise the
+    // day header. ~12px breathing room above nav baseline.
+    function scrollToTarget(dayCard) {
+      if (!dayCard) return;
+      var nav = document.querySelector('.nav');
+      var navH = nav ? nav.offsetHeight : 72;
+      var anchor = dayCard.querySelector('.event[data-state="current"]') || dayCard;
+      var rect = anchor.getBoundingClientRect();
+      var target = rect.top + window.pageYOffset - navH - 12;
+      window.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
+    }
+    window.scrollToTarget = scrollToTarget;
 
     // Lavender marker icon
     var pinIcon = L.divIcon({
