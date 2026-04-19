@@ -29,6 +29,10 @@ jobs:
         working-directory: server
         run: npm ci
 
+      - name: Run server unit tests
+        working-directory: server
+        run: npm test
+
       - name: Validate JSON schemas + fixtures
         working-directory: server
         run: node scripts/validate-schemas.mjs

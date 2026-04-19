@@ -1629,5 +1629,172 @@
     "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-4e270c5d-17b8-4b05-a396-8699cbd74c4f.yaml",
     "actor": "refine-all",
     "status": "applied"
+  },
+  {
+    "schemaVersion": "1",
+    "id": "e1648ae5-4f9d-4bd5-a512-99e874ae9e1a",
+    "createdAt": "2026-04-19T11:48:14.153Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "refine-all-patch",
+    "patch": [
+      {
+        "op": "add",
+        "path": "/dayoneTags",
+        "value": [
+          "engagement",
+          "new-jersey"
+        ]
+      }
+    ],
+    "inversePatch": [
+      {
+        "op": "add",
+        "path": "/dayoneTags/2",
+        "value": "spring-2026"
+      }
+    ],
+    "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-e1648ae5-4f9d-4bd5-a512-99e874ae9e1a.yaml",
+    "actor": "refine-all",
+    "status": "applied"
+  },
+  {
+    "schemaVersion": "1",
+    "id": "f869d75b-3d27-4cda-b555-b5bbce2b6b66",
+    "createdAt": "2026-04-19T11:48:29.152Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "refine-all-patch",
+    "patch": [
+      {
+        "op": "add",
+        "path": "/dayoneTags",
+        "value": [
+          "engagement",
+          "new-jersey",
+          "snow"
+        ]
+      }
+    ],
+    "inversePatch": [
+      {
+        "op": "remove",
+        "path": "/dayoneTags/2"
+      }
+    ],
+    "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-f869d75b-3d27-4cda-b555-b5bbce2b6b66.yaml",
+    "actor": "refine-all",
+    "status": "applied"
+  },
+  {
+    "schemaVersion": "1",
+    "id": "bd4d7951-4761-455c-a269-42f50c067fa1",
+    "createdAt": "2026-04-19T11:56:06.647Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "refine-all-patch",
+    "patch": [
+      {
+        "op": "add",
+        "path": "/dayoneTags",
+        "value": [
+          "engagement",
+          "new-jersey"
+        ]
+      }
+    ],
+    "inversePatch": [
+      {
+        "op": "add",
+        "path": "/dayoneTags/2",
+        "value": "snow"
+      }
+    ],
+    "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-bd4d7951-4761-455c-a269-42f50c067fa1.yaml",
+    "actor": "refine-all",
+    "status": "applied"
+  },
+  {
+    "schemaVersion": "1",
+    "id": "6b3768f9-6194-464f-8796-75fa55a02291",
+    "createdAt": "2026-04-19T11:56:09.500Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "refine-all-patch",
+    "patch": [
+      {
+        "op": "add",
+        "path": "/dayoneTags",
+        "value": [
+          "engagement",
+          "new-jersey",
+          "snow day"
+        ]
+      }
+    ],
+    "inversePatch": [
+      {
+        "op": "remove",
+        "path": "/dayoneTags/2"
+      }
+    ],
+    "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-6b3768f9-6194-464f-8796-75fa55a02291.yaml",
+    "actor": "refine-all",
+    "status": "applied"
+  },
+  {
+    "schemaVersion": "1",
+    "id": "63c0cda7-7cd8-4b22-96bd-b64be7a985f0",
+    "createdAt": "2026-04-19T12:01:40.600Z",
+    "tripSlug": "2026-04-ishrat-engagement",
+    "target": "trip.yaml",
+    "intent": "Swap event 2.1 → IHOP",
+    "patch": [
+      {
+        "op": "replace",
+        "path": "/days/1/events/0/event",
+        "value": "IHOP"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/0/venue",
+        "value": "50 Parsonage Rd, Edison, NJ 08837"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/0/phone",
+        "value": "(732) 548-3020"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/0/rating",
+        "value": 4
+      }
+    ],
+    "inversePatch": [
+      {
+        "op": "replace",
+        "path": "/days/1/events/0/rating",
+        "value": 4.4
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/0/phone",
+        "value": "(732) 777-7878"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/0/venue",
+        "value": "17 Wooding Ave, Edison, NJ 08817"
+      },
+      {
+        "op": "replace",
+        "path": "/days/1/events/0/event",
+        "value": "Breakfast at Skylark Diner"
+      }
+    ],
+    "snapshotRef": "trips/2026-04-ishrat-engagement/snapshots/trip.yaml-63c0cda7-7cd8-4b22-96bd-b64be7a985f0.yaml",
+    "actor": "app",
+    "status": "applied"
   }
 ]

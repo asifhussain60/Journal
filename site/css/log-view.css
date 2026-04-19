@@ -1624,8 +1624,25 @@
   0%, 100% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent); }
   50%       { box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 8%, transparent); }
 }
+/* E3: skeleton shimmer on textarea while pending (SSE handshake / thinking) */
+.dayone-reflection-input--pending {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border-default));
+  background-image: linear-gradient(
+    90deg,
+    var(--bg-secondary, #1e1e1e) 0%,
+    color-mix(in srgb, var(--accent) 8%, var(--bg-secondary, #1e1e1e)) 50%,
+    var(--bg-secondary, #1e1e1e) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-sweep 1.6s ease-in-out infinite;
+}
+@keyframes skeleton-sweep {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
 @media (prefers-reduced-motion: reduce) {
   .dayone-reflection-input--streaming { animation: none; }
+  .dayone-reflection-input--pending { animation: none; background-image: none; }
 }
 
 /* ─── Story — reviewed cards inline inside the composer ─── */
@@ -1772,6 +1789,12 @@
   cursor: text;
   min-height: 38px;
   align-items: center;
+  transition: border-color 100ms ease, box-shadow 100ms ease;
+}
+/* Focus ring on the chip container — visible when input or chip button is focused */
+.tag-input-chips:focus-within {
+  border-color: var(--accent, #60a5fa);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent, #60a5fa) 20%, transparent);
 }
 .tag-chip {
   display: inline-flex;
@@ -1811,6 +1834,13 @@
 .tag-chip-reject:hover {
   color: var(--error, #ef4444);
 }
+/* E1: visible keyboard focus ring on chip buttons */
+.tag-chip-remove:focus-visible,
+.tag-chip-reject:focus-visible {
+  outline: 2px solid var(--accent, #60a5fa);
+  outline-offset: 1px;
+  border-radius: 2px;
+}
 .tag-chip-add {
   border: none;
   background: none;
@@ -1822,6 +1852,11 @@
 }
 .tag-chip-add:hover {
   text-decoration: underline;
+}
+.tag-chip-add:focus-visible {
+  outline: 2px solid var(--accent, #60a5fa);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 .tag-input-field {
   border: none;

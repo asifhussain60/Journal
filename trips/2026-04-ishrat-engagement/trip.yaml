@@ -123,11 +123,11 @@
       "events": [
         {
           "time": "7:30 AM",
-          "event": "Breakfast at Skylark Diner",
-          "venue": "17 Wooding Ave, Edison, NJ 08817",
+          "event": "IHOP",
+          "venue": "50 Parsonage Rd, Edison, NJ 08837",
           "tag": "DINING",
-          "phone": "(732) 777-7878",
-          "rating": 4.4,
+          "phone": "(732) 548-3020",
+          "rating": 4,
           "notes": "Famous NJ diner featured on Diners, Drive-Ins & Dives (~12 min). Scratch kitchen, cage-free eggs, craft pancakes. Jet lag will have you both up early.",
           "category": "American · Classic Diner",
           "duration_min": 60
@@ -685,6 +685,6 @@
   "dayoneTags": [
     "engagement",
     "new-jersey",
-    "spring-2026"
+    "snow-day"
   ]
 }

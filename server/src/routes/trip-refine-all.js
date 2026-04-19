@@ -4,7 +4,9 @@
 
 import express from "express";
 import { createHash } from "node:crypto";
-import { readFile } from "node:fs/promises";
+import { appendFile, mkdir, readFile } from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { loadPrompt } from "../prompts/index.js";
 import { readTripObj, tripYamlPath } from "../lib/trip-edit-ops.js";
 import { getFingerprint } from "../lib/voice-fingerprint.js";
@@ -12,6 +14,21 @@ import { getTopN } from "../lib/tag-corpus.js";
 import { normalizeTag } from "../lib/tag-normalize.js";
 import { hashField } from "../lib/hash-field.js";
 import { extractJsonObject } from "../util/json.js";
+import { costForRow } from "../lib/usage-summary.js";
+
+const __filename_raf = fileURLToPath(import.meta.url);
+const __dirname_raf = path.dirname(__filename_raf);
+// routes/ -> src/ -> server/ -> server/logs/usage.jsonl
+const USAGE_LOG_PATH = path.resolve(__dirname_raf, "../../logs/usage.jsonl");
+
+async function appendUsageLog(row) {
+  try {
+    await mkdir(path.dirname(USAGE_LOG_PATH), { recursive: true });
+    await appendFile(USAGE_LOG_PATH, `${JSON.stringify(row)}\n`, "utf8");
+  } catch (err) {
+    process.stderr.write(`[refine-all] usage-log append failed: ${err.message}\n`);
+  }
+}
 
 // --- Caches ------------------------------------------------------------------
 
@@ -142,18 +159,28 @@ async function runTags(anthropic, input) {
 
 // --- Usage logging helper ----------------------------------------------------
 
-function logOrchestratorUsage(meta, promptName, tripId, requestId) {
-  // Best-effort structured log to stderr for now; E4 wires to usage table.
+function logOrchestratorUsage(meta, promptName, tripId, requestId, success = true) {
+  const tokensIn = meta.usage?.input_tokens || 0;
+  const tokensOut = meta.usage?.output_tokens || 0;
+  const model = meta.model || null;
   const row = {
+    timestamp: new Date().toISOString(),
+    endpoint: "/api/trip-refine-all",
+    method: "POST",
+    model,
     promptName,
-    model: meta.model,
-    latencyMs: meta.latencyMs,
-    inputTokens: meta.usage?.input_tokens || 0,
-    outputTokens: meta.usage?.output_tokens || 0,
+    tokensIn,
+    tokensOut,
+    durationMs: meta.latencyMs,
+    statusCode: success ? 200 : 500,
+    visionUsed: false,
+    totalCostUsd: costForRow({ tokensIn, tokensOut, model }),
     tripId,
     requestId,
+    success,
   };
   process.stderr.write(`[refine-all] ${JSON.stringify(row)}\n`);
+  appendUsageLog(row); // best-effort async
 }
 
 // --- Router ------------------------------------------------------------------

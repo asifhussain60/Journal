@@ -4,6 +4,40 @@ You are Claude Code running in VS Code. Execute this brief top-to-bottom under C
 
 ---
 
+## ⚡ HOW TO RESUME — Cold Start Protocol
+
+> **New chat? Read this first — takes 60 seconds, saves 10 minutes of context rebuilding.**
+
+### Step 1 — Check git history (run this immediately)
+```bash
+git log --oneline origin/refine-all-redesign-v2 | head -30
+```
+Cross-reference with the **[Commit Map](#commit-map-actual)** at the bottom of this file. The first `⬜` row is your next task.
+
+### Step 2 — Invoke journal-builder
+journal-builder is the TDD/architectural gatekeeper for all Phase E+ work.
+- Agent file: `.github/agents/journal-builder.agent.md`
+- In a new chat simply reference this handoff and say: `"Run journal-builder cold start"`
+- journal-builder will check git history, identify current phase, and confirm state before any implementation
+
+### Step 3 — Check for pending user verification
+Each phase has a `🛑 STOP` that requires user confirmation before the next phase begins. If the previous phase ended at a STOP, **wait for explicit user go-ahead before proceeding**.
+
+### Step 4 — Resume
+Once state is confirmed, begin implementation at the first `⬜` commit in the map.
+
+### Quick orientation
+| Item | Value |
+|------|-------|
+| Branch | `refine-all-redesign-v2` |
+| Server start | `cd server && npm start` (uses `--env-file=.env`) |
+| journal-builder agent | `.github/agents/journal-builder.agent.md` |
+| CORTEX governance | `.github/agents/CORTEX.agent.md` |
+| Feature flag | `REFINE_ALL_ENABLED=true` in `server/.env` |
+| Test runner | `cd server && npm test` (Node built-in, no extra deps) |
+
+---
+
 ## Meta
 
 - **Version:** 2.0
@@ -345,6 +379,25 @@ git add -A && git commit -m "refine-all(C3): per-field Re-synth with confirmatio
 
 Post this checklist and **wait for go-ahead** before Phase E.
 
+### journal-builder Post-Phase-C Review
+> Run this before Pre-E0. journal-builder audits Phase C (Pre-C1/C1/C2/C3) and improves itself.
+
+```bash
+# Commits to audit:
+git log --oneline refine-all-redesign-v2 | head -10
+```
+
+journal-builder must:
+1. Check the three new server routes (`trip-refine-all.js`, version field in `trip.js`, version in `trip-edit.js`) against its Known Contracts table — update any missing/wrong entries.
+2. Check the new client state shape (`refineState`, `tripVersion`, `aiSuggestedTags`) against its Schema Invariants — document in agent file.
+3. Identify any debt, drift, or patterns worth recording.
+4. Self-update `.github/agents/journal-builder.agent.md` with findings, then:
+
+```bash
+git add -f .github/agents/journal-builder.agent.md
+git commit -m "chore(journal-builder): post-phase-C review — contracts + schema sync"
+```
+
 ---
 
 ## Phase D — RETIRED
@@ -472,6 +525,25 @@ git add -A && git commit -m "refine-all(E6): docs + JSDoc types + architecture d
 3. **Typing feels snappy** — Rapidly type in the tag input. No visible lag or stuttering.
 4. **App still works** — Everything from Phases B and C still works. Refine All streams, Reflection refine works, tags save.
 5. **Code is cleaner** — (I'll confirm) `site/index.html` is smaller; components extracted to separate files.
+
+### journal-builder Post-Phase-E Review
+> Run this before Phase F. journal-builder audits Phase E (Pre-E0 + E1–E6) and improves itself.
+
+```bash
+git log --oneline refine-all-redesign-v2 | head -20
+```
+
+journal-builder must:
+1. Review every extracted component (`site/components/*.mjs`) — ensure they are properly documented in Known Surfaces.
+2. Verify the test harness (Pre-E0) is exercising the right contracts — add any missing test strategy notes.
+3. Check whether accessibility or performance improvements in E1–E3 introduced new contracts or behaviors that should be pinned.
+4. Record any new observable debt in `_workspace/scratch/observed-debt.md`.
+5. Self-update `.github/agents/journal-builder.agent.md`, then:
+
+```bash
+git add -f .github/agents/journal-builder.agent.md
+git commit -m "chore(journal-builder): post-phase-E review — component contracts + test strategy update"
+```
 
 ---
 
@@ -602,8 +674,8 @@ git add -A && git commit -m "fix: eliminate remaining hardcoded localhost in sit
 | B+2 | AI-powered Reflection refine via voice DNA fingerprint | ✅ Done |
 | C1–C3 | Refine All button + SSE streaming + Re-synth | ✅ Done |
 | D1 | ~~Highlights chip redesign~~ | ❌ Retired |
-| Pre-E0 | Test harness bootstrap (journal-builder gate) | ⬜ Next |
-| E1–E6 | Holistic refactor & cleanup | ⬜ Pending |
+| Pre-E0 | Test harness bootstrap (journal-builder gate) | ✅ Done `499cd56` |
+| E1–E6 | Holistic refactor & cleanup | ⬜ Next |
 | F1–F2 | E2E matrix + closeout | ⬜ Pending |
 | G1–G3 | Publish gate + Cloudflare deploy + localhost audit | ⬜ Pending |
 
