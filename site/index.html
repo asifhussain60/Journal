@@ -4042,17 +4042,6 @@
                   <div className="log-subtab-bar" role="tablist" aria-label="Photo review">
                     <button
                       role="tab"
-                      aria-selected={reviewView === 'reviewed'}
-                      className={`log-subtab ${reviewView === 'reviewed' ? 'active' : ''}`}
-                      onClick={() => setReviewView('reviewed')}
-                      aria-label="DayOne Workspace"
-                    >
-                      <Icon name="fa-circle-check" />
-                      <span className="btn-label"> DayOne Workspace</span>
-                      {reviewReviewedCount > 0 && <span className="log-subtab-badge">{reviewReviewedCount}</span>}
-                    </button>
-                    <button
-                      role="tab"
                       aria-selected={reviewView === 'unreviewed'}
                       className={`log-subtab ${reviewView === 'unreviewed' ? 'active' : ''}`}
                       onClick={() => setReviewView('unreviewed')}
@@ -4061,6 +4050,17 @@
                       <Icon name="fa-circle-half-stroke" />
                       <span className="btn-label"> Log Bank</span>
                       {reviewUnreviewedCount > 0 && <span className="log-subtab-badge">{reviewUnreviewedCount}</span>}
+                    </button>
+                    <button
+                      role="tab"
+                      aria-selected={reviewView === 'reviewed'}
+                      className={`log-subtab ${reviewView === 'reviewed' ? 'active' : ''}`}
+                      onClick={() => setReviewView('reviewed')}
+                      aria-label="DayOne Workspace"
+                    >
+                      <Icon name="fa-circle-check" />
+                      <span className="btn-label"> DayOne Workspace</span>
+                      {reviewReviewedCount > 0 && <span className="log-subtab-badge">{reviewReviewedCount}</span>}
                     </button>
                   </div>
 
