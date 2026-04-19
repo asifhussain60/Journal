@@ -30,7 +30,10 @@
 //   GET  /api/dead-letter              — queue.js
 //   POST /api/dead-letter/discard      — queue.js
 //   GET  /api/usage/summary            — usage.js
-//   POST /api/distance-matrix          — distance.js
+//   POST /api/distance-matrix          — distance.js (ORS-backed)
+//   POST /api/geocode                  — distance.js (ORS-backed)
+//   POST /api/recalc-times             — itinerary-recalc.js (drag-reorder time repack)
+//   POST /api/pin-event                — itinerary-recalc.js (toggle time_mode anchor/flex)
 //   POST /api/theme-swatches           — theme.js (tweaker)
 //   POST /api/theme-review             — theme.js (tweaker)
 //   POST /api/theme-save               — theme.js (tweaker)
@@ -71,6 +74,7 @@ import { createQueueRouter } from "./routes/queue.js";
 import { createReceiptsRouter } from "./routes/receipts.js";
 import { createUsageRouter } from "./routes/usage.js";
 import { createDistanceRouter } from "./routes/distance.js";
+import { createItineraryRecalcRouter } from "./routes/itinerary-recalc.js";
 import { createThemeRouter } from "./routes/theme.js";
 import { createWeatherRouter } from "./routes/weather.js";
 import { createTripSpendRouter } from "./routes/trip-spend.js";
@@ -203,6 +207,7 @@ app.use(createQueueRouter({ queueValidators: QUEUE_VALIDATORS }));
 app.use(createReceiptsRouter({ anthropic, DEFAULT_MODEL, upload }));
 app.use(createUsageRouter({ MONTHLY_CAP }));
 app.use(createDistanceRouter());
+app.use(createItineraryRecalcRouter());
 app.use(createThemeRouter({ anthropic, DEFAULT_MODEL, themeSaveValidator }));
 app.use(createWeatherRouter());
 app.use(createTripSpendRouter());

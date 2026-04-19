@@ -1,52 +1,75 @@
-// routes/distance.js — Google Distance Matrix proxy.
-//   POST /api/distance-matrix — waypoints[] → adjacent-pair duration/distance.
+// routes/distance.js — driving distance + geocoding proxy.
 //
-// No key configured → degrades to { ok:true, key:false, pairs:[] } and the
-// client renders "—" for the drive chip.
+//   POST /api/distance-matrix — waypoints[] (strings OR {lat,lng,label})
+//                               → adjacent-pair duration_min / distance_mi
+//   POST /api/geocode         — { text, focus?, size? } → { candidates[] }
+//
+// Backend: OpenRouteService (ORS). Without ORS_API_KEY, /api/distance-matrix
+// returns { ok:true, key:false, pairs:[] } so the client degrades to "—".
+//
+// String waypoints (back-compat with pre-ORS callers) are geocoded inline.
+// For better results, send waypoints as {lat,lng,label} once the trip has
+// cached coords on each event.
 
 import express from "express";
-import { loadGoogleMapsKey } from "../util/google-maps.js";
+import { geocode as orsGeocode, adjacentPairs as orsPairs, isConfigured } from "../lib/ors.js";
+
+function looksLikeCoord(wp) {
+  return wp && typeof wp === "object" && Number.isFinite(wp.lat) && Number.isFinite(wp.lng);
+}
 
 export function createDistanceRouter() {
   const router = express.Router();
 
   router.post("/api/distance-matrix", async (req, res) => {
     try {
-      const { waypoints } = req.body ?? {};
+      const { waypoints, focus } = req.body ?? {};
       if (!Array.isArray(waypoints) || waypoints.length < 2) {
-        return res.status(400).json({ ok: false, error: "waypoints[] must have at least 2 addresses" });
+        return res.status(400).json({ ok: false, error: "waypoints[] must have at least 2 entries" });
       }
-      const { key } = loadGoogleMapsKey();
-      if (!key) {
+      if (!isConfigured()) {
         return res.json({ ok: true, key: false, pairs: [] });
       }
-      const pairs = [];
-      for (let i = 0; i + 1 < waypoints.length; i += 1) {
-        const origin = String(waypoints[i] ?? "").trim();
-        const destination = String(waypoints[i + 1] ?? "").trim();
-        if (!origin || !destination) continue;
-        const url = new URL("https://maps.googleapis.com/maps/api/distancematrix/json");
-        url.searchParams.set("origins", origin);
-        url.searchParams.set("destinations", destination);
-        url.searchParams.set("mode", "driving");
-        url.searchParams.set("units", "imperial");
-        url.searchParams.set("key", key);
-        const r = await fetch(url);
-        if (!r.ok) { pairs.push({ from: origin, to: destination, error: "http_" + r.status }); continue; }
-        const j = await r.json();
-        const cell = j?.rows?.[0]?.elements?.[0];
-        if (!cell || cell.status !== "OK") {
-          pairs.push({ from: origin, to: destination, error: cell?.status || "unknown" });
+
+      const resolved = [];
+      for (const wp of waypoints) {
+        if (looksLikeCoord(wp)) {
+          resolved.push({ lat: wp.lat, lng: wp.lng, label: wp.label ?? "" });
           continue;
         }
-        pairs.push({
-          from: origin,
-          to: destination,
-          duration_min: Math.round((cell.duration?.value ?? 0) / 60),
-          distance_mi: Number((((cell.distance?.value ?? 0) / 1609.344)).toFixed(1)),
-        });
+        if (typeof wp === "string" && wp.trim()) {
+          const g = await orsGeocode(wp, { focus, size: 1 });
+          if (g.ok && g.candidates.length) {
+            const top = g.candidates[0];
+            resolved.push({ lat: top.lat, lng: top.lng, label: wp });
+          } else {
+            resolved.push({ lat: NaN, lng: NaN, label: wp });
+          }
+          continue;
+        }
+        resolved.push({ lat: NaN, lng: NaN, label: String(wp ?? "") });
       }
-      res.json({ ok: true, key: true, pairs });
+
+      const out = await orsPairs(resolved);
+      if (!out.ok) return res.status(502).json({ ok: false, error: out.error ?? "ors_failed" });
+      res.json({ ok: true, key: true, pairs: out.pairs });
+    } catch (err) {
+      res.status(500).json({ ok: false, error: err?.message ?? String(err) });
+    }
+  });
+
+  router.post("/api/geocode", async (req, res) => {
+    try {
+      const { text, focus, size, country } = req.body ?? {};
+      if (typeof text !== "string" || !text.trim()) {
+        return res.status(400).json({ ok: false, error: "text required" });
+      }
+      if (!isConfigured()) {
+        return res.status(503).json({ ok: false, error: "ORS_API_KEY not configured" });
+      }
+      const out = await orsGeocode(text, { focus, size: size ?? 3, country });
+      if (!out.ok) return res.status(502).json({ ok: false, error: out.error ?? "ors_failed" });
+      res.json({ ok: true, candidates: out.candidates });
     } catch (err) {
       res.status(500).json({ ok: false, error: err?.message ?? String(err) });
     }

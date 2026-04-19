@@ -499,7 +499,15 @@ export function createTripEditRouter({ anthropic, DEFAULT_MODEL }) {
     }
     try {
       const slug = tripSlug || (await getActiveTripSlug());
-      const ALLOWED_KEYS = new Set(["time", "event", "tag", "venue", "phone", "rating", "notes", "duration_min", "category"]);
+      const ALLOWED_KEYS = new Set([
+        "time", "event", "tag", "venue", "phone", "rating", "notes", "duration_min", "category",
+        // Itinerary drag-reorder substrate (Phase A, 2026-04-19):
+        "time_mode",     // "anchor" | "flex" — "anchor" = time is fixed (flights, reservations)
+        "lat", "lng",    // geocoded coords (GeoJSON order preserved by ORS)
+        "place_id",      // stable venue identifier (ors:label|lng,lat)
+        "geocoded_at",   // ISO timestamp of last geocode (for staleness checks)
+        "drive_min_to_next",  // server-computed; persisted after recalc
+      ]);
       const clean = {};
       for (const [k, v] of Object.entries(event)) {
         if (!ALLOWED_KEYS.has(k)) continue;
@@ -540,6 +548,11 @@ export function createTripEditRouter({ anthropic, DEFAULT_MODEL }) {
       if (typeof replacement.venue === "string")  patch.push({ op: "replace", path: `${basePath}/venue`,  value: replacement.venue });
       if (typeof replacement.phone === "string")  patch.push({ op: "replace", path: `${basePath}/phone`,  value: replacement.phone });
       if (typeof replacement.rating === "number") patch.push({ op: "replace", path: `${basePath}/rating`, value: replacement.rating });
+      // New venue => new coords. Clear stale coord fields if caller doesn't supply new ones.
+      if (Number.isFinite(replacement.lat))       patch.push({ op: "replace", path: `${basePath}/lat`,    value: replacement.lat });
+      if (Number.isFinite(replacement.lng))       patch.push({ op: "replace", path: `${basePath}/lng`,    value: replacement.lng });
+      if (typeof replacement.place_id === "string") patch.push({ op: "replace", path: `${basePath}/place_id`, value: replacement.place_id });
+      if (typeof replacement.geocoded_at === "string") patch.push({ op: "replace", path: `${basePath}/geocoded_at`, value: replacement.geocoded_at });
       if (patch.length === 0) {
         return res.status(400).json({ ok: false, error: "replacement has no swappable fields (name/venue/phone/rating)" });
       }

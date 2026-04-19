@@ -1004,13 +1004,15 @@ html{scroll-behavior:smooth}
 
 /* Action cluster — caret only. Delete button is positioned absolutely
    on the .event-card at the top-right corner so destructive intent is
-   visually separated from primary navigation. */
+   visually separated from primary navigation.
+   position:relative anchors the pin/drag affordances added in Phase 12. */
 .event-actions{
   flex:0 0 auto;
   display:flex;
   align-items:center;
   gap:.35rem;
   margin-top:.2rem;
+  position:relative;
 }
 .event-delete-btn{
   /* Inside the card border at the top-right corner — overhanging would risk
@@ -3011,4 +3013,175 @@ html{scroll-behavior:smooth}
 }
 .alt-option--verified:hover{
   border-color:color-mix(in srgb, var(--success) 45%, transparent);
+}
+
+/* ═══ DRAG-REORDER (Phase 12) ═══
+   SortableJS wiring on .event-list. Pin + drag affordances live in
+   .event-actions alongside delete/caret; they only become visible on
+   row hover to avoid competing with the accordion's primary click
+   affordance. Anchor rows gain a faint pin glyph in the rail so the
+   user can see at a glance which cards are immovable. */
+
+.event-pin-btn,
+.event-drag-handle{
+  appearance:none;
+  border:0;
+  background:transparent;
+  color:var(--text-secondary, color-mix(in srgb, var(--text-primary) 65%, transparent));
+  width:30px;
+  height:30px;
+  border-radius:8px;
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+  font-size:.9rem;
+  opacity:0;
+  transition:opacity .18s ease, color .18s ease, background-color .18s ease, transform .12s ease;
+}
+.event-drag-handle{ cursor:grab; }
+.event:hover .event-pin-btn,
+.event:hover .event-drag-handle,
+.event:focus-within .event-pin-btn,
+.event:focus-within .event-drag-handle,
+.event[data-time-mode="anchor"] .event-pin-btn{ opacity:1; }
+
+.event-pin-btn:hover,
+.event-drag-handle:hover{
+  color:var(--accent);
+  background:color-mix(in srgb, var(--accent) 14%, transparent);
+}
+.event-pin-btn:focus-visible,
+.event-drag-handle:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+  opacity:1;
+}
+
+/* Anchor rows: pin button reads as filled accent — this is the glance-
+   ability signal so the user can spot fixed times without reading the UI. */
+.event[data-time-mode="anchor"] .event-pin-btn{
+  color:var(--accent);
+}
+.event[data-time-mode="anchor"] .event-pin-btn:hover{
+  color:color-mix(in srgb, var(--accent) 80%, white);
+}
+
+/* Disable drag handle affordance on anchors — they can't be reordered. */
+.event[data-time-mode="anchor"] .event-drag-handle{
+  display:none;
+}
+
+/* SortableJS lifecycle classes. Keep the moving row legible against the
+   timeline rail; the ghost is a muted placeholder so the drop target
+   is unmistakable. */
+.event--drag-ghost{
+  opacity:.28;
+  filter:grayscale(.4);
+}
+.event--drag-chosen{
+  cursor:grabbing;
+}
+.event--drag-active > .event-card{
+  border-color:var(--accent);
+  box-shadow:
+    0 8px 24px -8px color-mix(in srgb, var(--accent) 55%, transparent),
+    0 2px 6px var(--shadow-a30);
+  transform:rotate(.6deg);
+}
+
+/* Busy state while recalc-times is in flight — disable further drags and
+   dim the list so the user sees the async work in progress. */
+.event-list[data-reorder-busy="1"]{
+  pointer-events:none;
+  opacity:.7;
+  filter:saturate(.85);
+}
+.event-list[data-reorder-busy="1"]::after{
+  content:"";
+  display:block;
+  height:2px;
+  width:100%;
+  margin-top:.25rem;
+  background:linear-gradient(90deg, transparent, var(--accent), transparent);
+  background-size:200% 100%;
+  animation:reorder-shimmer 1.1s linear infinite;
+}
+@keyframes reorder-shimmer{
+  from{ background-position:0% 0; }
+  to{ background-position:-200% 0; }
+}
+
+/* Tight-gap warning banner — injected above the affected day's event list
+   when /api/recalc-times reports summary.tight_gaps > 0. Soft warning tone,
+   dismissable; lives in the day-body so it collapses with the day card. */
+.tight-gap-banner{
+  display:flex;
+  align-items:center;
+  gap:.75rem;
+  padding:.65rem .85rem;
+  margin-bottom:.85rem;
+  border-radius:10px;
+  /* Span both columns when the day-body uses the dual-pane grid layout
+     (min-width:1080px). Harmless on the single-column layout. */
+  grid-column:1 / -1;
+  background:color-mix(in srgb, var(--gold, #e4b363) 14%, transparent);
+  border:1px solid color-mix(in srgb, var(--gold, #e4b363) 32%, transparent);
+  color:var(--gold, #e4b363);
+  font-size:.9rem;
+  line-height:1.35;
+  animation:tight-gap-fade .32s ease;
+}
+.tight-gap-banner i{ font-size:1rem; flex:0 0 auto; }
+.tight-gap-banner .tight-gap-text{ flex:1 1 auto; color:var(--text-primary); }
+.tight-gap-banner .tight-gap-dismiss{
+  appearance:none;
+  border:0;
+  background:transparent;
+  color:inherit;
+  font-size:1.2rem;
+  line-height:1;
+  padding:.1rem .35rem;
+  cursor:pointer;
+  border-radius:6px;
+  transition:background-color .18s ease;
+}
+.tight-gap-banner .tight-gap-dismiss:hover{
+  background:color-mix(in srgb, var(--gold, #e4b363) 22%, transparent);
+}
+@keyframes tight-gap-fade{
+  from{ opacity:0; transform:translateY(-4px); }
+  to{ opacity:1; transform:translateY(0); }
+}
+
+/* Keyboard focus ring on the draggable row itself — signals that Alt+↑/↓
+   will move this card. Matches the accent outline used elsewhere. */
+.event:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:3px;
+  border-radius:14px;
+}
+
+/* ═══ DUAL-PANE LAYOUT (Phase 12) ═══
+   On wide screens, the day body switches from stacked [events → map] to
+   a side-by-side grid with the map sticky in view while the user scrolls
+   through the events. The map keeps its own pins + polylines rendered by
+   initMap() and is refreshed by itinerary-reorder.js after a drag-drop.
+   Narrow screens keep the stacked layout (the existing 860px breakpoint
+   already overrides .day-body grid-template-columns → 1fr). */
+@media (min-width:1080px){
+  .day-card.open .day-body .day-body-inner{
+    grid-template-columns:minmax(0, 1fr) minmax(280px, 420px);
+    align-items:start;
+  }
+  .day-card.open .day-body .day-body-inner > .event-list{
+    min-width:0;
+  }
+  .day-card.open .day-body .day-body-inner > .day-map-block{
+    position:sticky;
+    top:1rem;
+    align-self:start;
+  }
+  .day-card.open .day-body .day-body-inner > .day-map-block .day-map{
+    min-height:420px;
+  }
 }
