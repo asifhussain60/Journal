@@ -1822,7 +1822,7 @@
       async function handleUnapprove() {
         if (unapproving) return;
         if (isDummy) {
-          window.notify?.info?.('Demo card', { description: 'Unapprove is disabled on preview cards.' });
+          window.notify?.info?.('Demo card', { description: 'Reject is disabled on preview cards.' });
           return;
         }
         setUnapproving(true);
@@ -1830,7 +1830,7 @@
           await onSaveDraft?.(entry.id, { reviewStatus: 'unreviewed' }, { silent: true });
           window.notify?.success?.('Moved back to Unreviewed');
         } catch (err) {
-          window.notify?.error?.('Unapprove failed', { description: err.message || String(err) });
+          window.notify?.error?.('Reject failed', { description: err.message || String(err) });
         } finally {
           setUnapproving(false);
         }
@@ -1968,7 +1968,7 @@
               >
                 <Icon name={unapproving ? 'fa-circle-notch fa-spin' : 'fa-rotate-left'} />
                 {' '}
-                {unapproving ? 'Unapproving…' : 'Unapprove'}
+                {unapproving ? 'Rejecting…' : 'Reject'}
               </button>
             ) : (
               <button
