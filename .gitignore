@@ -20,14 +20,7 @@ Thumbs.db
 # Python virtual environment
 .venv/
 
-# Node / server proxy
-server/node_modules/
-server/.logs/
-server/logs/*.jsonl
-server/data/*.db
-server/data/*.db-wal
-server/data/*.db-shm
-server/data/backups/
+# Node packages
 node_modules/
 
 # Environment files (API keys should live in macOS Keychain, not .env)
@@ -35,46 +28,6 @@ node_modules/
 .env.local
 *.env
 !*.template.env
-# infra/azure/azure-config.env is intentionally tracked: it holds resource
-# names + the subscription ID (publicly visible in any portal URL), no
-# secrets. Tracking it lets a new Mac `git clone && make bootstrap` without
-# manually copying the template. (Real secrets live in macOS Keychain via
-# store-keychain-keys.sh or Azure Key Vault.)
-!infra/azure/azure-config.env
-
-# _workspace/ used to be the untracked execution-plan zone. It is now tracked
-# (the contents are useful for cross-Mac handoff — see primary-mac-activation.md).
-# .DS_Store inside it is still excluded by the OS-junk rule above.
-# Books/ inside it is the orchestrator's PDF drop zone — large binary inputs
-# that get processed into chapter txts under content/podcast/. Source PDFs
-# stay local (Asif keeps the originals in iCloud); only the derived chapters
-# get committed.
-_workspace/Books/
-
-# Podcast raw-input binaries (audio, video, archives, editing-project files)
-# — large assets that live under library/<category>/<slug>/_source/. Only
-# derived text artifacts (refined chapters, episode txts, kept transcripts)
-# get committed. Keeps the repo small regardless of where binaries land.
-content/podcast/library/**/*.mp3
-content/podcast/library/**/*.wav
-content/podcast/library/**/*.m4a
-content/podcast/library/**/*.mp4
-content/podcast/library/**/*.mov
-content/podcast/library/**/*.zip
-content/podcast/library/**/*.llc
-content/podcast/library/**/*.pdf
-
-# Transcript working artifacts — raw Speech-to-Text + translator output used
-# during chapter-source authoring. The final cleaned chapters/ + episodes/
-# files are committed; transcripts/ is local-only scratch.
-content/podcast/library/lectures/*/transcripts/
-
-# Sandbox inbox — universal drop zone for raw inputs (MP3, PDF, TurboScribe
-# txt, etc.) before the podcast agent triages them into the right book dir.
-# Nothing inside should ever be committed; only the README documents the
-# contract. See content/podcast/library/_sandbox/README.md.
-content/podcast/library/_sandbox/*
-!content/podcast/library/_sandbox/README.md
 
 # Python bytecode
 **/__pycache__/
@@ -91,29 +44,6 @@ trips/*/voice-inbox/
 trips/*/voice-inbox.json
 trips/*/itinerary-inbox.json
 trips/*/snapshots/
-
-
-# Wrangler local cache (regenerated per invocation)
-.wrangler/
-_workspace/orchestrator-logs/
-
-# Per-session chat scratch notes — now tracked for cross-Mac handoff
-# (was local-only until 2026-05-19; tracked thereafter per user directive).
-# Add any sensitive/per-machine subdirectories explicitly here if needed.
-
-# Chunked-window scratch (orchestrator runtime artifacts — regenerable from
-# raw-extract.md). Broader **/_chunks/ catches any future caller that writes
-# _chunks/ outside the canonical book directory.
-**/_chunks/
-
-# Local-only orchestrator/runtime logs
-_workspace/logs/
-
-# Local-only audit snapshots (pre-rerun copies of book artifacts for diff/review)
-_workspace/audit/
-
-# Sanitizer backups (created by scripts/podcast/sanitize_contract_yaml.py)
-*.yml.bak
 
 # VSCode workspace favorites (user-local IDE state)
 .favorites.json

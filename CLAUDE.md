@@ -1,83 +1,61 @@
 # Journal repo — session orientation
 
-You're in the Journal repo. This file is auto-loaded by Claude Code on every
-session in this directory; treat it as your standing brief.
+You're in the **`journal`** repo (split from the original `Journal` on
+2026-05-22 — see [_workspace/runbooks/repo-split.md](https://github.com/asifhussain60/podcast-factory/blob/develop/_workspace/runbooks/repo-split.md) in the
+sibling `podcast-factory` repo for the migration history). This file is
+auto-loaded by Claude Code on every session in this directory; treat it
+as your standing brief.
 
 ## What this repo contains
 
-- **Podcast pipeline** (`scripts/podcast/`, `content/podcast/library/books/`, `skills-staging/podcast/`) — multi-phase Claude+Azure pipeline that converts scholarly Arabic books into NotebookLM-driven podcast series. Phases 0a (ingest) → 0b (refine) → 0c (phonetic) → 0d (chapter design) → 0e (enrich) → 0f (review halt) → per-chapter authoring → trainer → ship.
-- **Babu memoir** (`content/babu-memoir/`, `skills-staging/journal/`) — Asif's memoir authoring engine. Asif IS Babu (the memoir's protagonist).
-- **Trip skills** (`skills-staging/trips/`) — travel-planning skills.
-- **Public-facing site** (`site/`) — Babu's journal site rendered to `site/`.
+- **Babu memoir** (`content/babu-memoir/`, `skills-staging/journal/`) — Asif's memoir authoring engine. **Asif IS Babu** (the memoir's protagonist).
+- **Journal site** (`site/`) — static React display of memoir chapters. Local-only after the 2026-05-22 Cloudflare deploy retirement; serve via `npx serve site` if needed. No deploy target attached.
+- **Memoir tooling** (`scripts/memoir/`) — `auto_delta.py`, `save_snapshot.py`, `detect_user_delta.py`, `refresh_all_snapshots.py`. Drives chapter authoring + snapshot review.
+- **Site sync** (`scripts/site/sync_chapters.sh`) — mirrors `content/babu-memoir/chapters/` → `site/chapters/` for the static site.
 
-## Cross-machine coordination — the model in 30 seconds
+This repo is **fully self-contained** post-split. It has no shared paths, no submodules, no symlinks with the sibling `podcast-factory` repo. Duplicated general-utility items (skills, agents, reference materials, `content/_shared/arabic/`) are independent copies that evolve separately from podcast-factory's copies.
 
-Two machines (Mac Studio + Mac Air) share **ONE git repo, ONE working
-directory per machine**. Books are processed on `book/<slug>` branches; the
-integration target is `develop`, which accumulates every shipped book +
-framework upgrade. Production releases go `develop` → `main`.
+## What this repo does NOT contain (sibling repo)
 
-Each machine has `~/.machine-id` containing either `mac-studio-primary` or
-`macbook-air-secondary`. Per-machine operator files at
-`_workspace/plan/operators/<machine-id>.md` carry that machine's current
-state. **Each machine writes ONLY its own operator file** (rare WRITE
-EXCEPTIONs documented per coord-protocol §15).
+The following lives in the sibling **[podcast-factory](https://github.com/asifhussain60/podcast-factory)** repo (renamed from `Journal` post-split):
 
-## Run this on session start, every time
+- Podcast pipeline (`scripts/podcast/`, `library/books/`, `_workspace/books/`, `skills-staging/podcast/`)
+- Azure infrastructure (`infra/azure/`)
+- Cross-machine operator coordination (`_workspace/plan/operators/`)
+- Book branches, worktrees, and the entire cross-machine podcasting model
 
-```bash
-bash _workspace/plan/operators/start-session.sh
-```
+The journal repo is single-machine, single-purpose. **No machine ID file is needed; no operator-coordination required.**
 
-The script identifies your machine via `~/.machine-id`, syncs develop,
-switches to your assigned book branch, prints orchestrator state +
-next_action. Exit codes:
-- `0` = ready (act on the printed next_action)
-- `1` = pre-flight failed (fix the cause shown and re-run)
-- `2` = IDLE (no assigned book — claim from `_workspace/plan/book-queue.md` per the protocol there)
+## What this repo no longer contains (RETIRED 2026-05-22)
 
-If `~/.machine-id` doesn't exist, the script tells you how to create it.
+- **Cloudflare deploy scaffold**: `wrangler.toml`, `site-worker.js`, `infra/cloudflare/`, `docs/cloudflare/` — removed because the journal app no longer needs the Anthropic API and so no longer needs the Workers proxy or the deployed surface.
+- **Anthropic API proxy** (`server/`): the Node/Express proxy that bound to 127.0.0.1:3001 — same reason as above.
+- **Docs related to the retired stack**: `docs/anthropic-api-setup.md`, `docs/proxy-setup.md`.
+
+If a future memoir feature needs the API again, decide whether to re-add `server/` here or use a different mechanism — don't reach into the podcast-factory's Anthropic plumbing.
 
 ## Read these once per machine, or when conventions feel stale
 
-- **`_workspace/plan/response-conventions.md`** — Response template §1 (4-part shape: `## At a glance — <status>` numbered list at top / body `### N.` sections / `---` / `**Next:** *Asif* or *AI* — sentence`). **No custom section labels** like "Deviation from plan", "Verification", "Coord doc", "What changed". No `**TL;DR:**` opener, no `## Project Status` block (both deprecated 2026-05-21).
-- **`_workspace/plan/operators/index.md`** — cross-machine dashboard (Air ↔ Studio side-by-side + queue with cost/time estimates per book).
-- **`_workspace/plan/book-queue.md`** — pull-on-demand work queue with claim + completion protocols (git-push-rejection mutex).
-- **`_workspace/plan/operators/coordination-protocol.md`** — write/push/branch/quota/concurrency discipline. Wins over per-machine files in conflict.
-- **`_workspace/plan/operators/<your-machine-id>.md`** — your machine's operator file (current_branch, current_book, next_action, status_tag).
-- **`_workspace/plan/operators/setup/`** — recreate-from-scratch documentation: per-machine config ([setup/machines.md](_workspace/plan/operators/setup/machines.md)), Azure stack ([setup/azure-stack.md](_workspace/plan/operators/setup/azure-stack.md)), blank-Mac bootstrap ([setup/recreate-from-scratch.md](_workspace/plan/operators/setup/recreate-from-scratch.md)), runtime-compatibility matrix ([setup/runtime-compatibility.md](_workspace/plan/operators/setup/runtime-compatibility.md) — Claude Code canonical; Cowork verified unsuitable). Index at [setup/README.md](_workspace/plan/operators/setup/README.md).
-- **`.github/agents/podcast-operator.agent.md`** — Asif's unified entry-point. Invoke `claude --agent podcast-operator` (or shorter `/podcast-operator` slash command in Claude Code chat, or shorter still `op` as a bash alias) from ANY machine, ANY branch, ANY worktree. Auto-detects machine, picks up where work was left off, surfaces drift across 6 dimensions, reads peer state from origin/develop, produces a quick recap + reminder in the 4-part At-a-glance template. Discovery-by-default; `--execute-safe` for known-safe auto-ops (fast-forward merges + frontmatter timestamp bumps). Distinct from `podcast-orchestrator` (autonomous pipeline driver). This is the "where am I, what's next?" agent.
-
-## Authoritative truth
-
-When operator files disagree with the orchestrator's state file, the state
-file wins:
-
-```bash
-jq '{phase, phase_status, last_completed_phase, last_error}' \
-    content/podcast/library/books/<book>/_system/orchestrator-state.json
-```
-
-Operator-file frontmatter is a snapshot for human eyes; `state.json` is the truth for any decision.
+- **Response template** — every substantive response follows the 4-part shape: `## At a glance — <severity emoji> <status>` + numbered summary → `---` → `### N.` PROSE body sections → `---` → `## Next: 👤 Asif` / `## Next: 🤖 AI` with `A. (Recommended) Do all of the below in order (B → C → D)` + sub-paths. Canonical reference is in the sibling podcast-factory repo's `_workspace/plan/response-template.md` (pulled into `~/.claude/response-template.md` via `@-import` if user-level install is set up).
+- **Memoir conventions**: Asif IS Babu — relevant for ALL memoir writing in this repo. Voice integrity, scratchpad markers, snapshot review are non-negotiable when editing under `content/babu-memoir/`.
 
 ## What to do for a typical user request
 
-Step 1: Run `start-session.sh`. Read its output.
-Step 2: If the user is asking about pipeline work, the script's `next_action` is your starting point.
-Step 3: If the user is asking about cross-machine state, read `index.md` (don't trust without confirming via state.json).
-Step 4: Respond in BLUF format. No custom section labels.
+Step 1: Read the user's request in context — memoir work, site work, or general repo housekeeping.
+Step 2: If memoir authoring, invoke the `/journal` skill (if present in `skills-staging/journal/`) or use the journal-orchestrator agent.
+Step 3: If site work, use the `css-theme-sync` or `ui-modernizer` skills as appropriate.
+Step 4: Respond in the 4-part template. No custom section labels.
 
-## Conventions baseline (the few that aren't already in response-conventions.md)
+## Conventions baseline
 
-- **Asif IS Babu** (relevant for memoir work; not relevant for podcast work).
-- **Auto-mode authorization** lets you act on small mechanical steps without asking; **halt-and-surface** for anything destructive, shared-state, or LLM-spending beyond the auto-mode envelope.
-- **No emojis in code or commits** unless explicitly invited; **DO use status emojis (🟢 / 🟡 / 🔴 / ⚠)** in responses per response-conventions.md.
-- **Markdown links for files and commits** — `[name](path)` and `[abc1234](https://github.com/asifhussain60/Journal/commit/abc1234)`.
+- **Asif IS Babu** (relevant for all memoir work).
+- **Auto-mode authorization** lets you act on small mechanical steps without asking; **halt-and-surface** for anything destructive or content-mutating beyond the auto-mode envelope.
+- **No emojis in code or commits** unless explicitly invited; **DO use status emojis (🟢 / 🟡 / 🔴 / ⚠)** in responses per response-template.
+- **Markdown links for files and commits** — `[name](path)` and `[abc1234](https://github.com/asifhussain60/journal/commit/abc1234)`.
 
 ## Do NOT
 
-- Cross-write a peer's operator file (except via the formalized WRITE EXCEPTION in coord-protocol §15)
-- Push to the peer's book branch
-- Run any orchestrator command (`scripts/podcast/orchestrate_book.py`) without checking your machine's assignment first
-- Force-push to `main` or `develop`
-- Bypass `git status` cleanliness before merges
+- Re-create `server/`, `wrangler.toml`, `site-worker.js`, `infra/cloudflare/`, or `docs/cloudflare/` without explicit user authorization — these were retired 2026-05-22 for a reason.
+- Force-push to `main` or `develop`.
+- Bypass `git status` cleanliness before merges.
+- Reach into the sibling `podcast-factory` repo's paths or use its scripts from here — the repos are fully disconnected (`_workspace/`, `scripts/podcast/`, `infra/azure/` etc. live ONLY in podcast-factory).
