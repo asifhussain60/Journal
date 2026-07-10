@@ -24,6 +24,12 @@
   --color-bg-card-solid: var(--bg-card-solid);
   --color-panel: var(--panel);
   --color-panel-2: var(--panel-2);
+  /* Dedicated surface for dense, button-heavy rails (Operations panel and its
+     tooltip) — derived from --text/--bg/--accent so contrast is guaranteed in
+     every theme, rather than reusing --bg-card/--panel tokens that were tuned
+     for subtler card uses and are too close to --bg in several themes. */
+  --color-ops-surface: color-mix(in srgb, var(--text) 9%, var(--bg));
+  --color-ops-tooltip: color-mix(in srgb, var(--accent) 20%, var(--bg));
 
   /* Lines */
   --color-line: var(--line);

@@ -12,6 +12,9 @@ import { useIdentity } from "../../stores/useIdentity";
 import { blockAt, nextBlock, paragraphBlocks } from "./paragraphRange";
 import { CodeEditor, type CodeEditorHandle } from "./CodeEditor";
 import { OperationsPanel } from "./OperationsPanel";
+import { LibraryPanel } from "../library/LibraryPanel";
+import { InterviewPanel } from "./InterviewPanel";
+import { useLibraryContext } from "../../stores/useLibraryContext";
 import { DiffView } from "./DiffView";
 import { SaveBar } from "./SaveBar";
 
@@ -38,6 +41,8 @@ export function EditorPage() {
   const [saving, setSaving] = useState(false);
   const [tocOpen, setTocOpen] = useState(false); // collapsible left panel, default collapsed
   const [opRun, setOpRun] = useState<OpRun | null>(null);
+  const [railMode, setRailMode] = useState<"operations" | "library" | "interview">("operations");
+  const addGrounding = useLibraryContext((s) => s.add);
 
   const prefs = useReaderPrefs();
   const isAdmin = useIdentity((s) => s.isAdmin); // viewers get a read-only view
@@ -130,6 +135,16 @@ export function EditorPage() {
     editorRef.current.replaceRange(opRun.from, opRun.to, opRun.after);
     setOpRun(null);
     editorRef.current.focus();
+  }
+
+  function handleLibrarySelect(entry: { id: string; kind: string; label: string; text: string; insertTag: string }) {
+    const view = editorRef.current;
+    if (view) {
+      const pos = view.getCursor();
+      view.replaceRange(pos, pos, entry.insertTag);
+    }
+    addGrounding({ id: entry.id, kind: entry.kind, label: entry.label, text: entry.text });
+    toast.success("Reference inserted", { description: `${entry.id} — also grounding the next operation` });
   }
 
   function handleCut() {
@@ -291,7 +306,41 @@ export function EditorPage() {
         {/* Operations / diff rail — admins only. Viewers get a wider, read-only
             reading column with no editing surface at all. */}
         {isAdmin && (
-          <div className="min-h-0 w-[310px] shrink-0 overflow-y-auto">
+          <div className="flex min-h-0 w-[310px] shrink-0 flex-col gap-2 overflow-y-auto">
+            {!opRun && (
+              <div className="flex shrink-0 gap-1.5">
+                <button
+                  onClick={() => setRailMode("operations")}
+                  className={`flex-1 rounded-md border px-2 py-1.5 text-xs transition-colors ${
+                    railMode === "operations"
+                      ? "border-accent text-accent"
+                      : "border-line text-text-muted hover:text-text"
+                  }`}
+                >
+                  Operations
+                </button>
+                <button
+                  onClick={() => setRailMode("library")}
+                  className={`flex-1 rounded-md border px-2 py-1.5 text-xs transition-colors ${
+                    railMode === "library"
+                      ? "border-accent text-accent"
+                      : "border-line text-text-muted hover:text-text"
+                  }`}
+                >
+                  Library
+                </button>
+                <button
+                  onClick={() => setRailMode("interview")}
+                  className={`flex-1 rounded-md border px-2 py-1.5 text-xs transition-colors ${
+                    railMode === "interview"
+                      ? "border-accent text-accent"
+                      : "border-line text-text-muted hover:text-text"
+                  }`}
+                >
+                  Interview
+                </button>
+              </div>
+            )}
             {opRun ? (
               <DiffView
                 op={opRun.op}
@@ -302,6 +351,10 @@ export function EditorPage() {
                 onAccept={acceptOp}
                 onReject={() => setOpRun(null)}
               />
+            ) : railMode === "library" ? (
+              <LibraryPanel onSelect={handleLibrarySelect} />
+            ) : railMode === "interview" ? (
+              <InterviewPanel onGenerate={(hint) => handleRunOp("expand", hint)} />
             ) : (
               <OperationsPanel
                 chapterId={chapter.id}

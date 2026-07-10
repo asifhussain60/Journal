@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { OPERATIONS, GROUPS, type ProseOp, type OpMeta } from "../../lib/ops";
 import { useReaderData, NOTE_META, type NoteType } from "../../stores/useReaderData";
 import { usePolicies } from "../../stores/usePolicies";
+import { useLibraryContext } from "../../stores/useLibraryContext";
 
 const TAG_TYPES = Object.keys(NOTE_META) as NoteType[];
 
@@ -34,6 +35,8 @@ export function OperationsPanel({
   const addPolicy = usePolicies((s) => s.addPolicy);
   const togglePolicy = usePolicies((s) => s.toggle);
   const removePolicy = usePolicies((s) => s.remove);
+  const groundingEntries = useLibraryContext((s) => s.entries);
+  const clearGrounding = useLibraryContext((s) => s.clear);
 
   const sel = selectionText.trim();
   const hasSel = sel.length > 0;
@@ -64,6 +67,19 @@ export function OperationsPanel({
     toast.success("Tag added", { description: `${NOTE_META[tagType].label} · ¶${activeParaIndex + 1}` });
   }
 
+  // Folds any selected library entries into the hint sent to the worker —
+  // pure client-side string composition, the worker already treats `hint` as
+  // an opaque free-text field appended to the prompt (see OP_INSTRUCTIONS).
+  function buildHint(): string | undefined {
+    const parts = [hint.trim()];
+    if (groundingEntries.length > 0) {
+      const grounding = groundingEntries.map((e) => `[${e.id}] ${e.text}`).join("\n\n");
+      parts.push(`Grounding context:\n${grounding}`);
+    }
+    const full = parts.filter(Boolean).join("\n\n").trim();
+    return full || undefined;
+  }
+
   function submitPolicy() {
     if (!policyText.trim()) return;
     addPolicy(policyText.trim());
@@ -80,7 +96,7 @@ export function OperationsPanel({
           align="start"
           sideOffset={10}
           collisionPadding={12}
-          className="z-50 w-72 rounded-xl border border-line bg-bg-2 p-4 shadow-2xl"
+          className="z-50 w-72 rounded-xl border border-line-strong bg-ops-tooltip p-4 shadow-2xl"
         >
           <p className="font-display text-base font-semibold text-text">{o.label}</p>
           <p className="mt-1.5 text-[0.9rem] leading-snug text-text-secondary">{o.detail}</p>
@@ -94,7 +110,7 @@ export function OperationsPanel({
               <span className="text-text">{o.effect}</span>
             </p>
           </div>
-          <Tooltip.Arrow className="fill-[color:var(--bg-2)]" />
+          <Tooltip.Arrow className="fill-[color:var(--ops-tooltip)]" />
         </Tooltip.Content>
       </Tooltip.Portal>
     );
@@ -172,7 +188,7 @@ export function OperationsPanel({
             onClick={() => {
               if (isCut) return onCut();
               if (isNote) return document.getElementById("annotation-text")?.focus();
-              onRunOp(o.op as ProseOp, hint.trim() || undefined);
+              onRunOp(o.op as ProseOp, buildHint());
             }}
             className={`flex flex-col items-start rounded-md border px-3 py-2 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
               isCut
@@ -195,7 +211,7 @@ export function OperationsPanel({
 
   return (
     <Tooltip.Provider delayDuration={120} skipDelayDuration={200}>
-      <aside className="flex w-full flex-col gap-4 rounded-xl border border-line bg-bg-card/60 p-4">
+      <aside className="flex w-full flex-col gap-4 rounded-xl border border-line-strong bg-ops-surface p-4">
         <div>
           <p className="u-eyebrow text-text-muted">Operations</p>
           <p className="mt-1 text-xs text-text-muted">
@@ -214,6 +230,18 @@ export function OperationsPanel({
           placeholder="Optional direction (e.g. more on his tone)"
           className="w-full rounded-md border border-line bg-bg px-3 py-2 text-xs text-text outline-none placeholder:text-text-muted focus:border-accent"
         />
+
+        {groundingEntries.length > 0 && (
+          <div className="flex items-center justify-between rounded-md border border-accent/40 bg-accent-soft px-3 py-1.5 text-[0.68rem]">
+            <span className="text-accent">
+              {groundingEntries.length} librar{groundingEntries.length === 1 ? "y" : "ies"} entr
+              {groundingEntries.length === 1 ? "y" : "ies"} grounding the next operation
+            </span>
+            <button onClick={clearGrounding} className="text-text-muted hover:text-error" aria-label="Clear grounding">
+              ✕
+            </button>
+          </div>
+        )}
 
         {/* Grouped operations — selection · rewrite · add · structure · annotate */}
         {GROUPS.map((g) => {

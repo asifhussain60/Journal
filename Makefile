@@ -49,6 +49,11 @@ kv-restore:  ## Restore backups/kv-snapshots/latest/ back into live Cloudflare K
 site-sync-chapters:  ## Mirror content/babu-memoir/chapters/ → site/chapters/.
 	@$(SCRIPTS_DIR)/site/sync_chapters.sh
 
+.PHONY: site-sync-libraries
+site-sync-libraries:  ## Parse the reference libraries and mirror them into site/src/data/library.json.
+	@python3 $(SCRIPTS_DIR)/memoir/parse_libraries.py
+	@$(SCRIPTS_DIR)/site/sync_library.sh
+
 # ── Memoir ──────────────────────────────────────────────────────────────────
 
 .PHONY: memoir-snapshot
