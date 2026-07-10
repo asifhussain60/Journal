@@ -13,3 +13,22 @@ export async function fetchChapterText(file: string): Promise<string> {
 export function readingMinutes(words: number): number {
   return Math.max(1, Math.round(words / 230));
 }
+
+export interface Me {
+  email: string;
+  isAdmin: boolean;
+}
+
+/**
+ * Who is the signed-in user and can they edit? Cloudflare Access has already
+ * authenticated them at the edge; the Worker reports the email and whether it
+ * matches ALLOWED_EDITORS. Viewers get isAdmin:false.
+ */
+export async function fetchMe(): Promise<Me> {
+  const res = await fetch("/api/me", { credentials: "include" });
+  const data = (await res.json().catch(() => null)) as
+    | { ok?: boolean; email?: string; isAdmin?: boolean; error?: string }
+    | null;
+  if (!res.ok || !data?.ok) throw new Error(data?.error || `HTTP ${res.status}`);
+  return { email: data.email ?? "", isAdmin: !!data.isAdmin };
+}

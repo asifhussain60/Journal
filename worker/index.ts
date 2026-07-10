@@ -1,6 +1,6 @@
 import type { Env } from "./types";
 import { ok, fail } from "./http";
-import { verifyAccess } from "./auth";
+import { verifyAccess, isEditor } from "./auth";
 import {
   handleRefine,
   handleChat,
@@ -40,10 +40,20 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
 
   const { pathname } = url;
   const post = request.method === "POST";
+  const admin = isEditor(identity, env);
 
-  // Reference data (GET /api/reference-data/:name)
+  // Identity/role probe — any authenticated user may ask "who am I, what can I do".
+  // The SPA uses this to decide whether to show the editing rail (admin) or a
+  // read-only view (viewer).
+  if (pathname === "/api/me") return ok({ email: identity.email, isAdmin: admin });
+
+  // Reference data (GET /api/reference-data/:name) — read-only, viewers allowed.
   const refMatch = pathname.match(/^\/api\/reference-data\/([^/]+)$/);
   if (refMatch) return handleReferenceData(decodeURIComponent(refMatch[1]), env);
+
+  // Everything below either mutates content (git) or spends model budget. Hiding
+  // the UI is not enough — a viewer must not be able to call these directly.
+  if (!admin) return fail("viewer role is read-only", 403);
 
   switch (pathname) {
     case "/api/refine":

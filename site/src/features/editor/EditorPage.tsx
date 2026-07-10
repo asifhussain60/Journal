@@ -8,6 +8,7 @@ import { fetchChapterText } from "../../lib/api";
 import { runOp, saveChapter, type ProseOp } from "../../lib/ops";
 import { useReaderPrefs, readerStyle } from "../../stores/useReaderPrefs";
 import { usePolicies } from "../../stores/usePolicies";
+import { useIdentity } from "../../stores/useIdentity";
 import { blockAt, nextBlock, paragraphBlocks } from "./paragraphRange";
 import { CodeEditor, type CodeEditorHandle } from "./CodeEditor";
 import { OperationsPanel } from "./OperationsPanel";
@@ -39,6 +40,7 @@ export function EditorPage() {
   const [opRun, setOpRun] = useState<OpRun | null>(null);
 
   const prefs = useReaderPrefs();
+  const isAdmin = useIdentity((s) => s.isAdmin); // viewers get a read-only view
   const policyList = usePolicies((s) => s.policies);
   const activePolicies = useMemo(
     () => policyList.filter((p) => p.active).map((p) => p.text),
@@ -206,7 +208,16 @@ export function EditorPage() {
         </div>
         <div className="flex items-center gap-3">
           <ReaderToolbar />
-          <SaveBar dirty={dirty} saving={saving} locked={locked} onSave={handleSave} />
+          {isAdmin ? (
+            <SaveBar dirty={dirty} saving={saving} locked={locked} onSave={handleSave} />
+          ) : (
+            <span
+              className="rounded-md border border-line px-2 py-1 text-[0.68rem] text-text-muted"
+              title="You have viewer access — reading only."
+            >
+              Read-only
+            </span>
+          )}
         </div>
       </div>
 
@@ -259,7 +270,7 @@ export function EditorPage() {
               <CodeEditor
                 ref={editorRef}
                 initialDoc={doc}
-                readOnly={false}
+                readOnly={!isAdmin}
                 onChange={(d) => {
                   setDoc(d);
                   setDirty(true);
@@ -277,30 +288,33 @@ export function EditorPage() {
           )}
         </div>
 
-        {/* Operations / diff rail */}
-        <div className="min-h-0 w-[310px] shrink-0 overflow-y-auto">
-          {opRun ? (
-            <DiffView
-              op={opRun.op}
-              before={opRun.before}
-              after={opRun.after}
-              loading={opRun.loading}
-              error={opRun.error}
-              onAccept={acceptOp}
-              onReject={() => setOpRun(null)}
-            />
-          ) : (
-            <OperationsPanel
-              chapterId={chapter.id}
-              activeParaIndex={activeBlock?.index ?? 0}
-              activeParaText={activeBlock?.text ?? ""}
-              selectionText={selectionText}
-              onRunOp={handleRunOp}
-              onCut={handleCut}
-              onMove={handleMove}
-            />
-          )}
-        </div>
+        {/* Operations / diff rail — admins only. Viewers get a wider, read-only
+            reading column with no editing surface at all. */}
+        {isAdmin && (
+          <div className="min-h-0 w-[310px] shrink-0 overflow-y-auto">
+            {opRun ? (
+              <DiffView
+                op={opRun.op}
+                before={opRun.before}
+                after={opRun.after}
+                loading={opRun.loading}
+                error={opRun.error}
+                onAccept={acceptOp}
+                onReject={() => setOpRun(null)}
+              />
+            ) : (
+              <OperationsPanel
+                chapterId={chapter.id}
+                activeParaIndex={activeBlock?.index ?? 0}
+                activeParaText={activeBlock?.text ?? ""}
+                selectionText={selectionText}
+                onRunOp={handleRunOp}
+                onCut={handleCut}
+                onMove={handleMove}
+              />
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

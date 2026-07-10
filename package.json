@@ -9,7 +9,7 @@
     "site:build": "npm --prefix site run build",
     "worker:dev": "wrangler dev",
     "worker:typecheck": "tsc -p worker/tsconfig.json",
-    "deploy": "npm run site:build && wrangler deploy"
+    "deploy": "bash infra/deploy.sh"
   },
   "keywords": ["journal", "memoir"],
   "author": "Asif Hussain",

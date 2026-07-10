@@ -27,11 +27,15 @@ install-skills:  ## Install Claude Code skills + agent wrappers from this repo i
 install-skills-dry:  ## Dry-run the skill installer (no files written).
 	@$(SCRIPTS_DIR)/install-claude-skills.sh --dry-run
 
-# ── Site (local-only static; no deploy after 2026-05-22 Cloudflare retirement) ─
+# ── Site + deploy ───────────────────────────────────────────────────────────
 
 .PHONY: site-dev
 site-dev:  ## Serve site/ locally on http://localhost:3000.
 	@npx serve site -l 3000 --cors
+
+.PHONY: deploy
+deploy:  ## Build the site + deploy the journal Worker to Cloudflare (see infra/DEPLOY.md).
+	@bash infra/deploy.sh
 
 .PHONY: site-sync-chapters
 site-sync-chapters:  ## Mirror content/babu-memoir/chapters/ → site/chapters/.
