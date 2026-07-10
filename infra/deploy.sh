@@ -40,15 +40,8 @@ if [ ! -f "$ROOT/wrangler.toml" ]; then
   exit 1
 fi
 
-if [ -z "${CLOUDFLARE_API_TOKEN:-}" ] && command -v security >/dev/null 2>&1; then
-  kc_token="$(security find-generic-password -s "${PROJECT}-cloudflare-token" -w 2>/dev/null || true)"
-  kc_account="$(security find-generic-password -s "${PROJECT}-cloudflare-account-id" -w 2>/dev/null || true)"
-  if [ -n "$kc_token" ]; then
-    export CLOUDFLARE_API_TOKEN="$kc_token"
-    [ -n "$kc_account" ] && export CLOUDFLARE_ACCOUNT_ID="$kc_account"
-    echo "▶ Using Cloudflare credentials from Keychain (${PROJECT}-cloudflare-token)"
-  fi
-fi
+source "$ROOT/infra/lib/cf-auth.sh"
+load_cf_credentials_from_keychain
 
 # ── Build ─────────────────────────────────────────────────────────────────
 

@@ -93,6 +93,59 @@ CLOUDFLARE_ACCOUNT_ID="$(security find-generic-password -s journal-cloudflare-ac
 npx wrangler kv key put --binding=CHAPTERS_KV ch03 --path content/babu-memoir/chapters/ch03-marriage.txt --remote
 ```
 
+## Backup & restore (Cloudflare KV)
+
+`CHAPTERS_KV` is the only live, mutable data this app has — everything else
+is either static build output or a secret. There's no automatic backup on
+Cloudflare's side, so `infra/backup-kv.sh` / `infra/restore-kv.sh` exist to
+cover it. Both use the same Keychain credentials as `deploy.sh` (factored
+into `infra/lib/cf-auth.sh`) — no separate token, no GitHub token either.
+
+**Back up:**
+
+```bash
+make kv-backup   # or: bash infra/backup-kv.sh
+```
+
+Pulls every live key out of `CHAPTERS_KV` and writes it to
+`backups/kv-snapshots/latest/<key>.txt`, plus a `manifest.json` (byte size,
+sha256, fetch time) for each. That directory is git-tracked and gets
+**overwritten in place** on every run — it's not meant to accumulate
+timestamped copies. Point-in-time history comes from git itself:
+
+```bash
+git diff -- backups/kv-snapshots/latest      # see what changed vs last commit
+git log -p -- backups/kv-snapshots/latest    # full backup history
+```
+
+The script only writes the local files — review the diff and `git commit` +
+`git push` yourself so a backup actually leaves the machine.
+
+**Restore:**
+
+```bash
+make kv-restore   # or: bash infra/restore-kv.sh
+```
+
+Compares `backups/kv-snapshots/latest/` against the *current* live values,
+prints a diff, and asks for confirmation before writing anything (`--yes`
+skips the prompt for scripted use). To restore an older point in time,
+check out that revision of the snapshot directory first:
+
+```bash
+git checkout <commit> -- backups/kv-snapshots/latest
+bash infra/restore-kv.sh
+git checkout HEAD -- backups/kv-snapshots/latest   # put the working tree back
+```
+
+Restore writes straight to the Cloudflare API (`wrangler kv key put`), which
+**bypasses** the Worker's locked-chapter check in
+`worker/routes/saveChapter.ts` (ch00-ch02 are locked to the web editor).
+That's intentional — disaster recovery is exactly the case where the
+app-level lock shouldn't block the admin — but it means restore can
+overwrite a "locked" chapter without going through the unlock flow, so use
+it deliberately.
+
 ## Cloudflare Access — Google login + roles
 
 1. **Custom domain.** Access can only guard a domain added to Cloudflare — not a

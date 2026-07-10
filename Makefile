@@ -37,6 +37,14 @@ site-dev:  ## Serve site/ locally on http://localhost:3000.
 deploy:  ## Build the site + deploy the journal Worker to Cloudflare (see infra/DEPLOY.md).
 	@bash infra/deploy.sh
 
+.PHONY: kv-backup
+kv-backup:  ## Snapshot live chapter text from Cloudflare KV into backups/kv-snapshots/latest/.
+	@bash infra/backup-kv.sh
+
+.PHONY: kv-restore
+kv-restore:  ## Restore backups/kv-snapshots/latest/ back into live Cloudflare KV (prompts for confirmation).
+	@bash infra/restore-kv.sh
+
 .PHONY: site-sync-chapters
 site-sync-chapters:  ## Mirror content/babu-memoir/chapters/ → site/chapters/.
 	@$(SCRIPTS_DIR)/site/sync_chapters.sh
