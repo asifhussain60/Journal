@@ -2,18 +2,7 @@ import type { Env, Identity } from "../types";
 import { ok, fail, readJson } from "../http";
 import { isEditor } from "../auth";
 import { getFileSha, putFile } from "../github";
-
-// Canonical chapter id -> { file, locked }. SYNC POINT: lock state mirrors
-// content/babu-memoir/_system/chapter-status.md (ch00-ch02 are immutable).
-// The Worker never accepts an arbitrary path from the client — only these ids.
-const CHAPTERS: Record<string, { file: string; locked: boolean }> = {
-  ch00: { file: "ch00-intro.txt", locked: true },
-  ch01: { file: "ch01-man.txt", locked: true },
-  ch02: { file: "ch02-love.txt", locked: true },
-  ch03: { file: "ch03-marriage.txt", locked: false },
-};
-
-const CHAPTERS_DIR = "content/babu-memoir/chapters";
+import { CHAPTERS, CHAPTERS_DIR } from "../chapters";
 
 export async function handleSaveChapter(
   request: Request,

@@ -7,6 +7,8 @@ const API = "https://api.github.com";
 
 interface ContentsResponse {
   sha: string;
+  content?: string;
+  encoding?: string;
 }
 
 function ghHeaders(env: Env): HeadersInit {
@@ -26,16 +28,40 @@ function base64Utf8(text: string): string {
   return btoa(bin);
 }
 
+function utf8Base64(b64: string): string {
+  // Inverse of base64Utf8 — GitHub returns content as base64 (with embedded
+  // newlines), decode to bytes then UTF-8 so non-ASCII prose survives.
+  const bin = atob(b64.replace(/\n/g, ""));
+  const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
+
+function contentsUrl(env: Env, path: string, withRef: boolean): string {
+  const base = `${API}/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/contents/${encodeURIComponent(
+    path,
+  ).replace(/%2F/g, "/")}`;
+  return withRef ? `${base}?ref=${env.GITHUB_BRANCH}` : base;
+}
+
 /** Current blob SHA for a path on the branch, or null if the file is absent. */
 export async function getFileSha(env: Env, path: string): Promise<string | null> {
-  const url = `${API}/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/contents/${encodeURIComponent(
-    path,
-  ).replace(/%2F/g, "/")}?ref=${env.GITHUB_BRANCH}`;
+  const url = contentsUrl(env, path, true);
   const res = await fetch(url, { headers: ghHeaders(env) });
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`GitHub GET ${res.status}: ${(await res.text()).slice(0, 200)}`);
   const body = (await res.json()) as ContentsResponse;
   return body.sha;
+}
+
+/** Current file text on the branch, or null if the file is absent. */
+export async function getFileContent(env: Env, path: string): Promise<string | null> {
+  const url = contentsUrl(env, path, true);
+  const res = await fetch(url, { headers: ghHeaders(env) });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`GitHub GET ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  const body = (await res.json()) as ContentsResponse;
+  if (!body.content) throw new Error("GitHub GET: response had no content field");
+  return utf8Base64(body.content);
 }
 
 export interface CommitResult {

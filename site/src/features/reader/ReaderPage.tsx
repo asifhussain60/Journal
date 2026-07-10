@@ -47,7 +47,7 @@ export function ReaderPage() {
     }
     let live = true;
     setStatus("loading");
-    fetchChapterText(chapter.file)
+    fetchChapterText(chapter.id, chapter.file)
       .then((text) => {
         if (!live) return;
         setParsed(parseChapter(text));

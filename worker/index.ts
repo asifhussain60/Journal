@@ -9,6 +9,7 @@ import {
   handleThemeReview,
 } from "./routes/ai";
 import { handleReferenceData } from "./routes/referenceData";
+import { handleGetChapter } from "./routes/chapter";
 import { handleOp } from "./routes/ops";
 import { handleSaveChapter } from "./routes/saveChapter";
 
@@ -50,6 +51,13 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
   // Reference data (GET /api/reference-data/:name) — read-only, viewers allowed.
   const refMatch = pathname.match(/^\/api\/reference-data\/([^/]+)$/);
   if (refMatch) return handleReferenceData(decodeURIComponent(refMatch[1]), env);
+
+  // Live chapter text (GET /api/chapter/:id) — read-only, viewers allowed. Best
+  // effort: the frontend falls back to the static-asset copy on any failure.
+  const chapterMatch = pathname.match(/^\/api\/chapter\/([^/]+)$/);
+  if (chapterMatch && request.method === "GET") {
+    return handleGetChapter(decodeURIComponent(chapterMatch[1]), env);
+  }
 
   // Everything below either mutates content (git) or spends model budget. Hiding
   // the UI is not enough — a viewer must not be able to call these directly.

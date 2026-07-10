@@ -3,7 +3,26 @@
 // and proxies /api/* to `wrangler dev`. credentials:"include" lets the
 // Cloudflare Access cookie ride along once auth is wired.
 
-export async function fetchChapterText(file: string): Promise<string> {
+/**
+ * Chapter text, preferring the live copy from GitHub (/api/chapter/:id) so a
+ * reload always reflects the latest save. The static-asset copy at `/${file}`
+ * is only as fresh as the last deploy, so it's used only when the live route
+ * is unavailable (e.g. GITHUB_TOKEN not yet configured, or a transient error)
+ * — same content, just a fallback rather than a requirement.
+ */
+export async function fetchChapterText(chapterId: string, file: string): Promise<string> {
+  try {
+    const res = await fetch(`/api/chapter/${encodeURIComponent(chapterId)}`, {
+      credentials: "include",
+    });
+    if (res.ok) {
+      const data = (await res.json()) as { ok: boolean; text?: string };
+      if (data.ok && typeof data.text === "string") return data.text;
+    }
+  } catch {
+    // network error — fall through to the static-asset copy below
+  }
+
   const res = await fetch(`/${file}`, { credentials: "include" });
   if (!res.ok) throw new Error(`Failed to load chapter (${res.status})`);
   return res.text();

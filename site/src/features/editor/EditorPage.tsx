@@ -54,7 +54,7 @@ export function EditorPage() {
       return;
     }
     let live = true;
-    fetchChapterText(chapter.file)
+    fetchChapterText(chapter.id, chapter.file)
       .then((t) => {
         if (!live) return;
         setDoc(t);
