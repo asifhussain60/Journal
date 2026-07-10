@@ -12,6 +12,8 @@ import { handleReferenceData } from "./routes/referenceData";
 import { handleGetChapter } from "./routes/chapter";
 import { handleOp } from "./routes/ops";
 import { handleSaveChapter } from "./routes/saveChapter";
+import { handleDraftIncident, handleSaveIncident } from "./routes/incidents";
+import { handleInterviewQuestions } from "./routes/interview";
 
 // Single Cloudflare Worker: serves the Vite build (ASSETS binding, SPA fallback)
 // and handles /health + /api/*. Cloudflare Access gates the whole zone at the
@@ -78,6 +80,12 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
       return post ? handleOp(request, env) : fail("method not allowed", 405);
     case "/api/save-chapter":
       return post ? handleSaveChapter(request, env, identity) : fail("method not allowed", 405);
+    case "/api/incident-draft":
+      return post ? handleDraftIncident(request, env) : fail("method not allowed", 405);
+    case "/api/incidents":
+      return post ? handleSaveIncident(request, env) : fail("method not allowed", 405);
+    case "/api/interview-questions":
+      return post ? handleInterviewQuestions(request, env) : fail("method not allowed", 405);
     default:
       return fail("not found", 404);
   }

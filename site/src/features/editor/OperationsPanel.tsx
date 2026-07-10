@@ -122,7 +122,7 @@ export function OperationsPanel({
       return (
         <Tooltip.Root key={o.op}>
           <Tooltip.Trigger asChild>
-            <div className="col-span-2 flex items-center justify-between rounded-md border border-line px-3 py-2">
+            <div className="col-span-2 flex items-center justify-between rounded-md border border-line bg-ops-button px-3 py-2">
               <span className="flex flex-col">
                 <span className="text-sm font-medium text-text">Move</span>
                 <span className="text-[0.68rem] text-text-muted">Reorder ¶{activeParaIndex + 1}</span>
@@ -130,14 +130,14 @@ export function OperationsPanel({
               <span className="flex gap-1.5">
                 <button
                   onClick={() => onMove("up")}
-                  className="rounded-md border border-line px-2.5 py-1 text-sm hover:border-accent hover:text-accent"
+                  className="rounded-md border border-line bg-ops-button-hover px-2.5 py-1 text-sm hover:border-accent hover:text-accent"
                   aria-label="Move paragraph up"
                 >
                   ↑
                 </button>
                 <button
                   onClick={() => onMove("down")}
-                  className="rounded-md border border-line px-2.5 py-1 text-sm hover:border-accent hover:text-accent"
+                  className="rounded-md border border-line bg-ops-button-hover px-2.5 py-1 text-sm hover:border-accent hover:text-accent"
                   aria-label="Move paragraph down"
                 >
                   ↓
@@ -157,7 +157,7 @@ export function OperationsPanel({
           <Tooltip.Trigger asChild>
             <button
               onClick={() => setShowPolicy((s) => !s)}
-              className="col-span-2 flex items-center justify-between rounded-md border border-line px-3 py-2 text-left hover:border-accent"
+              className="col-span-2 flex items-center justify-between rounded-md border border-line bg-ops-button px-3 py-2 text-left transition-colors hover:border-accent hover:bg-ops-button-hover"
             >
               <span className="flex flex-col">
                 <span className="text-sm font-medium text-text">Policy</span>
@@ -192,8 +192,8 @@ export function OperationsPanel({
             }}
             className={`flex flex-col items-start rounded-md border px-3 py-2 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
               isCut
-                ? "border-error/40 text-error hover:bg-error/10"
-                : "border-line text-text hover:border-accent hover:bg-bg-card-hover"
+                ? "border-error/40 bg-error/10 text-error hover:bg-error/20"
+                : "border-line bg-ops-button text-text hover:border-accent hover:bg-ops-button-hover"
             }`}
           >
             <span className="flex items-center gap-1.5 text-sm font-medium">
@@ -234,8 +234,8 @@ export function OperationsPanel({
         {groundingEntries.length > 0 && (
           <div className="flex items-center justify-between rounded-md border border-accent/40 bg-accent-soft px-3 py-1.5 text-[0.68rem]">
             <span className="text-accent">
-              {groundingEntries.length} librar{groundingEntries.length === 1 ? "y" : "ies"} entr
-              {groundingEntries.length === 1 ? "y" : "ies"} grounding the next operation
+              {groundingEntries.length} library entr{groundingEntries.length === 1 ? "y" : "ies"} grounding
+              the next operation
             </span>
             <button onClick={clearGrounding} className="text-text-muted hover:text-error" aria-label="Clear grounding">
               ✕
@@ -311,7 +311,9 @@ export function OperationsPanel({
                 key={t}
                 onClick={() => setTagType(t)}
                 className={`rounded-pill border px-2 py-1 text-[0.68rem] transition-colors ${
-                  t === tagType ? "border-transparent text-accent-contrast" : "border-line text-text-muted"
+                  t === tagType
+                    ? "border-transparent text-accent-contrast"
+                    : "border-line bg-ops-button text-text-muted hover:bg-ops-button-hover"
                 }`}
                 style={t === tagType ? { background: NOTE_META[t].token } : undefined}
               >
@@ -333,7 +335,7 @@ export function OperationsPanel({
           <button
             onClick={addAnnotation}
             disabled={!noteText.trim()}
-            className="mt-2 w-full rounded-md border border-line py-1.5 text-xs text-text-secondary hover:bg-bg-card-hover disabled:opacity-40"
+            className="mt-2 w-full rounded-md border border-line bg-ops-button py-1.5 text-xs text-text-secondary hover:bg-ops-button-hover disabled:opacity-40"
           >
             Add tag
           </button>

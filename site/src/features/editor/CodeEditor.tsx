@@ -9,6 +9,7 @@ export interface CodeEditorHandle {
   getSelectionText: () => string;
   getSelectionRange: () => { from: number; to: number };
   replaceRange: (from: number, to: number, text: string) => void;
+  insertAt: (pos: number, text: string) => void;
   scrollToPos: (pos: number) => void;
   focus: () => void;
 }
@@ -66,6 +67,16 @@ export const CodeEditor = forwardRef<CodeEditorHandle, Props>(function CodeEdito
     },
     replaceRange: (from, to, text) => {
       viewRef.current?.dispatch({ changes: { from, to, insert: text } });
+    },
+    // Insert at a point and advance the cursor past the inserted text — unlike
+    // replaceRange's default change-mapping, which leaves a zero-width cursor
+    // BEFORE an insertion at that exact point, so repeated inserts would stack
+    // in reverse order instead of reading left to right.
+    insertAt: (pos, text) => {
+      viewRef.current?.dispatch({
+        changes: { from: pos, to: pos, insert: text },
+        selection: { anchor: pos + text.length },
+      });
     },
     scrollToPos: (pos) => {
       const v = viewRef.current;

@@ -24,6 +24,12 @@ export async function callGemini(
     user: string;
     maxTokens?: number;
     temperature?: number;
+    // Structured-output mode: when set, Gemini returns strict JSON matching
+    // responseSchema instead of free text, so callers don't need to parse
+    // fragile freeform output (used for AI-drafted incident fields and
+    // AI-generated interview questions).
+    responseMimeType?: string;
+    responseSchema?: object;
   },
 ): Promise<GeminiResult> {
   if (!env.GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
@@ -45,6 +51,8 @@ export async function callGemini(
         // reasoning, returning empty text. These are deterministic rewrites, so
         // disable thinking for a direct, fast answer.
         thinkingConfig: { thinkingBudget: 0 },
+        ...(opts.responseMimeType ? { responseMimeType: opts.responseMimeType } : {}),
+        ...(opts.responseSchema ? { responseSchema: opts.responseSchema } : {}),
       },
     }),
   });

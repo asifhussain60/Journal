@@ -30,6 +30,10 @@
      for subtler card uses and are too close to --bg in several themes. */
   --color-ops-surface: color-mix(in srgb, var(--text) 9%, var(--bg));
   --color-ops-tooltip: color-mix(in srgb, var(--accent) 20%, var(--bg));
+  /* Button fills that sit a visible step above --ops-surface, so buttons read
+     as buttons instead of outlined boxes floating on the panel. */
+  --color-ops-button: color-mix(in srgb, var(--text) 14%, var(--bg));
+  --color-ops-button-hover: color-mix(in srgb, var(--text) 20%, var(--bg));
 
   /* Lines */
   --color-line: var(--line);

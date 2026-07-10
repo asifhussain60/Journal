@@ -141,7 +141,7 @@ export function EditorPage() {
     const view = editorRef.current;
     if (view) {
       const pos = view.getCursor();
-      view.replaceRange(pos, pos, entry.insertTag);
+      view.insertAt(pos, entry.insertTag);
     }
     addGrounding({ id: entry.id, kind: entry.kind, label: entry.label, text: entry.text });
     toast.success("Reference inserted", { description: `${entry.id} — also grounding the next operation` });
@@ -313,8 +313,8 @@ export function EditorPage() {
                   onClick={() => setRailMode("operations")}
                   className={`flex-1 rounded-md border px-2 py-1.5 text-xs transition-colors ${
                     railMode === "operations"
-                      ? "border-accent text-accent"
-                      : "border-line text-text-muted hover:text-text"
+                      ? "border-accent bg-accent-soft text-accent"
+                      : "border-line bg-ops-button text-text-muted hover:bg-ops-button-hover hover:text-text"
                   }`}
                 >
                   Operations
@@ -323,8 +323,8 @@ export function EditorPage() {
                   onClick={() => setRailMode("library")}
                   className={`flex-1 rounded-md border px-2 py-1.5 text-xs transition-colors ${
                     railMode === "library"
-                      ? "border-accent text-accent"
-                      : "border-line text-text-muted hover:text-text"
+                      ? "border-accent bg-accent-soft text-accent"
+                      : "border-line bg-ops-button text-text-muted hover:bg-ops-button-hover hover:text-text"
                   }`}
                 >
                   Library
@@ -333,8 +333,8 @@ export function EditorPage() {
                   onClick={() => setRailMode("interview")}
                   className={`flex-1 rounded-md border px-2 py-1.5 text-xs transition-colors ${
                     railMode === "interview"
-                      ? "border-accent text-accent"
-                      : "border-line text-text-muted hover:text-text"
+                      ? "border-accent bg-accent-soft text-accent"
+                      : "border-line bg-ops-button text-text-muted hover:bg-ops-button-hover hover:text-text"
                   }`}
                 >
                   Interview
@@ -354,7 +354,11 @@ export function EditorPage() {
             ) : railMode === "library" ? (
               <LibraryPanel onSelect={handleLibrarySelect} />
             ) : railMode === "interview" ? (
-              <InterviewPanel onGenerate={(hint) => handleRunOp("expand", hint)} />
+              <InterviewPanel
+                chapterTitle={chapter.title}
+                activeParaText={activeBlock?.text ?? ""}
+                onGenerate={(hint) => handleRunOp("expand", hint)}
+              />
             ) : (
               <OperationsPanel
                 chapterId={chapter.id}
