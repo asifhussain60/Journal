@@ -27,7 +27,7 @@ export function SaveBar({
         disabled={saving || !dirty}
         className="rounded-md bg-accent px-4 py-1.5 text-sm font-medium text-accent-contrast disabled:opacity-40"
       >
-        Save to git
+        Save
       </button>
     </div>
   );

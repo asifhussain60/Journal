@@ -186,10 +186,10 @@ export async function saveChapter(
   chapterId: string,
   text: string,
   unlock = false,
-): Promise<{ commitUrl: string }> {
-  const data = await postJson<{ ok: boolean; commitUrl: string; error?: string }>(
+): Promise<{ savedAt: string }> {
+  const data = await postJson<{ ok: boolean; savedAt: string; error?: string }>(
     "/api/save-chapter",
     { chapterId, text, unlock },
   );
-  return { commitUrl: data.commitUrl };
+  return { savedAt: data.savedAt };
 }

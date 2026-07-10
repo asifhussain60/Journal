@@ -4,10 +4,10 @@
 // Cloudflare Access cookie ride along once auth is wired.
 
 /**
- * Chapter text, preferring the live copy from GitHub (/api/chapter/:id) so a
- * reload always reflects the latest save. The static-asset copy at `/${file}`
- * is only as fresh as the last deploy, so it's used only when the live route
- * is unavailable (e.g. GITHUB_TOKEN not yet configured, or a transient error)
+ * Chapter text, preferring the live copy in Cloudflare KV (/api/chapter/:id)
+ * so a reload always reflects the latest save. The static-asset copy at
+ * `/${file}` is only as fresh as the last deploy, so it's used only when the
+ * live route is unavailable (e.g. not yet saved to KV, or a transient error)
  * — same content, just a fallback rather than a requirement.
  */
 export async function fetchChapterText(chapterId: string, file: string): Promise<string> {

@@ -37,8 +37,9 @@ There is **no `journal-cloudflare-token` in the Keychain yet**, and the existing
 thereafter.
 
 1. Cloudflare dashboard (**hotmail** account) → My Profile → API Tokens → Create
-   Token. Use a custom token with **`Account › Workers Scripts › Edit`**. Copy the
-   token; the account id is `844bc687926c910d5ad9d79c40ad1f2f`.
+   Token. Use a custom token with **`Account › Workers Scripts › Edit`** AND
+   **`Account › Workers KV Storage › Edit`** (needed for chapter storage — see
+   below). Copy the token; the account id is `844bc687926c910d5ad9d79c40ad1f2f`.
 2. Save both to the Keychain (same convention as Salty Lamps):
 
    ```bash
@@ -64,7 +65,32 @@ the local-dev copies):
 ```bash
 wrangler secret put ANTHROPIC_API_KEY
 wrangler secret put GEMINI_API_KEY
-wrangler secret put GITHUB_TOKEN
+```
+
+## Chapter storage — Cloudflare KV, not GitHub
+
+Chapter text saved through the web editor is **not** committed to git. It's
+written straight to a KV namespace bound as `CHAPTERS_KV` (see
+`[[kv_namespaces]]` in `wrangler.toml`) — no external token, no GitHub
+dependency at all. This was a deliberate trade-off (2026-07-10): the CLI/Python
+memoir tooling (`scripts/memoir/*.py`, the journal-challenger agent) still reads
+`content/babu-memoir/chapters/*.txt` from git, so **edits made through the web
+app do not appear there** unless someone copies them back manually. The web app
+is the primary editing surface going forward; git remains the canonical source
+only for the CLI-driven authoring workflow.
+
+Reads (`GET /api/chapter/:id`) try KV first and fall back to the static-asset
+copy baked in at the last deploy if KV has no value yet — so a fresh Worker
+with an empty namespace still serves the last-deployed text, never a blank
+page.
+
+Namespace: `journal-CHAPTERS_KV`, id `cabb8878cd364ea2b3d15baffb8fc052` (hotmail
+account). To seed or inspect it directly:
+
+```bash
+CLOUDFLARE_API_TOKEN="$(security find-generic-password -s journal-cloudflare-token -w)" \
+CLOUDFLARE_ACCOUNT_ID="$(security find-generic-password -s journal-cloudflare-account-id -w)" \
+npx wrangler kv key put --binding=CHAPTERS_KV ch03 --path content/babu-memoir/chapters/ch03-marriage.txt --remote
 ```
 
 ## Cloudflare Access — Google login + roles

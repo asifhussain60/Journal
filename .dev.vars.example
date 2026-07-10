@@ -7,4 +7,3 @@ DEV_USER_EMAIL = "asifhussain60@gmail.com"
 
 ANTHROPIC_API_KEY = "sk-ant-..."
 GEMINI_API_KEY = "AIza..."
-GITHUB_TOKEN = "github_pat_..."

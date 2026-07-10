@@ -4,18 +4,18 @@ export interface Env {
   // Static assets binding (Vite dist/) — SPA fallback configured in wrangler.toml.
   ASSETS: Fetcher;
 
+  // Chapter text storage — key is the chapter id (e.g. "ch03"). The single
+  // source of truth for saves made through the web editor.
+  CHAPTERS_KV: KVNamespace;
+
   // Secrets
   ANTHROPIC_API_KEY: string;
   GEMINI_API_KEY: string;
-  GITHUB_TOKEN: string;
 
   // Optional model override for Gemini (defaults to gemini-2.5-flash).
   GEMINI_MODEL?: string;
 
   // Vars
-  GITHUB_OWNER: string;
-  GITHUB_REPO: string;
-  GITHUB_BRANCH: string;
   CF_ACCESS_TEAM_DOMAIN: string; // e.g. myteam.cloudflareaccess.com
   CF_ACCESS_AUD: string; // Access application audience tag
   ALLOWED_EDITORS: string; // comma-separated emails permitted to write

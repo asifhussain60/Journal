@@ -14,7 +14,7 @@
 #          -a journal -w '<account id>' -U
 #   3. Interactive browser OAuth, as a last resort.
 #
-# Secrets (ANTHROPIC_API_KEY, GEMINI_API_KEY, GITHUB_TOKEN) are NOT set here —
+# Secrets (ANTHROPIC_API_KEY, GEMINI_API_KEY) are NOT set here —
 # they are pushed once with `wrangler secret put <NAME>` (see infra/DEPLOY.md).
 set -euo pipefail
 
@@ -96,7 +96,7 @@ echo ""
 echo "▶ Checking which runtime secrets are set…"
 if [ -n "${CLOUDFLARE_API_TOKEN:-}" ]; then
   set_secrets="$(npx wrangler secret list 2>/dev/null | grep -o '"name": *"[^"]*"' | sed -E 's/.*"([^"]+)"$/\1/' || true)"
-  for s in ANTHROPIC_API_KEY GEMINI_API_KEY GITHUB_TOKEN; do
+  for s in ANTHROPIC_API_KEY GEMINI_API_KEY; do
     if echo "$set_secrets" | grep -qx "$s"; then
       echo "  ✓ $s is set"
     else

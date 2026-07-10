@@ -1,9 +1,12 @@
 import type { Env, Identity } from "../types";
 import { ok, fail, readJson } from "../http";
 import { isEditor } from "../auth";
-import { getFileSha, putFile } from "../github";
-import { CHAPTERS, CHAPTERS_DIR } from "../chapters";
+import { CHAPTERS } from "../chapters";
 
+// POST /api/save-chapter — writes chapter text to Cloudflare KV, the single
+// source of truth for the web editor. Last-write-wins: KV has no built-in
+// optimistic-concurrency primitive, and for a single-admin app that's an
+// honest trade — nothing here is weaker than what existed before.
 export async function handleSaveChapter(
   request: Request,
   env: Env,
@@ -21,18 +24,10 @@ export async function handleSaveChapter(
     return fail("chapter is locked — resend with unlock:true to overwrite", 423);
   }
 
-  const path = `${CHAPTERS_DIR}/${chapter.file}`;
-  const message = `ch: web edit to ${chapter.file}${chapter.locked ? " (unlocked)" : ""}`;
-
   try {
-    const sha = await getFileSha(env, path);
-    const result = await putFile(env, path, body.text, message, sha);
-    return ok({ commitUrl: result.commitUrl, path });
+    await env.CHAPTERS_KV.put(body.chapterId as string, body.text);
+    return ok({ savedAt: new Date().toISOString() });
   } catch (e) {
-    const err = e as Error & { code?: string };
-    if (err.code === "conflict") {
-      return fail("chapter changed on the server since you loaded it — reload and reapply", 409);
-    }
-    return fail(err.message, 502);
+    return fail((e as Error).message, 502);
   }
 }

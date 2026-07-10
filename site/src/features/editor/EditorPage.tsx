@@ -168,9 +168,9 @@ export function EditorPage() {
     setSaving(true);
     try {
       // Asif's own edit is the sanctioned unlock for a locked chapter.
-      const { commitUrl } = await saveChapter(chapter.id, view.getDoc(), locked);
+      const { savedAt } = await saveChapter(chapter.id, view.getDoc(), locked);
       setDirty(false);
-      toast.success("Saved to git", { description: commitUrl || "committed to develop" });
+      toast.success("Saved", { description: new Date(savedAt).toLocaleTimeString() });
     } catch (e) {
       toast.error("Save failed", { description: (e as Error).message });
     } finally {
