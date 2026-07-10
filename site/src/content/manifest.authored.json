@@ -1,0 +1,113 @@
+{
+  "_comment": "Authored display metadata for the memoir. Editorial fields only — title, subtitle, slug, spine, readiness estimate, and the editorial section outline (these titles do NOT appear in the prose and cannot be derived). Derived fields (file presence, word count, status/locked) are computed by scripts/site/build-manifest.mjs, which reads content/babu-memoir/_system/chapter-status.md as the lock/status source of truth. Spine keys map to the --book-<spine>-bg/-border theme tokens.",
+  "title": "What I Wish Babu Taught Me",
+  "chapters": [
+    {
+      "id": "ch00",
+      "num": "00",
+      "slug": "intro",
+      "title": "Introduction",
+      "subtitle": "What I Wish Babu Taught Me",
+      "spine": "ch00",
+      "readiness": 100,
+      "sections": [
+        { "para": 1, "title": "The Sentence That Would Not Leave" },
+        { "para": 10, "title": "What This Book Really Is" },
+        { "para": 16, "title": "A Map, Not a Monument" },
+        { "para": 25, "title": "Imperfect Honesty, Offered Now" }
+      ]
+    },
+    {
+      "id": "ch01",
+      "num": "01",
+      "slug": "man",
+      "title": "Man",
+      "subtitle": "Babu, What Does It Mean to Be a Man?",
+      "spine": "ch01",
+      "readiness": 100,
+      "sections": [
+        { "para": 1, "title": "The Confused Boy in Kuwait" },
+        { "para": 12, "title": "Discipline and Defiance" },
+        { "para": 43, "title": "Character Under Pressure" },
+        { "para": 78, "title": "Nadeem Bhai’s Quiet Intervention" },
+        { "para": 85, "title": "Failure as Curriculum" },
+        { "para": 92, "title": "Learning Manhood from Women" },
+        { "para": 111, "title": "Babu’s Advice on Manhood" }
+      ]
+    },
+    {
+      "id": "ch02",
+      "num": "02",
+      "slug": "love",
+      "title": "Love",
+      "subtitle": "Babu, Tell Me What Love Really Is",
+      "spine": "ch02",
+      "readiness": 100,
+      "sections": [
+        { "para": 1, "title": "First Glimpses of Real Love" },
+        { "para": 10, "title": "Love as Control and Punishment" },
+        { "para": 74, "title": "Faith Weaponized, Religion Broken" },
+        { "para": 102, "title": "The Thaw Begins with Javeed Bhai" },
+        { "para": 138, "title": "Women Who Showed Me Tenderness" },
+        { "para": 174, "title": "Synthesis: What Love Actually Is" },
+        { "para": 188, "title": "Babu’s Advice on Love" }
+      ]
+    },
+    {
+      "id": "ch03",
+      "num": "03",
+      "slug": "marriage",
+      "title": "Marriage",
+      "subtitle": "Babu, Tell Me What Marriage Really Is",
+      "spine": "ch03",
+      "readiness": 62,
+      "sections": [
+        { "para": 1, "title": "Sex Before Understanding" },
+        { "para": 47, "title": "The Engagement That Broke Me" },
+        { "para": 63, "title": "A Marriage of Two Broken People" },
+        { "para": 76, "title": "Ishrat’s Arrival, Everything Changes" },
+        { "para": 101, "title": "Babu’s Advice on Marriage" }
+      ]
+    },
+    {
+      "id": "ch04",
+      "num": "04",
+      "slug": "faith",
+      "title": "Faith",
+      "subtitle": "Babu, What Should I Believe?",
+      "spine": "ch04",
+      "readiness": 0,
+      "sections": []
+    },
+    {
+      "id": "ch05",
+      "num": "05",
+      "slug": "education",
+      "title": "Education",
+      "subtitle": "Babu, How Do I Learn What Matters?",
+      "spine": "ch05",
+      "readiness": 0,
+      "sections": []
+    },
+    {
+      "id": "ch06",
+      "num": "06",
+      "slug": "parenthood",
+      "title": "Parenthood",
+      "subtitle": "Babu, How Do I Raise My Children?",
+      "spine": "ch06",
+      "readiness": 0,
+      "sections": []
+    },
+    {
+      "id": "ch07",
+      "num": "07",
+      "slug": "friendship",
+      "title": "Friendship",
+      "subtitle": "Babu, Who Can I Trust?",
+      "spine": "ch07",
+      "readiness": 0,
+      "sections": []
+    }
+  ]
+}

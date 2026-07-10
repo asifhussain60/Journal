@@ -1,12 +1,50 @@
 {
   "name": "babu-journal-site",
-  "version": "0.1.0",
-  "description": "Babu Journal — frontend SPA. Deployed to Cloudflare Workers as a static site.",
+  "version": "1.0.0",
+  "description": "Babu Journal — Vite + React + Tailwind SPA (viewer + editor) served by a Cloudflare Worker behind Cloudflare Access.",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "npx serve . -l 3000 --cors",
-    "start": "npx serve . -l 3000 --cors"
+    "build:manifest": "node ../scripts/site/build-manifest.mjs",
+    "predev": "npm run build:manifest",
+    "dev": "vite",
+    "prebuild": "npm run build:manifest",
+    "build": "tsc -b && vite build",
+    "pretypecheck": "npm run build:manifest",
+    "typecheck": "tsc -b --noEmit",
+    "pretest": "npm run build:manifest",
+    "test": "vitest run"
   },
-  "keywords": ["journal", "memoir"],
-  "author": "Asif Hussain"
+  "dependencies": {
+    "@codemirror/commands": "^6.10.4",
+    "@codemirror/state": "^6.7.1",
+    "@codemirror/view": "^6.43.6",
+    "@radix-ui/react-dialog": "^1.1.6",
+    "@radix-ui/react-dropdown-menu": "^2.1.6",
+    "@radix-ui/react-popover": "^1.1.6",
+    "@radix-ui/react-slider": "^1.2.3",
+    "@radix-ui/react-tabs": "^1.1.3",
+    "@radix-ui/react-toggle-group": "^1.1.2",
+    "@radix-ui/react-tooltip": "^1.1.8",
+    "diff": "^7.0.0",
+    "framer-motion": "^11.15.0",
+    "react": "^18.3.1",
+    "react-colorful": "^5.6.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^7.1.1",
+    "sonner": "^1.7.1",
+    "zustand": "^5.0.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/diff": "^7.0.0",
+    "@types/node": "^22.20.1",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.7",
+    "vitest": "^2.1.8"
+  }
 }

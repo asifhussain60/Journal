@@ -1,0 +1,21 @@
+# Cloudflare Worker — serves the Vite build (site/dist) and handles /api/*.
+# Re-authorized 2026-07-10 (supersedes the 2026-05-22 retirement). Secrets
+# (ANTHROPIC_API_KEY, GITHUB_TOKEN) are set via `wrangler secret put`, never here.
+name = "journal"
+main = "worker/index.ts"
+compatibility_date = "2026-07-01"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./site/dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+[vars]
+GITHUB_OWNER = "asifhussain60"
+GITHUB_REPO = "journal"
+GITHUB_BRANCH = "develop"
+# Filled in during cloud wiring (Phase 5b):
+CF_ACCESS_TEAM_DOMAIN = ""
+CF_ACCESS_AUD = ""
+ALLOWED_EDITORS = "asifhussain60@gmail.com"
