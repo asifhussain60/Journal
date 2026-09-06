@@ -27,15 +27,32 @@ install-skills:  ## Install Claude Code skills + agent wrappers from this repo i
 install-skills-dry:  ## Dry-run the skill installer (no files written).
 	@$(SCRIPTS_DIR)/install-claude-skills.sh --dry-run
 
-# ── Site (local-only static; no deploy after 2026-05-22 Cloudflare retirement) ─
+# ── Site + deploy ───────────────────────────────────────────────────────────
 
 .PHONY: site-dev
 site-dev:  ## Serve site/ locally on http://localhost:3000.
 	@npx serve site -l 3000 --cors
 
+.PHONY: deploy
+deploy:  ## Build the site + deploy the journal Worker to Cloudflare (see infra/DEPLOY.md).
+	@bash infra/deploy.sh
+
+.PHONY: kv-backup
+kv-backup:  ## Snapshot live chapter text from Cloudflare KV into backups/kv-snapshots/latest/.
+	@bash infra/backup-kv.sh
+
+.PHONY: kv-restore
+kv-restore:  ## Restore backups/kv-snapshots/latest/ back into live Cloudflare KV (prompts for confirmation).
+	@bash infra/restore-kv.sh
+
 .PHONY: site-sync-chapters
 site-sync-chapters:  ## Mirror content/babu-memoir/chapters/ → site/chapters/.
 	@$(SCRIPTS_DIR)/site/sync_chapters.sh
+
+.PHONY: site-sync-libraries
+site-sync-libraries:  ## Parse the reference libraries and mirror them into site/src/data/library.json.
+	@python3 $(SCRIPTS_DIR)/memoir/parse_libraries.py
+	@$(SCRIPTS_DIR)/site/sync_library.sh
 
 # ── Memoir ──────────────────────────────────────────────────────────────────
 

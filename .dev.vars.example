@@ -1,0 +1,9 @@
+# Local dev secrets for `wrangler dev`. Copy to `.dev.vars` (gitignored) and fill in.
+# Access cannot gate localhost, so DEV_AUTH_BYPASS lets the local Worker skip
+# JWT verification. NEVER set DEV_AUTH_BYPASS in production.
+
+DEV_AUTH_BYPASS = "true"
+DEV_USER_EMAIL = "asifhussain60@gmail.com"
+
+ANTHROPIC_API_KEY = "sk-ant-..."
+GEMINI_API_KEY = "AIza..."

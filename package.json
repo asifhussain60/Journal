@@ -1,13 +1,23 @@
 {
   "name": "journal",
-  "version": "0.1.0",
-  "description": "Babu memoir engine + local-only static journal site.",
+  "version": "1.0.0",
+  "description": "Babu memoir engine + Vite/React/Tailwind journal site on a Cloudflare Worker.",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "npx serve site -l 3000 --cors",
-    "start": "npx serve site -l 3000 --cors"
+    "site:dev": "npm --prefix site run dev",
+    "site:build": "npm --prefix site run build",
+    "worker:dev": "wrangler dev",
+    "worker:typecheck": "tsc -p worker/tsconfig.json",
+    "deploy": "bash infra/deploy.sh"
   },
   "keywords": ["journal", "memoir"],
-  "author": "Asif Hussain"
+  "author": "Asif Hussain",
+  "dependencies": {
+    "jose": "^5.9.6"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260101.0",
+    "wrangler": "^3.99.0"
+  }
 }

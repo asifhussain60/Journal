@@ -1,0 +1,29 @@
+# Cloudflare Worker — serves the Vite build (site/dist) and handles /api/*.
+# Re-authorized 2026-07-10 (supersedes the 2026-05-22 retirement). Secrets
+# (ANTHROPIC_API_KEY, GEMINI_API_KEY) are set via `wrangler secret put`, never here.
+#
+# Hosting account: asifhussain60@hotmail.com (id 844bc687926c910d5ad9d79c40ad1f2f).
+# Access app "Journal" already existed on that account (destinations
+# journal.kashkole.com / journal-dev.kashkole.com / journal-api.kashkole.com) —
+# these two values are its team domain + Application Audience tag.
+#
+# Chapter storage: Cloudflare KV (CHAPTERS_KV), not GitHub — saves from the web
+# editor write directly to KV; GitHub is no longer a runtime dependency at all.
+name = "journal"
+main = "worker/index.ts"
+compatibility_date = "2026-07-01"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./site/dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+[[kv_namespaces]]
+binding = "CHAPTERS_KV"
+id = "cabb8878cd364ea2b3d15baffb8fc052"
+
+[vars]
+CF_ACCESS_TEAM_DOMAIN = "kashkole.cloudflareaccess.com"
+CF_ACCESS_AUD = "6d81af3a5e116dd164908bcb61bfac1bbfe85710edb5950b74576af951596df2"
+ALLOWED_EDITORS = "asifhussain60@gmail.com"

@@ -1,0 +1,6 @@
+[
+  {"key": "ch00", "bytes": 6503, "sha256": "2b3d0ec47c5692df5898e672e963f39bdd672917d39462545b6759d0b9ccf815", "fetchedAt": "2026-07-10T17:48:29Z"},
+  {"key": "ch01", "bytes": 36057, "sha256": "1cbf3f452222b0042da3d6848a93288626fe2adb0f84139e4464b073775215ca", "fetchedAt": "2026-07-10T17:48:30Z"},
+  {"key": "ch02", "bytes": 49634, "sha256": "c6737b79f17a45c64d8796da58142d6c75a4dab9ed231b35597cf85f1c223d09", "fetchedAt": "2026-07-10T17:48:31Z"},
+  {"key": "ch03", "bytes": 29834, "sha256": "2d8a51d0bbe97d960db118889216d048b44acc42664d3ec84cfa7d6b572f43e4", "fetchedAt": "2026-07-10T17:48:32Z"}
+]
