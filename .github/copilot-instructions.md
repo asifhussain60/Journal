@@ -6,7 +6,8 @@ you (in Copilot Chat in VSCode) about this repo, follow this orientation.
 ## What this repo is
 
 - A **memoir authoring engine** for Asif's life story (under `content/babu-memoir/` — **Asif IS Babu**, the memoir's protagonist)
-- A **static React site** under `site/` that renders the memoir (local-only after 2026-05-22; no deploy target)
+- A **Vite + React + Tailwind SPA** under `site/` (viewer + editor), served together with the `/api/*` endpoints by a Cloudflare Worker (`worker/`) — live at https://journal.kashkole.com behind Cloudflare Access (Google SSO), with editor vs. read-only-viewer enforced in the Worker
+- **Cloudflare KV** as the store for live chapter text, written by the web editor
 - A small set of memoir + site tooling under `scripts/memoir/` + `scripts/site/`
 - A handful of general-utility skills + agents duplicated from the sibling `podcast-factory` repo as of the 2026-05-22 split
 
@@ -16,13 +17,13 @@ This repo is **single-machine, single-purpose**. No machine-id file, no operator
 
 The podcast pipeline + Azure infrastructure + cross-machine operator coordination + `book/<slug>` branches all live in the sibling **[podcast-factory](https://github.com/asifhussain60/podcast-factory)** repo. Don't reach into those paths from here — the two repos are fully disconnected as of the split.
 
-The Cloudflare deploy scaffold (`wrangler.toml`, `site-worker.js`, `infra/cloudflare/`, `docs/cloudflare/`) AND the Anthropic API proxy (`server/`) were RETIRED 2026-05-22 — the journal app no longer uses the Anthropic API. If a memoir feature needs the API again, decide whether to re-add `server/` here; don't reach into podcast-factory's Anthropic plumbing.
+Cloudflare hosting was retired 2026-05-22 and **re-authorized 2026-07-10** — it is live again, so `wrangler.toml`, `worker/` and `infra/` belong here and must not be removed on the strength of the old retirement note. What stayed retired is the Node/Express proxy (`server/`): the Worker owns the Anthropic and Gemini calls now. Secrets are never committed — `wrangler secret put` for deployed values, `.dev.vars` (gitignored) locally.
 
 ## When Asif asks you for help
 
 **For memoir authoring** (anywhere under `content/babu-memoir/`): invoke the `journal` skill if it's set up (`skills-staging/journal/SKILL.md`), or follow the conventions in `content/babu-memoir/_system/`. Voice integrity, scratchpad markers, and snapshot review are non-negotiable.
 
-**For site work** (anywhere under `site/`): theme work uses `skills-staging/css-theme-sync/`; UI work uses `skills-staging/ui-modernizer/`. The site is local-only — no deploy target — so `npx serve site` is the standard way to view changes.
+**For site work** (anywhere under `site/` or `worker/`): the SPA is Vite + React + Tailwind, with state in Zustand and routing in React Router. Run `npm run site:dev` to view changes, or `npm run worker:dev` when the change touches `/api/*`; `npx serve site` is obsolete. Verify with `npm --prefix site run test` and `npm run site:build` before proposing a deploy.
 
 **For general-utility skill work** (`skills-staging/clean-commit/`, `cowork-brief/`, `repo-surgeon/`, `tell-me/`, `usage-auditor/`): each is an independent copy from podcast-factory as of 2026-05-22. Edits here do NOT cross-propagate to the sibling repo.
 

@@ -9,9 +9,10 @@ as your standing brief.
 ## What this repo contains
 
 - **Babu memoir** (`content/babu-memoir/`, `skills-staging/journal/`) — Asif's memoir authoring engine. **Asif IS Babu** (the memoir's protagonist).
-- **Journal site** (`site/`) — static React display of memoir chapters. Local-only after the 2026-05-22 Cloudflare deploy retirement; serve via `npx serve site` if needed. No deploy target attached.
+- **Journal site** (`site/`, `worker/`) — Vite + React + Tailwind SPA (viewer + editor) served by a single Cloudflare Worker that also answers `/api/*`. Live at https://journal.kashkole.com behind Cloudflare Access (Google SSO): `asifhussain60@gmail.com` is the only editor, everyone else is a read-only viewer, and that split is enforced in the Worker — not merely hidden in the UI. Local dev is `npm run site:dev` (SPA) and `npm run worker:dev` (Worker + API); deploy with `make deploy`, documented in [infra/DEPLOY.md](infra/DEPLOY.md).
+- **Chapter storage** — live chapter text lives in Cloudflare KV (`CHAPTERS_KV`), written directly by the web editor; GitHub is not a runtime dependency. `content/babu-memoir/chapters/` remains the canonical on-disk authoring source. `make kv-backup` / `make kv-restore` snapshot and restore the KV side.
 - **Memoir tooling** (`scripts/memoir/`) — `auto_delta.py`, `save_snapshot.py`, `detect_user_delta.py`, `refresh_all_snapshots.py`. Drives chapter authoring + snapshot review.
-- **Site sync** (`scripts/site/sync_chapters.sh`) — mirrors `content/babu-memoir/chapters/` → `site/chapters/` for the static site.
+- **Manifest build** (`scripts/site/build-manifest.mjs`) — runs automatically before every site dev, build and test. Derives the runtime chapter manifest from the canonical chapters plus `_system/chapter-status.md`, and mirrors the chapter text into `site/public/chapters/`; both outputs are gitignored. (`scripts/site/sync_chapters.sh` predates it and is no longer part of the build.)
 
 This repo is **fully self-contained** post-split. It has no shared paths, no submodules, no symlinks with the sibling `podcast-factory` repo. Duplicated general-utility items (skills, agents, reference materials, `content/_shared/arabic/`) are independent copies that evolve separately from podcast-factory's copies.
 
@@ -26,13 +27,24 @@ The following lives in the sibling **[podcast-factory](https://github.com/asifhu
 
 The journal repo is single-machine, single-purpose. **No machine ID file is needed; no operator-coordination required.**
 
-## What this repo no longer contains (RETIRED 2026-05-22)
+## Hosting: retired 2026-05-22, RE-AUTHORIZED 2026-07-10
 
-- **Cloudflare deploy scaffold**: `wrangler.toml`, `site-worker.js`, `infra/cloudflare/`, `docs/cloudflare/` — removed because the journal app no longer needs the Anthropic API and so no longer needs the Workers proxy or the deployed surface.
-- **Anthropic API proxy** (`server/`): the Node/Express proxy that bound to 127.0.0.1:3001 — same reason as above.
-- **Docs related to the retired stack**: `docs/anthropic-api-setup.md`, `docs/proxy-setup.md`.
+Cloudflare hosting is **live again** and is this repo's deployed surface. The
+2026-05-22 retirement was explicitly reversed on 2026-07-10, when the site was
+rebuilt as a Worker-served SPA with Access login, in-browser editing and KV
+chapter storage. Any older note saying "local-only", "no deploy target", or
+"do not re-create `wrangler.toml`" is stale — correct it rather than obey it.
 
-If a future memoir feature needs the API again, decide whether to re-add `server/` here or use a different mechanism — don't reach into the podcast-factory's Anthropic plumbing.
+- **Back in the repo (2026-07-10)**: repo-root `wrangler.toml`; `worker/` (the
+  Worker itself — there is no `site-worker.js`); `infra/` with the deploy and
+  KV backup/restore scripts plus [infra/DEPLOY.md](infra/DEPLOY.md); and model
+  API calls (Anthropic + Gemini), which now run inside the Worker.
+- **Still retired**: the Node/Express proxy (`server/`) that bound to
+  127.0.0.1:3001 — the Worker replaced it, and `.gitignore` still guards the
+  path. Its setup docs are gone too; the deployment record is `infra/DEPLOY.md`.
+- **Secrets never enter the repo**: `ANTHROPIC_API_KEY` and `GEMINI_API_KEY` are
+  pushed with `wrangler secret put`; local values live in `.dev.vars`
+  (gitignored); Cloudflare credentials come from the macOS Keychain.
 
 ## Read these once per machine, or when conventions feel stale
 
@@ -55,7 +67,10 @@ Step 4: Respond in the 4-part template. No custom section labels.
 
 ## Do NOT
 
-- Re-create `server/`, `wrangler.toml`, `site-worker.js`, `infra/cloudflare/`, or `docs/cloudflare/` without explicit user authorization — these were retired 2026-05-22 for a reason.
+- Re-create the Express proxy `server/` — the Worker (`worker/`) owns the API now.
+- Remove, or "re-retire", `wrangler.toml`, `worker/`, or `infra/` on the strength of the 2026-05-22 retirement note — that retirement was reversed on 2026-07-10 and the Worker is live.
+- Commit secrets — `.dev.vars`, API keys, Cloudflare tokens. They belong in `wrangler secret put` and the macOS Keychain.
+- Deploy (`make deploy`) without being asked — it publishes to the live site.
 - Force-push to `main` or `develop`.
 - Bypass `git status` cleanliness before merges.
 - Reach into the sibling `podcast-factory` repo's paths or use its scripts from here — the repos are fully disconnected (`_workspace/`, `scripts/podcast/`, `infra/azure/` etc. live ONLY in podcast-factory).
