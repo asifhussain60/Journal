@@ -1,9 +1,10 @@
-# Makefile — canonical entry point for the journal repo (memoir + static site).
+# Makefile — canonical entry point for the journal repo (memoir + Worker-served site).
 #
-# Slimmed 2026-05-22 in the repo split: podcast pipeline + Azure provisioning
-# + Cloudflare deploy targets removed because that surface lives in the sibling
-# podcast-factory repo. Anthropic API proxy (server/) was retired the same day,
-# so its npm scripts are also gone.
+# Slimmed 2026-05-22 in the repo split: the podcast pipeline and Azure
+# provisioning live in the sibling podcast-factory repo, and the Express
+# Anthropic proxy (server/) was retired the same day — the Worker owns the API.
+# Cloudflare deploy targets came BACK on 2026-07-10 with the Worker rebuild
+# (deploy, kv-backup, kv-restore below); see infra/DEPLOY.md.
 
 .DEFAULT_GOAL := help
 SHELL := /bin/bash
@@ -30,8 +31,12 @@ install-skills-dry:  ## Dry-run the skill installer (no files written).
 # ── Site + deploy ───────────────────────────────────────────────────────────
 
 .PHONY: site-dev
-site-dev:  ## Serve site/ locally on http://localhost:3000.
-	@npx serve site -l 3000 --cors
+site-dev:  ## Vite dev server for the SPA on http://localhost:3000 (proxies /api to worker-dev).
+	@npm run site:dev
+
+.PHONY: worker-dev
+worker-dev:  ## Run the Worker + /api/* locally on :8787 via wrangler (reads .dev.vars).
+	@npm run worker:dev
 
 .PHONY: deploy
 deploy:  ## Build the site + deploy the journal Worker to Cloudflare (see infra/DEPLOY.md).
@@ -46,7 +51,7 @@ kv-restore:  ## Restore backups/kv-snapshots/latest/ back into live Cloudflare K
 	@bash infra/restore-kv.sh
 
 .PHONY: site-sync-chapters
-site-sync-chapters:  ## Mirror content/babu-memoir/chapters/ → site/chapters/.
+site-sync-chapters:  ## LEGACY mirror to site/chapters/ — the manifest build (run on every site dev/build/test) mirrors chapters now.
 	@$(SCRIPTS_DIR)/site/sync_chapters.sh
 
 .PHONY: site-sync-libraries

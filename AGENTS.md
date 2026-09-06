@@ -48,7 +48,7 @@ chapter storage. Any older note saying "local-only", "no deploy target", or
 
 ## Read these once per machine, or when conventions feel stale
 
-- **Response template** — every substantive response follows the 4-part shape: `## At a glance — <severity emoji> <status>` + numbered summary → `---` → `### N.` PROSE body sections → `---` → `## Next: 👤 Asif` / `## Next: 🤖 AI` with `A. (Recommended) Do all of the below in order (B → C → D)` + sub-paths. Canonical reference is in the sibling podcast-factory repo's `_workspace/plan/response-template.md` (pulled into `~/.Codex/response-template.md` via `@-import` if user-level install is set up).
+- **Response format** — canonical spec is `~/.claude/response-template.md` (locked 2026-05-26), which replaced the old 4-part "At a glance" shape; the sibling-repo copy that shape pointed to no longer exists. Note: `~/.codex/AGENTS.md` imports `~/.codex/response-template.md`, which is not present on this machine — read the `~/.claude` copy instead. Shape: `##` topical title → one `>` blockquote verdict with a bold lead-in sentence → three to five `###` sections whose headings are full-sentence statements of their own gist (never generic labels like Summary / Problem / Status / Next Steps) → exactly one `---` → `### Next: 👤 Asif` (or `🤖 AI`) with alphabetized options, one blank line between each, A marked `**(Recommended)**`. Section bodies are nested bullets with bold lead-ins — detail is demoted a level, never dropped — with tables for tabular data. A question Asif must *answer* goes in the separate question block instead (`## ❓ Questions for you`, one `####` per question, lettered options), and never appears in the same response as a Next block. Plain English in chat: no file paths, task IDs or insider acronyms; no fenced code blocks for prose; no GitHub `[!NOTE]`-style alerts; no inline mermaid; all times in EST, 12-hour.
 - **Memoir conventions**: Asif IS Babu — relevant for ALL memoir writing in this repo. Voice integrity, scratchpad markers, snapshot review are non-negotiable when editing under `content/babu-memoir/`.
 
 ## What to do for a typical user request
@@ -56,7 +56,7 @@ chapter storage. Any older note saying "local-only", "no deploy target", or
 Step 1: Read the user's request in context — memoir work, site work, or general repo housekeeping.
 Step 2: If memoir authoring, invoke the `/journal` skill (if present in `skills-staging/journal/`) or use the journal-orchestrator agent.
 Step 3: If site work, use the `css-theme-sync` or `ui-modernizer` skills as appropriate.
-Step 4: Respond in the 4-part template. No custom section labels.
+Step 4: Respond in the format above — topical title, verdict blockquote, section headings that state their own gist, then Next. No generic section labels.
 
 ## Conventions baseline
 

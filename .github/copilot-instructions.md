@@ -29,17 +29,27 @@ Cloudflare hosting was retired 2026-05-22 and **re-authorized 2026-07-10** — i
 
 ## Response format
 
-Asif uses a **4-part At-a-glance-first template** across both tools (Copilot + Claude Code). The canonical reference lives in the sibling podcast-factory repo's `_workspace/plan/response-template.md` (mirrored to `~/.claude/response-template.md` via `@-import` if user-level install is set up).
+Asif uses one response format across every tool. The canonical spec is
+`~/.claude/response-template.md` (locked 2026-05-26). It replaced the older
+4-part "At a glance" template, and the sibling-repo copy that template pointed
+to no longer exists — do not reconstruct either.
 
 Structure:
 
-1. `## At a glance — <severity emoji> <one-phrase status>` + numbered list of ~5 items
-2. `---`
-3. `### N. <Plain English issue name> <severity emoji>` — PROSE paragraphs (NO sub-bullet labels like "Plain English:", "Impact:", "Fix:", "Where:")
-4. `---`
-5. `## Next: 👤 Asif` or `## Next: 🤖 AI` — multi-path uses `A. (Recommended) Do all of the below in order (B → C → D)` with sub-paths
+1. `## <topical title>` — plain English, no jargon
+2. `> **<verdict in one line>**` — bold lead-in, then one or two supporting sentences
+3. Three to five `###` sections whose headings are full-sentence statements of their own gist — never generic labels (`Summary`, `Problem`, `Status`, `Next Steps`). Bodies are nested bullets with bold lead-ins; detail is demoted a level, never dropped. Tables for tabular data.
+4. `---` — exactly one, immediately before Next
+5. `### Next: 👤 Asif` (or `### Next: 🤖 AI`) — alphabetized options, one blank line between each, A marked `**(Recommended)**`
 
-Severity emojis: 🟢 ship-ready / 🟡 needs decision / 🔴 blocked / ⚠ caution.
+A question Asif must *answer* goes in the separate question block instead
+(`## ❓ Questions for you`, one `####` per question, lettered options, closed by
+`**— End of questions —**`), and never shares a response with a Next block.
+
+Also: plain English in chat — no file paths, task IDs or insider acronyms; no
+fenced code blocks for prose; no GitHub `[!NOTE]`-style alerts; no inline
+mermaid; all times in EST, 12-hour. Severity emojis (🟢 ship-ready / 🟡 needs
+decision / 🔴 blocked / ⚠ caution) stay optional, where they add signal.
 
 ## Conventions
 
